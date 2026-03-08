@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 - 使用绿色区别于主应用 -->
+  <circle cx="96" cy="96" r="88" fill="#4CAF50"/>
+
+  <!-- 屏幕设备外框 -->
+  <rect x="46" y="52" width="100" height="76" rx="6" fill="#2E7D32" stroke="#FFFFFF" stroke-width="5"/>
+
+  <!-- 屏幕显示内容（扫描线） -->
+  <line x1="58" y1="70" x2="120" y2="70" stroke="#81C784" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+  <line x1="58" y1="82" x2="134" y2="82" stroke="#81C784" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <line x1="58" y1="94" x2="110" y2="94" stroke="#81C784" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+  <line x1="58" y1="106" x2="125" y2="106" stroke="#81C784" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- 观察眼睛图标 -->
+  <ellipse cx="96" cy="148" rx="32" ry="20" fill="#FFFFFF" opacity="0.95"/>
+  <ellipse cx="96" cy="148" rx="24" ry="15" fill="#2E7D32"/>
+  <circle cx="96" cy="148" r="10" fill="#1B5E20"/>
+  <circle cx="99" cy="145" r="4" fill="#FFFFFF"/>
+
+  <!-- 扫描光束效果 -->
+  <path d="M 70 60 L 122 60 L 118 118 L 74 118 Z" fill="#81C784" opacity="0.15"/>
+</svg>
