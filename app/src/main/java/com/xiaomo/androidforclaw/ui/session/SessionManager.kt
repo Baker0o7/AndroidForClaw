@@ -1,6 +1,7 @@
 package com.xiaomo.androidforclaw.ui.session
 
 import com.xiaomo.androidforclaw.ui.compose.ChatMessage
+import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -228,7 +229,7 @@ class SessionManager {
                         "[$type] ${key.take(10)}..."
                     }
 
-                    // 转换消息格式
+                    // 转换消息格式，过滤推理标签
                     val uiMessages = backendSession.messages.mapNotNull { msg ->
                         if (msg.role == "user" || msg.role == "assistant") {
                             val contentStr = when (val c = msg.content) {
@@ -236,10 +237,22 @@ class SessionManager {
                                 null -> ""
                                 else -> c.toString()
                             }
-                            ChatMessage(
-                                content = contentStr,
-                                isUser = msg.role == "user"
-                            )
+
+                            // 对 assistant 消息过滤推理标签
+                            val cleanContent = if (msg.role == "assistant") {
+                                ReasoningTagFilter.stripReasoningTags(contentStr)
+                            } else {
+                                contentStr
+                            }
+
+                            if (cleanContent.isNotEmpty()) {
+                                ChatMessage(
+                                    content = cleanContent,
+                                    isUser = msg.role == "user"
+                                )
+                            } else {
+                                null
+                            }
                         } else {
                             null
                         }

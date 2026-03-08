@@ -8,6 +8,7 @@ import com.xiaomo.androidforclaw.channel.ChannelManager
 import com.xiaomo.androidforclaw.ui.compose.ChatMessage
 import com.xiaomo.androidforclaw.ui.compose.MessageStatus
 import com.xiaomo.androidforclaw.ui.session.SessionManager
+import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -98,11 +99,16 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             }
                             "assistant" -> {
                                 if (contentStr.isNotEmpty()) {
-                                    chatMessages.add(ChatMessage(
-                                        content = contentStr,
-                                        isUser = false,
-                                        status = MessageStatus.SENT
-                                    ))
+                                    // 过滤推理标签 (<think>, <final> 等)
+                                    val cleanContent = ReasoningTagFilter.stripReasoningTags(contentStr)
+
+                                    if (cleanContent.isNotEmpty()) {
+                                        chatMessages.add(ChatMessage(
+                                            content = cleanContent,
+                                            isUser = false,
+                                            status = MessageStatus.SENT
+                                        ))
+                                    }
                                 }
                             }
                         }
