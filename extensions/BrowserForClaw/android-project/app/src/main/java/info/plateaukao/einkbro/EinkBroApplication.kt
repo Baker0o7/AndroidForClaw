@@ -88,11 +88,12 @@ class EinkBroApplication : Application() {
 
     private fun startBrowserHttpServer() {
         try {
-            // Use port 8766 to avoid conflict with AndroidForClaw Gateway (8765)
-            val server = info.plateaukao.einkbro.browser.control.server.SimpleBrowserHttpServer(8766)
-            server.start()
+            // 使用前台服务运行 HTTP Server,确保持续运行
+            // 端口 8766 避免与 AndroidForClaw Gateway (8765) 冲突
+            info.plateaukao.einkbro.service.BrowserApiService.start(this)
+            android.util.Log.i("BrowserHttpServer", "✅ Starting BrowserApiService (foreground service)")
         } catch (e: Exception) {
-            android.util.Log.e("BrowserHttpServer", "❌ Failed to start HTTP server", e)
+            android.util.Log.e("BrowserHttpServer", "❌ Failed to start BrowserApiService", e)
         }
     }
 

@@ -47,6 +47,8 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.AUDIO_CAPTURE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".EinkBroApplication"
@@ -232,6 +234,13 @@
             android:name=".service.ClearService"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name" />
+
+        <!-- BrowserForClaw HTTP API 前台服务 -->
+        <service
+            android:name=".service.BrowserApiService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <!-- android:authorities="info.plateaukao.einkbro.debug.fileprovider" -->
         <provider
