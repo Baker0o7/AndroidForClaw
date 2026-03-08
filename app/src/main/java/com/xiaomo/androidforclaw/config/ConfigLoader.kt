@@ -323,7 +323,7 @@ class ConfigLoader(private val context: Context) {
      */
     fun getProviderConfig(providerName: String): ProviderConfig? {
         val openClawConfig = loadOpenClawConfig()
-        return openClawConfig.providers[providerName]
+        return openClawConfig.resolveProviders()[providerName]
     }
 
     /**
@@ -341,7 +341,7 @@ class ConfigLoader(private val context: Context) {
         val config = loadOpenClawConfig()
         val models = mutableListOf<Pair<String, ModelDefinition>>()
 
-        config.providers.forEach { (providerName, provider) ->
+        config.resolveProviders().forEach { (providerName, provider) ->
             provider.models.forEach { model ->
                 models.add(providerName to model)
             }
@@ -355,7 +355,7 @@ class ConfigLoader(private val context: Context) {
      */
     fun findProviderByModelId(modelId: String): String? {
         val openClawConfig = loadOpenClawConfig()
-        openClawConfig.providers.forEach { (providerName, provider) ->
+        openClawConfig.resolveProviders().forEach { (providerName, provider) ->
             if (provider.models.any { it.id == modelId }) {
                 return providerName
             }

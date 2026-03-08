@@ -21,6 +21,12 @@ data class OpenClawConfig(
     @SerializedName("agent")
     val agent: AgentConfig = AgentConfig(),
 
+    @SerializedName("agents")
+    val agents: AgentsConfig? = null,
+
+    @SerializedName("models")
+    val models: ModelsConfig? = null,
+
     @SerializedName("skills")
     val skills: SkillsConfig = SkillsConfig(),
 
@@ -44,7 +50,17 @@ data class OpenClawConfig(
 
     @SerializedName("providers")
     val providers: Map<String, ProviderConfig> = emptyMap()
-)
+) {
+    // 兼容性辅助方法:获取 providers (优先从 models.providers,否则从 providers)
+    fun resolveProviders(): Map<String, ProviderConfig> {
+        return models?.providers ?: providers
+    }
+
+    // 兼容性辅助方法:获取默认模型 (优先从 agents.defaults.model.primary,否则从 agent.defaultModel)
+    fun resolveDefaultModel(): String {
+        return agents?.defaults?.model?.primary ?: agent.defaultModel
+    }
+}
 
 /**
  * Extended Thinking 配置
@@ -607,4 +623,31 @@ data class DiscordAccountPolicyConfig(
 
     @SerializedName("guilds")
     val guilds: Map<String, GuildPolicyConfig>? = null
+)
+
+/**
+ * Agents 配置 (OpenClaw 格式)
+ */
+data class AgentsConfig(
+    @SerializedName("defaults")
+    val defaults: AgentDefaultsConfig = AgentDefaultsConfig()
+)
+
+/**
+ * Agent 默认配置
+ */
+data class AgentDefaultsConfig(
+    @SerializedName("model")
+    val model: ModelSelectionConfig? = null
+)
+
+/**
+ * Model 选择配置
+ */
+data class ModelSelectionConfig(
+    @SerializedName("primary")
+    val primary: String? = null,
+
+    @SerializedName("fallbacks")
+    val fallbacks: List<String>? = null
 )

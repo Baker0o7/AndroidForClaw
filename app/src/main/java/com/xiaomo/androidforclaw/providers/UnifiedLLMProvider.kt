@@ -223,15 +223,22 @@ class UnifiedLLMProvider(private val context: Context) {
     private fun parseModelRef(modelRef: String?): Pair<String, String> {
         // 如果未指定，使用默认模型
         if (modelRef == null) {
-            val defaultModel = configLoader.loadOpenClawConfig().agent.defaultModel
+            val defaultModel = configLoader.loadOpenClawConfig().resolveDefaultModel()
             return parseModelRef(defaultModel)
         }
 
-        // 解析格式
+        // 第一步:尝试将完整的 modelRef 作为 model ID 查找
+        // 这样可以支持 model ID 本身包含 "/" 的情况 (如 "anthropic/claude-opus-4-6")
+        val providerForFullId = configLoader.findProviderByModelId(modelRef)
+        if (providerForFullId != null) {
+            return Pair(providerForFullId, modelRef)
+        }
+
+        // 第二步:按照 "provider/model-id" 格式解析
         val parts = modelRef.split("/", limit = 2)
         return when (parts.size) {
             2 -> {
-                // "provider/model-id" 格式
+                // "provider/model-id" 格式 (如 "openrouter/anthropic/claude-opus-4-6")
                 Pair(parts[0], parts[1])
             }
             1 -> {
