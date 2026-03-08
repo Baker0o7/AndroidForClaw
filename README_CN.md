@@ -332,6 +332,14 @@ AndroidForClaw/
 
 **[加入 Discord 服务器](https://discord.gg/k9NKrXUN)** - 在社区里体验 AI 手机控制！
 
+---
+
+#### 微信群
+
+<img src="docs/images/wechat-qrcode.png" width="300" alt="微信群二维码">
+
+**扫码加入微信群** - 该二维码7天内（3月16日前）有效，重新进入将更新
+
 </div>
 
 *在群里交流使用经验、分享技巧、获取帮助、体验 AI 控制手机*

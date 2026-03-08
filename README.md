@@ -332,6 +332,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **[Join Discord Server](https://discord.gg/k9NKrXUN)** - Experience AI phone control in the community!
 
+---
+
+#### WeChat Group (微信群)
+
+<img src="docs/images/wechat-qrcode.png" width="300" alt="WeChat Group QR Code">
+
+**扫码加入微信群** - 该二维码7天内有效，重新进入将更新
+
 </div>
 
 ### Other Channels
