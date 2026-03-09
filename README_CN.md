@@ -49,7 +49,8 @@
 #### 🔧 通用工具链
 - ✅ **文件读写** — read_file / write_file / edit_file
 - ✅ **目录浏览** — list_dir
-- ✅ **Shell 命令** — ls / cat / grep / find / sed / awk 等
+- ✅ **Shell 命令** — 基础命令 (ls / cat / grep / find / sed / awk 等)
+- 🚧 **满血版终端支持** — Termux 集成开发中，提供完整 Shell 环境
 - ✅ **网页抓取** — web_fetch
 - ✅ **JavaScript 引擎** — 内置 QuickJS，支持 ES6+
 
@@ -89,6 +90,14 @@
 - ✅ **Activity 跳转** — 直接跳转到应用的指定页面
 - ✅ **应用列表** — 获取所有已安装应用
 - ✅ **系统导航** — Home / 返回 / 最近任务
+
+#### 🖥️ 终端与开发
+- ✅ **基础 Shell** — 内置 Shell 命令用于文件操作
+- 🚧 **Termux 集成** — 满血版终端环境（开发中）
+  - 完整 Linux 命令行工具 (git, python, node 等)
+  - 包管理器支持 (apt, pkg)
+  - SSH 服务器远程访问
+  - 移动端开发环境
 
 #### 🔥 任意 App 操控（核心差异！）
 

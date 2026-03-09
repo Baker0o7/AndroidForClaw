@@ -49,7 +49,8 @@ No computer needed. No Gateway needed. No pairing needed. Install the APK, grant
 #### 🔧 Universal Tool Chain
 - ✅ **File Operations** — read_file / write_file / edit_file
 - ✅ **Directory Browsing** — list_dir
-- ✅ **Shell Commands** — ls / cat / grep / find / sed / awk, etc.
+- ✅ **Shell Commands** — Basic commands (ls / cat / grep / find / sed / awk, etc.)
+- 🚧 **Full Terminal Support** — Termux integration (in development) for complete shell environment
 - ✅ **Web Scraping** — web_fetch
 - ✅ **JavaScript Engine** — Built-in QuickJS, ES6+ support
 
@@ -89,6 +90,14 @@ No computer needed. No Gateway needed. No pairing needed. Install the APK, grant
 - ✅ **Activity Navigation** — Jump directly to specific app pages
 - ✅ **App List** — Get all installed applications
 - ✅ **System Navigation** — Home / Back / Recent Tasks
+
+#### 🖥️ Terminal & Development
+- ✅ **Basic Shell** — Built-in shell commands for file operations
+- 🚧 **Termux Integration** — Full-featured terminal environment (in development)
+  - Complete Linux command-line tools (git, python, node, etc.)
+  - Package manager support (apt, pkg)
+  - SSH server for remote access
+  - Development environment on mobile
 
 #### 🔥 Any App Control (Core Difference!)
 
