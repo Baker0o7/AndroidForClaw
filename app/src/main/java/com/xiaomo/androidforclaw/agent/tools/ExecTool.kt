@@ -12,8 +12,8 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 /**
- * Exec Tool - 执行 shell 命令
- * 参考 nanobot 的 ExecTool
+ * Exec Tool - Execute shell commands
+ * Reference: nanobot's ExecTool
  */
 class ExecTool(
     private val timeout: Long = 60000L, // 60 seconds
@@ -22,12 +22,12 @@ class ExecTool(
     companion object {
         private const val TAG = "ExecTool"
 
-        // 危险命令黑名单
+        // Dangerous commands blacklist
         private val DENY_PATTERNS = listOf(
             Regex("""\brm\s+-[rf]{1,2}\b"""),           // rm -r, rm -rf
             Regex("""\bformat\b"""),                    // format
-            Regex("""\b(shutdown|reboot|poweroff)\b"""), // 系统电源
-            Regex("""\bdd\s+if="""),                    // dd 命令
+            Regex("""\b(shutdown|reboot|poweroff)\b"""), // system power
+            Regex("""\bdd\s+if="""),                    // dd command
         )
     }
 
@@ -60,7 +60,7 @@ class ExecTool(
             return ToolResult.error("Missing required parameter: command")
         }
 
-        // 安全检查
+        // Safety check
         val guardError = guardCommand(command)
         if (guardError != null) {
             return ToolResult.error(guardError)
@@ -74,7 +74,7 @@ class ExecTool(
                     processBuilder.directory(java.io.File(workDir))
                 }
 
-                // 分割命令（简单实现，不处理复杂的引号）
+                // Split command (simple implementation, doesn't handle complex quotes)
                 val cmdArray = if (command.contains(" ")) {
                     listOf("sh", "-c", command)
                 } else {
@@ -86,7 +86,7 @@ class ExecTool(
 
                 val process = processBuilder.start()
 
-                // 带超时的等待
+                // Wait with timeout
                 val result = withTimeout(timeout) {
                     val stdout = BufferedReader(InputStreamReader(process.inputStream))
                         .readText()
@@ -112,7 +112,7 @@ class ExecTool(
                     }.ifEmpty { "(no output)" }
                 }
 
-                // 截断过长输出
+                // Truncate overly long output
                 val maxLen = 10000
                 val finalResult = if (result.length > maxLen) {
                     result.take(maxLen) + "\n... (truncated, ${result.length - maxLen} more chars)"
@@ -131,7 +131,7 @@ class ExecTool(
     }
 
     /**
-     * 安全检查：阻止危险命令
+     * Safety check: Block dangerous commands
      */
     private fun guardCommand(command: String): String? {
         val lower = command.lowercase()

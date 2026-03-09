@@ -10,12 +10,12 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 import java.io.File
 
 /**
- * 飞书发送图片工具
+ * Feishu Send Image Skill
  *
- * 用途: Agent 调用此工具发送图片到飞书当前对话
- * 场景: 截图后发送给用户
+ * Purpose: Agent calls this tool to send images to current Feishu conversation
+ * Scenario: Send screenshot to user
  *
- * 实现: 使用 FeishuChannel 的当前对话上下文发送图片
+ * Implementation: Use FeishuChannel's current conversation context to send images
  */
 class FeishuSendImageSkill(private val context: Context) : Skill {
     companion object {
@@ -52,7 +52,7 @@ class FeishuSendImageSkill(private val context: Context) : Skill {
         Log.d(TAG, "Sending image: $imagePath")
 
         try {
-            // 检查文件
+            // Check file
             val imageFile = File(imagePath)
             if (!imageFile.exists()) {
                 return SkillResult.error("Image file not found: $imagePath")
@@ -62,14 +62,14 @@ class FeishuSendImageSkill(private val context: Context) : Skill {
                 return SkillResult.error("Cannot read image file: $imagePath")
             }
 
-            // 获取 FeishuChannel
+            // Get FeishuChannel
             val feishuChannel = MyApplication.getFeishuChannel()
             if (feishuChannel == null) {
                 Log.e(TAG, "❌ Feishu channel not active")
                 return SkillResult.error("Feishu channel is not active. Make sure Feishu is enabled in config.")
             }
 
-            // 发送图片到当前对话
+            // Send image to current conversation
             Log.i(TAG, "📤 Sending image to current chat: ${imageFile.name} (${imageFile.length()} bytes)")
             val result = feishuChannel.sendImageToCurrentChat(imageFile)
 

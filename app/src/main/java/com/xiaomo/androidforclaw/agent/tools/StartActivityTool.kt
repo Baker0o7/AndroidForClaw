@@ -10,7 +10,7 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**
  * Start Activity Skill
- * 启动指定的 Activity（支持完整 ComponentName）
+ * Start specified Activity (supports full ComponentName)
  */
 class StartActivityTool(private val context: Context) : Skill {
     companion object {
@@ -60,12 +60,12 @@ class StartActivityTool(private val context: Context) : Skill {
 
         return try {
             val intent = when {
-                // 优先使用 component（完整格式）
+                // Prefer using component (full format)
                 !component.isNullOrBlank() -> {
                     Log.d(TAG, "Starting activity with component: $component")
                     Intent.parseUri("intent://#Intent;component=$component;end", 0)
                 }
-                // 使用 package + activity
+                // Use package + activity
                 !packageName.isNullOrBlank() && !activityName.isNullOrBlank() -> {
                     Log.d(TAG, "Starting activity: $packageName/$activityName")
                     Intent().apply {

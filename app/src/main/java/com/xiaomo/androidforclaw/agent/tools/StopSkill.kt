@@ -9,7 +9,7 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**
  * Stop Skill
- * 停止当前任务
+ * Stop current task execution
  */
 class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
     companion object {
@@ -41,7 +41,7 @@ class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
 
         Log.d(TAG, "Stopping task: $reason")
         return try {
-            // 设置任务状态为停止
+            // Set task status to stopped
             val taskData = taskDataManager.getCurrentTaskData()
             taskData?.stopRunning(reason)
             SkillResult.success(

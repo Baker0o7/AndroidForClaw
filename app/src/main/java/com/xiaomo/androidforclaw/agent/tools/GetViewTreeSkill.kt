@@ -10,10 +10,10 @@ import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 
 /**
  * Get View Tree Skill
- * 获取当前屏幕的 UI 树结构（处理后的清洁版本）
+ * Get current screen UI tree structure (processed clean version)
  *
- * 优先使用这个工具来理解界面，它比 screenshot 更轻量、更快速。
- * 只有在需要视觉信息或操作失败时才使用 screenshot。
+ * Prefer using this tool to understand interface - it's lighter and faster than screenshot.
+ * Only use screenshot when visual information is needed or operation fails.
  */
 class GetViewTreeSkill(private val context: Context) : Skill {
     companion object {
@@ -59,7 +59,7 @@ class GetViewTreeSkill(private val context: Context) : Skill {
                 return SkillResult.error("Accessibility service not ready")
             }
 
-            // 获取原始 UI 树和处理后的 UI 树
+            // Get original UI tree and processed UI tree
             val iconResult = DeviceController.detectIcons(context)
             if (iconResult == null) {
                 return SkillResult.error("无法获取 UI 树。请检查：\n1. 无障碍服务是否已启用\n2. 当前应用是否允许访问")
@@ -68,7 +68,7 @@ class GetViewTreeSkill(private val context: Context) : Skill {
 
             Log.d(TAG, "Original nodes: ${originalNodes.size}, Processed nodes: ${processedNodes.size}")
 
-            // 使用处理后的节点（去重、去空）
+            // Use processed nodes (deduplicated, empty removed)
             val uiInfo = buildString {
                 appendLine("【屏幕 UI 元素列表】（共 ${processedNodes.size} 个可用元素）")
                 appendLine()
@@ -95,11 +95,11 @@ class GetViewTreeSkill(private val context: Context) : Skill {
     }
 
     /**
-     * 格式化单个节点信息
+     * Format single node information
      */
     private fun formatNode(node: com.xiaomo.androidforclaw.ViewNode): String {
         return buildString {
-            // 文本内容
+            // Text content
             val text = node.text?.takeIf { it.isNotBlank() } ?: node.contentDesc?.takeIf { it.isNotBlank() } ?: ""
             if (text.isNotEmpty()) {
                 append("\"$text\"")
@@ -107,15 +107,15 @@ class GetViewTreeSkill(private val context: Context) : Skill {
                 append("[无文本]")
             }
 
-            // 坐标
+            // Coordinates
             append(" (${node.point.x}, ${node.point.y})")
 
-            // 是否可点击
+            // Is clickable
             if (node.clickable) {
                 append(" [可点击]")
             }
 
-            // 类型（简化）
+            // Type (simplified)
             val simpleClass = node.className?.substringAfterLast('.') ?: ""
             if (simpleClass.isNotEmpty() && !simpleClass.contains("Layout")) {
                 append(" <$simpleClass>")

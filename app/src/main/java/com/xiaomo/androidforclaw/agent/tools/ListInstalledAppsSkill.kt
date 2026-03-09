@@ -11,7 +11,7 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**
  * List Installed Apps Skill
- * 获取已安装应用列表
+ * Get list of installed applications
  */
 class ListInstalledAppsSkill(private val context: Context) : Skill {
     companion object {
@@ -55,7 +55,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
 
             val apps = packages
                 .filter { appInfo ->
-                    // 过滤系统应用
+                    // Filter system apps
                     if (!includeSystem && (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0) {
                         return@filter false
                     }
@@ -67,7 +67,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
                         val packageName = appInfo.packageName
                         val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
 
-                        // 应用过滤
+                        // Apply filter
                         if (filter != null && !filter.isBlank()) {
                             if (!label.contains(filter, ignoreCase = true) &&
                                 !packageName.contains(filter, ignoreCase = true)

@@ -9,7 +9,7 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**
  * Long Press Skill
- * 长按屏幕指定坐标
+ * Long press at specified screen coordinates
  */
 class LongPressSkill : Skill {
     companion object {
@@ -58,7 +58,7 @@ class LongPressSkill : Skill {
                 return SkillResult.error("Long press operation failed")
             }
 
-            // 长按后等待菜单弹出或响应
+            // Wait for menu popup or response after long press
             kotlinx.coroutines.delay(200)
 
             SkillResult.success(

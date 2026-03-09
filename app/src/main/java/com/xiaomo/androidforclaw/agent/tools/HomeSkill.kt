@@ -8,7 +8,7 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**
  * Home Skill
- * 按下 Home 键返回主屏幕
+ * Press Home button to return to main screen
  */
 class HomeSkill : Skill {
     companion object {
@@ -45,7 +45,7 @@ class HomeSkill : Skill {
                 return SkillResult.error("Home button press failed")
             }
 
-            // 等待桌面启动器加载
+            // Wait for launcher to load
             kotlinx.coroutines.delay(300)
 
             SkillResult.success(

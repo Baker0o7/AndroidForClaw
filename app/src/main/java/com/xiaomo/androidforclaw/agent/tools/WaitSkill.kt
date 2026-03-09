@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 
 /**
  * Wait Skill
- * 等待指定时间
+ * Wait for specified duration
  */
 class WaitSkill : Skill {
     companion object {

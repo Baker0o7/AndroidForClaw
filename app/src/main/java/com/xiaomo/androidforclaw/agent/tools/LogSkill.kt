@@ -8,7 +8,7 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**
  * Log Skill
- * 记录日志信息
+ * Record log information
  */
 class LogSkill : Skill {
     companion object {
