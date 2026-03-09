@@ -549,8 +549,22 @@ class ConfigLoader(private val context: Context) {
      * 创建默认 OpenClaw 配置文件
      */
     private fun createDefaultOpenClawConfig() {
-        openclawConfigFile.writeText(DEFAULT_OPENCLAW_CONFIG)
-        Log.i(TAG, "✅ 创建默认 OpenClaw 配置文件")
+        try {
+            // 优先从 assets 读取默认配置
+            val defaultConfig = try {
+                context.assets.open("openclaw.json.default").bufferedReader().use { it.readText() }
+            } catch (e: Exception) {
+                Log.w(TAG, "无法从 assets 读取默认配置，使用内置配置: ${e.message}")
+                DEFAULT_OPENCLAW_CONFIG
+            }
+
+            openclawConfigFile.writeText(defaultConfig)
+            Log.i(TAG, "✅ 创建默认 OpenClaw 配置文件: ${openclawConfigFile.absolutePath}")
+            Log.i(TAG, "📝 提示: 请编辑配置文件，填入你的 API Keys")
+        } catch (e: Exception) {
+            Log.e(TAG, "创建默认配置失败", e)
+            throw e
+        }
     }
 
     /**
