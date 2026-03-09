@@ -3,14 +3,14 @@ package com.xiaomo.androidforclaw.config
 import com.xiaomo.feishu.FeishuConfig
 
 /**
- * Feishu 配置适配器
+ * Feishu Config Adapter
  *
- * 将 OpenClawConfig 中的 FeishuChannelConfig 转换为 feishu-channel 模块的 FeishuConfig
+ * Converts FeishuChannelConfig from OpenClawConfig to FeishuConfig for feishu-channel module
  */
 object FeishuConfigAdapter {
 
     /**
-     * 从 FeishuChannelConfig 转换为 FeishuConfig
+     * Convert from FeishuChannelConfig to FeishuConfig
      */
     fun toFeishuConfig(channelConfig: FeishuChannelConfig): FeishuConfig {
         return FeishuConfig(
@@ -79,7 +79,7 @@ object FeishuConfigAdapter {
     }
 
     /**
-     * 从 FeishuConfig 转换为 FeishuChannelConfig
+     * Convert from FeishuConfig to FeishuChannelConfig
      */
     fun fromFeishuConfig(feishuConfig: FeishuConfig): FeishuChannelConfig {
         return FeishuChannelConfig(

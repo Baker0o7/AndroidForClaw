@@ -23,16 +23,16 @@ import java.util.concurrent.TimeUnit
 
 /**
  * 统一 LLM Provider
- * 支持所有 OpenClaw 兼容的 API 类型
+ * Supports all OpenClaw compatible API types
  *
- * 功能：
- * 1. 自动从配置文件加载 provider 和 model 信息
- * 2. 支持多种 API 格式（OpenAI, Anthropic, Gemini, Ollama 等）
- * 3. 使用 ApiAdapter 处理不同 API 的差异
- * 4. 支持 Extended Thinking / Reasoning
- * 5. 支持自定义 headers 和认证方式
+ * Features:
+ * 1. Automatically load provider and model info from config files
+ * 2. Support multiple API formats (OpenAI, Anthropic, Gemini, Ollama, etc.)
+ * 3. Use ApiAdapter to handle differences between different APIs
+ * 4. Support Extended Thinking / Reasoning
+ * 5. Support custom headers and authentication methods
  *
- * 参考：OpenClaw src/agents/llm-client.ts
+ * Reference: OpenClaw src/agents/llm-client.ts
  */
 class UnifiedLLMProvider(private val context: Context) {
 
@@ -81,12 +81,12 @@ class UnifiedLLMProvider(private val context: Context) {
     /**
      * 带工具调用的聊天
      *
-     * @param messages 消息列表
-     * @param tools 工具定义列表（旧格式）
-     * @param modelRef 模型引用，格式：provider/model-id 或直接 model-id
-     * @param temperature 温度参数
-     * @param maxTokens 最大生成 token 数
-     * @param reasoningEnabled 是否启用推理模式
+     * @param messages Message list
+     * @param tools Tool definition list (old format)
+     * @param modelRef Model reference, format: provider/model-id or just model-id
+     * @param temperature Temperature parameter
+     * @param maxTokens Maximum generated tokens
+     * @param reasoningEnabled Whether to enable reasoning mode
      */
     suspend fun chatWithTools(
         messages: List<Message>,
@@ -97,10 +97,10 @@ class UnifiedLLMProvider(private val context: Context) {
         reasoningEnabled: Boolean = false,
         maxRetries: Int = 3
     ): LLMResponse = withContext(Dispatchers.IO) {
-        // 转换工具定义到新格式
+        // Convert tool definitions to new format
         val newTools = tools?.map { convertToolDefinition(it) }
 
-        // 重试逻辑
+        // Retry logic
         var lastException: Exception? = null
 
         for (attempt in 1..maxRetries) {
@@ -111,19 +111,19 @@ class UnifiedLLMProvider(private val context: Context) {
             } catch (e: LLMException) {
                 lastException = e
 
-                // 判断是否可重试
+                // Check if retryable
                 if (!isRetryable(e) || attempt == maxRetries) {
                     throw e
                 }
 
-                // 指数退避
+                // Exponential backoff
                 val delayMs = 100L * (1 shl (attempt - 1))  // 100ms, 200ms, 400ms
                 Log.w(TAG, "⚠️ LLM request failed (attempt $attempt/$maxRetries), retrying in ${delayMs}ms: ${e.message}")
                 delay(delayMs)
             }
         }
 
-        // 不应该到这里
+        // Should not reach here
         throw lastException!!
     }
 
@@ -139,10 +139,10 @@ class UnifiedLLMProvider(private val context: Context) {
         reasoningEnabled: Boolean
     ): LLMResponse {
         try {
-            // 解析模型引用
+            // Parse model reference
             val (providerName, modelId) = parseModelRef(modelRef)
 
-            // 加载 provider 和 model 配置
+            // Load provider and model config
             val provider = configLoader.getProviderConfig(providerName)
                 ?: throw IllegalArgumentException("Provider not found: $providerName")
 
@@ -157,7 +157,7 @@ class UnifiedLLMProvider(private val context: Context) {
             Log.d(TAG, "  Tools: ${tools?.size ?: 0}")
             Log.d(TAG, "  Reasoning: $reasoningEnabled")
 
-            // 构建请求（使用转换后的新格式 tools）
+            // Build request (using converted new format tools)
             val requestBody = ApiAdapter.buildRequestBody(
                 provider = provider,
                 model = model,
@@ -170,12 +170,12 @@ class UnifiedLLMProvider(private val context: Context) {
 
             val headers = ApiAdapter.buildHeaders(provider, model)
 
-            // 构建完整的 API 端点
+            // Build complete API endpoint
             val apiUrl = buildApiUrl(provider, model)
 
             Log.d(TAG, "  URL: $apiUrl")
 
-            // 发送请求
+            // Send request
             val request = Request.Builder()
                 .url(apiUrl)
                 .headers(headers)
@@ -195,7 +195,7 @@ class UnifiedLLMProvider(private val context: Context) {
 
             Log.d(TAG, "✅ LLM Response received (${responseBody.length} bytes)")
 
-            // 解析响应
+            // Parse response
             val api = model.api ?: provider.api
             val parsed = ApiAdapter.parseResponse(api, responseBody)
 
@@ -281,33 +281,33 @@ class UnifiedLLMProvider(private val context: Context) {
 
     /**
      * 解析模型引用
-     * 格式: "provider/model-id" 或 "model-id"
+     * Format: "provider/model-id" or "model-id"
      *
      * @return Pair(providerName, modelId)
      */
     private fun parseModelRef(modelRef: String?): Pair<String, String> {
-        // 如果未指定，使用默认模型
+        // If not specified, use default model
         if (modelRef == null) {
             val defaultModel = configLoader.loadOpenClawConfig().resolveDefaultModel()
             return parseModelRef(defaultModel)
         }
 
-        // 第一步:尝试将完整的 modelRef 作为 model ID 查找
-        // 这样可以支持 model ID 本身包含 "/" 的情况 (如 "anthropic/claude-opus-4-6")
+        // Step 1: Try to find complete modelRef as model ID
+        // This supports cases where model ID itself contains "/" (eg "anthropic/claude-opus-4-6")
         val providerForFullId = configLoader.findProviderByModelId(modelRef)
         if (providerForFullId != null) {
             return Pair(providerForFullId, modelRef)
         }
 
-        // 第二步:按照 "provider/model-id" 格式解析
+        // Step 2: Parse as "provider/model-id" format
         val parts = modelRef.split("/", limit = 2)
         return when (parts.size) {
             2 -> {
-                // "provider/model-id" 格式 (如 "openrouter/anthropic/claude-opus-4-6")
+                // "provider/model-id" format (eg "openrouter/anthropic/claude-opus-4-6")
                 Pair(parts[0], parts[1])
             }
             1 -> {
-                // "model-id" 格式，查找对应的 provider
+                // "model-id" format, find corresponding provider
                 val providerName = configLoader.findProviderByModelId(parts[0])
                     ?: throw IllegalArgumentException("Cannot find provider for model: ${parts[0]}")
                 Pair(providerName, parts[0])
@@ -341,11 +341,11 @@ class UnifiedLLMProvider(private val context: Context) {
                 "$baseUrl/chat/completions"
             }
             ModelApi.BEDROCK_CONVERSE_STREAM -> {
-                // AWS Bedrock 需要特殊处理
+                // AWS Bedrock needs special handling
                 "$baseUrl/model/${model.id}/converse-stream"
             }
             else -> {
-                // 默认使用 OpenAI 兼容端点
+                // Default to OpenAI compatible endpoint
                 "$baseUrl/chat/completions"
             }
         }

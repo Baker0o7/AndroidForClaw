@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Anthropic Messages API 数据模型
- * 用于 Legacy 的 Anthropic API 兼容接口
+ * For Legacy Anthropic API compatible interface
  */
 
 // ============= Request Models (Anthropic Format) =============
@@ -16,7 +16,7 @@ data class AnthropicRequest(
     val maxTokens: Int = 4096,
     val temperature: Double = 0.1,
     val tools: List<AnthropicTool>? = null,
-    val system: String? = null,  // Anthropic 的 system 是单独字段
+    val system: String? = null,  // Anthropic system is a separate field
     // Extended Thinking support
     val thinking: ThinkingConfig? = null
 )

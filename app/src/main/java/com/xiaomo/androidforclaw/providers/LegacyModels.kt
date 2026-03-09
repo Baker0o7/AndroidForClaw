@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Legacy LLM API 数据模型
- * 支持 Claude Opus 4.6 with Extended Thinking
+ * Supports Claude Opus 4.6 with Extended Thinking
  */
 
 // ============= Request Models =============

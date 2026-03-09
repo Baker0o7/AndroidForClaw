@@ -14,15 +14,15 @@ import kotlinx.coroutines.withContext
 
 /**
  * Legacy LLM API Provider - OpenAI 兼容格式
- * 使用 /v1/chat/completions 端点
- * 支持标准 OpenAI function calling 格式
+ * Uses /v1/chat/completions endpoint
+ * Supports standard OpenAI function calling format
  */
 class LegacyProviderOpenAI(
     private val apiKey: String,
     private val apiBase: String = "https://openrouter.ai/api/v1",
     private val providerId: String = "openrouter",
     private val authHeader: Boolean = true,  // true = Authorization header, false = api-key header
-    private val customHeaders: Map<String, String>? = null  // 自定义headers
+    private val customHeaders: Map<String, String>? = null  // Custom headers
 ) {
     companion object {
         private const val TAG = "LegacyProviderOpenAI"
@@ -51,7 +51,7 @@ class LegacyProviderOpenAI(
         temperature: Double = 0.7
     ): LegacyResponse = withContext(Dispatchers.IO) {
 
-        // 构建 OpenAI 格式的请求
+        // Build OpenAI format request
         val requestBody = OpenAIChatRequest(
             model = model,
             messages = messages.map { convertToOpenAIMessage(it) },
@@ -68,7 +68,7 @@ class LegacyProviderOpenAI(
         Log.d(TAG, "Messages: ${messages.size}")
         Log.d(TAG, "Tools: ${tools?.size ?: 0}")
 
-        // 调试: 输出 tools JSON
+        // Debug: output tools JSON
         if (tools != null && tools.isNotEmpty()) {
             val toolsJson = gson.toJson(tools.map { convertToolToOpenAIFormat(it) })
             Log.d(TAG, "Tools JSON (first 500 chars): ${toolsJson.take(500)}")
@@ -84,18 +84,18 @@ class LegacyProviderOpenAI(
             .addHeader("Content-Type", "application/json")
             .addHeader("X-Model-Provider-ID", providerId)
 
-        // 根据 authHeader 配置选择认证方式
+        // Choose authentication method based on authHeader config
         if (authHeader) {
-            // 使用 Authorization: Bearer <token>
+            // Use Authorization: Bearer <token>
             Log.d(TAG, "Using Authorization: Bearer header")
             requestBuilder.addHeader("Authorization", "Bearer $apiKey")
         } else {
-            // 使用 api-key header
+            // Use api-key header
             Log.d(TAG, "Using api-key header")
             requestBuilder.addHeader("api-key", apiKey)
         }
 
-        // 添加自定义 headers
+        // Add custom headers
         customHeaders?.forEach { (key, value) ->
             requestBuilder.addHeader(key, value)
         }
@@ -112,7 +112,7 @@ class LegacyProviderOpenAI(
                 throw LLMException("HTTP ${response.code}: $responseBody")
             }
 
-            // 解析 OpenAI 响应
+            // Parse OpenAI response
             val openAIResponse = gson.fromJson(responseBody, OpenAIChatResponse::class.java)
             Log.d(TAG, "Response received: ${openAIResponse.choices.firstOrNull()?.finishReason}")
 
@@ -163,7 +163,7 @@ class LegacyProviderOpenAI(
                 }
             }
             "tool" -> {
-                // Tool 结果消息
+                // Tool result message
                 OpenAIMessage(
                     role = "tool",
                     content = msg.content?.toString(),
@@ -200,7 +200,7 @@ class LegacyProviderOpenAI(
         val choices = response.choices.map { choice ->
             val message = choice.message
 
-            // 转换 tool calls
+            // Convert tool calls
             val toolCalls = message.toolCalls?.map { tc ->
                 LegacyToolCall(
                     id = tc.id,
@@ -258,7 +258,7 @@ class LegacyProviderOpenAI(
     }
 }
 
-// ============= OpenAI API 数据模型 =============
+// ============= OpenAI API Data Models =============
 
 data class OpenAIChatRequest(
     val model: String,

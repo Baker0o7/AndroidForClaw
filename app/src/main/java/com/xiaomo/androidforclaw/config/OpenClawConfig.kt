@@ -3,16 +3,16 @@ package com.xiaomo.androidforclaw.config
 import com.google.gson.annotations.SerializedName
 
 /**
- * OpenClaw 主配置 (openclaw.json)
+ * OpenClaw Main Configuration (openclaw.json)
  *
- * 对齐 OpenClaw 的配置格式
- * 参考：OpenClaw src/config/types.config.ts
+ * Aligned with OpenClaw config format
+ * Reference: OpenClaw src/config/types.config.ts
  *
- * 配置文件位置：/sdcard/.androidforclaw/config/openclaw.json
+ * Config file location: /sdcard/.androidforclaw/config/openclaw.json
  */
 
 /**
- * 主配置
+ * Main configuration
  */
 data class OpenClawConfig(
     @SerializedName("thinking")
@@ -51,63 +51,63 @@ data class OpenClawConfig(
     @SerializedName("providers")
     val providers: Map<String, ProviderConfig> = emptyMap()
 ) {
-    // 兼容性辅助方法:获取 providers (优先从 models.providers,否则从 providers)
+    // Compatibility helper: get providers (priority: models.providers, fallback: providers)
     fun resolveProviders(): Map<String, ProviderConfig> {
         return models?.providers ?: providers
     }
 
-    // 兼容性辅助方法:获取默认模型 (优先从 agents.defaults.model.primary,否则从 agent.defaultModel)
+    // Compatibility helper: get default model (priority: agents.defaults.model.primary, fallback: agent.defaultModel)
     fun resolveDefaultModel(): String {
         return agents?.defaults?.model?.primary ?: agent.defaultModel
     }
 }
 
 /**
- * Extended Thinking 配置
+ * Extended Thinking configuration
  */
 data class ThinkingConfig(
     @SerializedName("enabled")
-    val enabled: Boolean = true,  // 是否启用 Extended Thinking
+    val enabled: Boolean = true,  // Whether to enable Extended Thinking
 
     @SerializedName("budgetTokens")
-    val budgetTokens: Int = 10000,  // 思考预算 (tokens)
+    val budgetTokens: Int = 10000,  // Thinking budget (tokens)
 
     @SerializedName("showInUI")
-    val showInUI: Boolean = true,  // 是否在 UI 中显示思考过程
+    val showInUI: Boolean = true,  // Whether to show thinking process in UI
 
     @SerializedName("logToFile")
-    val logToFile: Boolean = false  // 是否将思考过程记录到文件
+    val logToFile: Boolean = false  // Whether to log thinking process to file
 )
 
 /**
- * Agent 配置
+ * Agent configuration
  */
 data class AgentConfig(
     @SerializedName("maxIterations")
-    val maxIterations: Int = 20,  // 最大迭代次数
+    val maxIterations: Int = 20,  // Maximum iterations
 
     @SerializedName("defaultModel")
-    val defaultModel: String = "anthropic/claude-opus-4.6",  // 默认模型（配置文件未指定时使用）
+    val defaultModel: String = "anthropic/claude-opus-4.6",  // Default model (used when not specified in config)
 
     @SerializedName("timeout")
-    val timeout: Long = 300000,  // 超时时间 (ms)
+    val timeout: Long = 300000,  // Timeout (ms)
 
     @SerializedName("retryOnError")
-    val retryOnError: Boolean = true,  // 错误时是否重试
+    val retryOnError: Boolean = true,  // Whether to retry on error
 
     @SerializedName("maxRetries")
-    val maxRetries: Int = 3,  // 最大重试次数
+    val maxRetries: Int = 3,  // Maximum retry attempts
 
     @SerializedName("mode")
-    val mode: String = "exploration"  // 模式: "exploration" | "planning"
+    val mode: String = "exploration"  // Mode: "exploration" | "planning"
 )
 
 /**
- * Skills 配置
+ * Skills configuration
  */
 data class SkillsConfig(
     @SerializedName("bundledPath")
-    val bundledPath: String = "assets/skills",  // Bundled skills 路径
+    val bundledPath: String = "assets/skills",  // Bundled skills path
 
     @SerializedName("workspacePath")
     val workspacePath: String = "/sdcard/.androidforclaw/workspace/skills",  // Workspace skills
@@ -116,36 +116,36 @@ data class SkillsConfig(
     val managedPath: String = "/sdcard/.androidforclaw/skills",  // Managed skills
 
     @SerializedName("autoLoad")
-    val autoLoad: List<String> = listOf("mobile-operations"),  // 自动加载的 skills
+    val autoLoad: List<String> = listOf("mobile-operations"),  // Auto-load skills
 
     @SerializedName("allowBundled")
-    val allowBundled: List<String>? = null,  // 内置技能白名单 (null = 全部允许)
+    val allowBundled: List<String>? = null,  // Bundled skills whitelist (null = allow all)
 
     @SerializedName("disabled")
-    val disabled: List<String> = emptyList(),  // 禁用的 skills
+    val disabled: List<String> = emptyList(),  // Disabled skills
 
     @SerializedName("onDemand")
-    val onDemand: Boolean = true,  // 是否按需加载
+    val onDemand: Boolean = true,  // Whether to load on demand
 
     @SerializedName("cacheEnabled")
-    val cacheEnabled: Boolean = true,  // 是否缓存 skills 内容
+    val cacheEnabled: Boolean = true,  // Whether to cache skills content
 
     @SerializedName("entries")
-    val entries: Map<String, SkillConfig> = emptyMap()  // 技能配置 (对齐 OpenClaw)
+    val entries: Map<String, SkillConfig> = emptyMap()  // Skill configs (aligned with OpenClaw)
 )
 
 /**
- * 单个技能配置 (对齐 OpenClaw)
+ * Individual skill configuration (aligned with OpenClaw)
  */
 data class SkillConfig(
     @SerializedName("enabled")
-    val enabled: Boolean = true,  // 是否启用
+    val enabled: Boolean = true,  // Whether enabled
 
     @SerializedName("apiKey")
-    val apiKey: String? = null,  // API Key (或 { source: "env", ... })
+    val apiKey: String? = null,  // API Key (or { source: "env", ... })
 
     @SerializedName("env")
-    val env: Map<String, String>? = null  // 环境变量注入
+    val env: Map<String, String>? = null  // Environment variable injection
 )
 
 /**
@@ -173,16 +173,16 @@ data class ScreenshotToolConfig(
     val enabled: Boolean = true,
 
     @SerializedName("quality")
-    val quality: Int = 85,  // JPEG 质量 (0-100)
+    val quality: Int = 85,  // JPEG quality (0-100)
 
     @SerializedName("maxWidth")
-    val maxWidth: Int = 1080,  // 最大宽度 (自动缩放)
+    val maxWidth: Int = 1080,  // Maximum width (auto-scale)
 
     @SerializedName("format")
     val format: String = "jpeg",  // "jpeg" | "png" | "webp"
 
     @SerializedName("hideFloatingWindow")
-    val hideFloatingWindow: Boolean = true  // 截图时隐藏悬浮窗
+    val hideFloatingWindow: Boolean = true  // Hide floating window when taking screenshot
 )
 
 /**
@@ -193,13 +193,13 @@ data class AccessibilityToolConfig(
     val enabled: Boolean = true,
 
     @SerializedName("gestureDuration")
-    val gestureDuration: Long = 100,  // 手势持续时间 (ms)
+    val gestureDuration: Long = 100,  // Gesture duration (ms)
 
     @SerializedName("enableUITree")
-    val enableUITree: Boolean = true,  // 是否启用 UI 树获取
+    val enableUITree: Boolean = true,  // Whether to enable UI tree retrieval
 
     @SerializedName("maxUITreeDepth")
-    val maxUITreeDepth: Int = 20  // UI 树最大深度
+    val maxUITreeDepth: Int = 20  // Maximum UI tree depth
 )
 
 /**
@@ -210,13 +210,13 @@ data class ExecToolConfig(
     val enabled: Boolean = true,
 
     @SerializedName("allowRoot")
-    val allowRoot: Boolean = false,  // 是否允许 root 命令
+    val allowRoot: Boolean = false,  // Whether to allow root commands
 
     @SerializedName("timeout")
-    val timeout: Long = 30000,  // 命令超时 (ms)
+    val timeout: Long = 30000,  // Command timeout (ms)
 
     @SerializedName("blocklist")
-    val blocklist: List<String> = listOf("rm -rf /", "dd if=", "format")  // 禁止的命令
+    val blocklist: List<String> = listOf("rm -rf /", "dd if=", "format")  // Blocked commands
 )
 
 /**
@@ -227,10 +227,10 @@ data class BrowserToolConfig(
     val enabled: Boolean = true,
 
     @SerializedName("userAgent")
-    val userAgent: String? = null,  // 自定义 User-Agent
+    val userAgent: String? = null,  // Custom User-Agent
 
     @SerializedName("timeout")
-    val timeout: Long = 30000  // 页面加载超时 (ms)
+    val timeout: Long = 30000  // Page load timeout (ms)
 )
 
 /**
@@ -241,16 +241,16 @@ data class GatewayConfig(
     val enabled: Boolean = true,
 
     @SerializedName("port")
-    val port: Int = 8080,  // WebSocket/HTTP 端口
+    val port: Int = 8080,  // WebSocket/HTTP port
 
     @SerializedName("host")
-    val host: String = "0.0.0.0",  // 监听地址
+    val host: String = "0.0.0.0",  // Listen address
 
     @SerializedName("security")
     val security: SecurityConfig = SecurityConfig(),
 
     @SerializedName("channels")
-    val channels: List<String> = listOf("app", "webui", "adb"),  // 启用的渠道
+    val channels: List<String> = listOf("app", "webui", "adb"),  // Enabled channels
 
     @SerializedName("feishu")
     val feishu: FeishuChannelConfig = FeishuChannelConfig(),
@@ -264,13 +264,13 @@ data class GatewayConfig(
  */
 data class SecurityConfig(
     @SerializedName("enabled")
-    val enabled: Boolean = false,  // 是否启用安全机制
+    val enabled: Boolean = false,  // Whether to enable security mechanism
 
     @SerializedName("pairingRequired")
-    val pairingRequired: Boolean = false,  // 是否需要配对
+    val pairingRequired: Boolean = false,  // Whether pairing is required
 
     @SerializedName("allowlist")
-    val allowlist: List<String> = emptyList(),  // 白名单 (用户/设备 ID)
+    val allowlist: List<String> = emptyList(),  // Whitelist (user/device ID)
 
     @SerializedName("rateLimit")
     val rateLimit: RateLimitConfig = RateLimitConfig()
@@ -284,10 +284,10 @@ data class RateLimitConfig(
     val enabled: Boolean = false,
 
     @SerializedName("maxRequests")
-    val maxRequests: Int = 100,  // 最大请求数
+    val maxRequests: Int = 100,  // Maximum requests
 
     @SerializedName("windowMs")
-    val windowMs: Long = 60000  // 时间窗口 (ms)
+    val windowMs: Long = 60000  // Time window (ms)
 )
 
 /**
@@ -312,16 +312,16 @@ data class FloatingWindowConfig(
     val enabled: Boolean = true,
 
     @SerializedName("showProgress")
-    val showProgress: Boolean = true,  // 显示进度
+    val showProgress: Boolean = true,  // Show progress
 
     @SerializedName("showReasoningContent")
-    val showReasoningContent: Boolean = true,  // 显示思考内容
+    val showReasoningContent: Boolean = true,  // Show reasoning content
 
     @SerializedName("autoHide")
-    val autoHide: Boolean = false,  // 自动隐藏
+    val autoHide: Boolean = false,  // Auto hide
 
     @SerializedName("opacity")
-    val opacity: Float = 0.9f,  // 不透明度 (0.0 - 1.0)
+    val opacity: Float = 0.9f,  // Opacity (0.0 - 1.0)
 
     @SerializedName("position")
     val position: String = "top-right"  // "top-left" | "top-right" | "bottom-left" | "bottom-right"
@@ -344,16 +344,16 @@ data class LoggingConfig(
     val maxFileSize: Long = 10 * 1024 * 1024,  // 10MB
 
     @SerializedName("maxFiles")
-    val maxFiles: Int = 5,  // 最多保留文件数
+    val maxFiles: Int = 5,  // Maximum files to keep
 
     @SerializedName("includeTimestamp")
     val includeTimestamp: Boolean = true,
 
     @SerializedName("logLLMCalls")
-    val logLLMCalls: Boolean = true,  // 记录 LLM 调用
+    val logLLMCalls: Boolean = true,  // Log LLM calls
 
     @SerializedName("logToolCalls")
-    val logToolCalls: Boolean = true  // 记录工具调用
+    val logToolCalls: Boolean = true  // Log tool calls
 )
 
 /**
@@ -370,7 +370,7 @@ data class MemoryConfig(
     val autoSave: Boolean = true,
 
     @SerializedName("maxEntries")
-    val maxEntries: Int = 1000  // 最大记忆条目数
+    val maxEntries: Int = 1000  // Maximum memory entries
 )
 
 /**
@@ -387,18 +387,18 @@ data class SessionConfig(
     val autoSave: Boolean = true,
 
     @SerializedName("maxMessages")
-    val maxMessages: Int = 100,  // 单个 session 最大消息数
+    val maxMessages: Int = 100,  // Maximum messages per session
 
     @SerializedName("compression")
-    val compression: Boolean = false  // 是否压缩存储
+    val compression: Boolean = false  // Whether to compress storage
 )
 
 /**
  * 飞书 Channel 配置
- * 对齐 clawdbot-feishu 配置结构
+ * Aligned with clawdbot-feishu config structure
  */
 data class FeishuChannelConfig(
-    // ===== 基础配置 =====
+    // ===== Basic Config =====
     @SerializedName("enabled")
     val enabled: Boolean = false,
 
@@ -414,11 +414,11 @@ data class FeishuChannelConfig(
     @SerializedName("verificationToken")
     val verificationToken: String? = null,
 
-    // ===== 域名配置 =====
+    // ===== Domain Config =====
     @SerializedName("domain")
     val domain: String = "feishu",  // "feishu", "lark", or custom domain
 
-    // ===== 连接模式 =====
+    // ===== Connection Mode =====
     @SerializedName("connectionMode")
     val connectionMode: String = "websocket",  // "websocket" | "webhook"
 
@@ -428,14 +428,14 @@ data class FeishuChannelConfig(
     @SerializedName("webhookPort")
     val webhookPort: Int = 8765,
 
-    // ===== DM 策略 =====
+    // ===== DM Policy =====
     @SerializedName("dmPolicy")
     val dmPolicy: String = "pairing",  // "open" | "pairing" | "allowlist"
 
     @SerializedName("allowFrom")
     val allowFrom: List<String> = emptyList(),
 
-    // ===== 群组策略 =====
+    // ===== Group Policy =====
     @SerializedName("groupPolicy")
     val groupPolicy: String = "allowlist",  // "open" | "allowlist" | "disabled"
 
@@ -451,32 +451,32 @@ data class FeishuChannelConfig(
     @SerializedName("allowMentionlessInMultiBotGroup")
     val allowMentionlessInMultiBotGroup: Boolean = false,
 
-    // ===== 会话模式 =====
+    // ===== Session Mode =====
     @SerializedName("topicSessionMode")
     val topicSessionMode: String = "disabled",  // "disabled" | "enabled"
 
-    // ===== 历史记录 =====
+    // ===== History =====
     @SerializedName("historyLimit")
     val historyLimit: Int = 20,
 
     @SerializedName("dmHistoryLimit")
     val dmHistoryLimit: Int = 100,
 
-    // ===== 消息分块 =====
+    // ===== Message Chunking =====
     @SerializedName("textChunkLimit")
     val textChunkLimit: Int = 4000,
 
     @SerializedName("chunkMode")
     val chunkMode: String = "length",  // "length" | "newline"
 
-    // ===== 媒体配置 =====
+    // ===== Media Config =====
     @SerializedName("mediaMaxMb")
     val mediaMaxMb: Double = 20.0,
 
     @SerializedName("audioMaxDurationSec")
     val audioMaxDurationSec: Int = 300,
 
-    // ===== 工具配置 =====
+    // ===== Tools Config =====
     @SerializedName("enableDocTools")
     val enableDocTools: Boolean = true,
 
@@ -501,20 +501,20 @@ data class FeishuChannelConfig(
     @SerializedName("enableUrgentTools")
     val enableUrgentTools: Boolean = true,
 
-    // ===== 队列配置（对齐 OpenClaw）=====
+    // ===== Queue Config (aligned with OpenClaw) =====
     @SerializedName("queueMode")
     val queueMode: String? = "followup",  // "interrupt" | "steer" | "followup" | "collect" | "queue"
 
     @SerializedName("queueCap")
-    val queueCap: Int = 10,  // 队列容量上限
+    val queueCap: Int = 10,  // Queue capacity limit
 
     @SerializedName("queueDropPolicy")
     val queueDropPolicy: String = "old",  // "old" | "new" | "summarize"
 
     @SerializedName("queueDebounceMs")
-    val queueDebounceMs: Int = 100,  // 防抖时间（ms）
+    val queueDebounceMs: Int = 100,  // Debounce time (ms)
 
-    // ===== 其他配置 =====
+    // ===== Other Config =====
     @SerializedName("typingIndicator")
     val typingIndicator: Boolean = true,
 
@@ -567,10 +567,10 @@ object ConfigDefaults {
 
 /**
  * Discord Channel 配置
- * 对齐 OpenClaw Discord 扩展配置结构
+ * Aligned with OpenClaw Discord extension config structure
  */
 data class DiscordChannelConfig(
-    // ===== 基础配置 =====
+    // ===== Basic Config =====
     @SerializedName("enabled")
     val enabled: Boolean = false,
 
@@ -580,22 +580,22 @@ data class DiscordChannelConfig(
     @SerializedName("name")
     val name: String? = null,
 
-    // ===== DM (私聊) 配置 =====
+    // ===== DM (Direct Message) Config =====
     @SerializedName("dm")
     val dm: DmPolicyConfig? = null,
 
-    // ===== Guild (服务器) 配置 =====
+    // ===== Guild (Server) Config =====
     @SerializedName("groupPolicy")
     val groupPolicy: String? = null,  // "open", "allowlist", "denylist"
 
     @SerializedName("guilds")
     val guilds: Map<String, GuildPolicyConfig>? = null,
 
-    // ===== 消息配置 =====
+    // ===== Message Config =====
     @SerializedName("replyToMode")
     val replyToMode: String? = null,  // "off", "always", "threads"
 
-    // ===== 多账户配置 =====
+    // ===== Multi-Account Config =====
     @SerializedName("accounts")
     val accounts: Map<String, DiscordAccountPolicyConfig>? = null
 )

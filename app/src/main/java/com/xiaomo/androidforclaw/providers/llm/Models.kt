@@ -4,9 +4,9 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * LLM 通用数据模型
- * 用于统一不同 API 提供商的接口
+ * Used to unify interfaces of different API providers
  *
- * 参考：OpenClaw src/agents/llm-types.ts
+ * Reference: OpenClaw src/agents/llm-types.ts
  */
 
 // ============= Message Models =============

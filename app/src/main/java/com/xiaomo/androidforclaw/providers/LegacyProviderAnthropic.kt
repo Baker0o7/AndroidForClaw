@@ -14,9 +14,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * Anthropic Messages API Provider
- * 使用 Anthropic 原生 Messages API 格式
+ * Uses Anthropic native Messages API format
  *
- * API 文档: https://docs.anthropic.com/en/api/messages
+ * API Documentation: https://docs.anthropic.com/en/api/messages
  */
 class LegacyProviderAnthropic(
     private val apiKey: String,
@@ -52,14 +52,14 @@ class LegacyProviderAnthropic(
         thinkingBudget: Int? = null
     ): LegacyResponse = withContext(Dispatchers.IO) {
 
-        // Anthropic 限制: 当启用 Extended Thinking 时，temperature 必须为 1
+        // Anthropic restriction: temperature must be 1 when Extended Thinking is enabled
         val actualTemperature = if (thinkingEnabled) 1.0 else temperature
 
-        // 分离 system 消息
+        // Separate system message
         val systemMessage = messages.firstOrNull { it.role == "system" }?.content?.toString()
         val conversationMessages = messages.filter { it.role != "system" }
 
-        // 构建 Anthropic 格式的请求
+        // Build Anthropic format request
         val requestBody = AnthropicRequest(
             model = model,
             messages = conversationMessages.map { convertToAnthropicMessage(it) },
@@ -101,7 +101,7 @@ class LegacyProviderAnthropic(
                 throw LLMException("HTTP ${response.code}: $responseBody")
             }
 
-            // 解析 Anthropic 响应
+            // Parse Anthropic response
             val anthropicResponse = gson.fromJson(responseBody, AnthropicResponse::class.java)
             Log.d(TAG, "Response received: ${anthropicResponse.stopReason}")
 
@@ -129,10 +129,10 @@ class LegacyProviderAnthropic(
             }
             "assistant" -> {
                 if (msg.toolCalls != null && msg.toolCalls.isNotEmpty()) {
-                    // Assistant 消息包含工具调用
+                    // Assistant message contains tool calls
                     val contentBlocks = mutableListOf<AnthropicContentBlock>()
 
-                    // 添加文本内容（如果有）
+                    // Add text content (if any)
                     msg.content?.toString()?.let { text ->
                         if (text.isNotBlank()) {
                             contentBlocks.add(
@@ -144,7 +144,7 @@ class LegacyProviderAnthropic(
                         }
                     }
 
-                    // 添加工具调用
+                    // Add tool calls
                     msg.toolCalls.forEach { tc ->
                         contentBlocks.add(
                             AnthropicContentBlock(
@@ -168,7 +168,7 @@ class LegacyProviderAnthropic(
                 }
             }
             "tool" -> {
-                // Tool 结果消息 - Anthropic 使用 "user" role + tool_result block
+                // Tool result message - Anthropic uses "user" role + tool_result block
                 AnthropicMessage(
                     role = "user",
                     content = listOf(
@@ -206,7 +206,7 @@ class LegacyProviderAnthropic(
      * 转换工具定义到 Anthropic 格式
      */
     private fun convertToolToAnthropicFormat(tool: ToolDefinition): AnthropicTool {
-        // 将 ParametersSchema 转换为 InputSchema
+        // Convert ParametersSchema to InputSchema
         val params = tool.function.parameters
         val properties = params.properties.mapValues { (_, prop) ->
             PropertyDef(
@@ -231,7 +231,7 @@ class LegacyProviderAnthropic(
      * 转换 Anthropic 响应到 LegacyResponse 格式
      */
     private fun convertFromAnthropicResponse(response: AnthropicResponse): LegacyResponse {
-        // 提取文本内容和工具调用
+        // Extract text content and tool calls
         var textContent: String? = null
         val toolCalls = mutableListOf<LegacyToolCall>()
         var reasoningContent: String? = null
@@ -254,7 +254,7 @@ class LegacyProviderAnthropic(
                     )
                 }
                 else -> {
-                    // 其他类型暂时忽略
+                    // Ignore other types for now
                 }
             }
         }
@@ -304,4 +304,4 @@ class LegacyProviderAnthropic(
     }
 }
 
-// 数据模型定义在 AnthropicModels.kt 中
+// Data models defined in AnthropicModels.kt

@@ -3,15 +3,15 @@ package com.xiaomo.androidforclaw.config
 import com.google.gson.annotations.SerializedName
 
 /**
- * 模型配置数据类 - 对齐 OpenClaw 的配置格式
+ * Model Configuration Data Classes - Aligned with OpenClaw config format
  *
- * 配置文件位置：/sdcard/.androidforclaw/config/models.json
+ * Config file location: /sdcard/.androidforclaw/config/models.json
  *
- * 参考：OpenClaw src/config/types.models.ts
+ * Reference: OpenClaw src/config/types.models.ts
  */
 
 /**
- * 顶级模型配置
+ * Top-level model configuration
  */
 data class ModelsConfig(
     @SerializedName("mode")
@@ -22,128 +22,128 @@ data class ModelsConfig(
 )
 
 /**
- * Provider 配置
+ * Provider configuration
  */
 data class ProviderConfig(
     @SerializedName("baseUrl")
-    val baseUrl: String,  // API 端点基础 URL (必需)
+    val baseUrl: String,  // API endpoint base URL (required)
 
     @SerializedName("apiKey")
-    val apiKey: String? = null,  // API 密钥 (可选，支持 ${ENV_VAR} 格式)
+    val apiKey: String? = null,  // API key (optional, supports ${ENV_VAR} format)
 
     @SerializedName("api")
-    val api: String = "openai-completions",  // API 类型
+    val api: String = "openai-completions",  // API type
 
     @SerializedName("auth")
-    val auth: String? = null,  // 认证模式: "api-key" | "oauth" | "token"
+    val auth: String? = null,  // Authentication mode: "api-key" | "oauth" | "token"
 
     @SerializedName("authHeader")
-    val authHeader: Boolean = true,  // 是否在 Authorization 头中发送 API 密钥
+    val authHeader: Boolean = true,  // Whether to send API key in Authorization header
 
     @SerializedName("headers")
-    val headers: Map<String, String>? = null,  // 自定义 HTTP 头
+    val headers: Map<String, String>? = null,  // Custom HTTP headers
 
     @SerializedName("injectNumCtxForOpenAICompat")
-    val injectNumCtxForOpenAICompat: Boolean? = null,  // OpenAI 兼容性标志
+    val injectNumCtxForOpenAICompat: Boolean? = null,  // OpenAI compatibility flag
 
     @SerializedName("models")
-    val models: List<ModelDefinition> = emptyList()  // 模型定义数组
+    val models: List<ModelDefinition> = emptyList()  // Model definition array
 )
 
 /**
- * 模型定义
+ * Model definition
  */
 data class ModelDefinition(
     @SerializedName("id")
-    val id: String,  // 模型 ID (e.g., "claude-opus-4-6")
+    val id: String,  // Model ID (e.g., "claude-opus-4-6")
 
     @SerializedName("name")
-    val name: String,  // 模型显示名称
+    val name: String,  // Model display name
 
     @SerializedName("api")
-    val api: String? = null,  // 模型级 API 类型覆盖 (可选)
+    val api: String? = null,  // Model-level API type override (optional)
 
     @SerializedName("reasoning")
-    val reasoning: Boolean = false,  // 是否支持推理/思考 (Extended Thinking)
+    val reasoning: Boolean = false,  // Whether supports reasoning/thinking (Extended Thinking)
 
     @SerializedName("input")
-    val input: List<String> = listOf("text"),  // 支持的输入类型: ["text", "image"]
+    val input: List<String> = listOf("text"),  // Supported input types: ["text", "image"]
 
     @SerializedName("cost")
-    val cost: CostConfig = CostConfig(),  // 成本配置
+    val cost: CostConfig = CostConfig(),  // Cost configuration
 
     @SerializedName("contextWindow")
-    val contextWindow: Int = 128000,  // 上下文窗口大小 (tokens)
+    val contextWindow: Int = 128000,  // Context window size (tokens)
 
     @SerializedName("maxTokens")
-    val maxTokens: Int = 8192,  // 最大完成 token 数
+    val maxTokens: Int = 8192,  // Maximum completion tokens
 
     @SerializedName("headers")
-    val headers: Map<String, String>? = null,  // 模型级自定义头 (可选)
+    val headers: Map<String, String>? = null,  // Model-level custom headers (optional)
 
     @SerializedName("compat")
-    val compat: ModelCompatConfig? = null  // 兼容性配置 (可选)
+    val compat: ModelCompatConfig? = null  // Compatibility configuration (optional)
 )
 
 /**
- * 模型兼容性配置
- * 用于处理不同模型 API 的差异
+ * Model compatibility configuration
+ * Used to handle differences in different model APIs
  */
 data class ModelCompatConfig(
     @SerializedName("supportsStore")
-    val supportsStore: Boolean? = null,  // 是否支持会话存储
+    val supportsStore: Boolean? = null,  // Whether supports session storage
 
     @SerializedName("supportsDeveloperRole")
-    val supportsDeveloperRole: Boolean? = null,  // 是否支持 developer 角色
+    val supportsDeveloperRole: Boolean? = null,  // Whether supports developer role
 
     @SerializedName("supportsReasoningEffort")
-    val supportsReasoningEffort: Boolean? = null,  // 是否支持推理力度控制
+    val supportsReasoningEffort: Boolean? = null,  // Whether supports reasoning effort control
 
     @SerializedName("supportsUsageInStreaming")
-    val supportsUsageInStreaming: Boolean? = null,  // 流式输出中是否包含 usage
+    val supportsUsageInStreaming: Boolean? = null,  // Whether includes usage in streaming output
 
     @SerializedName("supportsStrictMode")
-    val supportsStrictMode: Boolean? = null,  // 是否支持严格模式
+    val supportsStrictMode: Boolean? = null,  // Whether supports strict mode
 
     @SerializedName("maxTokensField")
-    val maxTokensField: String? = null,  // maxTokens 字段名称: "max_completion_tokens" | "max_tokens"
+    val maxTokensField: String? = null,  // maxTokens field name: "max_completion_tokens" | "max_tokens"
 
     @SerializedName("thinkingFormat")
-    val thinkingFormat: String? = null,  // 思考格式: "openai" | "zai" | "qwen"
+    val thinkingFormat: String? = null,  // Thinking format: "openai" | "zai" | "qwen"
 
     @SerializedName("requiresToolResultName")
-    val requiresToolResultName: Boolean? = null,  // 是否需要 tool_result 中的 name 字段
+    val requiresToolResultName: Boolean? = null,  // Whether requires name field in tool_result
 
     @SerializedName("requiresAssistantAfterToolResult")
-    val requiresAssistantAfterToolResult: Boolean? = null,  // 是否需要在 tool_result 后添加 assistant 消息
+    val requiresAssistantAfterToolResult: Boolean? = null,  // Whether requires assistant message after tool_result
 
     @SerializedName("requiresThinkingAsText")
-    val requiresThinkingAsText: Boolean? = null,  // 是否需要将思考内容作为普通文本
+    val requiresThinkingAsText: Boolean? = null,  // Whether requires thinking content as plain text
 
     @SerializedName("requiresMistralToolIds")
-    val requiresMistralToolIds: Boolean? = null  // 是否需要 Mistral 风格的 tool ID
+    val requiresMistralToolIds: Boolean? = null  // Whether requires Mistral-style tool ID
 )
 
 /**
- * 成本配置 (单位: USD per 1M tokens)
+ * Cost configuration (unit: USD per 1M tokens)
  */
 data class CostConfig(
     @SerializedName("input")
-    val input: Double = 0.0,  // 输入成本
+    val input: Double = 0.0,  // Input cost
 
     @SerializedName("output")
-    val output: Double = 0.0,  // 输出成本
+    val output: Double = 0.0,  // Output cost
 
     @SerializedName("cacheRead")
-    val cacheRead: Double = 0.0,  // 缓存读取成本
+    val cacheRead: Double = 0.0,  // Cache read cost
 
     @SerializedName("cacheWrite")
-    val cacheWrite: Double = 0.0  // 缓存写入成本
+    val cacheWrite: Double = 0.0  // Cache write cost
 )
 
 /**
- * API 类型常量
- * 对齐 OpenClaw src/config/types.models.ts 中的 MODEL_APIS
+ * API type constants
+ * Aligned with MODEL_APIS in OpenClaw src/config/types.models.ts
  */
 object ModelApi {
     const val OPENAI_COMPLETIONS = "openai-completions"  // OpenAI Chat Completions API
@@ -155,7 +155,7 @@ object ModelApi {
     const val BEDROCK_CONVERSE_STREAM = "bedrock-converse-stream"  // AWS Bedrock API
     const val OLLAMA = "ollama"  // Ollama local API
 
-    // 所有支持的 API 类型
+    // All supported API types
     val ALL_APIS = listOf(
         OPENAI_COMPLETIONS,
         OPENAI_RESPONSES,
@@ -168,28 +168,28 @@ object ModelApi {
     )
 
     /**
-     * 检查 API 类型是否有效
+     * Check if API type is valid
      */
     fun isValidApi(api: String): Boolean {
         return api in ALL_APIS
     }
 
     /**
-     * 判断是否为 OpenAI 兼容 API
+     * Check if it's an OpenAI compatible API
      */
     fun isOpenAICompat(api: String): Boolean {
         return api in listOf(
             OPENAI_COMPLETIONS,
             OPENAI_RESPONSES,
             OPENAI_CODEX_RESPONSES,
-            OLLAMA,  // Ollama 提供 OpenAI 兼容端点
-            GITHUB_COPILOT  // GitHub Copilot 使用 OpenAI 格式
+            OLLAMA,  // Ollama provides OpenAI compatible endpoint
+            GITHUB_COPILOT  // GitHub Copilot uses OpenAI format
         )
     }
 }
 
 /**
- * 认证模式常量
+ * Authentication mode constants
  */
 object AuthMode {
     const val API_KEY = "api-key"

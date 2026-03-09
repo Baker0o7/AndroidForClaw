@@ -9,30 +9,30 @@ import com.xiaomo.androidforclaw.util.AppConstants
 
 /**
  * Legacy Repository
- * 提供更高级别的 API 封装
- * 根据配置自动选择 OpenAI 或 Anthropic 格式
+ * Provides higher-level API wrapper
+ * Automatically selects OpenAI or Anthropic format based on config
  *
  * **配置来源**: 从 /sdcard/.androidforclaw/config/openclaw.json 和 models.json 读取配置
  */
 class LegacyRepository(
     context: Context,
-    apiKey: String? = null,  // 可选，默认从配置读取
-    apiBase: String? = null,  // 可选，默认从配置读取
-    private val apiType: String? = null  // 可选，默认从配置读取
+    apiKey: String? = null,  // Optional, defaults to reading from config
+    apiBase: String? = null,  // Optional, defaults to reading from config
+    private val apiType: String? = null  // Optional, defaults to reading from config
 ) {
     companion object {
         private const val TAG = "LegacyRepository"
     }
 
-    // 配置加载器
+    // Config loader
     private val configLoader = ConfigLoader(context)
 
-    // 加载 OpenClaw 配置
+    // Load OpenClaw config
     private val openClawConfig: OpenClawConfig by lazy {
         configLoader.loadOpenClawConfig()
     }
 
-    // 根据 defaultModel 找到对应的 provider
+    // Find corresponding provider by defaultModel
     private fun getProviderForDefaultModel(): ProviderConfig? {
         val defaultModel = openClawConfig.agent.defaultModel
         val providerName = configLoader.findProviderByModelId(defaultModel)
@@ -40,10 +40,10 @@ class LegacyRepository(
         return providerName?.let { configLoader.getProviderConfig(it) }
     }
 
-    // 从配置中读取 API 配置（优先使用构造函数参数，否则从配置文件读取）
+    // Read API config from config (prioritize constructor parameters, otherwise read from config file)
     private val actualApiKey: String by lazy {
         apiKey ?: run {
-            // 从 defaultModel 对应的 provider 读取 apiKey
+            // Read apiKey from provider corresponding to defaultModel
             val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("openrouter")
             provider?.apiKey ?: AppConstants.OPENROUTER_API_KEY
         }
@@ -51,7 +51,7 @@ class LegacyRepository(
 
     private val actualApiBase: String by lazy {
         apiBase ?: run {
-            // 从 defaultModel 对应的 provider 读取 baseUrl
+            // Read baseUrl from provider corresponding to defaultModel
             val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("openrouter")
             provider?.baseUrl ?: "https://openrouter.ai/api/v1"
         }
@@ -59,13 +59,13 @@ class LegacyRepository(
 
     private val actualApiType: String by lazy {
         apiType ?: run {
-            // 从 defaultModel 对应的 provider 读取 api 类型
+            // Read api type from provider corresponding to defaultModel
             val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("openrouter")
             provider?.api ?: "openai-completions"
         }
     }
 
-    // 根据 API 类型选择 Provider
+    // Select Provider based on API type
     private val openAIProvider by lazy {
         val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("anthropic")
         Log.d(TAG, "Creating OpenAI Provider:")
@@ -91,10 +91,10 @@ class LegacyRepository(
     /**
      * 带工具调用的聊天
      *
-     * @param messages 消息列表
-     * @param tools 工具定义列表
-     * @param model 模型 ID（可选，默认从 openclaw.json 的 agent.defaultModel 读取）
-     * @param reasoningEnabled Extended Thinking 是否启用（可选，默认从 openclaw.json 的 thinking.enabled 读取）
+     * @param messages Message list
+     * @param tools Tool definition list
+     * @param model Model ID (optional, defaults to agent.defaultModel from openclaw.json)
+     * @param reasoningEnabled Whether Extended Thinking is enabled (optional, defaults to thinking.enabled from openclaw.json)
      */
     suspend fun chatWithTools(
         messages: List<LegacyMessage>,
@@ -102,7 +102,7 @@ class LegacyRepository(
         model: String? = null,
         reasoningEnabled: Boolean? = null
     ): LegacyResponse {
-        // 从配置读取默认值
+        // Read default values from config
         val actualModel = model ?: openClawConfig.agent.defaultModel
         val actualReasoningEnabled = reasoningEnabled ?: openClawConfig.thinking.enabled
 
@@ -143,8 +143,8 @@ class LegacyRepository(
     /**
      * 简单聊天（无工具）
      *
-     * @param userMessage 用户消息
-     * @param systemPrompt 系统提示词（可选）
+     * @param userMessage User message
+     * @param systemPrompt System prompt (optional)
      * @param reasoningEnabled Extended Thinking 是否启用（可选，默认从 openclaw.json 读取）
      */
     suspend fun simpleChat(
@@ -182,9 +182,9 @@ class LegacyRepository(
     /**
      * 继续对话
      *
-     * @param messages 现有消息列表
-     * @param newUserMessage 新的用户消息
-     * @param tools 工具定义列表（可选）
+     * @param messages Existing message list
+     * @param newUserMessage New user message
+     * @param tools Tool definition list（可选）
      */
     suspend fun continueChat(
         messages: List<LegacyMessage>,

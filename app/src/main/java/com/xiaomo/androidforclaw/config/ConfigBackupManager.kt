@@ -8,13 +8,13 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 配置备份管理器
- * 对齐 OpenClaw 的配置容错机制
+ * Config Backup Manager
+ * Aligned with OpenClaw's config fault-tolerance mechanism
  *
- * 功能:
- * 1. openclaw.last-known-good.json - 自动备份最后一次成功配置
- * 2. config-backups/ - 历史备份（带时间戳）
- * 3. 启动失败自动恢复
+ * Features:
+ * 1. openclaw.last-known-good.json - Automatically backup last successful config
+ * 2. config-backups/ - Historical backups (with timestamps)
+ * 3. Auto-recovery on startup failure
  */
 class ConfigBackupManager(private val context: Context) {
 
@@ -26,7 +26,7 @@ class ConfigBackupManager(private val context: Context) {
         private const val LAST_KNOWN_GOOD_FILE = "$CONFIG_DIR/openclaw.last-known-good.json"
         private const val BACKUPS_DIR = "/sdcard/.androidforclaw/config-backups"
 
-        private const val MAX_BACKUPS = 10 // 最多保留10个历史备份
+        private const val MAX_BACKUPS = 10 // Keep maximum 10 historical backups
     }
 
     init {
@@ -34,8 +34,8 @@ class ConfigBackupManager(private val context: Context) {
     }
 
     /**
-     * 备份当前配置为 last-known-good
-     * 在配置成功加载后调用
+     * Backup current config as last-known-good
+     * Called after config is successfully loaded
      */
     fun backupAsLastKnownGood(): Boolean {
         val configFile = File(CONFIG_FILE)
@@ -43,26 +43,26 @@ class ConfigBackupManager(private val context: Context) {
 
         return try {
             if (!configFile.exists()) {
-                Log.w(TAG, "配置文件不存在，无法备份")
+                Log.w(TAG, "Config file does not exist, cannot backup")
                 return false
             }
 
-            // 先删除旧文件（如果存在），确保复制成功
+            // Delete old file first (if exists) to ensure successful copy
             if (lastKnownGoodFile.exists()) {
                 lastKnownGoodFile.delete()
             }
 
             configFile.copyTo(lastKnownGoodFile, overwrite = false)
-            Log.i(TAG, "✅ 配置已备份到 last-known-good")
+            Log.i(TAG, "✅ Config backed up to last-known-good")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "备份 last-known-good 失败", e)
+            Log.e(TAG, "Failed to backup last-known-good", e)
             false
         }
     }
 
     /**
-     * 从 last-known-good 恢复配置
+     * Restore config from last-known-good
      */
     fun restoreFromLastKnownGood(): Boolean {
         val lastKnownGoodFile = File(LAST_KNOWN_GOOD_FILE)
@@ -70,27 +70,27 @@ class ConfigBackupManager(private val context: Context) {
 
         return try {
             if (!lastKnownGoodFile.exists()) {
-                Log.e(TAG, "❌ 没有可用的 last-known-good 备份")
+                Log.e(TAG, "❌ No available last-known-good backup")
                 return false
             }
 
             lastKnownGoodFile.copyTo(configFile, overwrite = true)
-            Log.i(TAG, "✅ 已从 last-known-good 恢复配置")
+            Log.i(TAG, "✅ Config restored from last-known-good")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "从 last-known-good 恢复失败", e)
+            Log.e(TAG, "Failed to restore from last-known-good", e)
             false
         }
     }
 
     /**
-     * 创建历史备份（带时间戳）
-     * 在用户手动编辑配置前调用
+     * Create historical backup (with timestamp)
+     * Called before user manually edits config
      */
     fun createHistoricalBackup(): String? {
         val configFile = File(CONFIG_FILE)
         if (!configFile.exists()) {
-            Log.w(TAG, "配置文件不存在，无法创建备份")
+            Log.w(TAG, "Config file does not exist, cannot create backup")
             return null
         }
 
@@ -100,20 +100,20 @@ class ConfigBackupManager(private val context: Context) {
 
         return try {
             configFile.copyTo(backupFile, overwrite = false)
-            Log.i(TAG, "✅ 配置已备份: $backupName")
+            Log.i(TAG, "✅ Config backed up: $backupName")
 
-            // 清理旧备份
+            // Clean old backups
             cleanOldBackups()
 
             backupName
         } catch (e: Exception) {
-            Log.e(TAG, "创建历史备份失败", e)
+            Log.e(TAG, "Failed to create historical backup", e)
             null
         }
     }
 
     /**
-     * 列出所有历史备份
+     * List all historical backups
      */
     fun listBackups(): List<BackupInfo> {
         val backupsDir = File(BACKUPS_DIR)
@@ -134,7 +134,7 @@ class ConfigBackupManager(private val context: Context) {
     }
 
     /**
-     * 恢复指定的历史备份
+     * Restore from specified historical backup
      */
     fun restoreFromHistoricalBackup(backupName: String): Boolean {
         val backupFile = File(BACKUPS_DIR, backupName)
@@ -142,76 +142,76 @@ class ConfigBackupManager(private val context: Context) {
 
         return try {
             if (!backupFile.exists()) {
-                Log.e(TAG, "❌ 备份文件不存在: $backupName")
+                Log.e(TAG, "❌ Backup file does not exist: $backupName")
                 return false
             }
 
-            // 先备份当前配置
+            // Backup current config first
             createHistoricalBackup()
 
-            // 恢复指定备份
+            // Restore specified backup
             backupFile.copyTo(configFile, overwrite = true)
-            Log.i(TAG, "✅ 已恢复备份: $backupName")
+            Log.i(TAG, "✅ Backup restored: $backupName")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "恢复备份失败: $backupName", e)
+            Log.e(TAG, "Failed to restore backup: $backupName", e)
             false
         }
     }
 
     /**
-     * 删除指定备份
+     * Delete specified backup
      */
     fun deleteBackup(backupName: String): Boolean {
         val backupFile = File(BACKUPS_DIR, backupName)
         return try {
             val deleted = backupFile.delete()
             if (deleted) {
-                Log.i(TAG, "已删除备份: $backupName")
+                Log.i(TAG, "Deleted backup: $backupName")
             }
             deleted
         } catch (e: Exception) {
-            Log.e(TAG, "删除备份失败: $backupName", e)
+            Log.e(TAG, "Failed to delete backup: $backupName", e)
             false
         }
     }
 
     /**
-     * 安全加载配置（带自动恢复）
-     * 在 ConfigLoader 中使用
+     * Safely load config (with auto-recovery)
+     * Used in ConfigLoader
      */
     fun <T> loadConfigSafely(loader: () -> T): T? {
         return try {
-            // 尝试加载配置
+            // Try to load config
             val config = loader()
 
-            // 加载成功，备份为 last-known-good
+            // If successful, backup as last-known-good
             backupAsLastKnownGood()
 
             config
         } catch (e: Exception) {
             Log.e(TAG, "========================================")
-            Log.e(TAG, "❌ 配置加载失败: ${e.message}")
+            Log.e(TAG, "❌ Config loading failed: ${e.message}")
             Log.e(TAG, "========================================")
 
-            // 尝试从 last-known-good 恢复
+            // Try to restore from last-known-good
             if (restoreFromLastKnownGood()) {
                 try {
-                    Log.i(TAG, "尝试使用 last-known-good 配置重新加载...")
+                    Log.i(TAG, "Trying to reload with last-known-good config...")
                     loader()
                 } catch (e2: Exception) {
-                    Log.e(TAG, "❌ last-known-good 配置也无法加载", e2)
+                    Log.e(TAG, "❌ last-known-good config also cannot be loaded", e2)
                     null
                 }
             } else {
-                Log.e(TAG, "❌ 无可用的备份配置")
+                Log.e(TAG, "❌ No available backup config")
                 null
             }
         }
     }
 
     /**
-     * 获取备份统计信息
+     * Get backup statistics
      */
     fun getBackupStats(): BackupStats {
         val backups = listBackups()
@@ -227,7 +227,7 @@ class ConfigBackupManager(private val context: Context) {
         )
     }
 
-    // ==================== 私有方法 ====================
+    // ==================== Private Methods ====================
 
     private fun ensureDirectoriesExist() {
         File(CONFIG_DIR).mkdirs()
@@ -235,7 +235,7 @@ class ConfigBackupManager(private val context: Context) {
     }
 
     /**
-     * 清理旧备份，只保留最近的 MAX_BACKUPS 个
+     * Clean old backups, keep only the most recent MAX_BACKUPS
      */
     private fun cleanOldBackups() {
         val backups = listBackups()
@@ -246,24 +246,24 @@ class ConfigBackupManager(private val context: Context) {
             deleteBackup(backup.name)
         }
 
-        Log.i(TAG, "清理了 ${toDelete.size} 个旧备份")
+        Log.i(TAG, "Cleaned ${toDelete.size} old backups")
     }
 
     /**
-     * 从文件名提取时间戳
+     * Extract timestamp from filename
      * openclaw-20260308-143022.json -> 2026-03-08T14:30:22Z
      */
     private fun extractTimestamp(filename: String): String {
         return try {
-            // 提取时间戳部分: 20260308-143022
+            // Extract timestamp part: 20260308-143022
             val timestampPart = filename.removePrefix("openclaw-")
                 .removeSuffix(".json")
 
-            // 解析为日期
+            // Parse as date
             val dateFormat = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US)
             val date = dateFormat.parse(timestampPart)
 
-            // 转换为 ISO 8601
+            // Convert to ISO 8601
             val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             isoFormat.format(date ?: Date())
         } catch (e: Exception) {
@@ -273,7 +273,7 @@ class ConfigBackupManager(private val context: Context) {
 }
 
 /**
- * 备份信息
+ * Backup information
  */
 data class BackupInfo(
     val name: String,
@@ -283,7 +283,7 @@ data class BackupInfo(
 )
 
 /**
- * 备份统计
+ * Backup statistics
  */
 data class BackupStats(
     val historicalBackupCount: Int,

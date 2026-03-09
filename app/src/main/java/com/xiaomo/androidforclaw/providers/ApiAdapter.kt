@@ -11,9 +11,9 @@ import org.json.JSONObject
 
 /**
  * API 适配器
- * 负责将通用的请求格式转换为不同 API 提供商的特定格式
+ * Responsible for converting generic request format to specific formats of different API providers
  *
- * 参考：OpenClaw src/agents/llm-adapters/
+ * Reference: OpenClaw src/agents/llm-adapters/
  */
 object ApiAdapter {
 
@@ -65,17 +65,17 @@ object ApiAdapter {
     ): Headers {
         val builder = Headers.Builder()
 
-        // Provider 级别的自定义头
+        // Provider-level custom headers
         provider.headers?.forEach { (key, value) ->
             builder.add(key, value)
         }
 
-        // Model 级别的自定义头（优先级更高）
+        // Model-level custom headers (higher priority)
         model.headers?.forEach { (key, value) ->
             builder.add(key, value)
         }
 
-        // 添加 API Key（如果配置了 authHeader）
+        // Add API Key (if authHeader is configured)
         if (provider.authHeader && provider.apiKey != null) {
             val api = model.api ?: provider.api
             when (api) {
@@ -84,13 +84,13 @@ object ApiAdapter {
                     builder.add("anthropic-version", "2023-06-01")
                 }
                 else -> {
-                    // OpenAI 风格的 Authorization 头
+                    // OpenAI-style Authorization header
                     builder.add("Authorization", "Bearer ${provider.apiKey}")
                 }
             }
         }
 
-        // 设置 Content-Type
+        // Set Content-Type
         builder.add("Content-Type", "application/json")
 
         return builder.build()
@@ -111,7 +111,7 @@ object ApiAdapter {
             ModelApi.OLLAMA,
             ModelApi.GITHUB_COPILOT -> parseOpenAIResponse(responseBody)
             ModelApi.GOOGLE_GENERATIVE_AI -> parseGeminiResponse(responseBody)
-            else -> parseOpenAIResponse(responseBody)  // 默认按 OpenAI 格式解析
+            else -> parseOpenAIResponse(responseBody)  // Parse as OpenAI format by default
         }
     }
 
@@ -131,7 +131,7 @@ object ApiAdapter {
         json.put("max_tokens", maxTokens ?: model.maxTokens)
         json.put("temperature", temperature)
 
-        // 转换消息格式
+        // Convert message format
         val anthropicMessages = JSONArray()
         var systemMessage: String? = null
 
@@ -164,12 +164,12 @@ object ApiAdapter {
 
         json.put("messages", anthropicMessages)
 
-        // 添加 system 消息
+        // Add system message
         if (systemMessage != null) {
             json.put("system", systemMessage)
         }
 
-        // 添加 tools
+        // Add tools
         if (!tools.isNullOrEmpty()) {
             val anthropicTools = JSONArray()
             tools.forEach { tool ->
@@ -182,7 +182,7 @@ object ApiAdapter {
             json.put("tools", anthropicTools)
         }
 
-        // Extended Thinking 支持
+        // Extended Thinking support
         if (reasoningEnabled && model.reasoning) {
             json.put("thinking", JSONObject().apply {
                 put("type", "enabled")
@@ -200,7 +200,7 @@ object ApiAdapter {
         val toolCalls = mutableListOf<ToolCall>()
         var thinkingContent: String? = null
 
-        // 解析 content 数组
+        // Parse content array
         val contentArray = json.optJSONArray("content")
         if (contentArray != null) {
             for (i in 0 until contentArray.length()) {
@@ -225,7 +225,7 @@ object ApiAdapter {
             }
         }
 
-        // 解析 usage
+        // Parse usage
         val usage = json.optJSONObject("usage")?.let {
             Usage(
                 promptTokens = it.optInt("input_tokens", 0),
@@ -257,11 +257,11 @@ object ApiAdapter {
         json.put("model", model.id)
         json.put("temperature", temperature)
 
-        // maxTokens 字段名称（根据兼容性配置）
+        // maxTokens field name (based on compatibility config)
         val maxTokensField = model.compat?.maxTokensField ?: "max_tokens"
         json.put(maxTokensField, maxTokens ?: model.maxTokens)
 
-        // 转换消息格式
+        // Convert message format
         val openaiMessages = JSONArray()
         messages.forEach { message ->
             val msg = JSONObject()
@@ -292,7 +292,7 @@ object ApiAdapter {
 
         json.put("messages", openaiMessages)
 
-        // 添加 tools
+        // Add tools
         if (!tools.isNullOrEmpty()) {
             val openaiTools = JSONArray()
             tools.forEach { tool ->
@@ -301,7 +301,7 @@ object ApiAdapter {
             json.put("tools", openaiTools)
         }
 
-        // 推理支持（OpenAI o1/o3 模型）
+        // Reasoning support (OpenAI o1/o3 models)
         if (reasoningEnabled && model.reasoning) {
             if (model.compat?.supportsReasoningEffort == true) {
                 json.put("reasoning_effort", "medium")
@@ -340,7 +340,7 @@ object ApiAdapter {
             }
         } else null
 
-        // 解析 usage
+        // Parse usage
         val usage = json.optJSONObject("usage")?.let {
             Usage(
                 promptTokens = it.optInt("prompt_tokens", 0),
@@ -367,7 +367,7 @@ object ApiAdapter {
     ): JSONObject {
         val json = JSONObject()
 
-        // Gemini 使用 contents 数组
+        // Gemini uses contents array
         val contents = JSONArray()
         messages.filter { it.role != "system" }.forEach { message ->
             val content = JSONObject()
@@ -425,7 +425,7 @@ object ApiAdapter {
     ): JSONObject {
         val json = buildOpenAIRequest(model, messages, tools, temperature, maxTokens, false)
 
-        // Ollama 特殊处理：可能需要注入 num_ctx
+        // Ollama special handling: may need to inject num_ctx
         if (provider.injectNumCtxForOpenAICompat == true) {
             json.put("options", JSONObject().apply {
                 put("num_ctx", model.contextWindow)
@@ -444,7 +444,7 @@ object ApiAdapter {
         temperature: Double,
         maxTokens: Int?
     ): JSONObject {
-        // GitHub Copilot 使用 OpenAI 兼容格式
+        // GitHub Copilot uses OpenAI compatible format
         return buildOpenAIRequest(model, messages, tools, temperature, maxTokens, false)
     }
 }

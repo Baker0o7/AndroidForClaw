@@ -10,27 +10,27 @@ import java.io.File
 /**
  * 配置加载器 - 对齐 OpenClaw 的配置加载逻辑
  *
- * 功能：
- * 1. 从 JSON 文件加载配置
- * 2. 支持环境变量替换 (${VAR_NAME})
- * 3. 支持默认配置
- * 4. 配置验证
+ * Features:
+ * 1. Load config from JSON files
+ * 2. Support environment variable substitution (${VAR_NAME})
+ * 3. Support default config
+ * 4. Config validation
  *
- * 参考：OpenClaw src/agents/models-config.ts
+ * Reference: OpenClaw src/agents/models-config.ts
  */
 class ConfigLoader(private val context: Context) {
 
     companion object {
         private const val TAG = "ConfigLoader"
 
-        // 配置文件路径 - 使用应用私有存储避免 UID 变化导致的权限问题
-        // 注意：这里不能使用 context.filesDir，因为 companion object 在类加载时初始化
-        // 实际路径会在 init 块中动态设置
+        // Config file path - Use app private storage to avoid permission issues from UID changes
+        // Note: Cannot use context.filesDir here because companion object is initialized at class load time
+        // Actual path will be set dynamically in init block
         private var CONFIG_DIR = "/data/data/com.xiaomo.androidforclaw/files/config"
         private const val OPENCLAW_CONFIG_FILE = "openclaw.json"
 
 
-        // 默认 OpenClaw 配置
+        // Default OpenClaw config
         private val DEFAULT_OPENCLAW_CONFIG = """
         {
           "version": "1.0.0",
@@ -234,7 +234,7 @@ class ConfigLoader(private val context: Context) {
         .setPrettyPrinting()
         .create()
 
-    // 动态配置目录（使用应用私有存储）
+    // Dynamic config directory (using app private storage)
     private val configDir: File
     private val openclawConfigFile: File
 
@@ -253,24 +253,24 @@ class ConfigLoader(private val context: Context) {
     /**
      * 从旧的 /sdcard/.androidforclaw 迁移配置到新位置
      *
-     * 迁移策略：
-     * 1. 尝试直接复制文件（如果可读）
-     * 2. 如果复制失败（权限问题），通过 shell 命令读取并写入
+     * Migration strategy:
+     * 1. Try to copy file directly (if readable)
+     * 2. If copy fails (permission issue), read via shell command and write
      *
-     * 旧位置： /sdcard/.androidforclaw/openclaw.json (注意: 不在 config 子目录)
-     * 新位置： /data/user/0/com.xiaomo.androidforclaw/files/config/openclaw.json
+     * Old location: /sdcard/.androidforclaw/openclaw.json (note: not in config subdirectory)
+     * New location: /data/user/0/com.xiaomo.androidforclaw/files/config/openclaw.json
      */
     private fun migrateConfigFromOldLocation() {
         try {
-            // 旧配置文件直接在 .androidforclaw 目录下，不在 config 子目录
+            // Old config file is directly under .androidforclaw directory, not in config subdirectory
             val oldConfigFile = File("/sdcard/.androidforclaw", OPENCLAW_CONFIG_FILE)
 
-            // 如果旧配置文件存在且新配置文件不存在，尝试迁移
+            // If old config file exists and new config file does not exist, try to migrate
             if (oldConfigFile.exists() && !openclawConfigFile.exists()) {
                 Log.i(TAG, "检测到旧配置文件，开始迁移: ${oldConfigFile.absolutePath}")
                 ensureConfigDir()
 
-                // 尝试方法 1: 直接复制（如果有权限）
+                // Try method 1: direct copy (if has permission)
                 try {
                     if (oldConfigFile.canRead()) {
                         oldConfigFile.copyTo(openclawConfigFile, overwrite = true)
@@ -281,7 +281,7 @@ class ConfigLoader(private val context: Context) {
                     Log.w(TAG, "方法1失败: ${e.message}，尝试方法2...")
                 }
 
-                // 尝试方法 2: 通过 shell 读取（绕过权限限制）
+                // Try method 2: read via shell (bypass permission restrictions)
                 try {
                     val process = Runtime.getRuntime().exec(arrayOf("cat", oldConfigFile.absolutePath))
                     val content = process.inputStream.bufferedReader().use { it.readText() }
@@ -310,11 +310,11 @@ class ConfigLoader(private val context: Context) {
         }
     }
 
-    // 配置缓存
+    // Config cache
     private var cachedOpenClawConfig: OpenClawConfig? = null
     private var openclawConfigCacheValid = false
 
-    // 热重载支持
+    // Hot reload support
     private var fileObserver: FileObserver? = null
     private var hotReloadEnabled = false
     private var reloadCallback: ((OpenClawConfig) -> Unit)? = null
@@ -323,13 +323,13 @@ class ConfigLoader(private val context: Context) {
      * 加载 OpenClaw 主配置（带自动备份和恢复）
      */
     fun loadOpenClawConfig(): OpenClawConfig {
-        // 如果缓存有效，直接返回
+        // If cache is valid, return directly
         if (openclawConfigCacheValid && cachedOpenClawConfig != null) {
             Log.d(TAG, "返回缓存的 OpenClaw 配置")
             return cachedOpenClawConfig!!
         }
 
-        // 使用 ConfigBackupManager 安全加载
+        // Use ConfigBackupManager for safe loading
         val backupManager = ConfigBackupManager(context)
         val config = backupManager.loadConfigSafely {
             loadOpenClawConfigInternal()
@@ -340,7 +340,7 @@ class ConfigLoader(private val context: Context) {
             openclawConfigCacheValid = true
             return config
         } else {
-            // 如果所有恢复都失败，返回默认配置
+            // If all recovery fails, return default config
             Log.w(TAG, "使用默认配置")
             val defaultConfig = createDefaultOpenClawConfigObject()
             cachedOpenClawConfig = defaultConfig
@@ -354,26 +354,26 @@ class ConfigLoader(private val context: Context) {
      */
     private fun loadOpenClawConfigInternal(): OpenClawConfig {
         try {
-            // 确保配置目录存在
+            // Ensure config directory exists
             ensureConfigDir()
 
-            // 如果配置文件不存在，创建默认配置
+            // If config file does not exist, create default config
             if (!openclawConfigFile.exists()) {
                 Log.i(TAG, "OpenClaw 配置文件不存在，创建默认配置: ${openclawConfigFile.absolutePath}")
                 createDefaultOpenClawConfig()
             }
 
-            // 读取配置文件
+            // Read config file
             val configJson = openclawConfigFile.readText()
             Log.d(TAG, "读取 OpenClaw 配置文件: ${openclawConfigFile.absolutePath}")
 
-            // 替换环境变量
+            // Replace environment variables
             val processedJson = replaceEnvVars(configJson)
 
-            // 解析 JSON
+            // Parse JSON
             val config = gson.fromJson(processedJson, OpenClawConfig::class.java)
 
-            // 验证配置
+            // Validate config
             validateOpenClawConfig(config)
 
             Log.i(TAG, "✅ OpenClaw 配置加载成功")
@@ -381,7 +381,7 @@ class ConfigLoader(private val context: Context) {
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ OpenClaw 配置加载失败: ${e.message}", e)
-            throw e // 抛出异常，由 ConfigBackupManager 处理
+            throw e // Throw exception, handled by ConfigBackupManager
         }
     }
 
@@ -448,7 +448,7 @@ class ConfigLoader(private val context: Context) {
             val json = gson.toJson(config)
             openclawConfigFile.writeText(json)
             Log.i(TAG, "✅ OpenClaw 配置保存成功: ${openclawConfigFile.absolutePath}")
-            // 清除缓存，下次加载时会重新读取
+            // Clear cache, will reload next time
             openclawConfigCacheValid = false
             true
         } catch (e: Exception) {
@@ -469,9 +469,9 @@ class ConfigLoader(private val context: Context) {
 
     /**
      * 启用配置热重载
-     * 监控配置文件，变化时自动重新加载
+     * Monitor config files, auto-reload on changes
      *
-     * @param callback 配置重新加载后的回调函数
+     * @param callback Callback function after config reload
      */
     fun enableHotReload(callback: ((OpenClawConfig) -> Unit)? = null) {
         if (hotReloadEnabled) {
@@ -482,10 +482,10 @@ class ConfigLoader(private val context: Context) {
         this.reloadCallback = callback
 
         try {
-            // 确保配置目录存在
+            // Ensure config directory exists
             ensureConfigDir()
 
-            // 监控配置目录
+            // Monitor config directory
             fileObserver = object : FileObserver(configDir, MODIFY or CREATE or DELETE) {
                 override fun onEvent(event: Int, path: String?) {
                     when (path) {
@@ -532,7 +532,7 @@ class ConfigLoader(private val context: Context) {
         return FeishuConfigAdapter.toFeishuConfig(openClawConfig.gateway.feishu)
     }
 
-    // ============ 私有方法 ============
+    // ============ Private Methods ============
 
     /**
      * 确保配置目录存在
@@ -550,7 +550,7 @@ class ConfigLoader(private val context: Context) {
      */
     private fun createDefaultOpenClawConfig() {
         try {
-            // 优先从 assets 读取默认配置
+            // Prefer to read default config from assets
             val defaultConfig = try {
                 context.assets.open("openclaw.json.default").bufferedReader().use { it.readText() }
             } catch (e: Exception) {
@@ -570,10 +570,10 @@ class ConfigLoader(private val context: Context) {
     /**
      * 替换环境变量 (${VAR_NAME})
      *
-     * 支持的环境变量来源：
-     * 1. 系统环境变量
-     * 2. AppConstants 中的常量
-     * 3. MMKV 存储的配置
+     * Supported environment variable sources:
+     * 1. System environment variables
+     * 2. Constants in AppConstants
+     * 3. Config stored in MMKV
      */
     private fun replaceEnvVars(json: String): String {
         var result = json
@@ -597,20 +597,20 @@ class ConfigLoader(private val context: Context) {
     /**
      * 获取环境变量值
      *
-     * 查找优先级:
-     * 1. 系统环境变量
+     * Lookup priority:
+     * 1. System environment variables
      * 2. AppConstants 常量
      * 3. MMKV 配置
      */
     private fun getEnvVar(name: String): String? {
-        // 1. 尝试从系统环境变量获取
+        // 1. Try to get from system environment variables
         val systemEnv = System.getenv(name)
         if (systemEnv != null) {
             Log.d(TAG, "从系统环境变量获取: $name")
             return systemEnv
         }
 
-        // 2. 尝试从 AppConstants 获取
+        // 2. Try to get from AppConstants
         try {
             val constantsClass = Class.forName("com.xiaomo.androidforclaw.util.AppConstants")
             val field = constantsClass.getDeclaredField(name)
@@ -621,10 +621,10 @@ class ConfigLoader(private val context: Context) {
                 return value
             }
         } catch (e: Exception) {
-            // 继续尝试下一个来源
+            // Continue to next source
         }
 
-        // 3. 尝试从 MMKV 获取
+        // 3. Try to get from MMKV
         try {
             val mmkv = com.tencent.mmkv.MMKV.defaultMMKV()
             val value = mmkv?.decodeString(name)
@@ -651,7 +651,7 @@ class ConfigLoader(private val context: Context) {
      * 验证 OpenClaw 配置
      */
     private fun validateOpenClawConfig(config: OpenClawConfig) {
-        // Agent 配置验证
+        // Agent config validation
         require(config.agent.maxIterations in ConfigDefaults.MIN_MAX_ITERATIONS..ConfigDefaults.MAX_MAX_ITERATIONS) {
             "Agent maxIterations 必须在 ${ConfigDefaults.MIN_MAX_ITERATIONS} 到 ${ConfigDefaults.MAX_MAX_ITERATIONS} 之间"
         }
@@ -664,12 +664,12 @@ class ConfigLoader(private val context: Context) {
             "Agent mode 必须是 'exploration' 或 'planning'"
         }
 
-        // Thinking 配置验证
+        // Thinking config validation
         require(config.thinking.budgetTokens in ConfigDefaults.MIN_THINKING_BUDGET..ConfigDefaults.MAX_THINKING_BUDGET) {
             "Thinking budgetTokens 必须在 ${ConfigDefaults.MIN_THINKING_BUDGET} 到 ${ConfigDefaults.MAX_THINKING_BUDGET} 之间"
         }
 
-        // Screenshot 配置验证
+        // Screenshot config validation
         require(config.tools.screenshot.quality in ConfigDefaults.MIN_SCREENSHOT_QUALITY..ConfigDefaults.MAX_SCREENSHOT_QUALITY) {
             "Screenshot quality 必须在 ${ConfigDefaults.MIN_SCREENSHOT_QUALITY} 到 ${ConfigDefaults.MAX_SCREENSHOT_QUALITY} 之间"
         }
@@ -678,12 +678,12 @@ class ConfigLoader(private val context: Context) {
             "Screenshot format 必须是 'jpeg', 'png' 或 'webp'"
         }
 
-        // Gateway 配置验证
+        // Gateway config validation
         require(config.gateway.port in ConfigDefaults.MIN_GATEWAY_PORT..ConfigDefaults.MAX_GATEWAY_PORT) {
             "Gateway port 必须在 ${ConfigDefaults.MIN_GATEWAY_PORT} 到 ${ConfigDefaults.MAX_GATEWAY_PORT} 之间"
         }
 
-        // UI 配置验证
+        // UI config validation
         require(config.ui.theme in listOf("light", "dark", "auto")) {
             "UI theme 必须是 'light', 'dark' 或 'auto'"
         }
@@ -700,12 +700,12 @@ class ConfigLoader(private val context: Context) {
             "FloatingWindow opacity 必须在 0.0 到 1.0 之间"
         }
 
-        // Logging 配置验证
+        // Logging config validation
         require(config.logging.level in listOf("DEBUG", "INFO", "WARN", "ERROR")) {
             "Logging level 必须是 'DEBUG', 'INFO', 'WARN' 或 'ERROR'"
         }
 
-        // Providers 配置验证 (从 config.providers 读取)
+        // Providers config validation (read from config.providers)
         if (config.providers.isNotEmpty()) {
             config.providers.forEach { (providerName, provider) ->
                 require(provider.baseUrl.isNotBlank()) {
@@ -733,7 +733,7 @@ class ConfigLoader(private val context: Context) {
             }
         }
 
-        // Feishu Channel 配置验证
+        // Feishu Channel config validation
         val feishu = config.gateway.feishu
         if (feishu.enabled) {
             require(feishu.appId.isNotBlank()) {
