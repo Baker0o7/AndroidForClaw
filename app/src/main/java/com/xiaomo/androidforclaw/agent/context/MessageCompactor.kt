@@ -8,8 +8,8 @@ import com.xiaomo.androidforclaw.providers.llm.systemMessage
 import com.xiaomo.androidforclaw.providers.llm.userMessage
 
 /**
- * 消息压缩器 - 总结旧消息以减少上下文
- * 对齐 OpenClaw 的 compaction.ts 实现
+ * Message Compactor - Summarize old messages to reduce context
+ * Aligned with OpenClaw's compaction.ts implementation
  */
 class MessageCompactor(
     private val llmProvider: UnifiedLLMProvider
@@ -17,17 +17,17 @@ class MessageCompactor(
     companion object {
         private const val TAG = "MessageCompactor"
 
-        // 配置参数（对齐 OpenClaw 默认值）
-        private const val KEEP_RECENT_TOKENS = 20000  // 保留最近的消息
-        private const val MIN_MESSAGES_TO_COMPACT = 5  // 最少需要这么多消息才压缩
-        private const val CHARS_PER_TOKEN = 4  // 粗略估算：4 字符 ≈ 1 token
+        // Configuration parameters (aligned with OpenClaw defaults)
+        private const val KEEP_RECENT_TOKENS = 20000  // Keep recent messages
+        private const val MIN_MESSAGES_TO_COMPACT = 5  // Minimum messages needed to compact
+        private const val CHARS_PER_TOKEN = 4  // Rough estimate: 4 chars ≈ 1 token
     }
 
     /**
-     * 压缩消息历史
-     * @param messages 原始消息列表
-     * @param keepLastN 保留最后 N 条消息不压缩
-     * @return 压缩后的消息列表
+     * Compact message history
+     * @param messages Original message list
+     * @param keepLastN Keep last N messages uncompacted
+     * @return Compacted message list
      */
     suspend fun compactMessages(
         messages: List<LegacyMessage>,
@@ -36,13 +36,13 @@ class MessageCompactor(
         return try {
             Log.d(TAG, "开始压缩消息: 总数=${messages.size}, 保留最后${keepLastN}条")
 
-            // 检查是否需要压缩
+            // Check if compaction is needed
             if (messages.size < MIN_MESSAGES_TO_COMPACT) {
-                Log.d(TAG, "消息数量太少，无需压缩")
+                Log.d(TAG, "Too few messages, no need to compact")
                 return Result.success(messages)
             }
 
-            // 分离 system prompt、待压缩消息、最近消息
+            // Separate system messages, messages to compact, and recent messages
             val systemMessages = messages.filter { it.role == "system" }
             val nonSystemMessages = messages.filter { it.role != "system" }
 
@@ -57,15 +57,15 @@ class MessageCompactor(
             Log.d(TAG, "待压缩消息: ${toCompact.size}条")
             Log.d(TAG, "保留消息: ${recentMessages.size}条")
 
-            // 总结旧消息
+            // Summarize old messages
             val summary = summarizeMessages(toCompact)
 
-            // 构建压缩后的消息列表
+            // Build compacted message list
             val compacted = buildList {
-                // 1. 保留 system prompt
+                // 1. Keep system prompt
                 addAll(systemMessages)
 
-                // 2. 添加总结消息
+                // 2. Add summary message
                 add(LegacyMessage(
                     role = "user",
                     content = "[Earlier conversation summary]\n$summary"
@@ -75,7 +75,7 @@ class MessageCompactor(
                     content = "I understand. I'll continue from where we left off."
                 ))
 
-                // 3. 保留最近的消息
+                // 3. Keep recent messages
                 addAll(recentMessages)
             }
 
@@ -90,12 +90,12 @@ class MessageCompactor(
     }
 
     /**
-     * 总结消息列表
+     * Summarize message list
      */
     private suspend fun summarizeMessages(messages: List<LegacyMessage>): String {
         if (messages.isEmpty()) return ""
 
-        // 构建待总结的文本
+        // Build text to summarize
         val textToSummarize = buildString {
             messages.forEach { msg ->
                 appendLine("Role: ${msg.role}")
@@ -109,7 +109,7 @@ class MessageCompactor(
 
         Log.d(TAG, "总结文本长度: ${textToSummarize.length} 字符")
 
-        // 使用 LLM 总结
+        // Use LLM to summarize
         val systemPrompt = """
             You are summarizing a conversation history to save context space.
 
@@ -141,27 +141,27 @@ class MessageCompactor(
 
             val response = llmProvider.chatWithTools(
                 messages = messagesToSend,
-                tools = null,  // 不需要工具
-                reasoningEnabled = true  // 使用扩展思考
+                tools = null,  // No tools needed
+                reasoningEnabled = true  // Use extended thinking
             )
 
             response.content ?: "Summary generation failed"
 
         } catch (e: Exception) {
-            Log.e(TAG, "LLM 总结失败", e)
-            // 降级：生成简单摘要
+            Log.e(TAG, "LLM summarization failed", e)
+            // Fallback: generate simple summary
             generateSimpleSummary(messages)
         }
     }
 
     /**
-     * 降级策略：生成简单摘要（不调用 LLM）
+     * Fallback strategy: generate simple summary (without calling LLM)
      */
     private fun generateSimpleSummary(messages: List<LegacyMessage>): String {
         return buildString {
             appendLine("Earlier conversation (${messages.size} messages):")
 
-            // 统计消息类型
+            // Count message types
             val userMsgCount = messages.count { it.role == "user" }
             val assistantMsgCount = messages.count { it.role == "assistant" }
             val toolCallCount = messages.sumOf { it.toolCalls?.size ?: 0 }
@@ -170,7 +170,7 @@ class MessageCompactor(
             appendLine("- Assistant messages: $assistantMsgCount")
             appendLine("- Tool calls: $toolCallCount")
 
-            // 提取工具名称
+            // Extract tool names
             val toolNames = messages
                 .flatMap { it.toolCalls ?: emptyList() }
                 .map { it.function.name }
@@ -183,7 +183,7 @@ class MessageCompactor(
     }
 
     /**
-     * 估算消息列表的 token 数量
+     * Estimate token count of message list
      */
     fun estimateTokens(messages: List<LegacyMessage>): Int {
         val totalChars = messages.sumOf { msg ->
@@ -194,7 +194,7 @@ class MessageCompactor(
     }
 
     /**
-     * 检查是否需要压缩
+     * Check if compaction is needed
      */
     fun shouldCompact(
         messages: List<LegacyMessage>,

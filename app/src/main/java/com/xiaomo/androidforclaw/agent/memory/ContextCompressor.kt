@@ -5,13 +5,13 @@ import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.providers.LegacyRepository
 
 /**
- * 上下文压缩器
- * 对齐 OpenClaw src/agents/compaction.ts
+ * Context Compressor
+ * Aligned with OpenClaw src/agents/compaction.ts
  *
- * 功能：
- * - 检测是否需要压缩
- * - 生成历史消息摘要
- * - 标识符保留策略
+ * Features:
+ * - Detect if compaction is needed
+ * - Generate history message summary
+ * - Identifier preservation policy
  */
 class ContextCompressor(
     private val legacyRepository: LegacyRepository,
@@ -20,54 +20,54 @@ class ContextCompressor(
     companion object {
         private const val TAG = "ContextCompressor"
 
-        // 安全边际：1.2x（补偿 token 估算不准确）
+        // Safety margin: 1.2x (compensate for token estimation inaccuracy)
         private const val SAFETY_MARGIN = 1.2
 
-        // 摘要提示开销
+        // Summarization overhead
         private const val SUMMARIZATION_OVERHEAD_TOKENS = 4096
     }
 
     /**
-     * 压缩配置
+     * Compaction Configuration
      */
     data class CompactionConfig(
         val mode: CompactionMode = CompactionMode.SAFEGUARD,
-        val contextWindowTokens: Int = 200_000,        // Claude Opus 4.6 默认
-        val reserveTokensFloor: Int = 20_000,          // 强制保留的最小 token
-        val softThresholdTokens: Int = 4_000,          // 软阈值
-        val keepRecentTokens: Int = 10_000,            // 保留最近内容的预算
-        val maxHistoryShare: Double = 0.5,             // 历史最大占比
+        val contextWindowTokens: Int = 200_000,        // Claude Opus 4.6 default
+        val reserveTokensFloor: Int = 20_000,          // Minimum tokens forcibly reserved
+        val softThresholdTokens: Int = 4_000,          // Soft threshold
+        val keepRecentTokens: Int = 10_000,            // Budget for keeping recent content
+        val maxHistoryShare: Double = 0.5,             // Maximum history share
         val identifierPolicy: IdentifierPolicy = IdentifierPolicy.STRICT
     )
 
     /**
-     * 压缩模式
+     * Compaction Mode
      */
     enum class CompactionMode {
-        SAFEGUARD,  // 保守模式
-        DEFAULT     // 默认模式
+        SAFEGUARD,  // Conservative mode
+        DEFAULT     // Default mode
     }
 
     /**
-     * 标识符保留策略
+     * Identifier Preservation Policy
      */
     enum class IdentifierPolicy {
-        STRICT,     // 保留所有标识符
-        OFF,        // 不保留
-        CUSTOM      // 自定义（TODO）
+        STRICT,     // Preserve all identifiers
+        OFF,        // Don't preserve
+        CUSTOM      // Custom (TODO)
     }
 
     /**
-     * 压缩阈值
+     * Compaction threshold
      */
     private val compactionThreshold: Int
         get() = config.contextWindowTokens - config.reserveTokensFloor - config.softThresholdTokens
 
     /**
-     * 检查是否需要压缩
+     * Check if compaction is needed
      *
-     * @param messages 当前消息列表
-     * @return 是否需要压缩
+     * @param messages Current message list
+     * @return Whether compaction is needed
      */
     fun needsCompaction(messages: List<LegacyMessage>): Boolean {
         val totalTokens = TokenEstimator.estimateMessagesTokens(messages)
@@ -79,10 +79,10 @@ class ContextCompressor(
     }
 
     /**
-     * 压缩消息历史
+     * Compact message history
      *
-     * @param messages 原始消息列表
-     * @return 压缩后的消息列表
+     * @param messages Original message list
+     * @return Compacted message list
      */
     suspend fun compress(messages: List<LegacyMessage>): List<LegacyMessage> {
         if (messages.size <= 3) {
@@ -91,7 +91,7 @@ class ContextCompressor(
         }
 
         try {
-            // 1. 分离系统消息和历史消息
+            // 1. Separate system messages and history messages
             val systemMessages = messages.filter { it.role == "system" }
             val historyMessages = messages.filter { it.role != "system" }
 
@@ -99,7 +99,7 @@ class ContextCompressor(
                 return messages
             }
 
-            // 2. 计算保留的最近消息数量
+            // 2. Calculate count of recent messages to keep
             val recentTokenBudget = config.keepRecentTokens
             var recentCount = 0
             var recentTokens = 0
@@ -113,10 +113,10 @@ class ContextCompressor(
                 recentCount++
             }
 
-            // 至少保留最后 2 条消息
+            // Keep at least last 2 messages
             recentCount = recentCount.coerceAtLeast(2)
 
-            // 3. 分割消息：需要压缩的 + 保留的最近消息
+            // 3. Split messages: to compress + recent messages to keep
             val toCompress = historyMessages.dropLast(recentCount)
             val toKeep = historyMessages.takeLast(recentCount)
 
@@ -127,16 +127,16 @@ class ContextCompressor(
 
             Log.d(TAG, "Compressing ${toCompress.size} messages, keeping ${toKeep.size} recent")
 
-            // 4. 生成摘要
+            // 4. Generate summary
             val summary = generateSummary(toCompress)
 
-            // 5. 构建压缩后的消息列表
+            // 5. Build compacted message list
             val compressedMessages = mutableListOf<LegacyMessage>()
 
-            // 添加系统消息
+            // Add system messages
             compressedMessages.addAll(systemMessages)
 
-            // 添加摘要消息
+            // Add summary message
             compressedMessages.add(
                 LegacyMessage(
                     role = "assistant",
@@ -152,7 +152,7 @@ class ContextCompressor(
                 )
             )
 
-            // 添加保留的最近消息
+            // Add kept recent messages
             compressedMessages.addAll(toKeep)
 
             val originalTokens = TokenEstimator.estimateMessagesTokens(messages)
@@ -171,12 +171,12 @@ class ContextCompressor(
     }
 
     /**
-     * 生成消息摘要
+     * Generate message summary
      */
     private suspend fun generateSummary(messages: List<LegacyMessage>): String {
         if (messages.isEmpty()) return ""
 
-        // 构建摘要提示
+        // Build summary prompt
         val conversationText = messages.joinToString("\n\n") { message ->
             val role = message.role.uppercase()
             val content = message.content?.toString() ?: ""
@@ -186,7 +186,7 @@ class ContextCompressor(
         val summaryPrompt = buildSummaryPrompt(conversationText)
 
         try {
-            // 使用 LLM 生成摘要（使用 Extended Thinking）
+            // Use LLM to generate summary (using Extended Thinking)
             val summaryMessages = listOf(
                 LegacyMessage(role = "user", content = summaryPrompt)
             )
@@ -194,7 +194,7 @@ class ContextCompressor(
             val response = legacyRepository.chatWithTools(
                 messages = summaryMessages,
                 tools = emptyList(),
-                reasoningEnabled = true  // 使用 Extended Thinking 提高摘要质量
+                reasoningEnabled = true  // Use Extended Thinking to improve summary quality
             )
 
             val message = response.choices.firstOrNull()?.message
@@ -210,7 +210,7 @@ class ContextCompressor(
     }
 
     /**
-     * 构建摘要提示
+     * Build summary prompt
      */
     private fun buildSummaryPrompt(conversationText: String): String {
         val identifierGuidance = when (config.identifierPolicy) {
@@ -230,7 +230,7 @@ class ContextCompressor(
 
             IdentifierPolicy.OFF -> ""
 
-            IdentifierPolicy.CUSTOM -> ""  // TODO: 自定义指导
+            IdentifierPolicy.CUSTOM -> ""  // TODO: Custom guidance
         }
 
         return """

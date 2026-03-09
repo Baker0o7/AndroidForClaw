@@ -8,13 +8,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * 记忆管理器
- * 对齐 OpenClaw 记忆系统
+ * Memory Manager
+ * Aligned with OpenClaw memory system
  *
- * 功能：
- * - 长期记忆（MEMORY.md）读写
- * - 每日日志（memory/YYYY-MM-DD.md）追加
- * - 记忆文件路径管理
+ * Features:
+ * - Long-term memory (MEMORY.md) read/write
+ * - Daily log (memory/YYYY-MM-DD.md) append
+ * - Memory file path management
  */
 class MemoryManager(private val workspacePath: String) {
     companion object {
@@ -29,7 +29,7 @@ class MemoryManager(private val workspacePath: String) {
     private val memoryDir = File(workspaceDir, MEMORY_DIR)
 
     init {
-        // 确保目录存在
+        // Ensure directories exist
         if (!workspaceDir.exists()) {
             workspaceDir.mkdirs()
         }
@@ -39,9 +39,9 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 读取长期记忆（MEMORY.md）
+     * Read long-term memory (MEMORY.md)
      *
-     * @return 记忆内容，如果文件不存在返回空字符串
+     * @return Memory content, or empty string if file doesn't exist
      */
     suspend fun readMemory(): String = withContext(Dispatchers.IO) {
         try {
@@ -58,9 +58,9 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 写入长期记忆（MEMORY.md）
+     * Write long-term memory (MEMORY.md)
      *
-     * @param content 要写入的内容
+     * @param content Content to write
      */
     suspend fun writeMemory(content: String) = withContext(Dispatchers.IO) {
         try {
@@ -72,10 +72,10 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 追加内容到长期记忆
+     * Append content to long-term memory
      *
-     * @param section 章节名称（例如 "## User Preferences"）
-     * @param content 要追加的内容
+     * @param section Section name (e.g., "## User Preferences")
+     * @param content Content to append
      */
     suspend fun appendToMemory(section: String, content: String) = withContext(Dispatchers.IO) {
         try {
@@ -94,9 +94,9 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 读取今天的日志
+     * Read today's log
      *
-     * @return 今天的日志内容
+     * @return Today's log content
      */
     suspend fun getTodayLog(): String = withContext(Dispatchers.IO) {
         val today = DATE_FORMAT.format(Date())
@@ -115,9 +115,9 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 读取昨天的日志
+     * Read yesterday's log
      *
-     * @return 昨天的日志内容
+     * @return Yesterday's log content
      */
     suspend fun getYesterdayLog(): String = withContext(Dispatchers.IO) {
         val calendar = Calendar.getInstance()
@@ -138,22 +138,22 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 追加内容到今天的日志
+     * Append content to today's log
      *
-     * @param content 要追加的内容
+     * @param content Content to append
      */
     suspend fun appendToToday(content: String) = withContext(Dispatchers.IO) {
         val today = DATE_FORMAT.format(Date())
         val logFile = File(memoryDir, "$today.md")
         try {
             if (!logFile.exists()) {
-                // 创建新日志文件
+                // Create new log file
                 val header = "# Daily Log - $today\n\n"
                 logFile.writeText(header)
                 Log.d(TAG, "Created new daily log: $today.md")
             }
 
-            // 追加内容（带时间戳）
+            // Append content (with timestamp)
             val timestamp = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date())
             val entry = "\n## [$timestamp]\n$content\n"
             logFile.appendText(entry)
@@ -164,10 +164,10 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 读取指定日期的日志
+     * Read log by specified date
      *
-     * @param date 日期字符串（yyyy-MM-dd）
-     * @return 日志内容
+     * @param date Date string (yyyy-MM-dd)
+     * @return Log content
      */
     suspend fun getLogByDate(date: String): String = withContext(Dispatchers.IO) {
         val logFile = File(memoryDir, "$date.md")
@@ -185,9 +185,9 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 列出所有日志文件
+     * List all log files
      *
-     * @return 日志文件列表（按日期倒序）
+     * @return Log file list (sorted by date descending)
      */
     suspend fun listLogs(): List<String> = withContext(Dispatchers.IO) {
         try {
@@ -201,20 +201,20 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 列出所有记忆文件（非日期文件）
+     * List all memory files (non-date files)
      *
-     * @return 记忆文件路径列表
+     * @return Memory file path list
      */
     suspend fun listMemoryFiles(): List<String> = withContext(Dispatchers.IO) {
         try {
             val files = mutableListOf<String>()
 
-            // 添加根目录的 MEMORY.md
+            // Add MEMORY.md from root directory
             if (memoryFile.exists()) {
                 files.add(memoryFile.absolutePath)
             }
 
-            // 添加 memory/ 目录下的非日期文件
+            // Add non-date files from memory/ directory
             memoryDir.listFiles { file ->
                 file.isFile &&
                 file.name.endsWith(".md") &&
@@ -231,7 +231,7 @@ class MemoryManager(private val workspacePath: String) {
     }
 
     /**
-     * 创建 MEMORY.md 模板
+     * Create MEMORY.md template
      */
     private fun createMemoryTemplate(): String {
         val template = """
@@ -275,9 +275,9 @@ Last updated: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date()
     }
 
     /**
-     * 清除超过指定天数的日志
+     * Clear logs older than specified days
      *
-     * @param days 保留天数
+     * @param days Days to keep
      */
     suspend fun pruneOldLogs(days: Int) = withContext(Dispatchers.IO) {
         try {

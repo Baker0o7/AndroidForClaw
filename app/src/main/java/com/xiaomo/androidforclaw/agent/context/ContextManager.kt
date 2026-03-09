@@ -6,14 +6,14 @@ import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.providers.llm.Message
 
 /**
- * 上下文管理器 - 处理上下文超限
- * 对齐 OpenClaw 的多层恢复策略
+ * Context Manager - Handle context overflow
+ * Aligned with OpenClaw's multi-layer recovery strategy
  *
- * 策略顺序（参考 OpenClaw run.ts 行 687-1055）：
- * 1. 检测上下文超限错误
- * 2. 尝试 Compaction（最多 3 次）
- * 3. 尝试截断超大工具结果
- * 4. 放弃并返回错误
+ * Strategy order (refer to OpenClaw run.ts lines 687-1055):
+ * 1. Detect context overflow error
+ * 2. Try Compaction (max 3 times)
+ * 3. Try truncating oversized tool results
+ * 4. Give up and return error
  */
 class ContextManager(
     private val llmProvider: UnifiedLLMProvider
@@ -29,7 +29,7 @@ class ContextManager(
     private var toolResultTruncationAttempted = false
 
     /**
-     * 重置计数器（新的 run 开始时调用）
+     * Reset counters (called at the start of a new run)
      */
     fun reset() {
         compactionAttempts = 0
@@ -38,8 +38,8 @@ class ContextManager(
     }
 
     /**
-     * 处理上下文超限错误
-     * @return 如果可以恢复返回修复后的消息列表，否则返回 null
+     * Handle context overflow error
+     * @return Returns fixed message list if recoverable, otherwise returns null
      */
     suspend fun handleContextOverflow(
         error: Throwable,
@@ -53,17 +53,17 @@ class ContextManager(
         Log.d(TAG, "已尝试 compaction: $compactionAttempts 次")
         Log.d(TAG, "已尝试截断: $toolResultTruncationAttempted")
 
-        // 1. 确认是上下文超限错误
+        // 1. Confirm it's a context overflow error
         if (!ContextErrors.isLikelyContextOverflowError(errorMessage)) {
-            Log.w(TAG, "不是上下文超限错误，无法处理")
+            Log.w(TAG, "Not a context overflow error, cannot handle")
             return ContextRecoveryResult.CannotRecover(errorMessage)
         }
 
-        // 2. 尝试 Compaction
+        // 2. Try Compaction
         if (compactionAttempts < MAX_COMPACTION_ATTEMPTS) {
-            Log.d(TAG, "尝试 Compaction (第 ${compactionAttempts + 1} 次)...")
+            Log.d(TAG, "Trying Compaction (attempt ${compactionAttempts + 1})...")
 
-            // 转换 Message 到 LegacyMessage
+            // Convert Message to LegacyMessage
             val legacyMessages = convertToLegacyMessages(messages)
 
             val compactionResult = compactor.compactMessages(
@@ -88,9 +88,9 @@ class ContextManager(
             } else {
                 Log.e(TAG, "Compaction 失败: ${compactionResult.exceptionOrNull()?.message}")
 
-                // Compaction 失败，检查是否是因为 compaction 本身导致的超限
+                // Compaction failed, check if it's due to compaction itself causing overflow
                 if (ContextErrors.isCompactionFailureError(errorMessage)) {
-                    Log.e(TAG, "Compaction 本身失败，无法恢复")
+                    Log.e(TAG, "Compaction itself failed, cannot recover")
                     return ContextRecoveryResult.CannotRecover(
                         "Compaction failed: context overflow during summarization. " +
                         "Try /reset or use a larger-context model."
@@ -99,9 +99,9 @@ class ContextManager(
             }
         }
 
-        // 3. 尝试截断超大工具结果
+        // 3. Try truncating oversized tool results
         if (!toolResultTruncationAttempted) {
-            Log.d(TAG, "尝试截断超大工具结果...")
+            Log.d(TAG, "Trying to truncate oversized tool results...")
 
             val legacyMessages = convertToLegacyMessages(messages)
 
@@ -123,8 +123,8 @@ class ContextManager(
             }
         }
 
-        // 4. 放弃
-        Log.e(TAG, "所有恢复策略均失败")
+        // 4. Give up
+        Log.e(TAG, "All recovery strategies failed")
         return ContextRecoveryResult.CannotRecover(
             "Context overflow: prompt too large for the model. " +
             "Compaction attempts: $compactionAttempts. " +
@@ -133,7 +133,7 @@ class ContextManager(
     }
 
     /**
-     * 检查是否应该预防性压缩
+     * Check if preemptive compaction should be performed
      */
     fun shouldPreemptivelyCompact(
         messages: List<Message>,
@@ -144,7 +144,7 @@ class ContextManager(
     }
 
     /**
-     * 预防性压缩（在发送请求前）
+     * Preemptive compaction (before sending request)
      */
     suspend fun preemptivelyCompact(
         messages: List<Message>
@@ -164,7 +164,7 @@ class ContextManager(
     }
 
     /**
-     * 转换新格式到旧格式（用于 compactor）
+     * Convert new format to legacy format (for compactor)
      */
     private fun convertToLegacyMessages(messages: List<Message>): List<LegacyMessage> {
         return messages.map { msg ->
@@ -202,7 +202,7 @@ class ContextManager(
     }
 
     /**
-     * 转换旧格式到新格式
+     * Convert legacy format to new format
      */
     private fun convertFromLegacyMessages(legacyMessages: List<LegacyMessage>): List<Message> {
         return legacyMessages.map { msg ->
@@ -251,20 +251,20 @@ class ContextManager(
 }
 
 /**
- * 上下文恢复结果
+ * Context Recovery Result
  */
 sealed class ContextRecoveryResult {
     /**
-     * 成功恢复
+     * Successfully recovered
      */
     data class Recovered(
         val messages: List<Message>,
-        val strategy: String,  // "compaction" 或 "truncation"
+        val strategy: String,  // "compaction" or "truncation"
         val attempt: Int
     ) : ContextRecoveryResult()
 
     /**
-     * 无法恢复
+     * Cannot recover
      */
     data class CannotRecover(
         val reason: String

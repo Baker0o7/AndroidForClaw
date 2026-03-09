@@ -15,8 +15,8 @@ import kotlinx.coroutines.delay
 /**
  * Function Executor
  *
- * 直接执行 LLM 通过 function calling 选择的函数
- * 不需要匹配逻辑，LLM 已经做好选择
+ * Directly execute functions selected by LLM through function calling
+ * No matching logic needed, LLM has already made the choice
  */
 class FunctionExecutor(
     private val context: Context,
@@ -29,7 +29,7 @@ class FunctionExecutor(
     private val gson = Gson()
 
     /**
-     * 直接执行函数
+     * Execute function directly
      */
     suspend fun execute(functionName: String, argsJson: String): FunctionResult {
         Log.d(TAG, "Executing function: $functionName")
@@ -45,7 +45,7 @@ class FunctionExecutor(
 
         return try {
             when (functionName) {
-                // ===== 移动端操作 =====
+                // ===== Mobile Operations =====
                 "screenshot" -> executeScreenshot()
                 "tap" -> executeTap(args)
                 "swipe" -> executeSwipe(args)
@@ -53,16 +53,16 @@ class FunctionExecutor(
                 "long_press" -> executeLongPress(args)
                 "wait" -> executeWait(args)
 
-                // ===== 导航 =====
+                // ===== Navigation =====
                 "home" -> executeHome()
                 "back" -> executeBack()
                 "open_app" -> executeOpenApp(args)
 
-                // ===== 验证 =====
+                // ===== Verification =====
                 "check_ui" -> executeCheckUI()
                 "verify_goal" -> executeVerifyGoal(args)
 
-                // ===== 系统 =====
+                // ===== System =====
                 "stop" -> executeStop(args)
                 "log" -> executeLog(args)
 
@@ -74,13 +74,13 @@ class FunctionExecutor(
         }
     }
 
-    // ===== 移动端操作函数 =====
+    // ===== Mobile Operation Functions =====
 
     private suspend fun executeScreenshot(): FunctionResult {
         Log.d(TAG, "Taking screenshot...")
         return try {
-            // 使用 DeviceController 截图
-            // TODO: 需要返回截图的 base64 或路径
+            // Use DeviceController to take screenshot
+            // TODO: Need to return screenshot base64 or path
             FunctionResult.success("Screenshot captured")
         } catch (e: Exception) {
             Log.e(TAG, "Screenshot failed", e)
@@ -154,7 +154,7 @@ class FunctionExecutor(
 
         Log.d(TAG, "Long pressing at ($x, $y) for ${duration}ms")
         return try {
-            // 使用 PhoneAccessibilityService 的 performClickAt 方法，isLongClick=true
+            // Use PhoneAccessibilityService's performClickAt method, isLongClick=true
             val service = PhoneAccessibilityService.Accessibility
             if (service != null) {
                 val success = service.performClickAt(x.toFloat(), y.toFloat(), isLongClick = true)
@@ -185,7 +185,7 @@ class FunctionExecutor(
         }
     }
 
-    // ===== 导航函数 =====
+    // ===== Navigation Functions =====
 
     private suspend fun executeHome(): FunctionResult {
         Log.d(TAG, "Going home")
@@ -217,7 +217,7 @@ class FunctionExecutor(
 
         Log.d(TAG, "Opening app: $packageName")
         return try {
-            // 使用 context 启动应用
+            // Use context to launch app
             val intent = context.packageManager.getLaunchIntentForPackage(packageName)
             if (intent != null) {
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -232,12 +232,12 @@ class FunctionExecutor(
         }
     }
 
-    // ===== 验证函数 =====
+    // ===== Verification Functions =====
 
     private suspend fun executeCheckUI(): FunctionResult {
         Log.d(TAG, "Checking UI")
         return try {
-            // 获取当前 UI 信息
+            // Get current UI info
             val service = PhoneAccessibilityService.Accessibility
             if (service != null) {
                 val viewNodes = service.dumpView()
@@ -261,11 +261,11 @@ class FunctionExecutor(
         }
 
         Log.d(TAG, "Verifying goal: $goal")
-        // 这里可以添加实际的目标验证逻辑
+        // Actual goal verification logic can be added here
         return FunctionResult.success("Goal verification: $goal")
     }
 
-    // ===== 系统函数 =====
+    // ===== System Functions =====
 
     private suspend fun executeStop(args: Map<String, Any?>): FunctionResult {
         val reason = args["reason"] as? String ?: "Task completed"
@@ -295,7 +295,7 @@ class FunctionExecutor(
 
     // ===== Function Definitions =====
     /**
-     * 获取所有 Function Definitions (Legacy LLM API format)
+     * Get all Function Definitions (Legacy LLM API format)
      */
     fun getFunctionDefinitions(): List<ToolDefinition> {
         return listOf(
@@ -424,7 +424,7 @@ class FunctionExecutor(
 }
 
 /**
- * Function 执行结果
+ * Function Execution Result
  */
 data class FunctionResult(
     val success: Boolean,

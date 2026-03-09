@@ -13,33 +13,33 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Context Builder - 按照 OpenClaw 架构构建 Agent 的上下文
+ * Context Builder - Build Agent context following OpenClaw architecture
  *
- * OpenClaw 系统提示词的 22 个部分（按构建顺序）:
- * 1. ✅ Identity - 核心身份
- * 2. ✅ Tooling - 工具列表（预排序）
- * 3. ✅ Tool Call Style - 何时叙述工具调用
- * 4. ✅ Safety - 安全保障
- * 5. ✅ Channel Hints - message tool 提示（对应 OpenClaw CLI Quick Reference）
- * 6. ✅ Skills (mandatory) - 技能列表（对齐 OpenClaw 格式）
- * 7. ✅ Memory Recall - memory_search/memory_get（已实现）
- * 8. ✅ User Identity - 用户信息（已实现，基于设备信息）
- * 9. ✅ Current Date & Time - 时区
- * 10. ✅ Workspace - 工作目录
- * 11. ⏸️ Documentation - 文档路径（Android 环境不需要）
- * 12. ✅ Workspace Files (injected) - Bootstrap 注入标记
- * 13. ⏸️ Reply Tags - [[reply_to_current]]（Android App 不需要）
- * 14. ✅ Messaging - Channel hints（部分实现，通过 ChannelManager）
- * 15. ⏸️ Voice (TTS) - 语音输出（暂不需要）
- * 16. ✅ Group Chat / Subagent Context - 额外上下文（已实现，支持 extraSystemPrompt）
- * 17. ⏸️ Reactions Guidance - 反应指南（Android App 不需要）
- * 18. ✅ Reasoning Format - 推理标记（已实现，<think>/<final> tags）
+ * OpenClaw system prompt 22 parts (in build order):
+ * 1. ✅ Identity - Core identity
+ * 2. ✅ Tooling - Tool list (pre-sorted)
+ * 3. ✅ Tool Call Style - When to narrate tool calls
+ * 4. ✅ Safety - Safety guarantees
+ * 5. ✅ Channel Hints - message tool hints (corresponding to OpenClaw CLI Quick Reference)
+ * 6. ✅ Skills (mandatory) - Skill list (aligned with OpenClaw format)
+ * 7. ✅ Memory Recall - memory_search/memory_get (implemented)
+ * 8. ✅ User Identity - User info (implemented, based on device info)
+ * 9. ✅ Current Date & Time - Timezone
+ * 10. ✅ Workspace - Working directory
+ * 11. ⏸️ Documentation - Documentation path (not needed for Android)
+ * 12. ✅ Workspace Files (injected) - Bootstrap injection marker
+ * 13. ⏸️ Reply Tags - [[reply_to_current]] (not needed for Android App)
+ * 14. ✅ Messaging - Channel hints (partially implemented via ChannelManager)
+ * 15. ⏸️ Voice (TTS) - Voice output (not needed yet)
+ * 16. ✅ Group Chat / Subagent Context - Extra context (implemented, supports extraSystemPrompt)
+ * 17. ⏸️ Reactions Guidance - Reactions guide (not needed for Android App)
+ * 18. ✅ Reasoning Format - Reasoning markers (implemented, <think>/<final> tags)
  * 19. ✅ Project Context - Bootstrap Files (SOUL, AGENTS, TOOLS, MEMORY, etc.)
- * 20. ✅ Silent Replies - 静默回复（已实现）
- * 21. ✅ Heartbeats - 心跳（已实现）
- * 22. ✅ Runtime - 运行时信息
+ * 20. ✅ Silent Replies - Silent replies (implemented)
+ * 21. ✅ Heartbeats - Heartbeats (implemented)
+ * 22. ✅ Runtime - Runtime information
  *
- * 总结: 22 个部分中，16 个已实现 ✅，6 个不需要 ⏸️
+ * Summary: Of 22 parts, 16 implemented ✅, 6 not needed ⏸️
  */
 class ContextBuilder(
     private val context: Context,
@@ -49,27 +49,27 @@ class ContextBuilder(
     companion object {
         private const val TAG = "ContextBuilder"
 
-        // Bootstrap 文件列表（完整 OpenClaw 9 个文件）
+        // Bootstrap file list (complete OpenClaw 9 files)
         private val BOOTSTRAP_FILES = listOf(
-            "IDENTITY.md",      // 身份定义
-            "AGENTS.md",        // Agent 列表
-            "SOUL.md",          // 个性和语气
-            "TOOLS.md",         // 工具使用指南
-            "USER.md",          // 用户信息
-            "HEARTBEAT.md",     // 心跳配置
-            "BOOTSTRAP.md",     // 新工作区初始化
-            "MEMORY.md"         // 长期记忆
+            "IDENTITY.md",      // Identity definition
+            "AGENTS.md",        // Agent list
+            "SOUL.md",          // Personality and tone
+            "TOOLS.md",         // Tool usage guide
+            "USER.md",          // User information
+            "HEARTBEAT.md",     // Heartbeat configuration
+            "BOOTSTRAP.md",     // New workspace initialization
+            "MEMORY.md"         // Long-term memory
         )
 
-        // Prompt Mode (参考 OpenClaw)
+        // Prompt Mode (reference OpenClaw)
         enum class PromptMode {
-            FULL,      // 主 Agent - 所有 22 部分
-            MINIMAL,   // 子 Agent - 仅核心部分
-            NONE       // 最小模式 - 仅基础身份
+            FULL,      // Main Agent - All 22 parts
+            MINIMAL,   // Sub Agent - Core parts only
+            NONE       // Minimal mode - Basic identity only
         }
     }
 
-    // 对齐 OpenClaw: workspace 在外部存储,用户可访问
+    // Aligned with OpenClaw: workspace in external storage, user accessible
     // OpenClaw: ~/.openclaw/workspace
     // AndroidForClaw: /sdcard/.androidforclaw/workspace
     private val workspaceDir = File("/sdcard/.androidforclaw/workspace")
@@ -77,18 +77,18 @@ class ContextBuilder(
     private val channelManager = ChannelManager(context)
 
     init {
-        // 确保 workspace 目录存在
+        // Ensure workspace directory exists
         if (!workspaceDir.exists()) {
             workspaceDir.mkdirs()
             Log.d(TAG, "Created workspace directory: ${workspaceDir.absolutePath}")
         }
 
-        // 初始化 Channel 状态
+        // Initialize Channel state
         channelManager.updateAccountStatus()
     }
 
     /**
-     * 构建系统提示词（按照 OpenClaw 的 22 部分顺序）
+     * Build system prompt (following OpenClaw's 22-part order)
      */
     fun buildSystemPrompt(
         userGoal: String = "",
@@ -104,30 +104,30 @@ class ContextBuilder(
 
         // === OpenClaw 22-Part Structure ===
 
-        // 1. Identity (核心身份) - 总是包含
+        // 1. Identity (core identity) - Always included
         parts.add(buildIdentitySection())
 
-        // 2. Tooling (工具列表) - 总是包含
+        // 2. Tooling (tool list) - Always included
         val tooling = buildToolingSection()
         if (tooling.isNotEmpty()) {
             parts.add(tooling)
         }
 
-        // 3. Tool Call Style - FULL 模式
+        // 3. Tool Call Style - FULL mode
         if (promptMode == PromptMode.FULL) {
             parts.add(buildToolCallStyleSection())
         }
 
-        // 4. Safety - 总是包含
+        // 4. Safety - Always included
         parts.add(buildSafetySection())
 
-        // 5. Channel Hints (对应 OpenClaw 的 agentPrompt.messageToolHints) - 总是包含
+        // 5. Channel Hints (corresponds to OpenClaw's agentPrompt.messageToolHints) - Always included
         val channelHints = buildChannelSection()
         if (channelHints.isNotEmpty()) {
             parts.add(channelHints)
         }
 
-        // 6. Skills (XML 格式) - FULL 模式
+        // 6. Skills (XML format) - FULL mode
         if (promptMode == PromptMode.FULL) {
             val skills = buildSkillsSection(userGoal)
             if (skills.isNotEmpty()) {
@@ -151,32 +151,32 @@ class ContextBuilder(
             }
         }
 
-        // 9. Current Date & Time - 总是包含
+        // 9. Current Date & Time - Always included
         parts.add(buildTimeSection())
 
-        // 10. Workspace - 总是包含
+        // 10. Workspace - Always included
         parts.add(buildWorkspaceSection())
 
-        // 11. Documentation - 跳过（Android 环境无文档）
+        // 11. Documentation - Skip (no documentation in Android environment)
 
-        // 12. Workspace Files (injected) - 标记 Bootstrap 注入
+        // 12. Workspace Files (injected) - Mark Bootstrap injection
         parts.add("<!-- Workspace files injected above -->")
 
-        // 13-15. Reply Tags, Messaging, Voice - 跳过
+        // 13-15. Reply Tags, Messaging, Voice - Skip
 
-        // 16. Group Chat / Subagent Context - FULL 模式（如果有 extraSystemPrompt）
+        // 16. Group Chat / Subagent Context - FULL mode (if extraSystemPrompt exists)
         if (promptMode == PromptMode.FULL && extraSystemPrompt.isNotEmpty()) {
             parts.add(buildGroupChatContextSection(extraSystemPrompt, promptMode))
         }
 
-        // 17. Reactions - 跳过
+        // 17. Reactions - Skip
 
-        // 18. Reasoning Format - FULL 模式
+        // 18. Reasoning Format - FULL mode
         if (promptMode == PromptMode.FULL && reasoningEnabled) {
             parts.add(buildReasoningFormatSection())
         }
 
-        // 19. Project Context (Bootstrap Files) - 总是包含
+        // 19. Project Context (Bootstrap Files) - Always included
         val bootstrap = loadBootstrapFiles()
         if (bootstrap.isNotEmpty()) {
             parts.add(bootstrap)
@@ -195,7 +195,7 @@ class ContextBuilder(
             }
         }
 
-        // 22. Runtime - 总是包含
+        // 22. Runtime - Always included
         parts.add(buildRuntimeSection(userGoal, packageName, testMode))
 
         val finalPrompt = parts.joinToString("\n\n---\n\n")
@@ -208,7 +208,7 @@ class ContextBuilder(
         return finalPrompt
     }
 
-    // === Section Builders (按 OpenClaw 22 部分) ===
+    // === Section Builders (OpenClaw 22 parts) ===
 
     /**
      * 1. Identity Section
@@ -228,19 +228,19 @@ Your core loop: **Observe → Think → Act → Verify**
     }
 
     /**
-     * 2. Tooling Section (工具列表)
-     * 合并通用工具和 Android 平台工具
+     * 2. Tooling Section (tool list)
+     * Merge universal tools and Android platform tools
      */
     private fun buildToolingSection(): String {
         val parts = mutableListOf<String>()
 
-        // 通用工具
+        // Universal tools
         val universalTools = toolRegistry.getToolsDescription()
         if (universalTools.isNotEmpty()) {
             parts.add(universalTools)
         }
 
-        // Android 平台工具
+        // Android platform tools
         val androidTools = androidToolRegistry.getToolsDescription()
         if (androidTools.isNotEmpty()) {
             parts.add(androidTools)
@@ -295,7 +295,7 @@ When calling tools:
     }
 
     /**
-     * 6. Skills Section (对齐 OpenClaw "Skills (mandatory)" 格式)
+     * 6. Skills Section (aligned with OpenClaw "Skills (mandatory)" format)
      */
     private fun buildSkillsSection(userGoal: String): String {
         // Always Skills
@@ -308,7 +308,7 @@ When calling tools:
             emptyList()
         }
 
-        // 如果没有任何技能，不生成 Skills Section
+        // If no skills available, don't generate Skills Section
         if (alwaysSkills.isEmpty() && relevantSkills.isEmpty()) {
             Log.w(TAG, "⚠️ No skills available (always=0, relevant=0)")
             return ""
@@ -322,7 +322,7 @@ When calling tools:
         parts.add("- If none clearly apply: proceed without skills")
         parts.add("")
 
-        // Always Skills (始终可用的技能)
+        // Always Skills (always available skills)
         if (alwaysSkills.isNotEmpty()) {
             parts.add("### Always Available Skills")
             parts.add("")
@@ -340,7 +340,7 @@ When calling tools:
             }
         }
 
-        // Relevant Skills (与任务相关的技能)
+        // Relevant Skills (skills relevant to the task)
         if (relevantSkills.isNotEmpty()) {
             parts.add("### Relevant Skills for Your Task")
             parts.add("")
@@ -365,7 +365,7 @@ When calling tools:
      * 7. Memory Recall Section
      */
     private fun buildMemoryRecallSection(): String {
-        // 检查是否有 memory tools
+        // Check if memory tools exist
         val hasMemorySearch = toolRegistry.contains("memory_search")
         val hasMemoryGet = toolRegistry.contains("memory_get")
 
@@ -395,10 +395,10 @@ If low confidence after search, say you checked.
     }
 
     /**
-     * 8. User Identity Section (对齐 OpenClaw "Authorized Senders")
+     * 8. User Identity Section (aligned with OpenClaw "Authorized Senders")
      */
     private fun buildUserIdentitySection(): String {
-        // 从 ChannelManager 获取当前用户信息
+        // Get current user info from ChannelManager
         val account = try {
             channelManager.getCurrentAccount()
         } catch (e: Exception) {
@@ -406,7 +406,7 @@ If low confidence after search, say you checked.
             return ""
         }
 
-        // Android App 环境下，用户就是设备本身
+        // In Android App environment, user is the device itself
         val deviceInfo = "${account.name} (Device ID: ${account.deviceId?.take(12)}...)"
 
         return """
@@ -436,7 +436,7 @@ Current Time: $currentTime
      * 10. Workspace Section
      */
     /**
-     * 10. Workspace Section (对齐 OpenClaw 格式)
+     * 10. Workspace Section (aligned with OpenClaw format)
      * OpenClaw: ~/.openclaw/workspace
      * AndroidForClaw: /sdcard/.androidforclaw/workspace
      */
@@ -459,7 +459,7 @@ Treat this directory as the single global workspace for file operations unless e
      * 16. Group Chat / Subagent Context Section
      */
     private fun buildGroupChatContextSection(extraSystemPrompt: String, promptMode: PromptMode): String {
-        // 根据 prompt mode 选择合适的标题
+        // Choose appropriate title based on prompt mode
         val contextHeader = when (promptMode) {
             PromptMode.MINIMAL -> "## Subagent Context"
             else -> "## Group Chat Context"
@@ -553,7 +553,7 @@ If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the aler
     }
 
     /**
-     * 22. Runtime Section (详细运行时信息，包含 Channel 信息)
+     * 22. Runtime Section (detailed runtime information, including Channel info)
      */
     private fun buildRuntimeSection(userGoal: String, packageName: String, testMode: String): String {
         val runtime = buildRuntimeInfo()
@@ -575,13 +575,13 @@ ${if (taskInfo.isNotEmpty()) "## Current Task\n" + taskInfo.joinToString("\n") e
     }
 
     /**
-     * 加载 Bootstrap 文件（参考 OpenClaw 的 _load_bootstrap_files）
-     * 优先级: workspace > assets (bundled)
+     * Load Bootstrap files (reference OpenClaw's _load_bootstrap_files)
+     * Priority: workspace > assets (bundled)
      *
-     * 对齐 OpenClaw:
-     * - 以 "# Project Context" 开头
-     * - SOUL.md 特殊处理（添加 persona 提示）
-     * - 每个文件用 "## filename" 分隔
+     * Aligned with OpenClaw:
+     * - Start with "# Project Context"
+     * - SOUL.md special handling (add persona hint)
+     * - Separate each file with "## filename"
      */
     private fun loadBootstrapFiles(): String {
         val loadedFiles = mutableListOf<Pair<String, String>>() // (filename, content)
@@ -589,13 +589,13 @@ ${if (taskInfo.isNotEmpty()) "## Current Task\n" + taskInfo.joinToString("\n") e
 
         for (filename in BOOTSTRAP_FILES) {
             try {
-                // 1. 先尝试从 workspace 加载（用户自定义）
+                // 1. First try loading from workspace (user-defined)
                 val workspaceFile = File(workspaceDir, filename)
                 val content = if (workspaceFile.exists()) {
                     Log.d(TAG, "Loaded bootstrap from workspace: $filename")
                     workspaceFile.readText()
                 } else {
-                    // 2. 从 assets 加载（内置）
+                    // 2. Load from assets (bundled)
                     try {
                         val inputStream = context.assets.open("bootstrap/$filename")
                         val content = inputStream.bufferedReader().use { it.readText() }
@@ -622,7 +622,7 @@ ${if (taskInfo.isNotEmpty()) "## Current Task\n" + taskInfo.joinToString("\n") e
             return ""
         }
 
-        // 构建 Project Context section (对齐 OpenClaw)
+        // Build Project Context section (aligned with OpenClaw)
         val parts = mutableListOf<String>()
         parts.add("# Project Context")
         parts.add("")
@@ -633,7 +633,7 @@ ${if (taskInfo.isNotEmpty()) "## Current Task\n" + taskInfo.joinToString("\n") e
         }
         parts.add("")
 
-        // 每个文件以 "## filename" 开头
+        // Each file starts with "## filename"
         for ((filename, content) in loadedFiles) {
             parts.add("## $filename")
             parts.add("")
@@ -645,7 +645,7 @@ ${if (taskInfo.isNotEmpty()) "## Current Task\n" + taskInfo.joinToString("\n") e
     }
 
     /**
-     * 构建运行时信息（详细版，参考 OpenClaw）
+     * Build runtime information (detailed version, reference OpenClaw)
      */
     private fun buildRuntimeInfo(): String {
         val model = "Claude Opus 4.6"
@@ -665,7 +665,7 @@ channel: Android App
     }
 
     /**
-     * 获取 Skills 统计信息（用于日志）
+     * Get Skills statistics (for logging)
      */
     fun getSkillsStatistics(): String {
         try {

@@ -3,25 +3,25 @@ package com.xiaomo.androidforclaw.agent.memory
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 
 /**
- * Token 估算工具
- * 对齐 OpenClaw src/agents/compaction.ts
+ * Token Estimator
+ * Aligned with OpenClaw src/agents/compaction.ts
  *
- * 使用 chars/4 启发法 + 多字节字符修正
+ * Uses chars/4 heuristic + multibyte character correction
  */
 object TokenEstimator {
     private const val TAG = "TokenEstimator"
 
-    // 基础估算：4 个字符约等于 1 个 token
+    // Base estimate: 4 characters approximately equals 1 token
     private const val CHARS_PER_TOKEN = 4.0
 
-    // 多字节字符的额外权重（中文、日文等）
+    // Extra weight for multibyte characters (Chinese, Japanese, etc.)
     private const val MULTIBYTE_WEIGHT = 1.2
 
     /**
-     * 估算文本的 token 数量
+     * Estimate token count of text
      *
-     * @param text 要估算的文本
-     * @return 估算的 token 数量
+     * @param text Text to estimate
+     * @return Estimated token count
      */
     fun estimateTokens(text: String): Int {
         if (text.isEmpty()) return 0
@@ -29,33 +29,33 @@ object TokenEstimator {
         val charCount = text.length
         var multibyteCount = 0
 
-        // 统计多字节字符（非 ASCII）
+        // Count multibyte characters (non-ASCII)
         for (char in text) {
             if (char.code > 127) {
                 multibyteCount++
             }
         }
 
-        // 计算调整后的字符数
+        // Calculate adjusted character count
         val adjustedChars = charCount + (multibyteCount * (MULTIBYTE_WEIGHT - 1.0))
 
-        // 转换为 token 数量
+        // Convert to token count
         return (adjustedChars / CHARS_PER_TOKEN).toInt()
     }
 
     /**
-     * 估算消息的 token 数量
+     * Estimate token count of a message
      *
-     * @param message 要估算的消息
-     * @return 估算的 token 数量
+     * @param message Message to estimate
+     * @return Estimated token count
      */
     fun estimateMessageTokens(message: LegacyMessage): Int {
         var total = 0
 
-        // 估算 role 字段 (约 5 tokens)
+        // Estimate role field (about 5 tokens)
         total += 5
 
-        // 估算 content
+        // Estimate content
         when (val content = message.content) {
             is String -> {
                 total += estimateTokens(content)
@@ -75,7 +75,7 @@ object TokenEstimator {
                                     }
                                 }
                                 "image_url" -> {
-                                    // 图片约 85-170 tokens，取中间值
+                                    // Image is about 85-170 tokens, take middle value
                                     total += 127
                                 }
                             }
@@ -85,21 +85,21 @@ object TokenEstimator {
             }
         }
 
-        // 估算 tool_calls
+        // Estimate tool_calls
         if (message.toolCalls != null) {
             for (toolCall in message.toolCalls) {
-                // tool call 结构开销
+                // Tool call structure overhead
                 total += 10
 
-                // function name
+                // Function name
                 total += estimateTokens(toolCall.function.name)
 
-                // arguments
+                // Arguments
                 total += estimateTokens(toolCall.function.arguments)
             }
         }
 
-        // 估算 tool_call_id
+        // Estimate tool_call_id
         if (message.toolCallId != null) {
             total += estimateTokens(message.toolCallId)
         }
@@ -108,32 +108,32 @@ object TokenEstimator {
     }
 
     /**
-     * 估算消息列表的总 token 数量
+     * Estimate total token count of message list
      *
-     * @param messages 消息列表
-     * @return 估算的总 token 数量
+     * @param messages Message list
+     * @return Estimated total token count
      */
     fun estimateMessagesTokens(messages: List<LegacyMessage>): Int {
         return messages.sumOf { estimateMessageTokens(it) }
     }
 
     /**
-     * 检查消息列表是否超过 token 限制
+     * Check if message list exceeds token limit
      *
-     * @param messages 消息列表
-     * @param maxTokens 最大 token 数量
-     * @return 是否超过限制
+     * @param messages Message list
+     * @param maxTokens Maximum token count
+     * @return Whether limit is exceeded
      */
     fun exceedsTokenLimit(messages: List<LegacyMessage>, maxTokens: Int): Boolean {
         return estimateMessagesTokens(messages) > maxTokens
     }
 
     /**
-     * 计算到达限制还可以添加多少 tokens
+     * Calculate how many tokens can still be added to reach limit
      *
-     * @param messages 当前消息列表
-     * @param maxTokens 最大 token 数量
-     * @return 剩余可用 tokens
+     * @param messages Current message list
+     * @param maxTokens Maximum token count
+     * @return Remaining available tokens
      */
     fun remainingTokens(messages: List<LegacyMessage>, maxTokens: Int): Int {
         val current = estimateMessagesTokens(messages)

@@ -4,20 +4,20 @@ import android.util.Log
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 
 /**
- * 工具结果截断器
- * 对齐 OpenClaw 的 tool-result-truncation.ts 实现
+ * Tool Result Truncator
+ * Aligned with OpenClaw's tool-result-truncation.ts implementation
  */
 object ToolResultTruncator {
     private const val TAG = "ToolResultTruncator"
 
-    // 配置参数
-    private const val MAX_TOOL_RESULT_CHARS = 4000  // 单个工具结果最大字符数
-    private const val HEAD_CHARS = 1500  // 保留开头字符数
-    private const val TAIL_CHARS = 1500  // 保留结尾字符数
+    // Configuration parameters
+    private const val MAX_TOOL_RESULT_CHARS = 4000  // Max characters for a single tool result
+    private const val HEAD_CHARS = 1500  // Keep head characters count
+    private const val TAIL_CHARS = 1500  // Keep tail characters count
     private const val PLACEHOLDER = "\n\n... [truncated] ...\n\n"
 
     /**
-     * 截断消息列表中的超大工具结果
+     * Truncate oversized tool results in message list
      */
     fun truncateToolResults(messages: List<LegacyMessage>): List<LegacyMessage> {
         var truncatedCount = 0
@@ -45,8 +45,8 @@ object ToolResultTruncator {
     }
 
     /**
-     * 截断单个内容
-     * 保留头部和尾部，中间用占位符替代
+     * Truncate single content
+     * Keep head and tail, replace middle with placeholder
      */
     private fun truncateContent(content: String): String {
         if (content.length <= MAX_TOOL_RESULT_CHARS) {
@@ -69,7 +69,7 @@ object ToolResultTruncator {
     }
 
     /**
-     * 检测会话中是否有超大工具结果
+     * Detect if there are oversized tool results in session
      */
     fun hasOversizedToolResults(messages: List<LegacyMessage>): Boolean {
         return messages.any { msg ->
@@ -80,7 +80,7 @@ object ToolResultTruncator {
     }
 
     /**
-     * 统计工具结果的总大小
+     * Calculate total size of tool results
      */
     fun calculateToolResultSize(messages: List<LegacyMessage>): Int {
         return messages

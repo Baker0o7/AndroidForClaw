@@ -1,44 +1,44 @@
 package com.xiaomo.androidforclaw.agent.context
 
 /**
- * 上下文错误检测工具
- * 对齐 OpenClaw 的 errors.ts 实现
+ * Context Error Detection Utilities
+ * Aligned with OpenClaw's errors.ts implementation
  */
 object ContextErrors {
 
     /**
-     * 严格检测上下文溢出错误
-     * 参考: OpenClaw/src/agents/pi-embedded-helpers/errors.ts isContextOverflowError()
+     * Strict detection of context overflow errors
+     * Reference: OpenClaw/src/agents/pi-embedded-helpers/errors.ts isContextOverflowError()
      */
     fun isContextOverflowError(errorMessage: String?): Boolean {
         if (errorMessage.isNullOrBlank()) return false
 
         val msg = errorMessage.lowercase()
 
-        // Anthropic API 特定错误
+        // Anthropic API specific errors
         if (msg.contains("request_too_large")) return true
         if (msg.contains("request size exceeds")) return true
 
-        // 通用上下文窗口错误
+        // Generic context window errors
         if (msg.contains("context window")) return true
         if (msg.contains("context length")) return true
         if (msg.contains("maximum context length")) return true
 
-        // Prompt 长度错误
+        // Prompt length errors
         if (msg.contains("prompt is too long")) return true
         if (msg.contains("exceeds model context window")) return true
         if (msg.contains("model token limit")) return true
 
-        // 显式上下文溢出标记
+        // Explicit context overflow markers
         if (msg.contains("context overflow:")) return true
         if (msg.contains("exceed context limit")) return true
 
-        // 中文错误消息
+        // Chinese error messages
         if (msg.contains("上下文过长")) return true
         if (msg.contains("上下文超出")) return true
         if (msg.contains("请压缩上下文")) return true
 
-        // Token 数量相关
+        // Token quantity related
         if (msg.contains("tokens") && (
             msg.contains("exceed") ||
             msg.contains("too many") ||
@@ -52,23 +52,23 @@ object ContextErrors {
     }
 
     /**
-     * 启发式检测上下文溢出（更宽松）
-     * 参考: OpenClaw/src/agents/pi-embedded-helpers/errors.ts isLikelyContextOverflowError()
+     * Heuristic detection of context overflow (more lenient)
+     * Reference: OpenClaw/src/agents/pi-embedded-helpers/errors.ts isLikelyContextOverflowError()
      */
     fun isLikelyContextOverflowError(errorMessage: String?): Boolean {
         if (errorMessage.isNullOrBlank()) return false
 
         val msg = errorMessage.lowercase()
 
-        // 先检查严格匹配
+        // First check strict match
         if (isContextOverflowError(errorMessage)) return true
 
-        // 排除其他错误类型
+        // Exclude other error types
         if (isRateLimitError(msg)) return false
         if (isAuthError(msg)) return false
         if (isBillingError(msg)) return false
 
-        // 正则匹配
+        // Regex match
         val contextPattern = Regex(
             "context.*(overflow|too|exceed|limit)|" +
             "prompt.*(too|exceed|limit)|" +
@@ -80,7 +80,7 @@ object ContextErrors {
     }
 
     /**
-     * 检测 Compaction 失败错误
+     * Detect Compaction failure error
      */
     fun isCompactionFailureError(errorMessage: String?): Boolean {
         if (errorMessage.isNullOrBlank()) return false
@@ -94,7 +94,7 @@ object ContextErrors {
     }
 
     /**
-     * 检测速率限制错误
+     * Detect rate limit error
      */
     private fun isRateLimitError(msg: String): Boolean {
         return msg.contains("rate limit") ||
@@ -104,7 +104,7 @@ object ContextErrors {
     }
 
     /**
-     * 检测认证错误
+     * Detect authentication error
      */
     private fun isAuthError(msg: String): Boolean {
         return msg.contains("unauthorized") ||
@@ -114,7 +114,7 @@ object ContextErrors {
     }
 
     /**
-     * 检测计费错误
+     * Detect billing error
      */
     private fun isBillingError(msg: String): Boolean {
         return msg.contains("insufficient") ||
@@ -124,7 +124,7 @@ object ContextErrors {
     }
 
     /**
-     * 从异常中提取错误消息
+     * Extract error message from exception
      */
     fun extractErrorMessage(exception: Throwable): String {
         val message = exception.message ?: ""

@@ -18,19 +18,19 @@ import java.util.Locale
 import java.util.UUID
 
 /**
- * Session Manager - 会话管理器
- * 对齐 OpenClaw 会话管理
+ * Session Manager
+ * Aligned with OpenClaw session management
  *
- * 存储格式 (OpenClaw Protocol):
- * - sessions.json: 元数据索引 {"agent:main:main": {"sessionId":"uuid", "updatedAt":1234567890, "sessionFile":"/path/to/uuid.jsonl", ...}}
- * - {sessionId}.jsonl: 消息历史 (JSONL, 每行一个事件)
+ * Storage format (OpenClaw Protocol):
+ * - sessions.json: Metadata index {"agent:main:main": {"sessionId":"uuid", "updatedAt":1234567890, "sessionFile":"/path/to/uuid.jsonl", ...}}
+ * - {sessionId}.jsonl: Message history (JSONL, one event per line)
  *
- * 职责:
- * 1. 管理对话历史记录
- * 2. 持久化会话数据 (JSONL 格式)
- * 3. 自动上下文压缩
- * 4. Token 预算管理
- * 5. 提供会话的创建、获取、保存、清除功能
+ * Responsibilities:
+ * 1. Manage conversation history
+ * 2. Persist session data (JSONL format)
+ * 3. Auto context compression
+ * 4. Token budget management
+ * 5. Provide session create, get, save, clear functions
  */
 class SessionManager(
     private val workspace: File,
@@ -40,7 +40,7 @@ class SessionManager(
         private const val TAG = "SessionManager"
         private const val SESSIONS_DIR = "sessions"
         private const val SESSIONS_INDEX = "sessions.json"
-        private const val AUTO_PRUNE_DAYS = 30        // 自动清理 30 天前的会话
+        private const val AUTO_PRUNE_DAYS = 30        // Auto clean sessions older than 30 days
     }
 
     private val gson: Gson = GsonBuilder().create()  // No pretty printing for JSONL
@@ -55,7 +55,7 @@ class SessionManager(
 
     private val indexFile: File = File(sessionsDir, SESSIONS_INDEX)
 
-    // 内存缓存
+    // In-memory cache
     private val sessions = mutableMapOf<String, Session>()
     private val sessionIndex = mutableMapOf<String, SessionMetadata>()
 
@@ -64,7 +64,7 @@ class SessionManager(
     }
 
     /**
-     * 获取或创建会话
+     * Get or create session
      */
     fun getOrCreate(sessionKey: String): Session {
         return sessions.getOrPut(sessionKey) {
@@ -74,25 +74,25 @@ class SessionManager(
     }
 
     /**
-     * 获取会话（如果不存在返回 null）
+     * Get session (return null if doesn't exist)
      */
     fun get(sessionKey: String): Session? {
         return sessions[sessionKey] ?: loadSession(sessionKey)
     }
 
     /**
-     * 保存会话
+     * Save session
      */
     fun save(session: Session) {
         val nowMs = System.currentTimeMillis()
         session.updatedAt = currentTimestamp()
         sessions[session.key] = session
 
-        // 持久化到 JSONL 文件
+        // Persist to JSONL file
         try {
             saveSessionMessages(session)
 
-            // 更新索引
+            // Update index
             val metadata = sessionIndex.getOrPut(session.key) {
                 SessionMetadata(
                     sessionId = session.sessionId,
@@ -112,7 +112,7 @@ class SessionManager(
     }
 
     /**
-     * 清除会话
+     * Clear session
      */
     fun clear(sessionKey: String) {
         val session = sessions.remove(sessionKey)
@@ -125,7 +125,7 @@ class SessionManager(
     }
 
     /**
-     * 清除所有会话
+     * Clear all sessions
      */
     fun clearAll() {
         sessions.clear()
@@ -140,19 +140,19 @@ class SessionManager(
     }
 
     /**
-     * 获取所有会话键 (仅返回新格式的 sessions)
+     * Get all session keys (only return new format sessions)
      */
     fun getAllKeys(): List<String> {
         loadIndex()
-        // 只返回索引中的 sessions (新格式),忽略旧的 .json 文件
+        // Only return sessions from index (new format), ignore old .json files
         return sessionIndex.keys.toList()
     }
 
     /**
-     * 检查并自动压缩会话
+     * Check and auto compress session
      *
-     * @param session 会话
-     * @return 是否执行了压缩
+     * @param session Session
+     * @return Whether compression was performed
      */
     suspend fun compressIfNeeded(session: Session): Boolean = withContext(Dispatchers.IO) {
         if (contextCompressor == null) {
@@ -160,22 +160,22 @@ class SessionManager(
         }
 
         try {
-            // 检查是否需要压缩
+            // Check if compaction is needed
             if (!contextCompressor.needsCompaction(session.messages)) {
                 return@withContext false
             }
 
             Log.d(TAG, "Auto-compressing session: ${session.key} (${session.messages.size} messages, ${session.getTokenCount()} tokens)")
 
-            // 执行压缩
+            // Perform compression
             val compressedMessages = contextCompressor.compress(session.messages)
 
-            // 更新会话
+            // Update session
             session.messages.clear()
             session.messages.addAll(compressedMessages)
             session.markCompacted()
 
-            // 保存会话
+            // Save session
             save(session)
 
             Log.d(TAG, "Session compressed: ${session.key} → ${session.messages.size} messages, ${session.getTokenCount()} tokens (compaction #${session.compactionCount})")
@@ -188,9 +188,9 @@ class SessionManager(
     }
 
     /**
-     * 自动清理旧会话
+     * Auto clean old sessions
      *
-     * @param days 清理多少天前的会话
+     * @param days Clean sessions older than this many days
      */
     suspend fun pruneOldSessions(days: Int = AUTO_PRUNE_DAYS): Unit = withContext(Dispatchers.IO) {
         try {
@@ -226,7 +226,7 @@ class SessionManager(
     // ================ Private Helpers ================
 
     /**
-     * 创建新会话
+     * Create new session
      */
     private fun createNewSession(sessionKey: String): Session {
         val sessionId = UUID.randomUUID().toString()
@@ -254,7 +254,7 @@ class SessionManager(
             out.write((gson.toJson(header) + "\n").toByteArray())
         }
 
-        // 更新索引
+        // Update index
         sessionIndex[sessionKey] = SessionMetadata(
             sessionId = sessionId,
             updatedAt = nowMs,
@@ -267,7 +267,7 @@ class SessionManager(
     }
 
     /**
-     * 加载索引文件
+     * Load index file
      */
     private fun loadIndex() {
         if (!indexFile.exists()) {
@@ -296,7 +296,7 @@ class SessionManager(
     }
 
     /**
-     * 保存索引文件
+     * Save index file
      */
     private fun saveIndex() {
         try {
@@ -319,7 +319,7 @@ class SessionManager(
     }
 
     /**
-     * 加载会话
+     * Load session
      */
     private fun loadSession(sessionKey: String): Session? {
         val metadata = sessionIndex[sessionKey] ?: return null
@@ -375,7 +375,7 @@ class SessionManager(
     }
 
     /**
-     * 保存会话消息到 JSONL
+     * Save session messages to JSONL
      */
     private fun saveSessionMessages(session: Session) {
         val jsonlFile = getSessionJSONLFile(session.sessionId)
@@ -383,7 +383,7 @@ class SessionManager(
         try {
             Log.d(TAG, "💾 Saving session messages to: ${jsonlFile.absolutePath}")
 
-            // 重写整个文件
+            // Rewrite entire file
             FileOutputStream(jsonlFile, false).use { out ->
                 // 1. Session header
                 val header = mapOf(
@@ -425,29 +425,29 @@ class SessionManager(
 }
 
 /**
- * Session - 会话数据
+ * Session - Session data
  */
 data class Session(
     val key: String,
-    val sessionId: String,                     // UUID (对齐 OpenClaw)
+    val sessionId: String,                     // UUID (aligned with OpenClaw)
     var messages: MutableList<LegacyMessage>,
     var createdAt: String,
     var updatedAt: String,
     var metadata: MutableMap<String, Any?> = mutableMapOf(),
-    var compactionCount: Int = 0,              // 压缩次数
-    var totalTokens: Int = 0,                  // 总 token 数
-    var totalTokensFresh: Boolean = false      // token 数据是否新鲜
+    var compactionCount: Int = 0,              // Compaction count
+    var totalTokens: Int = 0,                  // Total token count
+    var totalTokensFresh: Boolean = false      // Whether token data is fresh
 ) {
     /**
-     * 添加消息
+     * Add message
      */
     fun addMessage(message: LegacyMessage) {
         messages.add(message)
-        totalTokensFresh = false  // 标记 token 计数为陈旧
+        totalTokensFresh = false  // Mark token count as stale
     }
 
     /**
-     * 获取最近的 N 条消息
+     * Get recent N messages
      */
     fun getRecentMessages(count: Int): List<LegacyMessage> {
         return if (messages.size <= count) {
@@ -458,7 +458,7 @@ data class Session(
     }
 
     /**
-     * 清除消息
+     * Clear messages
      */
     fun clearMessages() {
         messages.clear()
@@ -467,14 +467,14 @@ data class Session(
     }
 
     /**
-     * 获取消息数量
+     * Get message count
      */
     fun messageCount(): Int {
         return messages.size
     }
 
     /**
-     * 更新 token 计数
+     * Update token count
      */
     fun updateTokenCount() {
         totalTokens = TokenEstimator.estimateMessagesTokens(messages)
@@ -482,7 +482,7 @@ data class Session(
     }
 
     /**
-     * 获取 token 计数（如果不新鲜则重新计算）
+     * Get token count (recalculate if not fresh)
      */
     fun getTokenCount(): Int {
         if (!totalTokensFresh) {
@@ -492,7 +492,7 @@ data class Session(
     }
 
     /**
-     * 标记已压缩
+     * Mark as compacted
      */
     fun markCompacted() {
         compactionCount++
@@ -501,7 +501,7 @@ data class Session(
 }
 
 /**
- * SessionMetadata - 会话元数据 (对齐 OpenClaw sessions.json)
+ * SessionMetadata - Session metadata (aligned with OpenClaw sessions.json)
  */
 data class SessionMetadata(
     val sessionId: String,
