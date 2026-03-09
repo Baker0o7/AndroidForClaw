@@ -63,11 +63,11 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
         lateinit var application: Application
 
-        // 单例访问
+        // Singleton access
         val instance: MyApplication
             get() = application as MyApplication
 
-        // Gateway 服务器
+        // Gateway Server
         private var gatewayServer: GatewayServer? = null
 
         // Gateway Controller
@@ -77,12 +77,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         private var feishuChannel: FeishuChannel? = null
 
         /**
-         * 获取 Feishu Channel (供工具调用)
+         * Get Feishu Channel (for tool invocation)
          */
         fun getFeishuChannel(): FeishuChannel? = feishuChannel
 
-        // 消息队列管理器：完全对齐 OpenClaw 的队列机制
-        // 支持 interrupt, steer, followup, collect, queue 五种模式
+        // Message Queue Manager: fully aligned with OpenClaw's queue mechanism
+        // Supports five modes: interrupt, steer, followup, collect, queue
         private val messageQueueManager = MessageQueueManager()
 
         // Discord Channel
@@ -98,24 +98,24 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
         private fun onAppForeground() {
             Log.d(TAG, "App回到前台")
-            // 检查是否有测试任务在运行，如果有则确保 WakeLock 已获取
+            // Check if test task is running, if so ensure WakeLock is acquired
             ensureWakeLockForTesting()
         }
 
         private fun onAppBackground() {
             Log.d(TAG, "App进入后台")
-            // 检查是否有测试任务在运行，如果有则确保 WakeLock 已获取
+            // Check if test task is running, if so ensure WakeLock is acquired
             ensureWakeLockForTesting()
         }
-        
+
         /**
-         * 检查测试任务状态，如果有测试任务在运行则确保 WakeLock 已获取
-         * 这确保应用在后台运行时也不会锁屏
-         * 
-         * 调用时机：
-         * 1. 应用启动时（onCreate）
-         * 2. 应用进入后台时（onAppBackground）
-         * 3. 应用回到前台时（onAppForeground）
+         * Check test task status, if test task is running ensure WakeLock is acquired
+         * This ensures the app won't lock screen when running in background
+         *
+         * Called at:
+         * 1. App startup (onCreate)
+         * 2. App entering background (onAppBackground)
+         * 3. App returning to foreground (onAppForeground)
          */
         private fun ensureWakeLockForTesting() {
             try {
@@ -125,20 +125,20 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 if (hasTask) {
                     val taskData = taskDataManager.getCurrentTaskData()
                     val isRunning = taskData?.getIsRunning() ?: false
-                    
+
                     if (isRunning) {
-                        // 有测试任务在运行，确保 WakeLock 已获取
-                        // acquireScreenWakeLock 内部有防重复获取机制，可以安全调用
+                        // Test task is running, ensure WakeLock is acquired
+                        // acquireScreenWakeLock has internal duplicate acquisition prevention, safe to call
                         Log.d(TAG, "检测到测试任务在运行，确保 WakeLock 已获取（应用状态: ${if (activeActivityCount == 0) "后台" else "前台"}）")
                         WakeLockManager.acquireScreenWakeLock()
                     } else {
-                        // 测试任务已停止，释放 WakeLock
+                        // Test task has stopped, release WakeLock
                         Log.d(TAG, "测试任务已停止，释放 WakeLock")
                         WakeLockManager.releaseScreenWakeLock()
                     }
                 } else {
-                    // 没有测试任务，确保 WakeLock 已释放
-                    // releaseScreenWakeLock 内部有检查，如果未激活则跳过
+                    // No test task, ensure WakeLock is released
+                    // releaseScreenWakeLock has internal check, skip if not active
                     if (WakeLockManager.isScreenWakeLockActive()) {
                         Log.d(TAG, "没有测试任务，释放 WakeLock")
                         WakeLockManager.releaseScreenWakeLock()
@@ -152,13 +152,13 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         /**
-         * 处理来自 ChatBroadcastReceiver 的消息
-         * 通过发送本地广播让MainActivityCompose处理
+         * Handle messages from ChatBroadcastReceiver
+         * Send local broadcast for MainActivityCompose to handle
          */
         fun handleChatBroadcast(message: String) {
             Log.d(TAG, "📨 handleChatBroadcast: $message")
             try {
-                // 发送本地广播给MainActivityCompose处理
+                // Send local broadcast for MainActivityCompose to handle
                 val intent = Intent("com.xiaomo.androidforclaw.CHAT_MESSAGE_FROM_BROADCAST")
                 intent.putExtra("message", message)
                 androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -175,60 +175,60 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         super.onCreate()
         application = this
 
-        // 应用保存的语言设置
+        // Apply saved language settings
         com.xiaomo.androidforclaw.util.LocaleHelper.applyLanguage(this)
 
         MMKV.initialize(this)
         registerActivityLifecycleCallbacks(this)
 
-        // 初始化文件日志系统
+        // Initialize file logging system
         initializeFileLogger()
 
-        // 初始化 Workspace (对齐 OpenClaw)
+        // Initialize Workspace (aligned with OpenClaw)
         initializeWorkspace()
 
-        // 初始化 Cron 定时任务
+        // Initialize Cron scheduled tasks
         initializeCronJobs()
 
-        // 注册全局异常处理器
+        // Register global exception handler
         Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler())
 
-        // 启动前台服务保活
+        // Start foreground service keep-alive
         startForegroundServiceKeepAlive()
 
-        // 启动 Gateway 服务器
+        // Start Gateway server
         startGatewayServer()
 
-        // ✅ 测试配置系统
+        // ✅ Test config system
         testConfigSystem()
 
-        // ⚠️ Block 1: SkillParser 测试暂时跳过（JSON解析问题待修复）
+        // ⚠️ Block 1: SkillParser test temporarily skipped (JSON parsing issue pending fix)
         // testSkillParser()
         Log.i(TAG, "⏭️  Block 1 测试已跳过，应用继续启动")
 
-        // 应用启动时检查是否有测试任务在运行，如果有则获取 WakeLock
-        // 延迟检查，确保 TaskDataManager 已初始化
+        // Check if test task is running on app startup, if so acquire WakeLock
+        // Delayed check to ensure TaskDataManager is initialized
         Handler(Looper.getMainLooper()).postDelayed({
             ensureWakeLockForTesting()
-        }, 1000) // 延迟1秒检查
+        }, 1000) // 1 second delay
 
-        // 🌐 启动 Gateway 服务
+        // 🌐 Start Gateway service
         startGatewayService()
 
-        // 📱 启动 Feishu Channel（如果启用）
+        // 📱 Start Feishu Channel (if enabled)
         startFeishuChannelIfEnabled()
         startDiscordChannelIfEnabled()
 
-        // 🪟 初始化悬浮窗管理器
+        // 🪟 Initialize floating window manager
         com.xiaomo.androidforclaw.ui.float.SessionFloatWindow.init(this)
 
-        // 🔌 初始化 AccessibilityProxy 并启动健康监控
+        // 🔌 Initialize AccessibilityProxy and start health monitoring
         AccessibilityProxy.init(applicationContext)
         AccessibilityProxy.bindService(applicationContext)
         healthMonitor = AccessibilityHealthMonitor(applicationContext)
         healthMonitor?.startMonitoring()
 
-        // 监听连接状态
+        // Listen to connection status
         GlobalScope.launch(Dispatchers.Main) {
             AccessibilityProxy.isConnected.observeForever { connected ->
                 if (connected) {
@@ -239,14 +239,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             }
         }
 
-        // 延迟扫描应用信息并导出（避免阻塞应用启动）
+        // Delayed scan and export app info (avoid blocking app startup)
 //        Handler(Looper.getMainLooper()).postDelayed({
 //            try {
 //                AppInfoScanner.scanAndExport(this)
 //            } catch (e: Exception) {
 //                Log.e(TAG, "扫描应用信息失败: ${e.message}", e)
 //            }
-//        }, 2000) // 延迟2秒执行，确保应用完全启动
+//        }, 2000) // 2 second delay to ensure app is fully started
     }
 
     fun isAppInBackground(): Boolean {
@@ -254,7 +254,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 启动前台服务保活
+     * Start foreground service keep-alive
      */
     private fun startForegroundServiceKeepAlive() {
         try {
@@ -271,15 +271,15 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 启动 Gateway 服务器
+     * Start Gateway server
      */
     private fun startGatewayServer() {
         try {
-            // 先停止旧实例（如果存在）
+            // Stop old instance first (if exists)
             gatewayServer?.stop()
             gatewayServer = null
 
-            // 创建并启动新实例
+            // Create and start new instance
             gatewayServer = GatewayServer(this, port = 8080)
             gatewayServer?.start()
 
@@ -287,7 +287,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.i(TAG, "  - HTTP: http://0.0.0.0:8080")
             Log.i(TAG, "  - WebSocket: ws://0.0.0.0:8080/ws")
 
-            // 获取本机 IP
+            // Get local IP
             GlobalScope.launch(Dispatchers.IO) {
                 try {
                     val ip = getLocalIpAddress()
@@ -305,7 +305,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 获取本机 IP 地址
+     * Get local IP address
      */
     private fun getLocalIpAddress(): String? {
         try {
@@ -327,10 +327,10 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 测试配置系统
+     * Test config system
      */
     /**
-     * 初始化文件日志系统
+     * Initialize file logging system
      */
     private fun initializeFileLogger() {
         try {
@@ -342,7 +342,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 初始化 Cron 定时任务
+     * Initialize Cron scheduled tasks
      */
     private fun initializeCronJobs() {
         try {
@@ -354,7 +354,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 初始化 Workspace (对齐 OpenClaw)
+     * Initialize Workspace (aligned with OpenClaw)
      */
     private fun initializeWorkspace() {
         try {
@@ -390,10 +390,10 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.d(TAG, "🧪 配置系统测试开始")
             Log.d(TAG, "========================================")
 
-            // 运行基本配置测试
+            // Run basic config tests
             // com.xiaomo.androidforclaw.config.ConfigTestRunner.runBasicTests(this)
 
-            // 测试 LegacyRepository 配置集成
+            // Test LegacyRepository config integration
             // com.xiaomo.androidforclaw.config.ConfigTestRunner.testLegacyRepository(this)
 
             Log.d(TAG, "")
@@ -407,7 +407,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 测试 SkillParser (Block 1)
+     * Test SkillParser (Block 1)
      */
     private fun testSkillParser() {
         try {
@@ -416,7 +416,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.d(TAG, "========================================")
 
             // val result = com.xiaomo.androidforclaw.agent.skills.SkillParserTestRunner.runAllTests(this)
-            // 测试代码已移除
+            // Test code removed
             Log.i(TAG, "⚠️ SkillParser 测试已禁用（测试框架已移除）")
             /*
             Log.d(TAG, "")
@@ -429,7 +429,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             if (result.isSuccess()) {
                 Log.i(TAG, "✅ Block 1 完成: SkillParser 所有测试通过!")
 
-                // Block 1 通过，继续测试 Block 2
+                // Block 1 passed, continue to test Block 2
                 testSkillsLoader()
             } else {
                 Log.e(TAG, "❌ Block 1 失败: 有 ${result.total - result.passed} 个测试失败")
@@ -443,7 +443,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 测试 SkillsLoader (Block 2)
+     * Test SkillsLoader (Block 2)
      */
     private fun testSkillsLoader() {
         try {
@@ -453,7 +453,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.d(TAG, "========================================")
 
             // val result = com.xiaomo.androidforclaw.agent.skills.SkillsLoaderTestRunner.runAllTests(this)
-            // 测试代码已移除
+            // Test code removed
             Log.i(TAG, "⚠️ SkillsLoader 测试已禁用（测试框架已移除）")
             /*
             Log.d(TAG, "")
@@ -466,7 +466,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             if (result.isSuccess()) {
                 Log.i(TAG, "✅ Block 2 完成: SkillsLoader 所有测试通过!")
 
-                // Block 2 通过，继续测试 Block 3
+                // Block 2 passed, continue to test Block 3
                 testContextBuilder()
             } else {
                 Log.e(TAG, "❌ Block 2 失败: 有 ${result.total - result.passed} 个测试失败")
@@ -480,7 +480,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 测试 ContextBuilder (Block 3)
+     * Test ContextBuilder (Block 3)
      */
     private fun testContextBuilder() {
         try {
@@ -490,7 +490,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.d(TAG, "========================================")
 
             // val result = com.xiaomo.androidforclaw.agent.context.ContextBuilderTestRunner.runAllTests(this)
-            // 测试代码已移除
+            // Test code removed
             Log.i(TAG, "⚠️ ContextBuilder 测试已禁用（测试框架已移除）")
             /*
             Log.d(TAG, "")
@@ -503,7 +503,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             if (result.isSuccess()) {
                 Log.i(TAG, "✅ Block 3 完成: ContextBuilder 所有测试通过!")
 
-                // Block 3 通过，打印最终总结
+                // Block 3 passed, print final summary
                 printFinalSummary()
             } else {
                 Log.e(TAG, "❌ Block 3 失败: 有 ${result.total - result.passed} 个测试失败")
@@ -517,7 +517,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 打印 Block 1-6 最终总结
+     * Print Block 1-6 final summary
      */
     private fun printFinalSummary() {
         try {
@@ -535,7 +535,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.d(TAG, "")
             Log.d(TAG, "📊 成果统计:")
 
-            // 获取 Skills 统计
+            // Get Skills statistics
             val loader = com.xiaomo.androidforclaw.agent.skills.SkillsLoader(this)
             val stats = loader.getStatistics()
             Log.d(TAG, "")
@@ -557,7 +557,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
 
     /**
-     * 启动自动测试
+     * Start auto test
      */
     private fun startAutoTest() {
         try {
@@ -568,7 +568,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             */
             Log.i(TAG, "========================================")
 
-            // 启动 MainEntryNew 执行测试
+            // Start MainEntryNew to execute test
             /*
             GlobalScope.launch(Dispatchers.Main) {
                 try {
@@ -587,7 +587,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 启动 Gateway 服务
+     * Start Gateway service
      */
     private fun startGatewayService() {
         try {
@@ -595,20 +595,20 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.i(TAG, "🌐 启动 Gateway 服务 (GatewayController)...")
             Log.i(TAG, "========================================")
 
-            // 初始化TaskDataManager
+            // Initialize TaskDataManager
             val taskDataManager = TaskDataManager.getInstance()
 
-            // 初始化LLM Provider
+            // Initialize LLM Provider
             val llmProvider = UnifiedLLMProvider(this)
 
-            // 初始化依赖
+            // Initialize dependencies
             val toolRegistry = ToolRegistry(this, taskDataManager)
             val androidToolRegistry = AndroidToolRegistry(this, taskDataManager)
             val skillsLoader = SkillsLoader(this)
             val workspaceDir = java.io.File("/sdcard/.androidforclaw/workspace")
             val sessionManager = SessionManager(workspaceDir)
 
-            // 创建 AgentLoop (需要这些依赖)
+            // Create AgentLoop (requires these dependencies)
             val agentLoop = AgentLoop(
                 llmProvider = llmProvider,
                 toolRegistry = toolRegistry,
@@ -618,7 +618,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 modelRef = null
             )
 
-            // 创建 GatewayController
+            // Create GatewayController
             gatewayController = GatewayController(
                 context = this,
                 agentLoop = agentLoop,
@@ -627,12 +627,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 androidToolRegistry = androidToolRegistry,
                 skillsLoader = skillsLoader,
                 port = 8765,
-                authToken = null // 暂时禁用认证
+                authToken = null // Temporarily disable auth
             )
 
             Log.i(TAG, "✅ GatewayController 实例创建成功")
 
-            // 启动服务
+            // Start service
             gatewayController?.start()
 
             Log.i(TAG, "========================================")
@@ -648,7 +648,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 启动 Feishu Channel（如果在配置中启用）
+     * Start Feishu Channel (if enabled in config)
      */
     private fun startFeishuChannelIfEnabled() {
         Log.i(TAG, "⏰ startFeishuChannelIfEnabled() 被调用")
@@ -678,7 +678,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.i(TAG, "   DM Policy: ${feishuConfig.dmPolicy}")
                 Log.i(TAG, "   Group Policy: ${feishuConfig.groupPolicy}")
 
-                // 创建 FeishuConfig
+                // Create FeishuConfig
                 val config = FeishuConfig(
                     appId = feishuConfig.appId,
                     appSecret = feishuConfig.appSecret,
@@ -707,12 +707,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     dmHistoryLimit = feishuConfig.dmHistoryLimit
                 )
 
-                // 创建并启动 FeishuChannel
+                // Create and start FeishuChannel
                 feishuChannel = FeishuChannel(config)
                 val result = feishuChannel?.start()
 
                 if (result?.isSuccess == true) {
-                    // 更新 MMKV 状态
+                    // Update MMKV status
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_feishu_enabled", true)
 
@@ -721,14 +721,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     Log.i(TAG, "   现在可以接收飞书消息了")
                     Log.i(TAG, "========================================")
 
-                    // 订阅事件流，处理接收到的消息
+                    // Subscribe to event flow, handle received messages
                     scope.launch(Dispatchers.IO) {
                         feishuChannel?.eventFlow?.collect { event ->
                             handleFeishuEvent(event)
                         }
                     }
                 } else {
-                    // 清除 MMKV 状态
+                    // Clear MMKV status
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_feishu_enabled", false)
 
@@ -739,7 +739,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 }
 
             } catch (e: Exception) {
-                // 清除 MMKV 状态
+                // Clear MMKV status
                 val mmkv = MMKV.defaultMMKV()
                 mmkv?.encode("channel_feishu_enabled", false)
 
@@ -759,7 +759,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         if (activeActivityCount == 1 && isChangingConfiguration) {
             isChangingConfiguration = false
         } else if (activeActivityCount == 1) {
-            // App从后台回到前台
+            // App returned to foreground from background
             onAppForeground()
         }
     }
@@ -777,7 +777,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         if (activity.isChangingConfigurations) {
             isChangingConfiguration = true
         } else if (activeActivityCount == 0) {
-            // App进入后台
+            // App entered background
             onAppBackground()
         }
     }
@@ -791,19 +791,19 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 获取队列模式（对齐 OpenClaw）
+     * Get queue mode (aligned with OpenClaw)
      *
-     * 参考: openclaw/src/auto-reply/reply/queue/resolve-settings.ts
+     * Reference: openclaw/src/auto-reply/reply/queue/resolve-settings.ts
      */
     private fun getQueueModeForChat(chatId: String, chatType: String): MessageQueueManager.QueueMode {
         return try {
             val configLoader = ConfigLoader(this@MyApplication)
             val openClawConfig = configLoader.loadOpenClawConfig()
 
-            // 读取飞书队列配置
+            // Read Feishu queue config
             val queueMode = openClawConfig.gateway.feishu.queueMode ?: "followup"
 
-            // 同时设置队列容量和 drop policy
+            // Set both queue capacity and drop policy
             val queueKey = "feishu:$chatId"
             messageQueueManager.setQueueSettings(
                 key = queueKey,
@@ -833,13 +833,13 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 处理飞书消息（带 Typing Indicator）
+     * Process Feishu message (with Typing Indicator)
      *
-     * 对齐 OpenClaw 的消息处理流程：
-     * 1. 添加 "正在输入" 表情
-     * 2. 处理消息（调用 Agent）
-     * 3. 移除 "正在输入" 表情
-     * 4. 发送回复
+     * Aligned with OpenClaw message processing flow:
+     * 1. Add "typing" reaction
+     * 2. Process message (call Agent)
+     * 3. Remove "typing" reaction
+     * 4. Send reply
      */
     private suspend fun processFeishuMessageWithTyping(
         event: com.xiaomo.feishu.FeishuEvent.Message,
@@ -847,7 +847,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     ) {
         var typingReactionId: String? = null
         try {
-            // 1. 添加 "正在输入" 表情（Typing Indicator）
+            // 1. Add "typing" reaction (Typing Indicator)
             val configLoader = ConfigLoader(this@MyApplication)
             val openClawConfig = configLoader.loadOpenClawConfig()
             val typingIndicatorEnabled = openClawConfig.gateway.feishu.typingIndicator
@@ -861,13 +861,13 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 }
             }
 
-            // 2. 调用 MainEntryNew 处理消息
+            // 2. Call MainEntryNew to process message
             val response = processFeishuMessage(event)
 
-            // 2.5 检查是否需要回复（noReply 逻辑）
+            // 2.5 Check if reply should be skipped (noReply logic)
             if (shouldSkipReply(response, queuedMessage)) {
                 Log.d(TAG, "🔕 noReply directive detected, skipping reply")
-                // 移除表情后直接返回
+                // Remove reaction and return immediately
                 if (typingReactionId != null) {
                     Log.d(TAG, "🧹 移除输入中表情...")
                     feishuChannel?.removeReaction(event.messageId, typingReactionId)
@@ -875,17 +875,17 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 return
             }
 
-            // 3. 移除输入中表情
+            // 3. Remove typing reaction
             if (typingReactionId != null) {
                 Log.d(TAG, "🧹 移除输入中表情...")
                 feishuChannel?.removeReaction(event.messageId, typingReactionId)
             }
 
-            // 4. 发送回复到飞书
+            // 4. Send reply to Feishu
             sendFeishuReply(event, response)
         } catch (e: Exception) {
             Log.e(TAG, "处理飞书消息失败", e)
-            // 确保移除表情（即使出错）
+            // Ensure reaction is removed (even if error occurs)
             if (typingReactionId != null) {
                 try {
                     feishuChannel?.removeReaction(event.messageId, typingReactionId)
@@ -897,30 +897,30 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 检查是否应该跳过回复（noReply 逻辑）
+     * Check if reply should be skipped (noReply logic)
      *
-     * 对齐 OpenClaw 的 noReply 检测：
-     * - Agent 可以返回特殊指令表示不需要回复
-     * - 某些消息类型（通知、状态更新）不需要回复
-     * - 批量消息中可能包含 noReply 标记
+     * Aligned with OpenClaw's noReply detection:
+     * - Agent can return special directive indicating no reply needed
+     * - Certain message types (notifications, status updates) don't need reply
+     * - Batch messages may contain noReply flag
      */
     private fun shouldSkipReply(
         response: String,
         queuedMessage: MessageQueueManager.QueuedMessage
     ): Boolean {
-        // 1. 检查响应中是否包含 noReply 标记
+        // 1. Check if response contains noReply marker
         if (response.contains("[noReply]", ignoreCase = true) ||
             response.contains("no_reply", ignoreCase = true)) {
             return true
         }
 
-        // 2. 检查响应是否为空
+        // 2. Check if response is empty
         if (response.isBlank()) {
             Log.d(TAG, "Response is empty, skipping reply")
             return true
         }
 
-        // 3. 检查批量消息元数据
+        // 3. Check batch message metadata
         val isBatch = queuedMessage.metadata["isBatch"] as? Boolean ?: false
         if (isBatch) {
             val noReplyFlag = queuedMessage.metadata["noReply"] as? Boolean ?: false
@@ -933,7 +933,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 处理飞书事件
+     * Handle Feishu event
      */
     private fun handleFeishuEvent(event: com.xiaomo.feishu.FeishuEvent) {
         when (event) {
@@ -944,7 +944,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.i(TAG, "   聊天类型: ${event.chatType}")
                 Log.i(TAG, "   Mentions: ${event.mentions}")
 
-                // 🔄 更新当前对话上下文 (供 Agent 工具使用)
+                // 🔄 Update current chat context (for Agent tool use)
                 feishuChannel?.updateCurrentChatContext(
                     receiveId = event.chatId,
                     receiveIdType = "chat_id",
@@ -952,25 +952,25 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 )
                 Log.d(TAG, "✅ 已更新当前对话上下文: chatId=${event.chatId}")
 
-                // ✅ 检查消息权限 (对齐 OpenClaw bot.ts)
+                // ✅ Check message permissions (aligned with OpenClaw bot.ts)
                 try {
                     val configLoader = ConfigLoader(this@MyApplication)
                     val openClawConfig = configLoader.loadOpenClawConfig()
                     val feishuConfig = openClawConfig.gateway.feishu
 
-                    // 检查 DM Policy（私聊权限）
+                    // Check DM Policy (private chat permission)
                     if (event.chatType == "p2p") {
                         val dmPolicy = feishuConfig.dmPolicy
                         Log.d(TAG, "   DM Policy: $dmPolicy")
 
                         when (dmPolicy) {
                             "pairing" -> {
-                                // TODO: 实现配对逻辑
-                                // 暂时允许所有私聊（开发模式）
+                                // TODO: Implement pairing logic
+                                // Temporarily allow all DMs (dev mode)
                                 Log.d(TAG, "✅ DM allowed (pairing mode - 暂未实现配对验证)")
                             }
                             "allowlist" -> {
-                                // 检查白名单
+                                // Check allowlist
                                 val allowFrom = feishuConfig.allowFrom
                                 if (allowFrom.isEmpty() || event.senderId !in allowFrom) {
                                     Log.d(TAG, "❌ DM from ${event.senderId} not in allowlist, ignoring")
@@ -987,29 +987,29 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                         }
                     }
 
-                    // 检查群组消息（必须 @ 机器人）
+                    // Check group messages (must @ bot)
                     if (event.chatType == "group") {
-                        // 始终要求群消息 @ 机器人 (忽略配置中的 requireMention)
+                        // Always require @ bot for group messages (ignore requireMention in config)
                         val requireMention = true
                         Log.d(TAG, "   requireMention: $requireMention (群消息强制要求 @)")
 
-                        // 检查 @_all (对齐 OpenClaw: 视为 @ 所有机器人)
+                        // Check @_all (aligned with OpenClaw: treat as @ all bots)
                         if (event.content.contains("@_all")) {
                             Log.d(TAG, "✅ 消息包含 @_all")
                         } else if (event.mentions.isEmpty()) {
-                            // 没有任何 @mention
+                            // No @mention at all
                             Log.d(TAG, "❌ 群消息需要 @机器人，但没有任何 @mention，忽略此消息")
                             return
                         } else {
-                            // 有 @mention，检查是否 @了机器人
+                            // Has @mention, check if bot is @mentioned
                             val botOpenId = feishuChannel?.getBotOpenId()
                             if (botOpenId == null) {
-                                // 无法获取 bot open_id，为了安全拒绝消息
+                                // Cannot get bot open_id, reject message for safety
                                 Log.w(TAG, "❌ 无法获取 bot open_id，无法验证 @mention，忽略此消息")
                                 Log.w(TAG, "   提示: 检查飞书配置或网络连接，确保能获取机器人信息")
                                 return
                             } else if (botOpenId !in event.mentions) {
-                                // 有 bot open_id，但消息没有 @机器人
+                                // Has bot open_id, but message doesn't @ bot
                                 Log.d(TAG, "❌ 群消息 @了其他人但没有 @机器人(${botOpenId})，忽略此消息")
                                 Log.d(TAG, "   Bot Open ID: $botOpenId")
                                 Log.d(TAG, "   Mentions: ${event.mentions}")
@@ -1021,14 +1021,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "检查消息权限失败", e)
-                    // 出错时安全起见,忽略消息
+                    // For safety, ignore message on error
                     return
                 }
 
-                // 🔑 生成队列 key（对齐 OpenClaw）
+                // 🔑 Generate queue key (aligned with OpenClaw)
                 val queueKey = "feishu:${event.chatId}"
 
-                // 📦 构建队列消息
+                // 📦 Build queued message
                 val queuedMessage = MessageQueueManager.QueuedMessage(
                     messageId = event.messageId,
                     content = event.content,
@@ -1040,10 +1040,10 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     )
                 )
 
-                // 🎯 获取队列模式（从配置读取）
+                // 🎯 Get queue mode (read from config)
                 val queueMode = getQueueModeForChat(event.chatId, event.chatType)
 
-                // 🚀 将消息加入队列处理（完全对齐 OpenClaw）
+                // 🚀 Enqueue message for processing (fully aligned with OpenClaw)
                 GlobalScope.launch(Dispatchers.IO) {
                     try {
                         messageQueueManager.enqueue(
@@ -1051,7 +1051,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                             message = queuedMessage,
                             mode = queueMode
                         ) { msg ->
-                            // 从 metadata 中恢复原始事件
+                            // Restore original event from metadata
                             val originalEvent = msg.metadata["event"] as? com.xiaomo.feishu.FeishuEvent.Message
                                 ?: event
                             processFeishuMessageWithTyping(originalEvent, msg)
@@ -1074,21 +1074,21 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 处理飞书消息 - 调用 Agent
+     * Process Feishu message - call Agent
      *
-     * 创建轻量级的 AgentLoop 调用，直接返回结果
+     * Create lightweight AgentLoop call and return result directly
      */
     private suspend fun processFeishuMessage(event: com.xiaomo.feishu.FeishuEvent.Message): String {
         return withContext(Dispatchers.IO) {
             try {
                 Log.i(TAG, "🤖 开始处理消息: ${event.content}")
 
-                // 🆔 生成 session ID: 使用 chatId_chatType 作为唯一标识
-                // 这样不同的群组/私聊会有独立的会话历史
+                // 🆔 Generate session ID: use chatId_chatType as unique identifier
+                // This way different groups/private chats have independent session history
                 val sessionId = "${event.chatId}_${event.chatType}"
                 Log.i(TAG, "🆔 Session ID: $sessionId (chatType: ${event.chatType})")
 
-                // 使用同步方式执行 AgentLoop 并返回结果
+                // Execute AgentLoop synchronously and return result
                 val sessionManager = MainEntryNew.getSessionManager()
                 if (sessionManager == null) {
                     MainEntryNew.initialize(this@MyApplication)
@@ -1101,12 +1101,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
                 Log.i(TAG, "📋 [Session] 加载会话: ${session.messageCount()} 条历史消息")
 
-                // 获取历史消息并清理（确保 tool_use 和 tool_result 配对）
+                // Get history messages and cleanup (ensure tool_use and tool_result are paired)
                 val rawHistory = session.getRecentMessages(20)
                 val contextHistory = cleanupToolMessages(rawHistory)
                 Log.i(TAG, "📋 [Session] 清理后: ${contextHistory.size} 条消息（原始: ${rawHistory.size}）")
 
-                // 初始化组件
+                // Initialize components
                 val taskDataManager = TaskDataManager.getInstance()
                 val toolRegistry = ToolRegistry(
                     context = this@MyApplication,
@@ -1132,14 +1132,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     modelRef = null
                 )
 
-                // 构建系统提示词
+                // Build system prompt
                 val systemPrompt = contextBuilder.buildSystemPrompt(
                     userGoal = event.content,
                     packageName = "",
                     testMode = "chat"
                 )
 
-                // 运行 AgentLoop (转换历史消息)
+                // Run AgentLoop (convert history messages)
                 val result = agentLoop.run(
                     systemPrompt = systemPrompt,
                     userMessage = event.content,
@@ -1147,7 +1147,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     reasoningEnabled = true
                 )
 
-                // 保存消息到会话（转换回旧格式）
+                // Save messages to session (convert back to old format)
                 result.messages.forEach { message ->
                     session.addMessage(message.toLegacyMessage())
                 }
@@ -1158,7 +1158,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.i(TAG, "   迭代次数: ${result.iterations}")
                 Log.i(TAG, "   使用工具: ${result.toolsUsed.joinToString(", ")}")
 
-                // 返回结果
+                // Return result
                 result.finalContent ?: "抱歉，我无法处理这个请求。"
 
             } catch (e: Exception) {
@@ -1169,30 +1169,30 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 发送回复到飞书
+     * Send reply to Feishu
      *
-     * 功能：
-     * - 使用 FeishuSender 自动检测 Markdown 并使用卡片渲染
-     * - 检测截图路径并自动上传发送图片
-     * - 支持图片 + 文本组合回复
+     * Features:
+     * - Use FeishuSender to auto-detect Markdown and render with cards
+     * - Detect screenshot paths and auto-upload send images
+     * - Support image + text combined reply
      */
     private suspend fun sendFeishuReply(event: com.xiaomo.feishu.FeishuEvent.Message, content: String) {
         try {
             Log.i(TAG, "📤 发送回复到飞书...")
 
-            // 过滤内部推理标签（<think>, <final> 等）
+            // Filter internal reasoning tags (<think>, <final>, etc.)
             val cleanContent = filterReasoningTags(content)
 
-            // 初始化 FeishuSender
+            // Initialize FeishuSender
             val sender = feishuChannel?.sender
             if (sender == null) {
                 Log.e(TAG, "❌ FeishuSender 未初始化")
                 return
             }
 
-            // 检测是否包含截图路径（支持文件路径和 Content URI）
-            // 格式1: 路径: /storage/.../screenshot_xxx.png
-            // 格式2: 路径: content://com.xiaomo.androidforclaw.accessibility.fileprovider/...
+            // Detect if contains screenshot path (supports file path and Content URI)
+            // Format 1: 路径: /storage/.../screenshot_xxx.png
+            // Format 2: 路径: content://com.xiaomo.androidforclaw.accessibility.fileprovider/...
             val screenshotPathRegex = Regex("""路径:\s*((?:/storage/|/sdcard/|content://)[^\s\n]+\.png)""")
             val screenshotMatch = screenshotPathRegex.find(cleanContent)
 
@@ -1200,9 +1200,9 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 val screenshotPath = screenshotMatch.groupValues[1]
                 Log.i(TAG, "📸 检测到截图路径: $screenshotPath")
 
-                // 1. 上传并发送图片
+                // 1. Upload and send image
                 val imageFile = if (screenshotPath.startsWith("content://")) {
-                    // Content URI - 需要通过 ContentResolver 转换为临时文件
+                    // Content URI - needs to be converted to temp file via ContentResolver
                     try {
                         val uri = android.net.Uri.parse(screenshotPath)
                         val inputStream = contentResolver.openInputStream(uri)
@@ -1243,7 +1243,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     Log.w(TAG, "⚠️ 截图文件不存在: $screenshotPath")
                 }
 
-                // 2. 发送文本回复（移除截图路径信息，使用 Markdown 渲染）
+                // 2. Send text reply (remove screenshot path info, use Markdown rendering)
                 val textContent = cleanContent
                     .replace(screenshotPathRegex, "")
                     .trim()
@@ -1264,12 +1264,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     }
                 }
             } else {
-                // 没有截图，直接发送文本（使用 Markdown 渲染）
+                // No screenshot, send text directly (use Markdown rendering)
                 val result = sender.sendTextMessage(
                     receiveId = event.chatId,
                     text = cleanContent,
                     receiveIdType = "chat_id",
-                    renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO  // 自动检测代码块和表格
+                    renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO  // Auto-detect code blocks and tables
                 )
 
                 if (result.isSuccess) {
@@ -1285,29 +1285,29 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 过滤 LLM 响应中的推理标签
+     * Filter reasoning tags from LLM response
      *
-     * 对齐 OpenClaw 的 stripReasoningTagsFromText 实现：
-     * - 移除内部推理标签（<think>, <thinking>, <thought>, <antthinking>, <final>）
-     * - 保护代码块中的标签（``` 和 ` ` 内的标签不会被移除）
-     * - 支持大小写不敏感匹配
-     * - 支持带属性的标签（如 <think id="test">）
+     * Aligned with OpenClaw's stripReasoningTagsFromText implementation:
+     * - Remove internal reasoning tags (<think>, <thinking>, <thought>, <antthinking>, <final>)
+     * - Protect tags in code blocks (tags inside ``` and ` ` won't be removed)
+     * - Support case-insensitive matching
+     * - Support tags with attributes (e.g. <think id="test">)
      *
-     * 参考: openclaw/src/shared/text/reasoning-tags.ts
+     * Reference: openclaw/src/shared/text/reasoning-tags.ts
      */
     private fun filterReasoningTags(content: String): String {
         if (content.isEmpty()) return content
 
-        // Quick check: 如果没有推理标签，直接返回
+        // Quick check: if no reasoning tags, return directly
         val quickCheckPattern = """<\s*/?\s*(?:think(?:ing)?|thought|antthinking|final)\b""".toRegex(RegexOption.IGNORE_CASE)
         if (!quickCheckPattern.containsMatchIn(content)) {
             return content
         }
 
-        // 1. 找出所有代码区域（需要保护）
+        // 1. Find all code regions (need protection)
         val codeRegions = findCodeRegions(content)
 
-        // 2. 处理 <final> 标签（只移除标签本身，保留内容）
+        // 2. Process <final> tag (only remove tag itself, keep content)
         var cleaned = content
         val finalTagPattern = """<\s*/?\s*final\b[^<>]*>""".toRegex(RegexOption.IGNORE_CASE)
         val finalMatches = finalTagPattern.findAll(cleaned).toList().reversed()
@@ -1318,7 +1318,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             }
         }
 
-        // 3. 处理推理标签（移除标签及其内容）
+        // 3. Process reasoning tags (remove tags and their content)
         val thinkingTagPattern = """<\s*(/?)\s*(?:think(?:ing)?|thought|antthinking)\b[^<>]*>""".toRegex(RegexOption.IGNORE_CASE)
         val updatedCodeRegions = findCodeRegions(cleaned)
 
@@ -1330,7 +1330,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             val idx = match.range.first
             val isClose = match.groupValues[1] == "/"
 
-            // 跳过代码块中的标签
+            // Skip tags in code blocks
             if (isInsideCodeRegion(idx, updatedCodeRegions)) {
                 continue
             }
@@ -1347,26 +1347,26 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             lastIndex = idx + match.value.length
         }
 
-        // 添加剩余内容
+        // Add remaining content
         if (!inThinking) {
             result.append(cleaned.substring(lastIndex))
         }
 
-        // 4. 清理多余空行并 trim
+        // 4. Clean up excessive blank lines and trim
         return result.toString()
             .trim()
             .replace(Regex("""\n{3,}"""), "\n\n")
     }
 
     /**
-     * 查找文本中的代码区域（fence 代码块 和 inline 代码）
+     * Find code regions in text (fence code blocks and inline code)
      *
-     * 参考: openclaw/src/shared/text/code-regions.ts
+     * Reference: openclaw/src/shared/text/code-regions.ts
      */
     private fun findCodeRegions(text: String): List<IntRange> {
         val regions = mutableListOf<IntRange>()
 
-        // 匹配 fenced code blocks (``` 或 ~~~)
+        // Match fenced code blocks (``` or ~~~)
         val fencedPattern = """(^|\n)(```|~~~)[^\n]*\n[\s\S]*?(?:\n\2(?:\n|$)|$)""".toRegex()
         for (match in fencedPattern.findAll(text)) {
             val start = match.range.first + match.groupValues[1].length
@@ -1374,12 +1374,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             regions.add(start until end)
         }
 
-        // 匹配 inline code (`...`)
+        // Match inline code (`...`)
         val inlinePattern = """`+[^`]+`+""".toRegex()
         for (match in inlinePattern.findAll(text)) {
             val start = match.range.first
             val end = match.range.last + 1
-            // 检查是否已在 fenced 代码块内
+            // Check if already inside fenced code block
             val insideFenced = regions.any { start >= it.first && end <= it.last }
             if (!insideFenced) {
                 regions.add(start until end)
@@ -1390,14 +1390,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 检查位置是否在代码区域内
+     * Check if position is inside code region
      */
     private fun isInsideCodeRegion(pos: Int, regions: List<IntRange>): Boolean {
         return regions.any { pos in it }
     }
 
     /**
-     * 启动 Discord Channel（如果已配置）
+     * Start Discord Channel (if configured)
      */
     private fun startDiscordChannelIfEnabled() {
         Log.i(TAG, "⏰ startDiscordChannelIfEnabled() 被调用")
@@ -1434,7 +1434,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.i(TAG, "   Group Policy: ${discordConfigData.groupPolicy ?: "open"}")
                 Log.i(TAG, "   Reply Mode: ${discordConfigData.replyToMode ?: "off"}")
 
-                // 创建 DiscordConfig
+                // Create DiscordConfig
                 val config = DiscordConfig(
                     enabled = true,
                     token = token,
@@ -1476,19 +1476,19 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     }
                 )
 
-                // 启动 DiscordChannel
+                // Start DiscordChannel
                 val result = DiscordChannel.start(this@MyApplication, config)
 
                 if (result.isSuccess) {
                     discordChannel = result.getOrNull()
 
-                    // 初始化 DiscordTyping
+                    // Initialize DiscordTyping
                     discordChannel?.let { channel ->
                         val client = com.xiaomo.discord.DiscordClient(token)
                         discordTyping = DiscordTyping(client)
                     }
 
-                    // 更新 MMKV 状态
+                    // Update MMKV status
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_discord_enabled", true)
 
@@ -1498,14 +1498,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     Log.i(TAG, "   现在可以接收 Discord 消息了")
                     Log.i(TAG, "========================================")
 
-                    // 订阅事件流，处理接收到的消息
+                    // Subscribe to event flow, handle received messages
                     scope.launch(Dispatchers.IO) {
                         discordChannel?.eventFlow?.collect { event ->
                             handleDiscordEvent(event)
                         }
                     }
                 } else {
-                    // 清除 MMKV 状态
+                    // Clear MMKV status
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_discord_enabled", false)
 
@@ -1516,7 +1516,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 }
 
             } catch (e: Exception) {
-                // 清除 MMKV 状态
+                // Clear MMKV status
                 val mmkv = MMKV.defaultMMKV()
                 mmkv?.encode("channel_discord_enabled", false)
 
@@ -1528,7 +1528,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 处理 Discord 事件
+     * Handle Discord event
      */
     private suspend fun handleDiscordEvent(event: ChannelEvent) {
         try {
@@ -1544,7 +1544,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     Log.i(TAG, "   Type: ${event.chatType}")
                     Log.i(TAG, "   Channel: ${event.channelId}")
 
-                    // 发送回复
+                    // Send reply
                     sendDiscordReply(event)
                 }
 
@@ -1570,22 +1570,22 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 发送 Discord 回复（真正的实现）
+     * Send Discord reply (actual implementation)
      */
     private suspend fun sendDiscordReply(event: ChannelEvent.Message) {
         val startTime = System.currentTimeMillis()
 
         try {
-            // 消息去重检查
+            // Message deduplication check
             if (discordDedup.isDuplicate(event.messageId)) {
                 Log.d(TAG, "⏭️  消息已处理，跳过: ${event.messageId}")
                 return
             }
 
-            // 取消该频道之前的处理任务
+            // Cancel previous processing task for this channel
             discordProcessingJobs[event.channelId]?.cancel()
 
-            // 创建新的处理任务
+            // Create new processing task
             val job = GlobalScope.launch(Dispatchers.IO) {
                 try {
                     processDiscordMessage(event, startTime)
@@ -1607,7 +1607,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 处理 Discord 消息（核心逻辑）
+     * Process Discord message (core logic)
      */
     private suspend fun processDiscordMessage(event: ChannelEvent.Message, startTime: Long) {
         var thinkingReactionAdded = false
@@ -1622,19 +1622,19 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.i(TAG, "   Content: ${event.content}")
             Log.i(TAG, "========================================")
 
-            // 1. 添加思考表情
+            // 1. Add thinking reaction
             discordChannel?.addReaction(event.channelId, event.messageId, "🤔")
             thinkingReactionAdded = true
 
-            // 2. 启动输入状态指示器
+            // 2. Start typing indicator
             discordTyping?.startContinuous(event.channelId)
             typingStarted = true
 
-            // 3. 🆔 生成 session ID: 使用 channelId 作为唯一标识
+            // 3. 🆔 Generate session ID: use channelId as unique identifier
             val sessionId = "discord_${event.channelId}"
             Log.i(TAG, "🆔 Session ID: $sessionId")
 
-            // 4. 获取或创建统一会话
+            // 4. Get or create unified session
             if (MainEntryNew.getSessionManager() == null) {
                 MainEntryNew.initialize(this@MyApplication)
             }
@@ -1645,16 +1645,16 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
             Log.i(TAG, "📋 [Session] 加载会话: ${session.messageCount()} 条历史消息")
 
-            // 5. 获取历史消息并清理（确保 tool_use 和 tool_result 配对）
+            // 5. Get history messages and cleanup (ensure tool_use and tool_result are paired)
             val rawHistory = session.getRecentMessages(20)
             val contextHistory = cleanupToolMessages(rawHistory)
             Log.i(TAG, "📋 [Session] 清理后: ${contextHistory.size} 条消息（原始: ${rawHistory.size}）")
 
-            // 6. 构建系统提示词
-            val historyContext = ""  // 历史已在 contextHistory 中
+            // 6. Build system prompt
+            val historyContext = ""  // History is in contextHistory
             val systemPrompt = buildDiscordSystemPrompt(event, historyContext)
 
-            // 7. 调用 AgentLoop
+            // 7. Call AgentLoop
             Log.i(TAG, "🔄 调用 AgentLoop 处理消息...")
 
             val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(this@MyApplication)
@@ -1680,29 +1680,29 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 reasoningEnabled = true
             )
 
-            // 8. 停止输入状态
+            // 8. Stop typing status
             if (typingStarted) {
                 discordTyping?.stopContinuous(event.channelId)
                 typingStarted = false
             }
 
-            // 9. 移除思考表情
+            // 9. Remove thinking reaction
             if (thinkingReactionAdded) {
                 discordChannel?.removeReaction(event.channelId, event.messageId, "🤔")
                 thinkingReactionAdded = false
             }
 
-            // 9. 保存消息到会话（转换回旧格式）
+            // 9. Save messages to session (convert back to old format)
             result.messages.forEach { message ->
                 session.addMessage(message.toLegacyMessage())
             }
             MainEntryNew.getSessionManager()?.save(session)
             Log.i(TAG, "💾 [Session] 会话已保存，总消息数: ${session.messageCount()}")
 
-            // 10. 发送回复
+            // 10. Send reply
             val replyContent = result.finalContent ?: "抱歉，我无法处理这个请求。"
 
-            // 分块发送（Discord 限制 2000 字符）
+            // Send in chunks (Discord 2000 character limit)
             val chunks = splitMessageIntoChunks(replyContent, 1900)
 
             for ((index, chunk) in chunks.withIndex()) {
@@ -1720,7 +1720,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 }
             }
 
-            // 11. 添加完成表情
+            // 11. Add completion reaction
             discordChannel?.addReaction(event.channelId, event.messageId, "✅")
 
             val elapsed = System.currentTimeMillis() - startTime
@@ -1737,7 +1737,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.e(TAG, "❌ Discord 消息处理失败", e)
             Log.e(TAG, "========================================")
 
-            // 清理状态
+            // Cleanup status
             if (typingStarted) {
                 discordTyping?.stopContinuous(event.channelId)
             }
@@ -1750,7 +1750,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 }
             }
 
-            // 添加错误表情和错误消息
+            // Add error reaction and error message
             try {
                 discordChannel?.addReaction(event.channelId, event.messageId, "❌")
 
@@ -1766,7 +1766,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     /**
-     * 构建 Discord 系统提示词
+     * Build Discord system prompt
      */
     private fun buildDiscordSystemPrompt(event: ChannelEvent.Message, historyContext: String): String {
         val botName = discordChannel?.getBotUsername() ?: "AndroidForClaw Bot"
@@ -1814,7 +1814,7 @@ $historyContext
     }
 
     /**
-     * 分割消息为多个块（Discord 限制 2000 字符）
+     * Split message into multiple chunks (Discord 2000 character limit)
      */
     private fun splitMessageIntoChunks(message: String, maxChunkSize: Int = 1900): List<String> {
         if (message.length <= maxChunkSize) {
@@ -1825,20 +1825,20 @@ $historyContext
         var remaining = message
 
         while (remaining.length > maxChunkSize) {
-            // 尝试在合适的位置分割（换行、句号、空格）
+            // Try to split at appropriate position (newline, period, space)
             var splitIndex = maxChunkSize
 
-            // 优先在换行符处分割
+            // Prioritize splitting at newline
             val lastNewline = remaining.substring(0, maxChunkSize).lastIndexOf('\n')
             if (lastNewline > maxChunkSize / 2) {
                 splitIndex = lastNewline + 1
             } else {
-                // 其次在句号处分割
+                // Next try to split at period
                 val lastPeriod = remaining.substring(0, maxChunkSize).lastIndexOf('。')
                 if (lastPeriod > maxChunkSize / 2) {
                     splitIndex = lastPeriod + 1
                 } else {
-                    // 最后在空格处分割
+                    // Finally try to split at space
                     val lastSpace = remaining.substring(0, maxChunkSize).lastIndexOf(' ')
                     if (lastSpace > maxChunkSize / 2) {
                         splitIndex = lastSpace + 1
@@ -1860,7 +1860,7 @@ $historyContext
     override fun onTerminate() {
         super.onTerminate()
 
-        // 停止 Discord 相关服务
+        // Stop Discord related services
         try {
             discordTyping?.cleanup()
             discordTyping = null
@@ -1874,7 +1874,7 @@ $historyContext
             DiscordChannel.stop()
             discordChannel = null
 
-            // 清除 MMKV 状态
+            // Clear MMKV status
             val mmkv = MMKV.defaultMMKV()
             mmkv?.encode("channel_discord_enabled", false)
 
@@ -1883,11 +1883,11 @@ $historyContext
             Log.e(TAG, "停止 Discord 服务时出错", e)
         }
 
-        // 停止 Feishu Channel
+        // Stop Feishu Channel
         feishuChannel?.stop()
         feishuChannel = null
 
-        // 停止 Gateway Server
+        // Stop Gateway Server
         gatewayServer?.stop()
         gatewayServer = null
 
@@ -1895,24 +1895,24 @@ $historyContext
     }
 
     /**
-     * 清理消息历史，确保 tool_use 和 tool_result 配对
+     * Cleanup message history, ensure tool_use and tool_result are paired
      *
-     * 问题：当从 session 加载历史消息时，可能会出现孤立的 tool_result
-     * （对应的 tool_use 在更早的消息中，已被截断）
+     * Problem: When loading history messages from session, there may be orphaned tool_results
+     * (corresponding tool_use is in earlier messages, already truncated)
      *
-     * 解决：只保留完整的 user/assistant 消息，移除所有 tool 相关内容
+     * Solution: Only keep complete user/assistant messages, remove all tool-related content
      */
     private fun cleanupToolMessages(messages: List<com.xiaomo.androidforclaw.providers.LegacyMessage>): List<com.xiaomo.androidforclaw.providers.LegacyMessage> {
         return messages.filter { message ->
-            // 只保留 user 和 assistant 的文本消息
-            // 移除所有包含 tool_calls 或 tool_result 的消息
+            // Only keep text messages from user and assistant
+            // Remove all messages containing tool_calls or tool_result
             when (message.role) {
-                "user" -> true  // 保留所有用户消息
+                "user" -> true  // Keep all user messages
                 "assistant" -> {
-                    // 只保留纯文本的 assistant 消息，移除带 tool_calls 的
+                    // Only keep plain text assistant messages, remove those with tool_calls
                     message.content != null && message.toolCalls == null
                 }
-                else -> false  // 移除 tool 角色的消息
+                else -> false  // Remove tool role messages
             }
         }
     }

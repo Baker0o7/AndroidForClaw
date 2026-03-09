@@ -11,14 +11,14 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * 文件日志系统
- * 对齐 OpenClaw 的 app.log 和 gateway.log
+ * File logging system
+ * Align with OpenClaw's app.log and gateway.log
  *
- * 功能:
- * - 结构化日志（时间戳、级别、标签、消息）
- * - 日志轮转（大小限制）
- * - 分类存储（app.log, gateway.log）
- * - 线程安全
+ * Features:
+ * - Structured logging (timestamp, level, tag, message)
+ * - Log rotation (size limit)
+ * - Categorized storage (app.log, gateway.log)
+ * - Thread-safe
  */
 class FileLogger(private val context: Context) {
 
@@ -41,45 +41,45 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * 记录应用日志
+     * Log app logs
      */
     fun logApp(level: LogLevel, tag: String, message: String, error: Throwable? = null) {
         if (!loggingEnabled) return
 
         val logLine = formatLogLine(level, tag, message, error)
 
-        // 写入文件
+        // Write to file
         appendToFile(APP_LOG_FILE, logLine)
 
-        // 同时输出到 logcat
+        // Also output to logcat
         outputToLogcat(level, tag, message, error)
     }
 
     /**
-     * 记录 Gateway 日志
+     * Log Gateway logs
      */
     fun logGateway(level: LogLevel, message: String, error: Throwable? = null) {
         if (!loggingEnabled) return
 
         val logLine = formatLogLine(level, "Gateway", message, error)
 
-        // 写入文件
+        // Write to file
         appendToFile(GATEWAY_LOG_FILE, logLine)
 
-        // 同时输出到 logcat
+        // Also output to logcat
         outputToLogcat(level, "Gateway", message, error)
     }
 
     /**
-     * 启用/禁用文件日志
+     * Enable/disable file logging
      */
     fun setLoggingEnabled(enabled: Boolean) {
         loggingEnabled = enabled
-        Log.i(TAG, "文件日志${if (enabled) "已启用" else "已禁用"}")
+        Log.i(TAG, "File logging ${if (enabled) "enabled" else "disabled"}")
     }
 
     /**
-     * 清空日志文件
+     * Clear log files
      */
     fun clearLogs(logType: LogType = LogType.ALL) {
         writeLock.withLock {
@@ -91,12 +91,12 @@ class FileLogger(private val context: Context) {
                     File(GATEWAY_LOG_FILE).writeText("")
                 }
             }
-            Log.i(TAG, "清空日志: $logType")
+            Log.i(TAG, "Clear logs: $logType")
         }
     }
 
     /**
-     * 获取日志文件大小
+     * Get log file size
      */
     fun getLogSize(logType: LogType): Long {
         return when (logType) {
@@ -186,7 +186,7 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * 追加到文件（线程安全，带日志轮转）
+     * 追加到文件（Thread-safe，带日志轮转）
      */
     private fun appendToFile(filePath: String, content: String) {
         writeLock.withLock {
@@ -201,7 +201,7 @@ class FileLogger(private val context: Context) {
                 // 追加内容
                 file.appendText(content)
             } catch (e: Exception) {
-                // 写入失败时只输出到 logcat，避免递归
+                // 写入失败时只Output to logcat，避免递归
                 Log.e(TAG, "写入日志文件失败: $filePath", e)
             }
         }
@@ -252,7 +252,7 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * 格式化日志行
+     * Format log line
      */
     private fun formatLogLine(
         level: LogLevel,
@@ -273,7 +273,7 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * 输出到 logcat
+     * Output to logcat
      */
     private fun outputToLogcat(level: LogLevel, tag: String, message: String, error: Throwable?) {
         when (level) {
@@ -287,7 +287,7 @@ class FileLogger(private val context: Context) {
 }
 
 /**
- * 日志级别
+ * Log level
  */
 enum class LogLevel {
     VERBOSE,
@@ -298,7 +298,7 @@ enum class LogLevel {
 }
 
 /**
- * 日志类型
+ * Log type
  */
 enum class LogType {
     APP,

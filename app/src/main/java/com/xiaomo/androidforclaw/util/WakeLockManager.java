@@ -25,27 +25,27 @@ public class WakeLockManager {
 
     public static final long PROCESS_WAKELOCK_TIMEOUT = 30 * 1000;
 
-    // 屏幕唤醒锁的 key
+    // Screen wake lock key
     public static final String SCREEN_WAKE_LOCK_KEY = "screen_wake_lock";
-    // 定期刷新间隔：4分钟（WakeLock 默认超时是 5 分钟）
-    private static final long REFRESH_INTERVAL = 4 * 60 * 1000; // 4分钟
-    // 定期唤醒屏幕间隔：30秒（通过反射调用userActivity防止锁屏）
-    private static final long WAKE_SCREEN_INTERVAL = 30 * 1000; // 30秒
+    // Periodic refresh interval: 4 minutes (WakeLock default timeout is 5 minutes)
+    private static final long REFRESH_INTERVAL = 4 * 60 * 1000; // 4 minutes
+    // Periodic screen wake interval: 30 seconds (use reflection to call userActivity to prevent screen lock)
+    private static final long WAKE_SCREEN_INTERVAL = 30 * 1000; // 30 seconds
     
     private static PowerManager sPowerManager = getSystemService(Context.POWER_SERVICE);
     private static final Map<String, WakeLock> sWakeLockMap = new HashMap<String, WakeLock>();
     
-    // 定期刷新 WakeLock 的 Handler
+    // Handler for periodic WakeLock refresh
     private static Handler sRefreshHandler = new Handler(Looper.getMainLooper());
-    // 负责定期刷新WakeLock的回调任务
+    // Callback task for periodic WakeLock refresh
     private static Runnable sRefreshRunnable = null;
-    // 负责定期唤醒屏幕的回调任务
+    // Callback task for periodic screen wake
     private static Runnable sWakeScreenRunnable = null;
-    // 标记屏幕唤醒锁是否处于激活状态
+    // Flag indicating whether screen wake lock is active
     private static boolean sScreenWakeLockActive = false;
 
     /**
-     * 获取系统服务
+     * Get system service
      */
     public static void acquire(@NonNull String key, long timeOut) {
         Log.i(TAG, String.format("acquire wakeLock: %s for %d", key, timeOut));
@@ -59,7 +59,7 @@ public class WakeLockManager {
                 oldWakeLock = sWakeLockMap.get(key);
                 sWakeLockMap.put(key, wakeLock);
                 if (oldWakeLock != null && oldWakeLock.isHeld()) {
-                    oldWakeLock.release();  //因每个WakeLock有相关的超时，新旧之间不等同，须释放旧的，用新的代替
+                    oldWakeLock.release();  // Since each WakeLock has its own timeout, old and new are not equivalent, must release old and replace with new
                 }
             }
         } catch (Exception e) {
@@ -68,7 +68,7 @@ public class WakeLockManager {
     }
 
     /**
-     * 释放系统服务
+     * Release system service
      */
     public static void release(@NonNull String key) {
         try {
@@ -86,71 +86,71 @@ public class WakeLockManager {
     }
 
     /**
-     * 获取屏幕唤醒锁，防止设备锁屏
-     * 
-     * 多层次防锁屏方案：
-     * 1. 使用 PARTIAL_WAKE_LOCK 保持 CPU 运行（所有 Android 版本都支持）
-     * 2. 结合 FLAG_KEEP_SCREEN_ON 在 Window 层面（需要在 Activity/Service 中设置）
-     * 3. 定期刷新 WakeLock，确保不会因超时失效
-     * 4. 使用 ACQUIRE_CAUSES_WAKEUP 确保能唤醒屏幕
+     * Acquire screen wake lock to prevent device screen lock
+     *
+     * Multi-layered screen lock prevention approach:
+     * 1. Use PARTIAL_WAKE_LOCK to keep CPU running (supported on all Android versions)
+     * 2. Combine with FLAG_KEEP_SCREEN_ON at Window level (needs to be set in Activity/Service)
+     * 3. Periodically refresh WakeLock to ensure it doesn't expire from timeout
+     * 4. Use ACQUIRE_CAUSES_WAKEUP to ensure screen can be woken
      */
     public static void acquireScreenWakeLock() {
-        Log.i(TAG, "acquire screen wakeLock to prevent screen lock - 使用多层次防锁屏方案");
+        Log.i(TAG, "acquire screen wakeLock to prevent screen lock - using multi-layered prevention approach");
         
         synchronized (WakeLockManager.class) {
             if (sScreenWakeLockActive) {
-                Log.i(TAG, "屏幕唤醒锁已激活，跳过重复获取");
+                Log.i(TAG, "Screen wake lock already active, skipping duplicate acquisition");
                 return;
             }
             sScreenWakeLockActive = true;
         }
         
         try {
-            // 🔥 关键修复：PARTIAL_WAKE_LOCK 不能防止锁屏！
-            // 需要组合使用多种方案：
-            // 1. PARTIAL_WAKE_LOCK 保持 CPU 运行
-            // 2. 尝试使用 SCREEN_DIM_WAKE_LOCK（即使 API 27+ 被废弃，某些设备仍可能有效）
-            // 3. 结合 FLAG_KEEP_SCREEN_ON 在窗口层面
-            
-            // 方案1：获取 PARTIAL_WAKE_LOCK 保持 CPU 运行
-            // 🔥 使用无超时时间，确保不会自动释放
+            // 🔥 Critical fix: PARTIAL_WAKE_LOCK cannot prevent screen lock!
+            // Need to combine multiple approaches:
+            // 1. PARTIAL_WAKE_LOCK keeps CPU running
+            // 2. Try using SCREEN_DIM_WAKE_LOCK (even though deprecated on API 27+, may still work on some devices)
+            // 3. Combine with FLAG_KEEP_SCREEN_ON at window level
+
+            // Approach 1: Acquire PARTIAL_WAKE_LOCK to keep CPU running
+            // 🔥 Use without timeout to ensure not automatically released
             int partialFlags = PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP;
             WakeLock partialWakeLock = sPowerManager.newWakeLock(partialFlags,
                     WakeLockManager.class.getCanonicalName() + "/" + SCREEN_WAKE_LOCK_KEY + "_partial");
             partialWakeLock.setReferenceCounted(false);
-            // 使用无超时时间，通过定期刷新来维持
+            // Use without timeout, maintain through periodic refresh
             partialWakeLock.acquire();
-            
-            // 方案2：尝试获取 SCREEN_DIM_WAKE_LOCK 防止锁屏（即使被废弃）
+
+            // Approach 2: Try to acquire SCREEN_DIM_WAKE_LOCK to prevent screen lock (even if deprecated)
             WakeLock screenWakeLock = null;
             try {
-                // 使用反射尝试获取 SCREEN_DIM_WAKE_LOCK（即使被废弃）
+                // Use reflection to try acquiring SCREEN_DIM_WAKE_LOCK (even if deprecated)
                 int screenFlags = PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP;
                 screenWakeLock = sPowerManager.newWakeLock(screenFlags,
                         WakeLockManager.class.getCanonicalName() + "/" + SCREEN_WAKE_LOCK_KEY + "_screen");
                 screenWakeLock.setReferenceCounted(false);
-                // 使用无超时时间，通过定期刷新来维持
+                // Use without timeout, maintain through periodic refresh
                 screenWakeLock.acquire();
-                Log.i(TAG, "成功获取 SCREEN_DIM_WAKE_LOCK（防止锁屏）");
+                Log.i(TAG, "Successfully acquired SCREEN_DIM_WAKE_LOCK (prevents screen lock)");
             } catch (Exception e) {
-                Log.w(TAG, "获取 SCREEN_DIM_WAKE_LOCK 失败（可能被系统忽略）: " + e.getMessage());
-                // 如果失败，尝试 SCREEN_BRIGHT_WAKE_LOCK
+                Log.w(TAG, "Failed to acquire SCREEN_DIM_WAKE_LOCK (may be ignored by system): " + e.getMessage());
+                // If failed, try SCREEN_BRIGHT_WAKE_LOCK
                 try {
                     int brightFlags = PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP;
                     screenWakeLock = sPowerManager.newWakeLock(brightFlags,
                             WakeLockManager.class.getCanonicalName() + "/" + SCREEN_WAKE_LOCK_KEY + "_screen");
                     screenWakeLock.setReferenceCounted(false);
-                    // 使用无超时时间，通过定期刷新来维持
+                    // Use without timeout, maintain through periodic refresh
                     screenWakeLock.acquire();
-                    Log.i(TAG, "成功获取 SCREEN_BRIGHT_WAKE_LOCK（防止锁屏）");
+                    Log.i(TAG, "Successfully acquired SCREEN_BRIGHT_WAKE_LOCK (prevents screen lock)");
                 } catch (Exception e2) {
-                    Log.w(TAG, "获取 SCREEN_BRIGHT_WAKE_LOCK 也失败: " + e2.getMessage());
+                    Log.w(TAG, "Failed to acquire SCREEN_BRIGHT_WAKE_LOCK too: " + e2.getMessage());
                 }
             }
 
             WakeLock oldWakeLock;
             synchronized (sWakeLockMap) {
-                // 保存两个 WakeLock
+                // Save both WakeLocks
                 oldWakeLock = sWakeLockMap.get(SCREEN_WAKE_LOCK_KEY);
                 sWakeLockMap.put(SCREEN_WAKE_LOCK_KEY, partialWakeLock);
                 if (screenWakeLock != null) {
@@ -160,21 +160,21 @@ public class WakeLockManager {
                     oldWakeLock.release();
                 }
             }
-            
-            Log.i(TAG, "屏幕唤醒锁获取成功 - PARTIAL_WAKE_LOCK（CPU）" + 
-                    (screenWakeLock != null ? " + SCREEN_WAKE_LOCK（屏幕）" : "（屏幕锁可能被系统忽略）"));
-            
-            // 🔥 尝试使用 WRITE_SECURE_SETTINGS 权限修改屏幕超时（如果可能）
+
+            Log.i(TAG, "Screen wake lock acquired successfully - PARTIAL_WAKE_LOCK (CPU)" +
+                    (screenWakeLock != null ? " + SCREEN_WAKE_LOCK (screen)" : " (screen lock may be ignored by system)"));
+
+            // 🔥 Try to use WRITE_SECURE_SETTINGS permission to modify screen timeout (if possible)
             trySetScreenTimeoutNever();
-            
-            // 启动定期刷新机制
+
+            // Start periodic refresh mechanism
             startRefreshRoutine();
-            
-            // 启动定期唤醒屏幕机制（通过反射调用userActivity防止锁屏）
+
+            // Start periodic screen wake mechanism (use reflection to call userActivity to prevent screen lock)
             startWakeScreenRoutine();
-            
+
         } catch (Exception e) {
-            Log.e(TAG, "获取屏幕唤醒锁失败: " + e.toString(), e);
+            Log.e(TAG, "Failed to acquire screen wake lock: " + e.toString(), e);
             synchronized (WakeLockManager.class) {
                 sScreenWakeLockActive = false;
             }
@@ -182,24 +182,24 @@ public class WakeLockManager {
     }
     
     /**
-     * 定期刷新 WakeLock，确保不会因超时失效
-     * 每 4 分钟刷新一次（WakeLock 默认超时是 5 分钟）
+     * Periodically refresh WakeLock to ensure it doesn't expire from timeout
+     * Refresh every 4 minutes (WakeLock default timeout is 5 minutes)
      */
     private static void startRefreshRoutine() {
-        // 停止旧的刷新任务
+        // Stop old refresh task
         stopRefreshRoutine();
         
         sRefreshRunnable = new Runnable() {
             @Override
             public void run() {
                 if (!sScreenWakeLockActive) {
-                    Log.d(TAG, "屏幕唤醒锁已释放，停止刷新");
+                    Log.d(TAG, "Screen wake lock released, stopping refresh");
                     return;
                 }
-                
+
                 try {
                     synchronized (sWakeLockMap) {
-                        // 刷新 PARTIAL_WAKE_LOCK
+                        // Refresh PARTIAL_WAKE_LOCK
                         WakeLock currentPartialLock = sWakeLockMap.get(SCREEN_WAKE_LOCK_KEY);
                         if (currentPartialLock != null && currentPartialLock.isHeld()) {
                             currentPartialLock.release();
@@ -208,12 +208,12 @@ public class WakeLockManager {
                             WakeLock newPartialLock = sPowerManager.newWakeLock(partialFlags,
                                     WakeLockManager.class.getCanonicalName() + "/" + SCREEN_WAKE_LOCK_KEY + "_partial");
                             newPartialLock.setReferenceCounted(false);
-                            // 使用无超时时间
+                            // Use without timeout
                             newPartialLock.acquire();
                             sWakeLockMap.put(SCREEN_WAKE_LOCK_KEY, newPartialLock);
                         }
-                        
-                        // 刷新 SCREEN_WAKE_LOCK（如果存在）
+
+                        // Refresh SCREEN_WAKE_LOCK (if exists)
                         WakeLock currentScreenLock = sWakeLockMap.get(SCREEN_WAKE_LOCK_KEY + "_screen");
                         if (currentScreenLock != null && currentScreenLock.isHeld()) {
                             currentScreenLock.release();
@@ -223,227 +223,228 @@ public class WakeLockManager {
                                 WakeLock newScreenLock = sPowerManager.newWakeLock(screenFlags,
                                         WakeLockManager.class.getCanonicalName() + "/" + SCREEN_WAKE_LOCK_KEY + "_screen");
                                     newScreenLock.setReferenceCounted(false);
-                                    // 使用无超时时间
+                                    // Use without timeout
                                     newScreenLock.acquire();
                                     sWakeLockMap.put(SCREEN_WAKE_LOCK_KEY + "_screen", newScreenLock);
                             } catch (Exception e) {
-                                Log.w(TAG, "刷新 SCREEN_WAKE_LOCK 失败: " + e.getMessage());
+                                Log.w(TAG, "Failed to refresh SCREEN_WAKE_LOCK: " + e.getMessage());
                             }
                         }
-                        
+
                         if (currentPartialLock == null || !currentPartialLock.isHeld()) {
-                            Log.w(TAG, "当前 WakeLock 未持有，重新获取");
-                            // 如果 WakeLock 丢失，重新获取
+                            Log.w(TAG, "Current WakeLock not held, re-acquiring");
+                            // If WakeLock is lost, re-acquire
                             acquireScreenWakeLock();
                             return;
                         }
-                        
-                        Log.d(TAG, "屏幕唤醒锁已刷新");
+
+                        Log.d(TAG, "Screen wake lock refreshed");
                     }
-                    
-                    // 安排下一次刷新
+
+                    // Schedule next refresh
                     sRefreshHandler.postDelayed(this, REFRESH_INTERVAL);
                 } catch (Exception e) {
-                    Log.e(TAG, "刷新屏幕唤醒锁失败: " + e.toString(), e);
-                    // 即使刷新失败，也尝试继续
+                    Log.e(TAG, "Failed to refresh screen wake lock: " + e.toString(), e);
+                    // Even if refresh fails, try to continue
                     sRefreshHandler.postDelayed(this, REFRESH_INTERVAL);
                 }
             }
         };
-        
-        // 延迟 REFRESH_INTERVAL 后开始第一次刷新
+
+        // Start first refresh after REFRESH_INTERVAL delay
         sRefreshHandler.postDelayed(sRefreshRunnable, REFRESH_INTERVAL);
-        Log.i(TAG, "已启动屏幕唤醒锁定期刷新机制，间隔: " + (REFRESH_INTERVAL / 1000) + "秒");
+        Log.i(TAG, "Started periodic screen wake lock refresh mechanism, interval: " + (REFRESH_INTERVAL / 1000) + " seconds");
     }
     
     /**
-     * 停止定期刷新
+     * Stop periodic refresh
      */
     private static void stopRefreshRoutine() {
         if (sRefreshRunnable != null) {
             sRefreshHandler.removeCallbacks(sRefreshRunnable);
             sRefreshRunnable = null;
-            Log.d(TAG, "已停止屏幕唤醒锁刷新机制");
+            Log.d(TAG, "Stopped screen wake lock refresh mechanism");
         }
     }
-    
+
     /**
-     * 定期唤醒屏幕，防止锁屏（通过反射调用userActivity）
+     * Periodically wake screen to prevent screen lock (by calling userActivity through reflection)
      */
     private static void startWakeScreenRoutine() {
-        // 停止旧的唤醒任务
+        // Stop old wake task
         stopWakeScreenRoutine();
         
         sWakeScreenRunnable = new Runnable() {
             @Override
             public void run() {
                 if (!sScreenWakeLockActive) {
-                    Log.d(TAG, "屏幕唤醒锁已释放，停止定期唤醒");
+                    Log.d(TAG, "Screen wake lock released, stopping periodic wake");
                     return;
                 }
-                
+
                 try {
-                    // 使用反射调用 userActivity() 告诉系统有用户活动，防止锁屏
+                    // Use reflection to call userActivity() to tell system there's user activity, preventing screen lock
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             java.lang.reflect.Method userActivityMethod = sPowerManager.getClass()
                                     .getMethod("userActivity", long.class, int.class, int.class);
                             // USER_ACTIVITY_EVENT_OTHER = 0
                             int userActivityEventOther = 0;
-                            userActivityMethod.invoke(sPowerManager, System.currentTimeMillis(), 
+                            userActivityMethod.invoke(sPowerManager, System.currentTimeMillis(),
                                     userActivityEventOther, 0);
-                            Log.d(TAG, "已通过反射调用 userActivity() 防止锁屏");
+                            Log.d(TAG, "Called userActivity() via reflection to prevent screen lock");
                         }
                     } catch (NoSuchMethodException e) {
-                        Log.d(TAG, "userActivity() 方法不存在，跳过");
+                        Log.d(TAG, "userActivity() method does not exist, skipping");
                     } catch (Exception e) {
-                        Log.w(TAG, "userActivity() 调用失败: " + e.getMessage());
+                        Log.w(TAG, "userActivity() call failed: " + e.getMessage());
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "定期唤醒屏幕失败: " + e.toString(), e);
+                    Log.e(TAG, "Periodic screen wake failed: " + e.toString(), e);
                 }
-                
-                // 安排下一次唤醒
+
+                // Schedule next wake
                 sRefreshHandler.postDelayed(this, WAKE_SCREEN_INTERVAL);
             }
         };
-        
-        // 延迟开始第一次唤醒
+
+        // Delay start of first wake
         sRefreshHandler.postDelayed(sWakeScreenRunnable, WAKE_SCREEN_INTERVAL);
-        Log.i(TAG, "已启动定期唤醒屏幕机制，间隔: " + (WAKE_SCREEN_INTERVAL / 1000) + "秒");
+        Log.i(TAG, "Started periodic screen wake mechanism, interval: " + (WAKE_SCREEN_INTERVAL / 1000) + " seconds");
     }
-    
+
     /**
-     * 停止定期唤醒屏幕
+     * Stop periodic screen wake
      */
     private static void stopWakeScreenRoutine() {
         if (sWakeScreenRunnable != null) {
             sRefreshHandler.removeCallbacks(sWakeScreenRunnable);
             sWakeScreenRunnable = null;
-            Log.d(TAG, "已停止定期唤醒屏幕机制");
+            Log.d(TAG, "Stopped periodic screen wake mechanism");
         }
     }
 
     /**
-     * 释放屏幕唤醒锁
+     * Release screen wake lock
      */
     public static void releaseScreenWakeLock() {
         synchronized (WakeLockManager.class) {
             if (!sScreenWakeLockActive) {
-                Log.d(TAG, "屏幕唤醒锁未激活，跳过释放");
+                Log.d(TAG, "Screen wake lock not active, skipping release");
                 return;
             }
             sScreenWakeLockActive = false;
         }
-        
-        // 停止刷新机制
+
+        // Stop refresh mechanism
         stopRefreshRoutine();
-        
-        // 停止定期唤醒屏幕机制
+
+        // Stop periodic screen wake mechanism
         stopWakeScreenRoutine();
-        
-        // 释放所有 WakeLock
+
+        // Release all WakeLocks
         release(SCREEN_WAKE_LOCK_KEY); // PARTIAL_WAKE_LOCK
         release(SCREEN_WAKE_LOCK_KEY + "_screen"); // SCREEN_WAKE_LOCK
-        
-        // 恢复屏幕超时设置（可选）
+
+        // Restore screen timeout settings (optional)
         // restoreScreenTimeout();
-        
+
         Log.i(TAG, "screen wakeLock released");
     }
-    
+
     /**
-     * 检查屏幕唤醒锁是否已激活
-     * @return true=已激活, false=未激活
+     * Check if screen wake lock is active
+     * @return true=active, false=inactive
      */
     public static boolean isScreenWakeLockActive() {
         synchronized (WakeLockManager.class) {
             return sScreenWakeLockActive;
         }
     }
-    
+
     /**
-     * 为 Window 设置 FLAG_KEEP_SCREEN_ON
-     * 这是防止锁屏的另一个重要层面，需要在 Activity/Service 中调用
+     * Set FLAG_KEEP_SCREEN_ON for Window
+     * This is another important layer for preventing screen lock, needs to be called in Activity/Service
      */
     public static void setKeepScreenOn(Window window) {
         if (window != null) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            Log.d(TAG, "已为 Window 设置 FLAG_KEEP_SCREEN_ON");
+            Log.d(TAG, "Set FLAG_KEEP_SCREEN_ON for Window");
         }
     }
-    
+
     /**
-     * 清除 Window 的 FLAG_KEEP_SCREEN_ON
+     * Clear FLAG_KEEP_SCREEN_ON for Window
      */
     public static void clearKeepScreenOn(Window window) {
         if (window != null) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            Log.d(TAG, "已清除 Window 的 FLAG_KEEP_SCREEN_ON");
+            Log.d(TAG, "Cleared FLAG_KEEP_SCREEN_ON for Window");
         }
     }
 
-    
+
+
     /**
-     * 尝试使用 WRITE_SECURE_SETTINGS 权限设置屏幕超时为永不锁屏
-     * 仅在有权限时尝试设置，不请求权限或跳转设置页面
+     * Try to use WRITE_SECURE_SETTINGS permission to set screen timeout to never lock
+     * Only attempt to set when permission exists, don't request permission or jump to settings
      */
     private static void trySetScreenTimeoutNever() {
         try {
             Context context = MyApplication.application.getApplicationContext();
-            
-            // 检查是否有 WRITE_SECURE_SETTINGS 权限（通过尝试写入测试）
+
+            // Check if has WRITE_SECURE_SETTINGS permission (by attempting a test write)
             boolean hasPermission = false;
             try {
-                Settings.Secure.putString(context.getContentResolver(), 
+                Settings.Secure.putString(context.getContentResolver(),
                         "test_write_secure_settings", "test");
-                Settings.Secure.putString(context.getContentResolver(), 
+                Settings.Secure.putString(context.getContentResolver(),
                         "test_write_secure_settings", null);
                 hasPermission = true;
             } catch (Exception e) {
                 hasPermission = false;
             }
-            
+
             if (hasPermission) {
-                // 设置屏幕超时为最大值（2147483647 毫秒，约 24 天）
-                // 注意：SCREEN_OFF_TIMEOUT 在 Settings.System 中，不在 Secure 中
+                // Set screen timeout to max value (2147483647 milliseconds, about 24 days)
+                // Note: SCREEN_OFF_TIMEOUT is in Settings.System, not in Secure
                 try {
-                    // 方法1：尝试通过 System 设置屏幕超时（需要 WRITE_SETTINGS 权限）
+                    // Method 1: Try to set screen timeout via System (requires WRITE_SETTINGS permission)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (Settings.System.canWrite(context)) {
-                            Settings.System.putInt(context.getContentResolver(), 
+                            Settings.System.putInt(context.getContentResolver(),
                                     Settings.System.SCREEN_OFF_TIMEOUT, Integer.MAX_VALUE);
-                            Log.i(TAG, "已通过 WRITE_SETTINGS 设置屏幕超时为最大值");
+                            Log.i(TAG, "Set screen timeout to max via WRITE_SETTINGS");
                         } else {
-                            Log.d(TAG, "没有 WRITE_SETTINGS 权限，无法通过 System 设置屏幕超时");
+                            Log.d(TAG, "No WRITE_SETTINGS permission, cannot set screen timeout via System");
                         }
                     } else {
-                        // API 23 以下可以直接设置
-                        Settings.System.putInt(context.getContentResolver(), 
+                        // Can set directly on API < 23
+                        Settings.System.putInt(context.getContentResolver(),
                                 Settings.System.SCREEN_OFF_TIMEOUT, Integer.MAX_VALUE);
-                        Log.i(TAG, "已设置屏幕超时为最大值（API < 23）");
+                        Log.i(TAG, "Set screen timeout to max (API < 23)");
                     }
                 } catch (Exception e) {
-                    Log.w(TAG, "通过 System 设置屏幕超时失败: " + e.getMessage());
+                    Log.w(TAG, "Failed to set screen timeout via System: " + e.getMessage());
                 }
-                
-                // 方法2：尝试通过 Secure 设置（某些设备可能支持）
+
+                // Method 2: Try to set via Secure (some devices may support)
                 try {
-                    // 使用反射尝试设置 secure 中的屏幕超时
+                    // Use reflection to try setting screen timeout in secure
                     java.lang.reflect.Method putIntMethod = Settings.Secure.class
                             .getMethod("putInt", android.content.ContentResolver.class, String.class, int.class);
-                    // 尝试设置屏幕超时（某些设备可能在 Secure 中有相关设置）
-                    putIntMethod.invoke(null, context.getContentResolver(), 
+                    // Try to set screen timeout (some devices may have related settings in Secure)
+                    putIntMethod.invoke(null, context.getContentResolver(),
                             "screen_off_timeout", Integer.MAX_VALUE);
-                    Log.i(TAG, "已尝试通过 Secure 设置屏幕超时");
+                    Log.i(TAG, "Attempted to set screen timeout via Secure");
                 } catch (Exception e) {
-                    Log.d(TAG, "通过 Secure 设置屏幕超时失败（可能不支持）: " + e.getMessage());
+                    Log.d(TAG, "Failed to set screen timeout via Secure (may not be supported): " + e.getMessage());
                 }
             } else {
-                Log.d(TAG, "没有 WRITE_SECURE_SETTINGS 权限，跳过设置屏幕超时（不跳转设置页面）");
+                Log.d(TAG, "No WRITE_SECURE_SETTINGS permission, skipping screen timeout setting (not jumping to settings)");
             }
         } catch (Exception e) {
-            Log.w(TAG, "尝试设置屏幕超时失败: " + e.getMessage());
+            Log.w(TAG, "Failed to attempt setting screen timeout: " + e.getMessage());
         }
     }
     

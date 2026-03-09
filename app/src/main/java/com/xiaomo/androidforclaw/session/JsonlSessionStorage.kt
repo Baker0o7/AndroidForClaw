@@ -22,7 +22,7 @@ class JsonlSessionStorage(private val context: Context) {
     companion object {
         private const val TAG = "JsonlSessionStorage"
 
-        // 对齐 OpenClaw: agents/main/sessions/
+        // Align with OpenClaw: agents/main/sessions/
         private const val SESSIONS_DIR = "/sdcard/.androidforclaw/agents/main/sessions"
         private const val SESSIONS_INDEX_FILE = "$SESSIONS_DIR/sessions.json"
     }
@@ -42,11 +42,11 @@ class JsonlSessionStorage(private val context: Context) {
         val sessionId = UUID.randomUUID().toString()
         val now = Instant.now().toString()
 
-        // 创建会话文件
+        // Create session file
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         sessionFile.createNewFile()
 
-        // 更新索引
+        // Update index
         val index = loadSessionsIndex().toMutableMap()
         index[sessionId] = SessionMetadata(
             title = title,
@@ -70,11 +70,11 @@ class JsonlSessionStorage(private val context: Context) {
             return
         }
 
-        // 追加一行 JSON
+        // Append one line of JSON
         val jsonLine = gson.toJson(message)
         sessionFile.appendText("$jsonLine\n")
 
-        // 更新索引
+        // Update index
         updateSessionMetadata(sessionId) { metadata ->
             metadata.copy(
                 lastMessageAt = Instant.now().toString(),
@@ -143,7 +143,7 @@ class JsonlSessionStorage(private val context: Context) {
         val deleted = sessionFile.delete()
 
         if (deleted) {
-            // 从索引中移除
+            // Remove from index
             val index = loadSessionsIndex().toMutableMap()
             index.remove(sessionId)
             saveSessionsIndex(index)
@@ -203,10 +203,10 @@ class JsonlSessionStorage(private val context: Context) {
         return try {
             inputFile.copyTo(sessionFile)
 
-            // 计算消息数量
+            // Count messages
             val messageCount = sessionFile.readLines().count { it.isNotBlank() }
 
-            // 创建索引
+            // Create index
             val index = loadSessionsIndex().toMutableMap()
             index[sessionId] = SessionMetadata(
                 title = title ?: "Imported Session",
@@ -249,7 +249,7 @@ class JsonlSessionStorage(private val context: Context) {
         )
     }
 
-    // ==================== 私有方法 ====================
+    // ==================== Private methods ====================
 
     private fun ensureDirectoryExists() {
         val dir = File(SESSIONS_DIR)
@@ -313,11 +313,11 @@ class JsonlSessionStorage(private val context: Context) {
  */
 data class SessionMessage(
     val role: String,              // "user" | "assistant" | "system" | "tool"
-    val content: String,           // 消息内容
-    val timestamp: String,         // ISO 8601 时间戳
-    val name: String? = null,      // 可选：工具名称或用户名
-    val toolCallId: String? = null, // 可选：tool call ID
-    val metadata: Map<String, Any?>? = null  // 可选：额外元数据
+    val content: String,           // Message content
+    val timestamp: String,         // ISO 8601 timestamp
+    val name: String? = null,      // Optional: tool name or username
+    val toolCallId: String? = null, // Optional: tool call ID
+    val metadata: Map<String, Any?>? = null  // Optional: extra metadata
 )
 
 /**

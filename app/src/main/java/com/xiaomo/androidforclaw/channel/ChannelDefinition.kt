@@ -1,34 +1,34 @@
 package com.xiaomo.androidforclaw.channel
 
 /**
- * Channel Definition - 按照 OpenClaw 架构定义 Android App Channel
+ * Channel Definition - Define Android App Channel according to OpenClaw architecture
  *
- * OpenClaw Channel 核心概念:
- * - Channel: 通信渠道（WhatsApp, Telegram, Discord, etc.）
- * - Account: 渠道内的账号（多账号支持）
- * - Session: 会话实例（与用户/设备的对话）
- * - Capabilities: 渠道能力（polls, threads, media, etc.）
+ * OpenClaw Channel core concepts:
+ * - Channel: Communication channel（WhatsApp, Telegram, Discord, etc.）
+ * - Account: Account within channel (multi-account support)
+ * - Session: Session instance (conversation with user/device)
+ * - Capabilities: Channel capabilities（polls, threads, media, etc.）
  *
- * Android App Channel 特点:
- * - 设备控制型渠道（非社交消息渠道）
- * - 单设备直接执行模式（无群组、无线程）
- * - 工具密集型（tap, swipe, screenshot, etc.）
- * - 认证方式: ADB/Accessibility 配对（非 token）
+ * Android App Channel characteristics:
+ * - Device control channel (non-social messaging channel)
+ * - Single device direct execution mode (no groups, no threads)
+ * - Tool-intensive（tap, swipe, screenshot, etc.）
+ * - Authentication: ADB/Accessibility pairing (not token)
  */
 
 /**
- * Channel ID - 渠道唯一标识
+ * Channel ID - Channel unique identifier
  */
 const val CHANNEL_ID = "android-app"
 
 /**
- * Channel Meta - 渠道元数据
+ * Channel Meta - Channel metadata
  */
 data class ChannelMeta(
-    val label: String,               // 显示名称
-    val emoji: String,               // 图标 emoji
-    val description: String,         // 描述
-    val systemImage: String? = null  // 系统图标路径
+    val label: String,               // Display name
+    val emoji: String,               // Icon emoji
+    val description: String,         // Description
+    val systemImage: String? = null  // System icon path
 )
 
 val CHANNEL_META = ChannelMeta(
@@ -38,44 +38,44 @@ val CHANNEL_META = ChannelMeta(
 )
 
 /**
- * Channel Capabilities - 渠道能力定义（参考 OpenClaw）
+ * Channel Capabilities - Channel capability definition (reference OpenClaw)
  */
 data class ChannelCapabilities(
-    val chatTypes: List<ChatType>,    // 支持的聊天类型
-    val polls: Boolean = false,       // 投票
-    val reactions: Boolean = false,   // 反应/表情
-    val edit: Boolean = false,        // 编辑消息
-    val unsend: Boolean = false,      // 撤回消息
-    val reply: Boolean = false,       // 回复消息
-    val effects: Boolean = false,     // 视觉效果
-    val groupManagement: Boolean = false,  // 群组管理
-    val threads: Boolean = false,     // 线程/嵌套对话
-    val media: Boolean = false,       // 媒体（图片/文件）
-    val nativeCommands: Boolean = false,   // 原生命令
-    val blockStreaming: Boolean = false    // 阻塞流式响应
+    val chatTypes: List<ChatType>,    // Supported chat types
+    val polls: Boolean = false,       // Polls
+    val reactions: Boolean = false,   // Reactions/emoji
+    val edit: Boolean = false,        // Edit messages
+    val unsend: Boolean = false,      // Unsend messages
+    val reply: Boolean = false,       // Reply to messages
+    val effects: Boolean = false,     // Visual effects
+    val groupManagement: Boolean = false,  // Group management
+    val threads: Boolean = false,     // Threads/nested conversations
+    val media: Boolean = false,       // Media (images/files)
+    val nativeCommands: Boolean = false,   // Native commands
+    val blockStreaming: Boolean = false    // Block streaming response
 ) {
     enum class ChatType {
-        DIRECT,      // 直接对话
-        GROUP,       // 群组
-        CHANNEL,     // 频道
-        THREAD       // 线程
+        DIRECT,      // Direct conversation
+        GROUP,       // Group
+        CHANNEL,     // Channel
+        THREAD       // Thread
     }
 }
 
 /**
- * Android App Channel 能力配置
+ * Android App Channel capability configuration
  *
- * 对比 OpenClaw 其他渠道:
+ * Comparison with other OpenClaw channels:
  * - WhatsApp: direct, group, polls, reactions, media
  * - Telegram: direct, group, channel, thread, polls, reactions, media, nativeCommands, blockStreaming
  * - Discord: direct, channel, thread, polls, reactions, media, nativeCommands, blockStreaming
  * - Slack: direct, channel, thread, reactions, media, nativeCommands, blockStreaming
  * - Signal: direct, group, reactions, media
  *
- * Android App: 最小化能力（设备控制专用）
+ * Android App: Minimal capabilities (device control only)
  */
 val ANDROID_CHANNEL_CAPABILITIES = ChannelCapabilities(
-    chatTypes = listOf(ChannelCapabilities.ChatType.DIRECT),  // 仅直接执行
+    chatTypes = listOf(ChannelCapabilities.ChatType.DIRECT),  // Direct execution only
     polls = false,
     reactions = false,
     edit = false,
@@ -84,44 +84,44 @@ val ANDROID_CHANNEL_CAPABILITIES = ChannelCapabilities(
     effects = false,
     groupManagement = false,
     threads = false,
-    media = true,                    // ✓ 截图/录屏
-    nativeCommands = true,           // ✓ 设备操作命令
-    blockStreaming = true            // ✓ 阻塞流式响应（等待完整结果）
+    media = true,                    // ✓ Screenshot/screen recording
+    nativeCommands = true,           // ✓ Device operation commands
+    blockStreaming = true            // ✓ Block streaming response（等待完整结果）
 )
 
 /**
- * Channel Account - 账号配置（对应 OpenClaw 的 ChannelAccountSnapshot）
+ * Channel Account - Account configuration (corresponds to OpenClaw's ChannelAccountSnapshot)
  */
 data class ChannelAccount(
-    val accountId: String,                     // 账号 ID（Android: device-{uuid}）
-    val name: String? = null,                  // 账号名称（设备名称）
-    val enabled: Boolean = true,               // 是否启用
-    val configured: Boolean = false,           // 是否已配置
-    val linked: Boolean = false,               // 是否已连接
-    val running: Boolean = false,              // 是否运行中
-    val connected: Boolean = false,            // 是否已连接
-    val reconnectAttempts: Int = 0,            // 重连尝试次数
-    val lastConnectedAt: Long? = null,         // 最后连接时间
-    val lastError: String? = null,             // 最后错误
-    val lastStartAt: Long? = null,             // 最后启动时间
-    val lastStopAt: Long? = null,              // 最后停止时间
-    val lastInboundAt: Long? = null,           // 最后接收消息时间
-    val lastOutboundAt: Long? = null,          // 最后发送消息时间
-    val lastProbeAt: Long? = null,             // 最后探测时间
+    val accountId: String,                     // Account ID（Android: device-{uuid}）
+    val name: String? = null,                  // Account name (device name)
+    val enabled: Boolean = true,               // Is enabled
+    val configured: Boolean = false,           // Is configured
+    val linked: Boolean = false,               // Is linked
+    val running: Boolean = false,              // Is running
+    val connected: Boolean = false,            // Is linked
+    val reconnectAttempts: Int = 0,            // Reconnect attempt count
+    val lastConnectedAt: Long? = null,         // Last connected time
+    val lastError: String? = null,             // Last error
+    val lastStartAt: Long? = null,             // Last start time
+    val lastStopAt: Long? = null,              // Last stop time
+    val lastInboundAt: Long? = null,           // Last inbound message time
+    val lastOutboundAt: Long? = null,          // Last outbound message time
+    val lastProbeAt: Long? = null,             // Last probe time
 
-    // Android 特有字段
-    val deviceId: String? = null,              // 设备 ID
-    val deviceModel: String? = null,           // 设备型号
-    val androidVersion: String? = null,        // Android 版本
+    // Android-specific fields
+    val deviceId: String? = null,              // Device ID
+    val deviceModel: String? = null,           // Device model
+    val androidVersion: String? = null,        // Android version
     val apiLevel: Int? = null,                 // API Level
-    val architecture: String? = null,          // CPU 架构
-    val accessibilityEnabled: Boolean = false, // 无障碍服务状态
-    val overlayPermission: Boolean = false,    // 悬浮窗权限
-    val mediaProjection: Boolean = false       // 录屏权限
+    val architecture: String? = null,          // CPU architecture
+    val accessibilityEnabled: Boolean = false, // Accessibility service status
+    val overlayPermission: Boolean = false,    // Overlay permission
+    val mediaProjection: Boolean = false       // Screen recording permission
 )
 
 /**
- * Channel Status - 渠道状态快照（对应 OpenClaw 的 ChannelsStatusSnapshot）
+ * Channel Status - Channel status snapshot (corresponds to OpenClaw's ChannelsStatusSnapshot)
  */
 data class ChannelStatus(
     val timestamp: Long = System.currentTimeMillis(),
@@ -133,17 +133,17 @@ data class ChannelStatus(
 )
 
 /**
- * Agent Prompt Hints - 系统提示词提示（对应 OpenClaw 的 agentPrompt.messageToolHints）
+ * Agent Prompt Hints - System prompt hints (corresponds to OpenClaw's agentPrompt.messageToolHints)
  */
 object AndroidChannelPromptHints {
 
     /**
-     * 生成渠道特定的系统提示词提示
+     * Generate channel-specific system prompt hints
      */
     fun getMessageToolHints(account: ChannelAccount? = null): List<String> {
         val hints = mutableListOf<String>()
 
-        // 基础提示
+        // Basic hints
         hints.add("You are running on an Android device with direct access to device controls")
         hints.add("Use tools to observe and control the device:")
         hints.add("  - Observation: screenshot, get_ui_tree")
@@ -151,7 +151,7 @@ object AndroidChannelPromptHints {
         hints.add("  - Navigation: home, back, open_app")
         hints.add("  - System: wait, stop, notification")
 
-        // 设备特定提示
+        // Device-specific hints
         if (account != null) {
             hints.add("")
             hints.add("Device Information:")
@@ -159,7 +159,7 @@ object AndroidChannelPromptHints {
             hints.add("  - Android: ${account.androidVersion ?: "Unknown"} (API ${account.apiLevel ?: "Unknown"})")
             hints.add("  - Architecture: ${account.architecture ?: "Unknown"}")
 
-            // 权限状态提示
+            // Permissions status hints
             hints.add("")
             hints.add("Permissions Status:")
             hints.add("  - Accessibility: ${if (account.accessibilityEnabled) "✓ Enabled" else "✗ Disabled"}")
@@ -167,7 +167,7 @@ object AndroidChannelPromptHints {
             hints.add("  - Screen Capture: ${if (account.mediaProjection) "✓ Granted" else "✗ Not granted"}")
         }
 
-        // 最佳实践提示
+        // Best practices hints
         hints.add("")
         hints.add("Best Practices:")
         hints.add("  - Always screenshot before and after actions")
@@ -179,7 +179,7 @@ object AndroidChannelPromptHints {
     }
 
     /**
-     * 生成 Runtime Section 的 Channel 信息
+     * Generate Runtime Section Channel information
      */
     fun getRuntimeChannelInfo(account: ChannelAccount? = null): String {
         return buildString {
@@ -195,7 +195,7 @@ object AndroidChannelPromptHints {
 }
 
 /**
- * Channel Config - 渠道配置
+ * Channel Config - Channel configuration
  */
 data class ChannelConfig(
     val enabled: Boolean = true,

@@ -9,20 +9,20 @@ import android.util.Log
 import com.xiaomo.androidforclaw.core.MyApplication
 
 /**
- * 应用信息扫描工具
- * 用于快速获取设备上已安装应用的应用名称、包名和主Activity
+ * App information scanner tool
+ * Used to quickly get app name, package name and main Activity of installed apps on device
  *
- * 使用方法：
- * 1. 在代码中调用：AppInfoScanner.scanAndExport(context)
- * 2. 查看 Logcat（标签：AppInfoScanner）获取输出
- * 3. 或者调用 AppInfoScanner.exportToFile(context) 导出到文件
+ * Usage:
+ * 1. Call in code:AppInfoScanner.scanAndExport(context)
+ * 2. View Logcat (tag: AppInfoScanner) to get output
+ * 3. Or call AppInfoScanner.exportToFile(context) to export to file
  */
 object AppInfoScanner {
 
     private const val TAG = "AppInfoScanner"
 
     /**
-     * 应用信息数据类
+     * App information data class
      */
     data class AppInfo(
         val packageName: String,
@@ -31,10 +31,10 @@ object AppInfoScanner {
     )
 
     /**
-     * 扫描所有已安装应用并输出到 Logcat
+     * Scan all installed apps and output to Logcat
      * @param context Context
-     * @param includeSystemApps 是否包含系统应用，默认 false
-     * @param filterKeywords 过滤关键词列表
+     * @param includeSystemApps Whether to include system apps, default false
+     * @param filterKeywords Filter keywords list
      */
     fun scanAndExport(
         context: Context,

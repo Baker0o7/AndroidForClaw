@@ -6,7 +6,7 @@ import com.xiaomo.androidforclaw.ViewNode
 
 object BuildTreeNoBarrier {
     /**
-     * 多叉树节点定义
+     * Multi-way tree node definition
      */
     private data class TreeNode(
         val viewNode: ViewNode,
@@ -14,7 +14,7 @@ object BuildTreeNoBarrier {
     )
 
     /**
-     * 获取节点的相关属性：坐标，类名，资源id，文本，内容描述
+     * Get node related attributes: coordinates, classname, resource id, text, content description
      */
     private fun getNodeKey(nodeInfo: AccessibilityNodeInfo?): String? {
         if (nodeInfo == null) return null
@@ -32,81 +32,81 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 节点类型提取（如button，textView）
+     * Extract node type (e.g. button, textView)
      */
     private fun getTreeDisplayType(viewNode: ViewNode): String {
         return viewNode.className?.substringAfterLast('.') ?: "View"
     }
 
     /**
-     * 判断是否为纯装饰性图片
-     * 装饰性图片的特征：
-     * 1. 是 ImageView 类型
-     * 2. 不可点击（clickable=false）
-     * 3. 没有文本（text 为空）
-     * 4. 没有 contentDesc（或为空）
-     * 5. 可能是背景图、分割线等装饰性元素
+     * Determine if it's a purely decorative image
+     * Characteristics of decorative images:
+     * 1. Is ImageView type
+     * 2. Not clickable (clickable=false)
+     * 3. No text (text is empty)
+     * 4. No contentDesc (or empty)
+     * 5. May be background image, divider line, etc decorative elements
      */
     private fun isDecorativeImage(node: ViewNode): Boolean {
         val className = node.className?.lowercase() ?: return false
-        
-        // 必须是 ImageView 相关类型
-        val isImageView = className.contains("imageview") || 
+
+        // Must be ImageView related type
+        val isImageView = className.contains("imageview") ||
                          className.contains("imagebutton")
         if (!isImageView) return false
-        
-        // 不可点击
+
+        // Not clickable
         if (node.clickable) return false
-        
-        // 没有文本
+
+        // No text
         if (!node.text.isNullOrEmpty()) return false
-        
-        // 没有 contentDesc（或为空字符串）
+
+        // No contentDesc (or empty string)
         if (!node.contentDesc.isNullOrEmpty()) return false
-        
+
         return true
     }
 
     /**
-     * 判断是否为分割线等无意义线条
-     * 分割线的特征：
-     * 1. 不可点击（clickable=false）
-     * 2. 没有文本（text 为空）
-     * 3. 没有 contentDesc（或为空）
-     * 4. 尺寸很小（高度或宽度很小，通常是1-5像素）
-     * 5. 可能是 View、ViewGroup 等类型
+     * Determine if it's a divider line or meaningless line
+     * Characteristics of divider lines:
+     * 1. Not clickable (clickable=false)
+     * 2. No text (text is empty)
+     * 3. No contentDesc (or empty)
+     * 4. Small dimensions (height or width very small, usually 1-5 pixels)
+     * 5. May be View, ViewGroup, etc types
      */
     private fun isDividerLine(node: ViewNode): Boolean {
-        // 不可点击
+        // Not clickable
         if (node.clickable) return false
-        
-        // 没有文本
+
+        // No text
         if (!node.text.isNullOrEmpty()) return false
-        
-        // 没有 contentDesc（或为空字符串）
+
+        // No contentDesc (or empty string)
         if (!node.contentDesc.isNullOrEmpty()) return false
-        
-        // 计算节点的宽度和高度
+
+        // Calculate node width and height
         val width = node.right - node.left
         val height = node.bottom - node.top
-        
-        // 分割线通常是细线：宽度或高度很小（1-5像素）
-        // 或者是很细的线条（宽度很大但高度很小，或高度很大但宽度很小）
-        val isThinLine = (width <= 5 && height > 10) ||  // 垂直细线
-                        (height <= 5 && width > 10) ||  // 水平细线
-                        (width <= 5 && height <= 5)      // 很小的点或装饰元素
-        
+
+        // Divider lines are usually thin: width or height very small (1-5 pixels)
+        // Or very thin lines (large width but small height, or large height but small width)
+        val isThinLine = (width <= 5 && height > 10) ||  // Vertical thin line
+                        (height <= 5 && width > 10) ||  // Horizontal thin line
+                        (width <= 5 && height <= 5)      // Very small dot or decorative element
+
         return isThinLine
     }
-    
+
     /**
-     * 创建带有标记的 ViewNode 副本
-     * 对于装饰性图片和分割线，将 contentDesc 设置为 "null" 字符串
+     * Create ViewNode copy with markers
+     * For decorative images and divider lines, set contentDesc to "null" string
      */
     private fun markDecorativeImages(nodes: List<ViewNode>): List<ViewNode> {
         return nodes.map { node ->
             if (isDecorativeImage(node) || isDividerLine(node)) {
-                // 创建新副本，将 contentDesc 设置为 "null"
+                // Create new copy, set contentDesc to "null"
                 node.copy(contentDesc = "null")
             } else {
                 node
@@ -115,7 +115,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     *  追加节点的状态信息：checked、selected、progress
+     * Append node state information: checked, selected, progress
      */
     private fun appendStateInfo(builder: StringBuilder, node: ViewNode, nodeTypeLabel: String) {
         val accessibilityNode = node.node ?: return
@@ -137,12 +137,12 @@ object BuildTreeNoBarrier {
                 }
             }
         } catch (_: Exception) {
-            // 忽略异常，不影响主流程
+            // Ignore exceptions, don't affect main flow
         }
     }
 
     /**
-     * 节点格式化输出：缩进、类型、文本、描述、坐标、可点击状态、状态信息
+     * Format node output: indentation, type, text, description, coordinates, clickable status, state information
      */
     private fun formatTreeNodeLine(node: ViewNode, depth: Int): String {
         val builder = StringBuilder()
@@ -150,7 +150,7 @@ object BuildTreeNoBarrier {
         val nodeType = getTreeDisplayType(node)
         builder.append(indent).append("- [").append(nodeType).append("] ")
 
-        // 如果 text 和 contentDesc 内容相同，只输出 contentDesc
+        // If text and contentDesc content are the same, only output contentDesc
         val text = node.text?.trim()
         val contentDesc = node.contentDesc?.trim()
         val isSame = !text.isNullOrEmpty() && !contentDesc.isNullOrEmpty() && text == contentDesc
@@ -158,10 +158,10 @@ object BuildTreeNoBarrier {
         if (!isSame && !text.isNullOrEmpty()) {
             builder.append("text=\"${node.text}\" ")
         }
-        // 如果 contentDesc 是 "null"，表示是装饰性图片，输出标记
+        // If contentDesc is "null", indicates decorative image, output marker
         if (!contentDesc.isNullOrEmpty()) {
             if (contentDesc == "null") {
-                builder.append("contentDesc=\"null\" ") // 装饰性图片标记
+                builder.append("contentDesc=\"null\" ") // Decorative image marker
             } else {
                 builder.append("contentDesc=\"${node.contentDesc}\" ")
             }
@@ -174,7 +174,7 @@ object BuildTreeNoBarrier {
         return builder.toString()
     }
     /**
-     * 过滤系统状态栏的无效信息
+     * Filter invalid system status bar information
      */
     private fun isSystemStatusBar(node: ViewNode): Boolean {
         if (node.top >= 100) return false
@@ -201,20 +201,20 @@ object BuildTreeNoBarrier {
     )
 
     /**
-     * 构建树的主流程，核心主函数
+     * Build tree main flow, core main function
      */
     fun buildComponentTreeDescription(nodes: List<ViewNode>): String {
-        //过滤掉系统状态栏
+        //Filter out system status bar
         var filteredNodes = nodes.filter { !isSystemStatusBar(it) }
         
-        // 标记纯装饰性图片和分割线：将 contentDesc 设置为 "null"
+        // Mark purely decorative images and divider lines: set contentDesc to "null"
         filteredNodes = markDecorativeImages(filteredNodes)
         
-        // 排除有contentDesc属性的元素（包括标记为 "null" 的装饰性图片）
+        // Exclude elements with contentDesc attribute (including decorative images marked as "null")
         filteredNodes = filteredNodes.filter { node ->
             val contentDesc = node.contentDesc?.trim()
             // 排除有 contentDesc 的元素（包括标记为 "null" 的装饰性图片）
-            // 只保留没有 contentDesc 的元素
+            // Only keep elements without contentDesc
             contentDesc.isNullOrEmpty()
         }
         
@@ -222,17 +222,17 @@ object BuildTreeNoBarrier {
             return "(无可用数据)\n"
         }
         /**
-         * nodeOrder：记录节点在原列表中的顺序索引
-         * treeNodeMap：记录ViewNode到TreeNode的映射关系
-         * nodeKeyMap: 存储节点唯一标识到 ViewNode 的映射
+         * nodeOrder: record node order index in original list
+         * treeNodeMap: record ViewNode to TreeNode mapping relationship
+         * nodeKeyMap: store unique node identifier to ViewNode mapping
          */
         val nodeOrder = filteredNodes.withIndex().associate { it.value to it.index }
         val treeNodeMap = mutableMapOf<ViewNode, TreeNode>()
         val nodeKeyMap = mutableMapOf<String, ViewNode>()
 
         /**
-         * 为每个过滤后的节点创建对应的 TreeNode 对象
-         * 通过 getNodeKey 生成节点唯一标识并建立映射
+         * Create corresponding TreeNode object for each filtered node
+         * Generate unique node identifier via getNodeKey and establish mapping
          */
         filteredNodes.forEach { viewNode ->
             treeNodeMap[viewNode] = TreeNode(viewNode)
@@ -241,7 +241,7 @@ object BuildTreeNoBarrier {
             }
         }
         /**
-         * 遍历所有TreeNode建立父子关系，无父节点的节点作为根节点
+         * Traverse all TreeNodes to establish parent-child relationships, nodes without parent as root nodes
          */
         val rootNodes = mutableListOf<TreeNode>()
         treeNodeMap.values.forEach { treeNode ->
@@ -254,20 +254,20 @@ object BuildTreeNoBarrier {
             }
         }
         /**
-         * 节点排序规则：原始顺序索引 -》垂直位置 -》水平位置
+         * Node sorting rule: original order index -> vertical position -> horizontal position
          */
         val comparator = compareBy<TreeNode> { nodeOrder[it.viewNode] ?: Int.MAX_VALUE }
             .thenBy { it.viewNode.top }
             .thenBy { it.viewNode.left }
 
         /**
-         * 树遍历输出
+         * Tree traversal output
          */
         val rootsToProcess = if (rootNodes.isNotEmpty()) rootNodes.distinct() else treeNodeMap.values.distinct()
         val builder = StringBuilder()
         rootsToProcess.sortedWith(comparator).forEach { appendTreeNode(builder, it, comparator) }
         /**
-         * 结果返回
+         * Return result
          */
         if (builder.isEmpty()) {
             builder.append("(无可用数据)\n")
@@ -276,21 +276,21 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 用于递归输出树结构
-     * 步骤1：折叠冗余链
-     * 步骤2：跳过空叶子容器
-     * 步骤3：检查并过滤有contentDesc的节点
-     * 步骤4：格式化当前节点
-     * 步骤5：过滤按钮重复子节点
-     * 步骤6：递归处理子节点（depth + 1）
+     * For recursively outputting tree structure
+     * Step 1: Collapse redundant chain
+     * Step 2: Skip empty leaf containers
+     * Step 3: Check and filter nodes with contentDesc
+     * Step 4: Format current node
+     * Step 5: Filter duplicate button child nodes
+     * Step 6: Recursively process child nodes (depth + 1)
      */
     private fun appendTreeNode(builder: StringBuilder, treeNode: TreeNode, comparator: Comparator<TreeNode>, depth: Int = 0) {
         val effectiveNode = collapseRedundantChain(treeNode)
         
-        // 检查节点是否有 contentDesc，如果有则跳过（包括标记为 "null" 的装饰性元素）
+        // Check if node has contentDesc, if yes skip (including decorative elements marked as "null")
         val contentDesc = effectiveNode.viewNode.contentDesc?.trim()
         if (!contentDesc.isNullOrEmpty()) {
-            // 有 contentDesc 的节点应该被排除，不输出
+            // Nodes with contentDesc should be excluded, not output
             return
         }
         
@@ -301,7 +301,7 @@ object BuildTreeNoBarrier {
         val remainingChildren = effectiveNode.children.filterNot {
             shouldBypassButtonChild(effectiveNode.viewNode, it.viewNode)
         }.filter { childNode ->
-            // 递归过滤：排除有 contentDesc 的子节点
+            // Recursive filtering: exclude child nodes with contentDesc
             val childContentDesc = childNode.viewNode.contentDesc?.trim()
             childContentDesc.isNullOrEmpty()
         }
@@ -311,7 +311,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 冗余链折叠：当父节点只有一个子节点，且二者等价或父节点为空节点时，则跳过中间层只显示有意义节点
+     * Redundant chain collapse: when parent has only one child and both are equivalent or parent is empty, skip intermediate layers and only show meaningful nodes
      */
     private fun collapseRedundantChain(node: TreeNode): TreeNode {
         var current = node
@@ -333,7 +333,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 判断两节点是否等价，用于折叠链去重
+     * Determine if two nodes are equivalent, used for collapsing chain deduplication
      */
     private fun areNodesEquivalent(first: ViewNode, second: ViewNode): Boolean {
         return first.className == second.className &&
@@ -347,7 +347,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 跳过空的容器类（空的layout，ViewGroup等）
+     * Skip empty container classes (empty layout, ViewGroup, etc)
      */
     private fun shouldBypassContainer(container: ViewNode, child: ViewNode): Boolean {
         val isStructural = isStructuralClass(container.className)
@@ -359,7 +359,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 判断是否为结构类
+     * Determine if it is structural class
      */
     private fun isStructuralClass(className: String?): Boolean {
         val lower = className?.lowercase() ?: return false
@@ -369,7 +369,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 去除button下的textView（表达含义相同），简化prompt
+     * Remove textView under button (same meaning), simplify prompt
      */
     private fun shouldBypassButtonChild(parent: ViewNode, child: ViewNode): Boolean {
         val parentClass = parent.className?.lowercase() ?: return false
@@ -385,7 +385,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 判断是否跳过为空的叶子节点
+     * Determine if empty leaf node should be skipped
      */
     private fun shouldSkipLeafContainer(node: ViewNode, children: List<TreeNode>): Boolean {
         if (children.isNotEmpty()) return false
@@ -395,7 +395,7 @@ object BuildTreeNoBarrier {
     }
 
     /**
-     * 过滤获取到的屏幕外节点，仅保留屏幕内的节点
+     * Filter off-screen nodes obtained, only keep on-screen nodes
      */
     fun isNodeWithinScreen(
         node: ViewNode,
@@ -409,7 +409,7 @@ object BuildTreeNoBarrier {
         return true
     }
 
-    // buildTreeFromImageDetail() 已删除
-    // ImageDetail 是旧架构的类（已删除），不再使用
-    // 新架构直接使用 buildComponentTreeDescription(nodes: List<ViewNode>)
+    // buildTreeFromImageDetail() has been deleted
+    // ImageDetail is a class from old architecture (deleted), no longer used
+    // New architecture directly uses buildComponentTreeDescription(nodes: List<ViewNode>)
 }
