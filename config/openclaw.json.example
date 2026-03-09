@@ -16,7 +16,7 @@
     "providers": {
       "openrouter": {
         "baseUrl": "https://openrouter.ai/api/v1",
-        "apiKey": "${OPENROUTER_API_KEY}",
+        "apiKey": "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",
         "api": "openai-completions",
         "authHeader": true,
         "models": [
@@ -66,8 +66,8 @@
       "accounts": {
         "default": {
           "enabled": false,
-          "appId": "${FEISHU_APP_ID}",
-          "appSecret": "${FEISHU_APP_SECRET}",
+          "appId": "",
+          "appSecret": "",
           "dmPolicy": "open",
           "allowFrom": ["*"]
         }
@@ -81,7 +81,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "${GATEWAY_TOKEN}"
+      "token": "68aabc9f037218d031ac75264bdc1085"
     }
   },
   "messages": {
