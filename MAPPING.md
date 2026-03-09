@@ -346,12 +346,36 @@
 
 | OpenClaw | 说明 | 优先级 | AClaw 对应 |
 |----------|------|--------|-----------|
-| `src/cron/` | 定时任务 | P1 | - |
-| `src/daemon/` | 守护进程 | P1 | - (Android Service 替代) |
+| `src/cron/` | 定时任务 | P1 | ✅ `gateway/cron/` |
+| `src/daemon/` | 守护进程 | P1 | ✅ Android Service 替代 |
 | `src/wizard/` | 配置向导 | P2 | - |
-| `src/pairing/` | 设备配对 | P2 | - |
-| `src/security/` | 安全管理 | P1 | - |
+| `src/pairing/` | **设备配对** | **P0** ⭐ | ❌ **待实现** |
+| `src/security/` | **安全管理** | **P0** ⭐ | 🟡 `TokenAuth.kt` (15%) |
 | `src/secrets/` | 密钥管理 | P1 | - |
+
+### 安全功能详细映射 (重要！)
+
+| OpenClaw Security | AndroidForClaw | 状态 | 优先级 |
+|------------------|----------------|------|--------|
+| `security/audit.ts` | - | ❌ 未实现 | P2 |
+| `security/dangerous-tools.ts` | `ExecTool.kt` (部分) | 🟡 15% | P1 |
+| `security/external-content.ts` | - | ❌ **未实现** | **P0** ⭐ |
+| `security/dm-policy-shared.ts` | - | ❌ **未实现** | **P0** ⭐ |
+| `security/skill-scanner.ts` | - | ❌ 未实现 | P1 |
+| `security/safe-regex.ts` | - | ❌ 未实现 | P2 |
+| `security/dangerous-config-flags.ts` | - | ❌ 未实现 | P2 |
+| `pairing/pairing-store.ts` | - | ❌ **未实现** | **P0** ⭐ |
+| `pairing/setup-code.ts` | - | ❌ **未实现** | **P0** ⭐ |
+| `gateway/auth/token-auth.ts` | ✅ `TokenAuth.kt` | ✅ 完整 | - |
+
+**⚠️ 安全对齐度**: ~15% (仅 Token Auth 完整实现)
+
+**🔴 P0 关键缺失** (高安全风险):
+- Pairing 配对机制 - 无用户级访问控制
+- External Content 包装 - Prompt Injection 高风险
+- DM Policy - 无访问策略
+
+详见 [SECURITY_ALIGNMENT.md](SECURITY_ALIGNMENT.md)
 
 ### 媒体与理解
 
