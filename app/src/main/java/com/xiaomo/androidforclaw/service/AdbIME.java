@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.inputmethodservice.InputMethodService;
+import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
 import android.view.InputDevice;
@@ -32,6 +33,9 @@ public class AdbIME extends InputMethodService {
     public View onCreateInputView() {
         View mInputView = getLayoutInflater().inflate(R.layout.adb_keyboard, null);
 
+        // Register this instance to AdbIMEManager
+        AdbIMEManager.INSTANCE.registerInstance(this);
+
         if (mReceiver == null) {
             IntentFilter filter = new IntentFilter(IME_MESSAGE);
             filter.addAction(IME_CHARS);
@@ -42,7 +46,13 @@ public class AdbIME extends InputMethodService {
             filter.addAction(IME_CLEAR_TEXT);
             filter.addAction(IME_SEND_MESSAGE); // 新增：注册发送消息的action
             mReceiver = new AdbReceiver();
-            registerReceiver(mReceiver, filter);
+
+            // Android 14+ 需要显式指定 RECEIVER_NOT_EXPORTED
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                registerReceiver(mReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(mReceiver, filter);
+            }
         }
 
         // 绑定切换按钮点击事件
@@ -55,6 +65,9 @@ public class AdbIME extends InputMethodService {
     }
 
     public void onDestroy() {
+        // Unregister from AdbIMEManager
+        AdbIMEManager.INSTANCE.unregisterInstance();
+
         if (mReceiver != null)
             unregisterReceiver(mReceiver);
         super.onDestroy();

@@ -48,7 +48,8 @@ class AndroidToolRegistry(
         // === Interaction tools (Interaction) ===
         register(TapSkill())                 // Tap
         register(SwipeSkill())               // Swipe
-        register(TypeSkill(context))         // Type
+        register(TypeSkill(context))         // Type (via Accessibility)
+        register(AdbImeInputSkill(context))  // Type (via AdbIME)
         register(LongPressSkill())           // Long press
 
         // === Navigation tools (Navigation) ===
