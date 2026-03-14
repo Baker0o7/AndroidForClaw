@@ -13,6 +13,7 @@ import android.util.Log
 import com.xiaomo.androidforclaw.agent.memory.MemoryManager
 import com.xiaomo.androidforclaw.agent.tools.memory.MemoryGetSkill
 import com.xiaomo.androidforclaw.agent.tools.memory.MemorySearchSkill
+import com.xiaomo.androidforclaw.agent.tools.device.DeviceToolSkillAdapter
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 
@@ -82,7 +83,11 @@ class AndroidToolRegistry(
         // === Feishu tools (Feishu) ===
         register(FeishuSendImageSkill(context))
 
-        Log.d(TAG, "✅ Registered ${tools.size} Android platform tools")
+        // === Unified device tool (Playwright-aligned) ===
+        // Single entry point for all screen operations via ref-based interaction
+        register(DeviceToolSkillAdapter(context))
+
+        Log.d(TAG, "✅ Registered ${tools.size} Android platform tools (incl. device)")
     }
 
     /**
