@@ -275,6 +275,9 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 startService(serviceIntent)
             }
             Log.i(TAG, "✅ 前台服务已启动（保活）")
+        } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+            // Android 14+: cannot start foreground service from background
+            Log.w(TAG, "⚠️ 前台服务启动受限（应用在后台），将在下次回到前台时重试")
         } catch (e: Exception) {
             Log.e(TAG, "❌ 前台服务启动失败", e)
         }
