@@ -392,6 +392,9 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.d(TAG, "Workspace 已初始化: ${initializer.getWorkspacePath()}")
             }
 
+            // Always ensure bundled skills are deployed (copies missing, won't overwrite)
+            initializer.ensureBundledSkills()
+
         } catch (e: Exception) {
             Log.e(TAG, "初始化 Workspace 失败", e)
         }

@@ -57,7 +57,11 @@ class WorkspaceInitializer(private val context: Context) {
             // 3. Initialize workspace 文件
             initializeWorkspaceFiles()
 
-            // 4. 创建 workspace 元数据
+            // 4. 拷贝内置 skills 到用户可编辑目录
+            // Aligned with OpenClaw: ~/.openclaw/skills/ → /sdcard/.androidforclaw/skills/
+            copyBundledSkills()
+
+            // 5. 创建 workspace 元数据
             createWorkspaceState()
 
             Log.i(TAG, "✅ Workspace 初始化完成")
@@ -97,6 +101,19 @@ class WorkspaceInitializer(private val context: Context) {
             file.readText().trim()
         } else {
             null
+        }
+    }
+
+    /**
+     * Ensure bundled skills are deployed.
+     * Call this on every app start — only copies missing skills, won't overwrite.
+     */
+    fun ensureBundledSkills() {
+        try {
+            File(SKILLS_DIR).mkdirs()
+            copyBundledSkills()
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to ensure bundled skills: ${e.message}")
         }
     }
 
@@ -210,6 +227,64 @@ class WorkspaceInitializer(private val context: Context) {
             """.trimIndent()
             stateFile.writeText(state)
             Log.d(TAG, "创建 workspace-state.json")
+        }
+    }
+
+    /**
+     * Copy bundled skills from assets to user-editable /sdcard/.androidforclaw/skills/
+     * 
+     * Aligned with OpenClaw: skills live in ~/.openclaw/skills/ where users can
+     * customize, add, or remove them. Bundled skills are copied on first init only.
+     * Existing user-modified skills are NOT overwritten.
+     */
+    private fun copyBundledSkills() {
+        val skillsDir = File(SKILLS_DIR)
+        val assetManager = context.assets
+
+        try {
+            val bundledSkills = assetManager.list("skills") ?: return
+            var copiedCount = 0
+            var skippedCount = 0
+
+            for (skillName in bundledSkills) {
+                // Skip non-directory entries
+                val skillFiles = try {
+                    assetManager.list("skills/$skillName")
+                } catch (_: Exception) { null }
+
+                if (skillFiles.isNullOrEmpty()) continue
+
+                val targetDir = File(skillsDir, skillName)
+
+                // Don't overwrite existing user-modified skills
+                val skillMd = File(targetDir, "SKILL.md")
+                if (skillMd.exists()) {
+                    skippedCount++
+                    continue
+                }
+
+                // Create skill directory and copy files
+                targetDir.mkdirs()
+                for (fileName in skillFiles) {
+                    try {
+                        val inputStream = assetManager.open("skills/$skillName/$fileName")
+                        val targetFile = File(targetDir, fileName)
+                        targetFile.outputStream().use { out ->
+                            inputStream.copyTo(out)
+                        }
+                        inputStream.close()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to copy skill file: skills/$skillName/$fileName: ${e.message}")
+                    }
+                }
+                copiedCount++
+            }
+
+            if (copiedCount > 0 || skippedCount > 0) {
+                Log.i(TAG, "📦 Skills: copied $copiedCount, skipped $skippedCount (already exist)")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to copy bundled skills: ${e.message}")
         }
     }
 
