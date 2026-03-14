@@ -68,6 +68,18 @@ class ToolRegistry(
 
         // === Network tools ===
         register(WebFetchTool())
+        register(WebSearchTool {
+            // Resolve Brave API key from environment or openclaw.json
+            System.getenv("BRAVE_API_KEY") ?: try {
+                val json = org.json.JSONObject(
+                    java.io.File("/sdcard/.androidforclaw/openclaw.json").readText()
+                )
+                json.optJSONObject("tools")
+                    ?.optJSONObject("web")
+                    ?.optJSONObject("search")
+                    ?.optString("apiKey", null)
+            } catch (_: Exception) { null }
+        })
 
         // === Config tools ===
         val configMethods = ConfigMethods(context)
