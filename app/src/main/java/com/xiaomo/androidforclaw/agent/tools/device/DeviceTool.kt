@@ -140,7 +140,10 @@ class DeviceTool(private val context: Context) : Tool {
         }
 
         if (viewNodes.isEmpty()) {
-            return ToolResult.error("当前页面没有可识别的 UI 元素。可能原因：页面正在加载、当前界面不暴露无障碍节点。建议等待 1-2 秒后重试。")
+            val accessibilityOn = try { proxy.isConnected.value == true && proxy.isServiceReady() } catch (_: Exception) { false }
+            val status = if (accessibilityOn) "无障碍服务: ✅ 已开启（但当前页面无可识别元素，可能页面正在加载，建议等 1-2 秒重试）" 
+                         else "无障碍服务: ❌ 未开启。请到 设置 → 无障碍 → AndroidForClaw 开启无障碍权限。"
+            return ToolResult.error(status)
         }
 
         val nodes = SnapshotBuilder.buildFromViewNodes(viewNodes)

@@ -995,20 +995,20 @@ fun RestartAppCard() {
  * then we kill the old one.
  */
 /**
- * Soft restart: clear task + relaunch main activity.
- * Does NOT kill process (unreliable on modern Android without SCHEDULE_EXACT_ALARM).
- * Instead: clears all activities, relaunches MainActivityCompose which re-runs
- * all initialization (Gateway, Feishu WebSocket, etc.) via Application callbacks.
+ * Hard restart via WorkManager: schedule relaunch → kill process.
+ * WorkManager runs in a separate process/thread managed by the system,
+ * so it survives our process death and reliably relaunches the app.
+ */
+/**
+ * Restart: recreate all activities + reinitialize services.
+ * Android 12+ restricts background app launches, so we do a "soft restart":
+ * CLEAR_TASK destroys all activities, new MainActivityCompose.onCreate re-runs init.
  */
 private fun triggerRestart(context: android.content.Context) {
     val intent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return
-    intent.addFlags(
-        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    )
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
     context.startActivity(intent)
     (context as? android.app.Activity)?.finishAffinity()
-    // Process stays alive, but all activities are recreated
-    // Services will be re-initialized in MainActivityCompose.onCreate
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

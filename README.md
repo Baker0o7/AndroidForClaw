@@ -1,6 +1,6 @@
 # 📱 AndroidForClaw
 
-[![Release](https://img.shields.io/badge/Release-v1.0.2-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v1.0.2-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://www.android.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -71,7 +71,7 @@ AI：→ skills_search("") → 展示可用技能列表
 
 ### 下载安装
 
-从 [Release 页面](https://github.com/xiaomochn/AndroidForClaw/releases/latest) 下载：
+从 [Release 页面](https://github.com/SelectXn00b/AndroidForClaw/releases/latest) 下载：
 
 | APK | 说明 | 必装？ |
 |-----|------|--------|
@@ -220,12 +220,22 @@ AI：→ skills_search("") → 展示可用技能列表
 ## 🔨 从源码构建
 
 ```bash
-git clone https://github.com/xiaomochn/AndroidForClaw.git
+git clone https://github.com/SelectXn00b/AndroidForClaw.git
 cd AndroidForClaw
 export JAVA_HOME=/path/to/jdk17
 ./gradlew assembleRelease
 adb install releases/AndroidForClaw-v1.0.2-release.apk
 ```
+
+---
+
+## 🔗 Related Projects
+
+| 项目 | 说明 |
+|------|------|
+| [OpenClaw](https://github.com/openclaw/openclaw) | AI Agent 框架（桌面端） |
+| [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | OpenClaw iOS 客户端 |
+| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | OpenClaw Android 客户端（本项目） |
 
 ---
 
