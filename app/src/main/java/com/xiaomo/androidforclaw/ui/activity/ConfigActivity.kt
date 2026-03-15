@@ -81,6 +81,22 @@ class ConfigActivity : AppCompatActivity() {
     /**
      * Request MANAGE_EXTERNAL_STORAGE permission
      */
+    /**
+     * Restart the app — kill process and relaunch from launcher
+     */
+    private fun restartApp() {
+        val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        if (intent != null) {
+            startActivity(intent)
+        }
+        // Kill the process after a short delay to let the new activity start
+        android.os.Handler(mainLooper).postDelayed({
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }, 300)
+    }
+
     private fun requestStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
@@ -203,6 +219,18 @@ class ConfigActivity : AppCompatActivity() {
             // Channels management entry
             cardChannels.setOnClickListener {
                 startActivity(Intent(this@ConfigActivity, ChannelListActivity::class.java))
+            }
+
+            // Restart app card
+            cardRestart.setOnClickListener {
+                androidx.appcompat.app.AlertDialog.Builder(this@ConfigActivity)
+                    .setTitle("重启应用")
+                    .setMessage("将关闭应用并重新启动，重新加载所有配置和服务。\n\n确定要重启吗？")
+                    .setPositiveButton("重启") { _, _ ->
+                        restartApp()
+                    }
+                    .setNegativeButton("取消", null)
+                    .show()
             }
 
             // Check update card
