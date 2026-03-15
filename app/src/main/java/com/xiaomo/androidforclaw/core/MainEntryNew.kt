@@ -240,7 +240,9 @@ object MainEntryNew {
         Log.d(TAG, "📋 [Session] History message count: ${session.messageCount()}")
 
         // Get history messages (recent 20) and convert to new format
-        val contextHistory = session.getRecentMessages(20).map { it.toNewMessage() }
+        // Aligned with OpenClaw: limit context history to reduce token usage
+        // 10 messages ≈ 5 user turns, keeps context small for fast responses
+        val contextHistory = session.getRecentMessages(10).map { it.toNewMessage() }
         Log.d(TAG, "📥 [Session] Loaded context: ${contextHistory.size} messages")
 
         if (TextUtils.isEmpty(user)) {
