@@ -7,6 +7,7 @@
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.content.Intent
+import android.net.Uri
 import android.content.ComponentName
 import android.os.Bundle
 import android.provider.Settings
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.gateway.GatewayController
 import com.xiaomo.androidforclaw.ui.session.SessionManager
+import com.xiaomo.androidforclaw.updater.AppUpdater
 import java.io.File
 
 /**
@@ -109,8 +111,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             btnTest.setOnClickListener {
-                // AgentTestActivity removed
-                Toast.makeText(this@MainActivity, "Agent测试功能已废弃", Toast.LENGTH_SHORT).show()
+                checkForUpdate()
             }
 
             btnLogs.setOnClickListener {
@@ -471,7 +472,95 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    /**
+     * Check for app updates from GitHub Releases
+     */
+    private fun checkForUpdate() {
+        Toast.makeText(this, "正在检查更新...", Toast.LENGTH_SHORT).show()
+
+        lifecycleScope.launch {
+            try {
+                val updater = AppUpdater(this@MainActivity)
+                val info = updater.checkForUpdate()
+
+                if (info.hasUpdate) {
+                    showUpdateDialog(updater, info)
+                } else {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "已是最新版本 v${info.currentVersion}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "检查更新失败: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    /**
+     * Show update available dialog
+     */
+    private fun showUpdateDialog(updater: AppUpdater, info: AppUpdater.UpdateInfo) {
+        val sizeStr = if (info.fileSize > 0) {
+            "%.1f MB".format(info.fileSize / 1024.0 / 1024.0)
+        } else "未知大小"
+
+        val message = buildString {
+            append("发现新版本！\n\n")
+            append("当前版本: v${info.currentVersion}\n")
+            append("最新版本: v${info.latestVersion}\n")
+            append("文件大小: $sizeStr\n")
+            if (!info.publishedAt.isNullOrEmpty()) {
+                append("发布时间: ${info.publishedAt.take(10)}\n")
+            }
+            if (!info.releaseNotes.isNullOrEmpty()) {
+                append("\n更新内容:\n${info.releaseNotes.take(300)}")
+            }
+        }
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("发现新版本 v${info.latestVersion}")
+            .setMessage(message)
+            .setPositiveButton("立即更新") { _, _ ->
+                if (info.downloadUrl != null) {
+                    Toast.makeText(this, "开始下载...", Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        val success = updater.downloadAndInstall(info.downloadUrl, info.latestVersion)
+                        if (!success) {
+                            // Fallback: open browser
+                            openUrl(info.releaseUrl)
+                        }
+                    }
+                } else {
+                    // No direct download URL, open GitHub releases page
+                    openUrl(info.releaseUrl)
+                }
+            }
+            .setNeutralButton("在浏览器中打开") { _, _ ->
+                openUrl(info.releaseUrl)
+            }
+            .setNegativeButton("稍后再说", null)
+            .show()
+    }
+
+    /**
+     * Open URL in browser
+     */
+    private fun openUrl(url: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "无法打开浏览器: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         when (requestCode) {
