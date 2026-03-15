@@ -1278,7 +1278,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
                 // Return final result
                 // If block replies were sent and final content matches last block reply, skip it
-                val finalContent = result.finalContent ?: "抱歉，我无法处理这个请求。"
+                val finalContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "抱歉，我无法处理这个请求。")
                 if (blockRepliesSent.isNotEmpty() && blockRepliesSent.last().trim() == finalContent.trim()) {
                     Log.i(TAG, "📤 Final content matches last block reply, marking as already sent")
                     "\u0000BLOCK_REPLY_ALREADY_SENT"  // Sentinel value, caller will check
@@ -1850,7 +1850,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             Log.i(TAG, "💾 [Session] 会话已保存，总消息数: ${session.messageCount()}")
 
             // 10. Send reply
-            val replyContent = result.finalContent ?: "抱歉，我无法处理这个请求。"
+            val replyContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "抱歉，我无法处理这个请求。")
 
             // Send in chunks (Discord 2000 character limit)
             val chunks = splitMessageIntoChunks(replyContent, 1900)

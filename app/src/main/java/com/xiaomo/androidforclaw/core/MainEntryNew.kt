@@ -311,7 +311,9 @@ object MainEntryNew {
                     reasoningEnabled = true  // Reasoning enabled by default
                 )
 
-                val cleanFinalContent = ReasoningTagFilter.stripReasoningTags(result.finalContent)
+                val cleanFinalContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(
+                    ReasoningTagFilter.stripReasoningTags(result.finalContent)
+                )
                 Log.d(TAG, "========== AgentLoop Complete ==========")
                 Log.d(TAG, "Iterations: ${result.iterations}")
                 Log.d(TAG, "Final result: ${cleanFinalContent}")
