@@ -219,10 +219,10 @@ class AgentExecutionE2ETest {
 
         val steps = listOf(
             "初始化" to mapOf("tool" to "log", "args" to mapOf("message" to "Agent开始执行")),
-            "观察" to mapOf("tool" to "wait", "args" to mapOf("seconds" to 0.05)),
+            "观察" to mapOf("tool" to "device", "args" to mapOf("action" to "act", "kind" to "wait", "timeMs" to 50)),
             "思考" to mapOf("tool" to "log", "args" to mapOf("message" to "Agent正在思考...")),
             "行动" to mapOf("tool" to "log", "args" to mapOf("message" to "Agent正在行动...")),
-            "验证" to mapOf("tool" to "wait", "args" to mapOf("seconds" to 0.05)),
+            "验证" to mapOf("tool" to "device", "args" to mapOf("action" to "act", "kind" to "wait", "timeMs" to 50)),
             "完成" to mapOf("tool" to "stop", "args" to mapOf("reason" to "任务完成"))
         )
 
