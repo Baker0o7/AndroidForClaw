@@ -106,17 +106,21 @@ object SessionFloatWindow {
     @SuppressLint("SetTextI18n")
     fun updateSessionInfo(title: String, content: String) {
         latestMessage = content
-        titleTextView?.text = "🤖 $title"
-        sessionInfoTextView?.text = content.take(100)
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            titleTextView?.text = "🤖 $title"
+            sessionInfoTextView?.text = content.take(100)
+        }
         Log.d(TAG, "Updated session info: $title — ${content.take(30)}")
     }
 
     /**
-     * Update with latest chat message (called from AgentLoop/ChatViewModel)
+     * Update with latest chat message (called from AgentLoop/ChatViewModel on IO thread)
      */
     fun updateLatestMessage(message: String) {
         latestMessage = message
-        sessionInfoTextView?.text = message.take(100)
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            sessionInfoTextView?.text = message.take(100)
+        }
     }
 
     /**

@@ -126,8 +126,10 @@ class UnifiedLLMProvider(private val context: Context) {
                     throw e
                 }
 
-                // Exponential backoff
-                val delayMs = 100L * (1 shl (attempt - 1))  // 100ms, 200ms, 400ms
+                // Exponential backoff — longer for rate limit (429)
+                val isRateLimit = e.message?.contains("429") == true || e.message?.contains("rate limit", ignoreCase = true) == true
+                val baseDelay = if (isRateLimit) 5000L else 1000L  // 5s for 429, 1s for others
+                val delayMs = baseDelay * attempt  // 5s, 10s, 15s (429) or 1s, 2s, 3s (others)
                 Log.w(TAG, "⚠️ LLM request failed (attempt $attempt/$maxRetries), retrying in ${delayMs}ms: ${e.message}")
                 delay(delayMs)
             }
