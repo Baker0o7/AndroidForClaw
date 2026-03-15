@@ -58,9 +58,8 @@ class ToolRegistry(
         register(ListDirTool(workspace = workspace))
 
         // === Memory tools (Memory Recall) ===
-        // TODO: Fix Memory tools compilation errors
-        // register(MemorySearchTool(workspace = workspace))
-        // register(MemoryGetTool(workspace = workspace))
+        
+        // Memory tools registered in AndroidToolRegistry (MemorySearchSkill/MemoryGetSkill)
 
         // === Shell tools ===
         // Single exec entry with backend routing (auto/termux/internal).
@@ -98,7 +97,7 @@ class ToolRegistry(
         register(SkillsSearchTool())
         register(SkillsInstallTool(context))
 
-        Log.d(TAG, "✅ Registered ${tools.size} universal tools (incl. memory_search, memory_get, skills_search, skills_install)")
+        Log.d(TAG, "✅ Registered ${tools.size} universal tools (memory tools in AndroidToolRegistry)")
     }
 
     /**

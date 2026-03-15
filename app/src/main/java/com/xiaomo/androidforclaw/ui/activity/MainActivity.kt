@@ -21,6 +21,10 @@ import com.draco.ladb.R
 import com.draco.ladb.databinding.ActivityMainBinding
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
+import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
+import com.xiaomo.androidforclaw.gateway.GatewayController
+import com.xiaomo.androidforclaw.ui.session.SessionManager
+import java.io.File
 
 /**
  * AndroidForClaw Main Activity
@@ -91,14 +95,12 @@ class MainActivity : AppCompatActivity() {
 
             // Skills card
             cardSkills.setOnClickListener {
-                // TODO: Open Skills management page
-                Toast.makeText(this@MainActivity, "Skills 管理 (开发中)", Toast.LENGTH_SHORT).show()
+                showSkillsDialog()
             }
 
             // Sessions card
             cardSessions.setOnClickListener {
-                // TODO: Open Sessions list
-                Toast.makeText(this@MainActivity, "Session 列表 (开发中)", Toast.LENGTH_SHORT).show()
+                showSessionsDialog()
             }
 
             // Bottom navigation buttons
@@ -112,8 +114,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             btnLogs.setOnClickListener {
-                // TODO: View logs
-                Toast.makeText(this@MainActivity, "日志查看 (开发中)", Toast.LENGTH_SHORT).show()
+                showLogsDialog()
             }
         }
     }
@@ -181,19 +182,25 @@ class MainActivity : AppCompatActivity() {
      * Update Skills status card
      */
     private fun updateSkillsCard() {
-        // TODO: Get actual data from SkillsLoader
-        val totalSkills = 8  // Temporary data
-        val alwaysSkills = 3
+        try {
+            val skillsLoader = SkillsLoader(this)
+            val allSkills = skillsLoader.getAllSkills()
+            val alwaysSkills = skillsLoader.getAlwaysSkills()
+            val totalSkills = allSkills.size
 
-        binding.apply {
-            tvSkillsStatus.text = "$totalSkills 个 Skills"
-            tvSkillsStatus.setTextColor(getColor(R.color.status_ok))
+            binding.apply {
+                tvSkillsStatus.text = "$totalSkills 个 Skills"
+                tvSkillsStatus.setTextColor(getColor(R.color.status_ok))
 
-            tvSkillsDetails.text = buildString {
-                append("Always: $alwaysSkills\n")
-                append("On-Demand: ${totalSkills - alwaysSkills}\n")
-                append("Bundled: 8")
+                tvSkillsDetails.text = buildString {
+                    append("Always: ${alwaysSkills.size}\n")
+                    append("On-Demand: ${totalSkills - alwaysSkills.size}\n")
+                    append("Total: $totalSkills")
+                }
             }
+        } catch (e: Exception) {
+            binding.tvSkillsStatus.text = "加载失败"
+            binding.tvSkillsDetails.text = e.message ?: "未知错误"
         }
     }
 
@@ -245,8 +252,7 @@ class MainActivity : AppCompatActivity() {
             .setMessage(info)
             .setPositiveButton("关闭", null)
             .setNeutralButton("测试连接") { _, _ ->
-                // TODO: 测试 WebSocket 连接
-                Toast.makeText(this, "测试功能开发中", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, if (isGatewayRunning()) "Gateway 运行正常 ✅" else "Gateway 未运行 ❌", Toast.LENGTH_SHORT).show()
             }
             .show()
     }
@@ -326,20 +332,146 @@ class MainActivity : AppCompatActivity() {
      * Check if Gateway is running
      */
     private fun isGatewayRunning(): Boolean {
-        // TODO: Actually check GatewayService status
-        // Temporary: check via Application
-        return true  // Gateway started in Application.onCreate
+        return try {
+            val app = application as? MyApplication
+            java.net.Socket().use { s -> s.connect(java.net.InetSocketAddress("127.0.0.1", 8765), 500); true }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     /**
      * Get active Session count
      */
     private fun getSessionCount(): Int {
-        // TODO: Get actual data from GatewayService
-        return 0  // Temporary: return 0
+        return try {
+            val app = application as? MyApplication
+            SessionManager().getSessionCount()
+        } catch (e: Exception) {
+            0
+        }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+    /**
+     * Show Skills management dialog
+     * Maps to: openclaw skills
+     */
+    private fun showSkillsDialog() {
+        try {
+            val skillsLoader = SkillsLoader(this)
+            val allSkills = skillsLoader.getAllSkills()
+
+            val message = buildString {
+                if (allSkills.isEmpty()) {
+                    append("暂无已安装的 Skills")
+                } else {
+                    allSkills.forEachIndexed { index, skill ->
+                        val emoji = skill.metadata.emoji ?: "📋"
+                        val always = if (skill.metadata.always) " [Always]" else ""
+                        append("${index + 1}. $emoji ${skill.name}$always\n")
+                        append("   ${skill.description.lines().first().take(50)}\n\n")
+                    }
+                }
+            }
+
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Skills 管理 (${allSkills.size} 个)")
+                .setMessage(message)
+                .setPositiveButton("关闭", null)
+                .show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "加载 Skills 失败: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Show Sessions list dialog
+     * Maps to: openclaw sessions
+     */
+    private fun showSessionsDialog() {
+        try {
+            val sessionManager = SessionManager()
+            val sessions = sessionManager.getAllSessions()
+
+            val message = buildString {
+                if (sessions.isEmpty()) {
+                    append("暂无活跃会话")
+                } else {
+                    sessions.forEachIndexed { index, session ->
+                        append("${index + 1}. ${session.title}\n")
+                        append("   消息数: ${session.messages.size}\n\n")
+                    }
+                }
+            }
+
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("会话列表 (${sessions.size} 个)")
+                .setMessage(message)
+                .setPositiveButton("关闭", null)
+                .show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "加载会话失败: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Show Logs viewer dialog
+     * Maps to: viewing AgentLoop session logs
+     */
+    private fun showLogsDialog() {
+        val logDir = File("/sdcard/.androidforclaw/workspace/logs")
+        if (!logDir.exists() || !logDir.isDirectory) {
+            Toast.makeText(this, "暂无日志文件", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val logFiles = logDir.listFiles()
+            ?.filter { it.name.endsWith(".log") }
+            ?.sortedByDescending { it.lastModified() }
+            ?.take(20)
+            ?: emptyList()
+
+        if (logFiles.isEmpty()) {
+            Toast.makeText(this, "暂无日志文件", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val fileNames = logFiles.map { file ->
+            val sizeKb = file.length() / 1024
+            "${file.name} (${sizeKb}KB)"
+        }.toTypedArray()
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("AgentLoop 日志 (${logFiles.size} 个)")
+            .setItems(fileNames) { _, which ->
+                showLogContent(logFiles[which])
+            }
+            .setPositiveButton("关闭", null)
+            .show()
+    }
+
+    /**
+     * Show specific log file content
+     */
+    private fun showLogContent(file: File) {
+        try {
+            val content = file.readText()
+            val truncated = if (content.length > 5000) {
+                content.take(5000) + "\n\n... (${content.length - 5000} chars truncated)"
+            } else content
+
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(file.name)
+                .setMessage(truncated)
+                .setPositiveButton("关闭", null)
+                .show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "读取日志失败: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         when (requestCode) {
