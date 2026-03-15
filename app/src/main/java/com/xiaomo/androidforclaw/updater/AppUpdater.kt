@@ -86,12 +86,8 @@ class AppUpdater(private val context: Context) {
 
             val response = httpClient.newCall(request).execute()
             if (!response.isSuccessful) {
-                Log.w(TAG, "GitHub API returned ${response.code}")
-                return@withContext UpdateInfo(
-                    hasUpdate = false,
-                    latestVersion = currentVersion,
-                    currentVersion = currentVersion
-                )
+                Log.w(TAG, "GitHub API returned ${response.code}, trying redirect fallback")
+                return@withContext checkViaRedirect(currentVersion)
             }
 
             val json = JSONObject(response.body?.string() ?: "{}")
@@ -243,6 +239,47 @@ class AppUpdater(private val context: Context) {
     /**
      * Get current app version name
      */
+    /**
+     * Fallback: check version via GitHub releases/latest 302 redirect.
+     * No API rate limit — just follows the redirect URL to extract tag name.
+     * Download URL constructed from tag name.
+     */
+    private fun checkViaRedirect(currentVersion: String): UpdateInfo {
+        try {
+            val noRedirectClient = httpClient.newBuilder().followRedirects(false).build()
+            val request = Request.Builder()
+                .url("$GITHUB_RELEASES_URL/latest")
+                .header("User-Agent", "AndroidForClaw/$currentVersion")
+                .build()
+
+            val response = noRedirectClient.newCall(request).execute()
+            val location = response.header("Location") ?: response.header("location")
+            response.close()
+
+            if (location != null && location.contains("/tag/")) {
+                val tagName = location.substringAfterLast("/tag/").removePrefix("v")
+                val hasUpdate = isNewerVersion(tagName, currentVersion)
+                Log.d(TAG, "Redirect fallback: latest=$tagName, current=$currentVersion, hasUpdate=$hasUpdate")
+
+                val downloadUrl = if (hasUpdate) {
+                    "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/v$tagName/${APK_NAME_PREFIX}-v${tagName}${APK_NAME_SUFFIX}"
+                } else null
+
+                return UpdateInfo(
+                    hasUpdate = hasUpdate,
+                    latestVersion = tagName,
+                    currentVersion = currentVersion,
+                    downloadUrl = downloadUrl,
+                    releaseUrl = location
+                )
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Redirect fallback also failed", e)
+        }
+
+        return UpdateInfo(hasUpdate = false, latestVersion = currentVersion, currentVersion = currentVersion)
+    }
+
     fun getCurrentVersion(): String {
         return try {
             val info = context.packageManager.getPackageInfo(context.packageName, 0)
