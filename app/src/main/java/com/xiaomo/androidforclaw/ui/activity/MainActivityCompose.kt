@@ -169,6 +169,13 @@ class MainActivityCompose : ComponentActivity() {
                             Log.e("MainActivityCompose", "Failed to start ConfigActivity", e)
                         }
                     },
+                    onNavigateToTermux = {
+                        try {
+                            startActivity(Intent(this, TermuxSetupActivity::class.java))
+                        } catch (e: Exception) {
+                            Log.e("MainActivityCompose", "Failed to start TermuxSetupActivity", e)
+                        }
+                    },
                     onNavigateToTest = {
                         // AgentTestActivity has been removed
                         Toast.makeText(this, "Agent测试功能已废弃", Toast.LENGTH_SHORT).show()
@@ -342,6 +349,7 @@ fun MainScreen(
     onNavigateToPermissions: () -> Unit,
     onNavigateToSkills: () -> Unit,
     onNavigateToConfig: () -> Unit,
+    onNavigateToTermux: () -> Unit,
     onNavigateToTest: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -367,7 +375,7 @@ fun MainScreen(
                     onNavigateToPermissions = onNavigateToPermissions,
                     onNavigateToSkills = onNavigateToSkills
                 )
-                2 -> SettingsTab(onNavigateToConfig, onNavigateToTest)
+                2 -> SettingsTab(onNavigateToConfig, onNavigateToTermux, onNavigateToTest)
             }
         }
     }
@@ -669,6 +677,7 @@ fun PermissionsCard(onClick: () -> Unit) {
 @Composable
 fun SettingsTab(
     onNavigateToConfig: () -> Unit,
+    onNavigateToTermux: () -> Unit,
     onNavigateToTest: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -743,6 +752,34 @@ fun SettingsTab(
                     )
                     Text(
                         text = "配置多渠道接入（飞书等）",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onNavigateToTermux
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Terminal,
+                    contentDescription = "Termux 配置"
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = "Termux 配置",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "查看 Termux 状态并尝试自动配置",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
