@@ -275,24 +275,14 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     private fun ensureKeypair() {
         val privFile = File(PRIVATE_KEY)
-        if (privFile.exists()) return
+        val pubFile = File(PUBLIC_KEY)
+        if (privFile.exists() && pubFile.exists()) return
 
+        val keyDir = File(KEY_DIR)
+        keyDir.mkdirs()
+
+        // Strategy 1: ssh-keygen (available on most Android devices)
         try {
-            val keyDir = File(KEY_DIR)
-            keyDir.mkdirs()
-
-            // Generate ed25519 keypair using keytool-like approach
-            val kpg = java.security.KeyPairGenerator.getInstance("Ed25519")
-            val keyPair = kpg.generateKeyPair()
-
-            // Write in OpenSSH format using SSHJ
-            ensureBouncyCastle()
-            val tempClient = SSHClient(DefaultConfig())
-            // Use SSHJ's key writing
-            // Actually, simpler: use ProcessBuilder to run ssh-keygen if available,
-            // or fall back to writing raw keys
-            
-            // Simplest approach: generate via shell on device
             val pb = ProcessBuilder("sh", "-c",
                 "ssh-keygen -t ed25519 -f '${privFile.absolutePath}' -N '' -q 2>/dev/null; echo \$?")
             pb.redirectErrorStream(true)
@@ -300,14 +290,50 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             val output = proc.inputStream.bufferedReader().readText().trim()
             proc.waitFor(5, TimeUnit.SECONDS)
 
-            if (privFile.exists()) {
-                Log.i(TAG, "Generated SSH keypair at $KEY_DIR")
-            } else {
-                Log.w(TAG, "ssh-keygen failed: $output")
+            if (privFile.exists() && pubFile.exists()) {
+                Log.i(TAG, "Generated SSH keypair via ssh-keygen at $KEY_DIR")
+                return
+            }
+            Log.w(TAG, "ssh-keygen attempt failed: $output")
+        } catch (e: Exception) {
+            Log.w(TAG, "ssh-keygen not available: ${e.message}")
+        }
+
+        // Strategy 2: BouncyCastle Ed25519 keypair generation
+        try {
+            ensureBouncyCastle()
+            val gen = org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator()
+            gen.init(org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters(java.security.SecureRandom()))
+            val pair = gen.generateKeyPair()
+
+            val privParams = pair.private as org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
+            val pubParams = pair.public as org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
+
+            // Write public key in OpenSSH format: "ssh-ed25519 <base64>"
+            val pubBlob = java.io.ByteArrayOutputStream()
+            fun writeSSHString(out: java.io.ByteArrayOutputStream, data: ByteArray) {
+                val len = data.size
+                out.write(byteArrayOf((len shr 24).toByte(), (len shr 16).toByte(), (len shr 8).toByte(), len.toByte()))
+                out.write(data)
+            }
+            writeSSHString(pubBlob, "ssh-ed25519".toByteArray())
+            writeSSHString(pubBlob, pubParams.encoded)
+            val pubB64 = android.util.Base64.encodeToString(pubBlob.toByteArray(), android.util.Base64.NO_WRAP)
+            pubFile.writeText("ssh-ed25519 $pubB64 androidforclaw@device\n")
+
+            // Write private key as raw seed (64 bytes: seed + public) — simple but functional
+            // For full OpenSSH format we'd need more work; for now write seed so app can re-derive
+            privFile.writeBytes(privParams.encoded)
+
+            if (privFile.exists() && pubFile.exists()) {
+                Log.i(TAG, "Generated SSH keypair via BouncyCastle at $KEY_DIR")
+                return
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to generate keypair: ${e.message}")
+            Log.w(TAG, "BouncyCastle keypair generation failed: ${e.message}")
         }
+
+        Log.e(TAG, "All keypair generation strategies failed")
     }
 
     private fun writeSSHConfig() {
