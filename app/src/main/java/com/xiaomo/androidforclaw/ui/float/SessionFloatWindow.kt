@@ -32,6 +32,8 @@ object SessionFloatWindow {
     private const val TAG = "SessionFloatWindow"
     private const val FLOAT_TAG = "session_float"
 
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
     private var isEnabled = false
     private var isMainActivityVisible = true
     private var sessionInfoTextView: TextView? = null
@@ -106,7 +108,7 @@ object SessionFloatWindow {
     @SuppressLint("SetTextI18n")
     fun updateSessionInfo(title: String, content: String) {
         latestMessage = content
-        android.os.Handler(android.os.Looper.getMainLooper()).post {
+        mainHandler.post {
             titleTextView?.text = "🤖 $title"
             sessionInfoTextView?.text = content.take(100)
         }
@@ -118,7 +120,7 @@ object SessionFloatWindow {
      */
     fun updateLatestMessage(message: String) {
         latestMessage = message
-        android.os.Handler(android.os.Looper.getMainLooper()).post {
+        mainHandler.post {
             sessionInfoTextView?.text = message.take(100)
         }
     }

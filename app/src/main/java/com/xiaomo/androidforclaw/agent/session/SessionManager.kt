@@ -55,6 +55,11 @@ class SessionManager(
         private const val SESSIONS_DIR = "sessions"
         private const val SESSIONS_INDEX = "sessions.json"
         private const val AUTO_PRUNE_DAYS = 30        // Auto clean sessions older than 30 days
+
+        @JvmStatic
+        internal fun ensureSessionFileParentExists(sessionFile: File) {
+            sessionFile.parentFile?.mkdirs()
+        }
     }
 
     private val gson: Gson = GsonBuilder().create()  // No pretty printing for JSONL
@@ -263,6 +268,7 @@ class SessionManager(
 
         // 写入 JSONL header
         val jsonlFile = getSessionJSONLFile(sessionId)
+        ensureSessionFileParentExists(jsonlFile)
         FileOutputStream(jsonlFile, false).use { out ->
             val header = mapOf(
                 "type" to "session",
@@ -442,6 +448,7 @@ class SessionManager(
      */
     private fun saveSessionMessages(session: Session) {
         val jsonlFile = getSessionJSONLFile(session.sessionId)
+        ensureSessionFileParentExists(jsonlFile)
         val tmpFile = File(jsonlFile.parentFile, "${jsonlFile.name}.tmp-${System.currentTimeMillis()}")
 
         try {

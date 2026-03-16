@@ -47,14 +47,19 @@ class ForegroundService : Service() {
         Log.i(TAG, "ForegroundService onCreate")
         createNotificationChannel()
 
-        // Android 14+ requires explicit foregroundServiceType specification
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID,
-                createNotification(),
-                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        } else {
+        try {
+            // Android 10+ supports explicit foregroundServiceType, but some ROMs are picky.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    createNotification(),
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, createNotification())
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "startForeground with type failed, fallback to basic startForeground", e)
             startForeground(NOTIFICATION_ID, createNotification())
         }
     }
