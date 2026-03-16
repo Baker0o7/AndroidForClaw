@@ -404,6 +404,8 @@ class ConfigLoader(private val context: Context) {
                 (0 until arr.length()).map { arr.getString(it) }
             } ?: emptyList(),
             requireMention = json.optBoolean("requireMention", true),
+            groupCommandMentionBypass = json.optString("groupCommandMentionBypass", "never"),
+            allowMentionlessInMultiBotGroup = json.optBoolean("allowMentionlessInMultiBotGroup", false),
             groupSessionScope = if (json.has("groupSessionScope")) json.optString("groupSessionScope") else null,
             topicSessionMode = json.optString("topicSessionMode", "disabled"),
             replyInThread = json.optString("replyInThread", "disabled"),
@@ -710,6 +712,8 @@ class ConfigLoader(private val context: Context) {
         feishuObj.put("dmPolicy", feishu.dmPolicy)
         feishuObj.put("groupPolicy", feishu.groupPolicy)
         feishuObj.put("requireMention", feishu.requireMention)
+        feishuObj.put("groupCommandMentionBypass", feishu.groupCommandMentionBypass)
+        feishuObj.put("allowMentionlessInMultiBotGroup", feishu.allowMentionlessInMultiBotGroup)
         channelsObj.put("feishu", feishuObj)
         root.put("channels", channelsObj)
 

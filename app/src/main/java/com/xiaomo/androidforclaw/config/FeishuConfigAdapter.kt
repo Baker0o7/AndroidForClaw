@@ -50,8 +50,12 @@ object FeishuConfigAdapter {
             },
             groupAllowFrom = channelConfig.groupAllowFrom,
             requireMention = channelConfig.requireMention,
-            groupCommandMentionBypass = FeishuConfig.MentionBypass.NEVER,
-            allowMentionlessInMultiBotGroup = false,
+            groupCommandMentionBypass = when (channelConfig.groupCommandMentionBypass.lowercase()) {
+                "single_bot" -> FeishuConfig.MentionBypass.SINGLE_BOT
+                "always" -> FeishuConfig.MentionBypass.ALWAYS
+                else -> FeishuConfig.MentionBypass.NEVER
+            },
+            allowMentionlessInMultiBotGroup = channelConfig.allowMentionlessInMultiBotGroup,
             topicSessionMode = when (channelConfig.topicSessionMode) {
                 "enabled" -> FeishuConfig.TopicSessionMode.ENABLED
                 "disabled" -> FeishuConfig.TopicSessionMode.DISABLED
@@ -111,6 +115,12 @@ object FeishuConfigAdapter {
             },
             groupAllowFrom = feishuConfig.groupAllowFrom,
             requireMention = feishuConfig.requireMention,
+            groupCommandMentionBypass = when (feishuConfig.groupCommandMentionBypass) {
+                FeishuConfig.MentionBypass.SINGLE_BOT -> "single_bot"
+                FeishuConfig.MentionBypass.ALWAYS -> "always"
+                FeishuConfig.MentionBypass.NEVER -> "never"
+            },
+            allowMentionlessInMultiBotGroup = feishuConfig.allowMentionlessInMultiBotGroup,
             topicSessionMode = when (feishuConfig.topicSessionMode) {
                 FeishuConfig.TopicSessionMode.ENABLED -> "enabled"
                 FeishuConfig.TopicSessionMode.DISABLED -> "disabled"

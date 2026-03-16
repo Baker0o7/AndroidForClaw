@@ -78,6 +78,8 @@ data class FeishuChannelConfig(
     val groupPolicy: String = "open",
     val groupAllowFrom: List<String> = emptyList(),
     val requireMention: Boolean = true,
+    val groupCommandMentionBypass: String = "never",
+    val allowMentionlessInMultiBotGroup: Boolean = false,
     val groupSessionScope: String? = null,
     val topicSessionMode: String = "disabled",
     val replyInThread: String = "disabled",
