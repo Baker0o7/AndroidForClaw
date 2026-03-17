@@ -673,24 +673,32 @@ Tags are stripped before sending; support depends on the current channel config.
     }
 
     private fun buildReasoningFormatSection(): String {
-        // Aligned with OpenClaw: provider-specific reasoning hint
-        // OpenClaw uses isReasoningTagProvider() to decide if <think> tags are needed
-        // For OpenRouter/custom providers that use reasoning tags:
+        // Aligned with OpenClaw 2026.3.11: isReasoningTagProvider()
+        // Only providers that need explicit <think>/<final> tags in the text stream
+        // (because they lack native API reasoning fields).
         val model = try {
             configLoader?.loadOpenClawConfig()?.resolveDefaultModel() ?: ""
         } catch (_: Exception) { "" }
-        val provider = model.substringBefore("/", "")
+        val provider = model.substringBefore("/", "").trim().lowercase()
 
-        // OpenClaw: only add reasoning tag hint for providers that need it
-        val needsReasoningTags = provider in listOf("openrouter", "deepseek", "fireworks", "together")
+        // OpenClaw isReasoningTagProvider: google, google-gemini-cli, google-generative-ai, *minimax*
+        val needsReasoningTags = provider in listOf("google", "google-gemini-cli", "google-generative-ai")
+                || provider.contains("minimax")
 
         return if (needsReasoningTags) {
             """
 ## Reasoning Format
-When the model returns <think>…</think> blocks, these contain internal reasoning and are automatically stripped before display. You may use them freely for step-by-step thinking.
+ALL internal reasoning MUST be inside <think>...</think>.
+Do not output any analysis outside <think>.
+Format every reply as <think>...</think> then <final>...</final>, with no other text.
+Only the final user-visible reply may appear inside <final>.
+Only text inside <final> is shown to the user; everything else is discarded and never seen by the user.
+Example:
+<think>Short internal reasoning.</think>
+<final>Hey there! What would you like to do next?</final>
             """.trimIndent()
         } else {
-            // For native reasoning providers (Anthropic, OpenAI), no special format needed
+            // For native reasoning providers (Anthropic, OpenAI, OpenRouter, etc.), no special format needed
             ""
         }
     }
