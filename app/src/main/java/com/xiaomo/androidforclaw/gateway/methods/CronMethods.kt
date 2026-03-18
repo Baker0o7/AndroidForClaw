@@ -275,8 +275,72 @@ object CronMethods {
         put("consecutiveErrors", s.consecutiveErrors)
     }
 
-    private fun applyPatch(job: CronJob, patch: JSONObject) = job.copy(
-        name = patch.optString("name", job.name),
-        enabled = patch.optBoolean("enabled", job.enabled)
-    )
+    /**
+     * Apply a patch to a cron job.
+     * Aligned with OpenClaw CronJobPatchSchema: supports patching all job fields.
+     */
+    private fun applyPatch(job: CronJob, patch: JSONObject): CronJob {
+        var patched = job.copy(updatedAtMs = System.currentTimeMillis())
+
+        if (patch.has("name")) {
+            patched = patched.copy(name = patch.getString("name"))
+        }
+        if (patch.has("enabled")) {
+            patched = patched.copy(enabled = patch.getBoolean("enabled"))
+        }
+        if (patch.has("schedule")) {
+            patched = patched.copy(schedule = jsonToSchedule(patch.getJSONObject("schedule")))
+        }
+        if (patch.has("payload")) {
+            patched = patched.copy(payload = jsonToPayload(patch.getJSONObject("payload")))
+        }
+        if (patch.has("sessionTarget")) {
+            patched = patched.copy(sessionTarget = when (patch.getString("sessionTarget")) {
+                "main" -> SessionTarget.MAIN
+                "isolated" -> SessionTarget.ISOLATED
+                else -> patched.sessionTarget
+            })
+        }
+        if (patch.has("wakeMode")) {
+            patched = patched.copy(wakeMode = when (patch.getString("wakeMode")) {
+                "now" -> WakeMode.NOW
+                "next-heartbeat" -> WakeMode.NEXT_HEARTBEAT
+                else -> patched.wakeMode
+            })
+        }
+        if (patch.has("delivery")) {
+            val deliveryJson = patch.optJSONObject("delivery")
+            patched = if (deliveryJson != null) {
+                patched.copy(delivery = CronDelivery(
+                    mode = when (deliveryJson.optString("mode", "announce")) {
+                        "none" -> DeliveryMode.NONE
+                        "webhook" -> DeliveryMode.WEBHOOK
+                        else -> DeliveryMode.ANNOUNCE
+                    },
+                    channel = deliveryJson.optString("channel", "").ifEmpty { null },
+                    to = deliveryJson.optString("to", "").ifEmpty { null }
+                ))
+            } else {
+                patched.copy(delivery = null)
+            }
+        }
+        if (patch.has("failureAlert")) {
+            // failureAlert can be false (disable) or an object
+            val raw = patch.get("failureAlert")
+            patched = if (raw == false || raw == java.lang.Boolean.FALSE) {
+                patched.copy(failureAlert = null)
+            } else if (raw is JSONObject) {
+                patched.copy(failureAlert = CronFailureAlert(
+                    after = raw.optInt("after", patched.failureAlert?.after ?: 2),
+                    cooldownMs = if (raw.has("cooldownMs")) raw.getLong("cooldownMs")
+                        else (patched.failureAlert?.cooldownMs ?: 3_600_000L),
+                    channel = raw.optString("channel", "").ifEmpty { null }
+                ))
+            } else {
+                patched
+            }
+        }
+
+        return patched
+    }
 }
