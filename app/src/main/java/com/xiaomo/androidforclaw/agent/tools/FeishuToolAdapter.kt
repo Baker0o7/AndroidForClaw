@@ -54,9 +54,15 @@ class FeishuToolAdapter(
                     metadata = feishuResult.metadata.mapValues { it.value as Any? }
                 )
             } else {
-                SkillResult.error(
-                    message = feishuResult.error ?: "Unknown error"
-                )
+                val meta = feishuResult.metadata
+                val detailedError = feishuResult.error
+                    ?: (meta["message"] as? String)
+                    ?: (meta["error"] as? String)
+                    ?: (meta["status"]?.toString()?.let { "HTTP $it" })
+                    ?: feishuResult.data?.toString()
+                    ?: "Unknown error"
+
+                SkillResult.error(message = detailedError)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Feishu tool execution failed: $name", e)
