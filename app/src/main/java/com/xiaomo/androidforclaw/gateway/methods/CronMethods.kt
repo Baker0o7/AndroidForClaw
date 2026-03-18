@@ -200,19 +200,29 @@ object CronMethods {
             is CronSchedule.Every -> {
                 put("kind", "every")
                 put("everyMs", s.everyMs)
+                s.anchorMs?.let { put("anchorMs", it) }
             }
             is CronSchedule.Cron -> {
                 put("kind", "cron")
                 put("expr", s.expr)
+                s.tz?.let { put("tz", it) }
+                s.staggerMs?.let { put("staggerMs", it) }
             }
         }
     }
 
     private fun jsonToSchedule(json: JSONObject): CronSchedule = when (json.getString("kind")) {
         "at" -> CronSchedule.At(json.getString("at"))
-        "every" -> CronSchedule.Every(json.getLong("everyMs"))
-        "cron" -> CronSchedule.Cron(json.getString("expr"))
-        else -> throw IllegalArgumentException("Unknown schedule")
+        "every" -> CronSchedule.Every(
+            everyMs = json.getLong("everyMs"),
+            anchorMs = if (json.has("anchorMs")) json.getLong("anchorMs") else null
+        )
+        "cron" -> CronSchedule.Cron(
+            expr = json.getString("expr"),
+            tz = json.optString("tz", "").ifEmpty { null },
+            staggerMs = if (json.has("staggerMs")) json.getLong("staggerMs") else null
+        )
+        else -> throw IllegalArgumentException("Unknown schedule kind: ${json.optString("kind")}")
     }
 
     private fun payloadToJson(p: CronPayload) = JSONObject().apply {
