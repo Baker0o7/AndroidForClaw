@@ -165,16 +165,30 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     Text("- SSH 配置: ${if (sshConfigured) "已生成" else "未生成"}")
                     Text("- 当前卡点: $statusMessage", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            // Clipboard-based setup: copy command + open Termux
-                            val cmd = bridge.copySetupCommandAndLaunch()
-                            statusMessage = "命令已复制到剪贴板，请在 Termux 中长按粘贴并回车"
-                            Toast.makeText(context, "✅ 命令已复制，长按粘贴后回车", Toast.LENGTH_LONG).show()
-                        },
-                        enabled = termuxInstalled && !(sshReachable && sshConfigured)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("一键配置（复制+打开Termux）")
+                        Button(
+                            onClick = {
+                                // Clipboard-based setup: copy command + open Termux
+                                val cmd = bridge.copySetupCommandAndLaunch()
+                                statusMessage = "命令已复制到剪贴板，请在 Termux 中长按粘贴并回车"
+                                Toast.makeText(context, "✅ 命令已复制，长按粘贴后回车", Toast.LENGTH_LONG).show()
+                            },
+                            enabled = termuxInstalled && !(sshReachable && sshConfigured)
+                        ) {
+                            Text("一键配置（复制+打开Termux）")
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                checking = true
+                                checkStatus()
+                            },
+                            enabled = !checking
+                        ) {
+                            Text("尝试连接")
+                        }
                     }
                 }
             }
@@ -197,6 +211,25 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                 } else null,
                 actionLabel = "去下载"
             )
+
+            // Step 1.5: Termux permissions
+            if (termuxInstalled && !(sshReachable && sshConfigured)) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("⚠️ 请先授予 Termux 文件权限", style = MaterialTheme.typography.titleSmall, color = Color(0xFFE65100))
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "手机设置 → 应用管理 → Termux → 权限管理\n" +
+                            "开启：照片和视频、音乐和音频、文件和文档\n" +
+                            "（不开启会导致命令执行 permission denied）",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
 
             // Step 2: Open Termux and paste command
             StepCard(
