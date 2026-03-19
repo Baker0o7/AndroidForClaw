@@ -20,13 +20,14 @@ data class TermuxStatus(
     val runCommandPermissionDeclared: Boolean,
     val runCommandServiceAvailable: Boolean,
     val sshReachable: Boolean,
+    val sshAuthOk: Boolean,
     val sshConfigPresent: Boolean,
     val keypairPresent: Boolean,
     val lastStep: TermuxSetupStep,
     val message: String
 ) {
     val ready: Boolean
-        get() = termuxInstalled && sshReachable && sshConfigPresent && lastStep == TermuxSetupStep.READY
+        get() = termuxInstalled && sshReachable && sshAuthOk && lastStep == TermuxSetupStep.READY
 }
 
 object TermuxStatusFormatter {
@@ -38,6 +39,7 @@ object TermuxStatusFormatter {
             TermuxSetupStep.KEYPAIR_MISSING -> "SSH keypair is missing."
             TermuxSetupStep.SSHD_NOT_REACHABLE -> "sshd is not reachable on 127.0.0.1:8022."
             TermuxSetupStep.SSH_CONFIG_MISSING -> "SSH config file was not generated."
+            TermuxSetupStep.SSH_AUTH_FAILED -> "SSH authentication failed. Run in Termux: chmod 644 /sdcard/.androidforclaw/.ssh/id_ed25519 && pkill sshd; sshd"
             else -> "Please open Termux and run: pkg install openssh && sshd"
         }
     }

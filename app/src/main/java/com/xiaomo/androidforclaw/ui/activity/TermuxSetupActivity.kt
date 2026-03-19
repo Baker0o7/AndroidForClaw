@@ -63,6 +63,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
     var termuxInstalled by remember { mutableStateOf(false) }
     var termuxApiInstalled by remember { mutableStateOf(false) }
     var sshReachable by remember { mutableStateOf(false) }
+    var sshAuthOk by remember { mutableStateOf(false) }
     var sshConfigured by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("等待检测...") }
     var checking by remember { mutableStateOf(true) }
@@ -79,6 +80,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                 termuxInstalled = status.termuxInstalled
                 termuxApiInstalled = status.termuxApiInstalled
                 sshReachable = status.sshReachable
+                sshAuthOk = status.sshAuthOk
                 sshConfigured = status.sshConfigPresent
                 statusMessage = status.message
                 autoSettingUp = false
@@ -101,6 +103,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                 termuxInstalled = status.termuxInstalled
                 termuxApiInstalled = status.termuxApiInstalled
                 sshReachable = status.sshReachable
+                sshAuthOk = status.sshAuthOk
                 sshConfigured = status.sshConfigPresent
                 statusMessage = status.message
                 checking = false
@@ -162,6 +165,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     Text("- Termux: ${if (termuxInstalled) "已安装" else "未安装"}")
                     Text("- Termux:API: ${if (termuxApiInstalled) "已安装" else "未安装"}")
                     Text("- SSH 8022: ${if (sshReachable) "可连接" else "不可连接"}")
+                    Text("- SSH 认证: ${if (sshAuthOk) "✅ 正常" else "❌ 失败"}")
                     Text("- SSH 配置: ${if (sshConfigured) "已生成" else "未生成"}")
                     Text("- 当前卡点: $statusMessage", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(8.dp))
@@ -176,7 +180,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                                 statusMessage = "命令已复制到剪贴板，请在 Termux 中长按粘贴并回车"
                                 Toast.makeText(context, "✅ 命令已复制，长按粘贴后回车", Toast.LENGTH_LONG).show()
                             },
-                            enabled = termuxInstalled && !(sshReachable && sshConfigured)
+                            enabled = termuxInstalled && !(sshAuthOk && sshConfigured)
                         ) {
                             Text("一键配置（复制+打开Termux）")
                         }
@@ -236,11 +240,11 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                 step = 2,
                 title = "打开 Termux，粘贴一行命令",
                 description = "点击下方按钮 → 命令自动复制 → Termux 自动打开 → 长按粘贴 → 回车",
-                done = sshReachable && sshConfigured
+                done = sshAuthOk && sshConfigured
             )
 
             // Command box
-            if (termuxInstalled && !(sshReachable && sshConfigured)) {
+            if (termuxInstalled && !(sshAuthOk && sshConfigured)) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
@@ -292,14 +296,15 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
             StepCard(
                 step = 3,
                 title = "验证连接",
-                description = if (sshReachable && sshConfigured) "SSH 连接正常，配置完成！"
+                description = if (sshAuthOk && sshConfigured) "SSH 认证正常，配置完成！"
+                    else if (sshReachable && sshConfigured) "SSH 可达，但认证失败"
                     else if (sshReachable) "SSH 可达，但配置文件未创建"
                     else "等待 Termux 配置完成...",
-                done = sshReachable && sshConfigured
+                done = sshAuthOk && sshConfigured
             )
 
             // All done
-            if (sshReachable && sshConfigured) {
+            if (sshAuthOk && sshConfigured) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))

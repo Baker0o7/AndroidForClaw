@@ -97,7 +97,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         )
     }
 
-    fun isAvailable(): Boolean = isTermuxInstalled() && isSSHReachable()
+    fun isAvailable(): Boolean = isTermuxInstalled() && testSSHAuth()
 
     fun getStatus(): TermuxStatus {
         val termuxInstalled = isTermuxInstalled()
@@ -107,6 +107,8 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         val sshReachable = isSSHReachable()
         val sshConfigPresent = File(SSH_CONFIG_FILE).exists()
         val keypairPresent = File(PRIVATE_KEY).exists() && File(PUBLIC_KEY).exists()
+        // Test real SSH auth, not just TCP port
+        val sshAuthOk = if (sshReachable && hasCredentials()) testSSHAuth() else false
 
         val (step, message) = when {
             !termuxInstalled -> TermuxSetupStep.TERMUX_NOT_INSTALLED to "Termux 未安装"
@@ -117,6 +119,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             !sshReachable && !sshConfigPresent -> TermuxSetupStep.SSHD_NOT_REACHABLE to "sshd 未启动，SSH 端口 8022 不可达"
             !sshReachable -> TermuxSetupStep.SSHD_NOT_REACHABLE to "SSH 端口 8022 不可达"
             !sshConfigPresent -> TermuxSetupStep.SSH_CONFIG_MISSING to "termux_ssh.json 未生成"
+            !sshAuthOk -> TermuxSetupStep.SSH_AUTH_FAILED to "SSH 认证失败（密钥权限或 sshd 配置问题）"
             else -> TermuxSetupStep.READY to "Termux 已就绪"
         }
 
@@ -126,6 +129,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             runCommandPermissionDeclared = runCommandPermissionDeclared,
             runCommandServiceAvailable = runCommandServiceAvailable,
             sshReachable = sshReachable,
+            sshAuthOk = sshAuthOk,
             sshConfigPresent = sshConfigPresent,
             keypairPresent = keypairPresent,
             lastStep = step,
@@ -193,6 +197,45 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             socket.close()
             true
         } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Test real SSH authentication (not just TCP port open).
+     * Returns true only if we can actually connect + authenticate.
+     */
+    private fun testSSHAuth(): Boolean {
+        if (!isSSHReachable()) return false
+        if (!hasCredentials()) return false
+        return try {
+            ensureBouncyCastle()
+            // Read SSH config
+            val configJson = org.json.JSONObject(java.io.File(SSH_CONFIG_FILE).readText())
+            val user = configJson.optString("user", "shell")
+            val keyPath = configJson.optString("key_file", PRIVATE_KEY)
+            val password = configJson.optString("password", "")
+
+            val ssh = net.schmizz.sshj.SSHClient(net.schmizz.sshj.DefaultConfig())
+            ssh.addHostKeyVerifier(net.schmizz.sshj.transport.verification.PromiscuousVerifier())
+            ssh.connectTimeout = 3000
+            ssh.connect(SSH_HOST, SSH_PORT)
+            val authUser = user.ifEmpty { "shell" }
+            when {
+                keyPath.isNotEmpty() && java.io.File(keyPath).exists() ->
+                    ssh.authPublickey(authUser, ssh.loadKeys(keyPath))
+                password.isNotEmpty() ->
+                    ssh.authPassword(authUser, password)
+                else -> {
+                    ssh.disconnect()
+                    return false
+                }
+            }
+            // If we get here, auth succeeded
+            ssh.disconnect()
+            true
+        } catch (e: Exception) {
+            Log.w(TAG, "SSH auth test failed: ${e.message}")
             false
         }
     }
@@ -589,6 +632,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                 put("runCommandPermissionDeclared", status.runCommandPermissionDeclared)
                 put("runCommandServiceAvailable", status.runCommandServiceAvailable)
                 put("sshReachable", status.sshReachable)
+                put("sshAuthOk", status.sshAuthOk)
                 put("sshConfigPresent", status.sshConfigPresent)
                 put("keypairPresent", status.keypairPresent)
                 put("lastStep", status.lastStep.name)
