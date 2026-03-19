@@ -88,11 +88,9 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
         }
     }
 
-    // Generate setup command
-    // Minimal command — only things that MUST run inside Termux
-    // SSH key, config file, whoami are handled automatically by the app
+    // Generate setup command — uses system shell env for Xiaomi/HyperOS compatibility
     val setupCommand = remember {
-        "pkg install -y openssh python && mkdir -p ~/.ssh && cat /sdcard/.androidforclaw/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys && sshd && echo '✅ Done'"
+        "export PREFIX=/data/data/com.termux/files/usr && export LD_LIBRARY_PATH=\$PREFIX/lib && export PATH=\$PREFIX/bin:\$PATH && export HOME=/data/data/com.termux/files/home && pkg install -y openssh && mkdir -p \$HOME/.ssh && cat /sdcard/.androidforclaw/.ssh/id_ed25519.pub >> \$HOME/.ssh/authorized_keys && chmod 700 \$HOME/.ssh && chmod 600 \$HOME/.ssh/authorized_keys && sshd && echo '✅ Done'"
     }
 
     // Check status on launch and periodically
@@ -221,7 +219,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
             StepCard(
                 step = 2,
                 title = "打开 Termux，粘贴一行命令",
-                description = "复制命令 → 打开 Termux → 长按粘贴 → 回车\n（理想情况会逐步自动完成；如果失败，请看上面的具体卡点）",
+                description = "复制命令 → 打开 Termux → 长按粘贴 → 回车\n（自动配置不成功时的手动方案，适用于小米等设备）",
                 done = sshReachable && sshConfigured
             )
 

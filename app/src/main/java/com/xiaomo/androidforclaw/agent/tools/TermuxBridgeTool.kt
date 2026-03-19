@@ -232,19 +232,30 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         // Step 1: Generate keypair if missing
         ensureKeypair()
 
-        // Step 2: Deploy keys and start sshd via RUN_COMMAND
+        // Step 2: Generate setup script using system shell + Termux env
+        // This avoids the "libandroid-support.so not found" issue on Xiaomi/HyperOS
+        // where RUN_COMMAND can't load Termux bootstrap libraries.
         val setupScript = buildString {
-            appendLine("#!/data/data/com.termux/files/usr/bin/bash")
-            appendLine("# Auto-setup by AndroidForClaw")
+            appendLine("#!/system/bin/sh")
+            appendLine("# Auto-setup by AndroidForClaw (system-shell variant)")
+            appendLine("# Set up Termux environment from system shell")
+            appendLine("export PREFIX=/data/data/com.termux/files/usr")
+            appendLine("export LD_LIBRARY_PATH=\$PREFIX/lib")
+            appendLine("export PATH=\$PREFIX/bin:\$PATH")
+            appendLine("export HOME=/data/data/com.termux/files/home")
+            appendLine("")
+            appendLine("# Install openssh if not present")
             appendLine("pkg install -y openssh 2>/dev/null")
-            appendLine("mkdir -p ~/.ssh")
-            appendLine("chmod 700 ~/.ssh")
-            // Copy public key from shared storage
-            appendLine("cat '$PUBLIC_KEY' >> ~/.ssh/authorized_keys 2>/dev/null || " +
-                "cat ~/storage/shared/.androidforclaw/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys 2>/dev/null")
-            appendLine("sort -u ~/.ssh/authorized_keys -o ~/.ssh/authorized_keys")
-            appendLine("chmod 600 ~/.ssh/authorized_keys")
-            // Start sshd if not running
+            appendLine("")
+            appendLine("# Set up SSH authorized_keys")
+            appendLine("mkdir -p \$HOME/.ssh")
+            appendLine("chmod 700 \$HOME/.ssh")
+            appendLine("cat '$PUBLIC_KEY' >> \$HOME/.ssh/authorized_keys 2>/dev/null || " +
+                "cat /sdcard/.androidforclaw/.ssh/id_ed25519.pub >> \$HOME/.ssh/authorized_keys 2>/dev/null")
+            appendLine("sort -u \$HOME/.ssh/authorized_keys -o \$HOME/.ssh/authorized_keys")
+            appendLine("chmod 600 \$HOME/.ssh/authorized_keys")
+            appendLine("")
+            appendLine("# Start sshd if not running")
             appendLine("pgrep sshd > /dev/null || sshd")
             appendLine("echo SETUP_DONE")
         }
@@ -256,34 +267,58 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             scriptFile.writeText(setupScript)
         }
 
-        // Execute via Termux RUN_COMMAND
-        try {
+        // Execute via Termux RUN_COMMAND using /system/bin/sh (more compatible)
+        // Falls back to Termux bash if system shell fails
+        val executed = try {
             val intent = Intent("com.termux.RUN_COMMAND").apply {
                 setClassName(TERMUX_PACKAGE, "com.termux.app.RunCommandService")
-                putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
+                putExtra("com.termux.RUN_COMMAND_PATH", "/system/bin/sh")
                 putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf(scriptFile.absolutePath))
                 putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
             }
             context.startForegroundService(intent)
-            Log.i(TAG, "Sent RUN_COMMAND for SSH auto-setup")
+            Log.i(TAG, "Sent RUN_COMMAND (system/sh) for SSH auto-setup")
+            true
         } catch (e: Exception) {
-            Log.w(TAG, "RUN_COMMAND failed: ${e.message}, trying startService")
+            Log.w(TAG, "RUN_COMMAND (system/sh) failed: ${e.message}, trying Termux bash")
             try {
+                // Fallback: use Termux bash directly (works on some devices)
+                val fallbackScript = buildString {
+                    appendLine("#!/data/data/com.termux/files/usr/bin/bash")
+                    appendLine("# Auto-setup by AndroidForClaw (bash fallback)")
+                    appendLine("pkg install -y openssh 2>/dev/null")
+                    appendLine("mkdir -p ~/.ssh")
+                    appendLine("chmod 700 ~/.ssh")
+                    appendLine("cat '$PUBLIC_KEY' >> ~/.ssh/authorized_keys 2>/dev/null || " +
+                        "cat ~/storage/shared/.androidforclaw/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys 2>/dev/null")
+                    appendLine("sort -u ~/.ssh/authorized_keys -o ~/.ssh/authorized_keys")
+                    appendLine("chmod 600 ~/.ssh/authorized_keys")
+                    appendLine("pgrep sshd > /dev/null || sshd")
+                    appendLine("echo SETUP_DONE")
+                }
+                val fallbackFile = File("$CONFIG_DIR/termux_setup_fallback.sh")
+                withContext(Dispatchers.IO) {
+                    fallbackFile.writeText(fallbackScript)
+                }
                 val intent = Intent("com.termux.RUN_COMMAND").apply {
                     setClassName(TERMUX_PACKAGE, "com.termux.app.RunCommandService")
                     putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash")
-                    putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf(scriptFile.absolutePath))
+                    putExtra("com.termux.RUN_COMMAND_ARGUMENTS", arrayOf(fallbackFile.absolutePath))
                     putExtra("com.termux.RUN_COMMAND_BACKGROUND", true)
                 }
-                context.startService(intent)
+                context.startForegroundService(intent)
+                Log.i(TAG, "Sent RUN_COMMAND (bash fallback) for SSH auto-setup")
+                true
             } catch (e2: Exception) {
-                Log.e(TAG, "Auto-setup failed: ${e2.message}")
-                return false
+                Log.e(TAG, "Both auto-setup strategies failed: ${e2.message}")
+                false
             }
         }
 
+        if (!executed) return false
+
         // Wait for sshd to come up
-        for (i in 1..15) {
+        for (i in 1..20) {
             delay(1000)
             if (isSSHReachable()) {
                 Log.i(TAG, "SSH is now reachable after ${i}s")
