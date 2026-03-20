@@ -44,6 +44,8 @@ data class ProviderDefinition(
     val envVarName: String,
     /** authHeader 默认值。Anthropic 为 false（用 x-api-key header） */
     val authHeader: Boolean = true,
+    /** 自定义请求头（如 Kimi Coding 的 User-Agent） */
+    val headers: Map<String, String>? = null,
     /** 获取 Key 的教程步骤 */
     val tutorialSteps: List<String> = emptyList(),
     /** 获取 Key 的 URL */
@@ -512,12 +514,12 @@ object ProviderRegistry {
         tutorialUrl = "https://platform.moonshot.cn/console/api-keys",
         presetModels = listOf(
             PresetModel(
-                id = "moonshot-v1-auto",
-                name = "Moonshot V1 Auto",
-                contextWindow = 128000,
+                id = "kimi-k2.5",
+                name = "Kimi K2.5",
+                contextWindow = 256000,
                 maxTokens = 8192,
                 reasoning = false,
-                input = listOf("text")
+                input = listOf("text", "image")
             )
         ),
         supportsDiscovery = true,
@@ -678,6 +680,37 @@ object ProviderRegistry {
 
     // ========== CUSTOM Group ==========
 
+    val KIMI_CODING = ProviderDefinition(
+        id = "kimi-coding",
+        name = "Kimi for Coding",
+        description = "Kimi 编程专用 API（Anthropic 兼容）",
+        baseUrl = KIMI_CODING_BASE_URL,
+        api = ModelApi.ANTHROPIC_MESSAGES,
+        keyRequired = true,
+        keyHint = "Kimi API Key",
+        envVarName = "KIMI_API_KEY",
+        headers = mapOf("User-Agent" to "claude-code/0.1.0"),
+        tutorialSteps = listOf(
+            "打开 kimi.com/coding",
+            "注册或登录 Kimi Coding 账号",
+            "获取 API Key"
+        ),
+        tutorialUrl = "https://kimi.com/coding",
+        presetModels = listOf(
+            PresetModel(
+                id = "k2p5",
+                name = "Kimi for Coding",
+                contextWindow = 262144,
+                maxTokens = 32768,
+                reasoning = true,
+                input = listOf("text", "image")
+            )
+        ),
+        supportsDiscovery = false,
+        group = ProviderGroup.MORE,
+        order = 125
+    )
+
     val CUSTOM = ProviderDefinition(
         id = "custom",
         name = "自定义 (OpenAI 兼容)",
@@ -705,7 +738,7 @@ object ProviderRegistry {
     /** 所有已注册 Provider，按 order 排序 */
     val ALL: List<ProviderDefinition> = listOf(
         OPENROUTER, ANTHROPIC, OPENAI, GOOGLE, DEEPSEEK, XAI, OLLAMA,
-        VOLCENGINE, MOONSHOT, QIANFAN, XIAOMI, MISTRAL, TOGETHER,
+        VOLCENGINE, MOONSHOT, KIMI_CODING, QIANFAN, XIAOMI, MISTRAL, TOGETHER,
         HUGGINGFACE, NVIDIA, CUSTOM
     ).sortedBy { it.order }
 
@@ -736,7 +769,9 @@ object ProviderRegistry {
             "z.ai", "z-ai" -> "zai"
             "opencode-zen" -> "opencode"
             "qwen" -> "qwen-portal"
-            "kimi-code" -> "kimi-coding"
+            "kimi-code", "kimi-coding" -> "kimi-coding"
+            "kimi" -> "moonshot"
+            "moonshot-cn" -> "moonshot"
             "bedrock", "aws-bedrock" -> "amazon-bedrock"
             "bytedance", "doubao" -> "volcengine"
             else -> normalized
@@ -773,6 +808,7 @@ object ProviderRegistry {
             apiKey = apiKey,
             api = effectiveApi,
             authHeader = definition.authHeader,
+            headers = definition.headers,
             models = models
         )
     }
