@@ -87,6 +87,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
         // Feishu Channel
         private var feishuChannel: FeishuChannel? = null
+        private var feishuWakeLock: android.os.PowerManager.WakeLock? = null
 
         /**
          * Get Feishu Channel (for tool invocation)
@@ -750,6 +751,21 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     // Update MMKV status
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_feishu_enabled", true)
+
+                    // 获取 PARTIAL_WAKE_LOCK 保持 CPU 运行，防止锁屏后 Doze 断网
+                    try {
+                        val pm = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+                        val wl = pm.newWakeLock(
+                            android.os.PowerManager.PARTIAL_WAKE_LOCK,
+                            "AndroidForClaw::FeishuChannel"
+                        )
+                        wl.setReferenceCounted(false)
+                        wl.acquire()
+                        feishuWakeLock = wl
+                        Log.i(TAG, "🔒 已获取 Feishu Channel WakeLock（防止锁屏断连）")
+                    } catch (e: Exception) {
+                        Log.w(TAG, "获取 Feishu WakeLock 失败: ${e.message}")
+                    }
 
                     Log.i(TAG, "========================================")
                     Log.i(TAG, "✅ Feishu Channel 启动成功!")
