@@ -46,7 +46,17 @@ data class OpenClawConfig(
 
     /** 解析默认模型 */
     fun resolveDefaultModel(): String {
-        return agents?.defaults?.model?.primary ?: agent.defaultModel
+        // 1. Explicit primary model
+        agents?.defaults?.model?.primary?.let { return it }
+        // 2. Fall back to first configured provider's first model (not hardcoded openrouter)
+        val providers = resolveProviders()
+        val first = providers.entries.firstOrNull()
+        if (first != null) {
+            val modelId = first.value.models.firstOrNull()?.id
+            if (modelId != null) return "${first.key}/$modelId"
+        }
+        // 3. Ultimate fallback
+        return agent.defaultModel
     }
 
     /** 兼容旧代码：gateway.feishu → channels.feishu */
