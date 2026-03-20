@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.tools
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 
 /**
  * Adapter: Bridges Feishu extension tools into the main ToolRegistry

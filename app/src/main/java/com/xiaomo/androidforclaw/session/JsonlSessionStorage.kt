@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.session
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File

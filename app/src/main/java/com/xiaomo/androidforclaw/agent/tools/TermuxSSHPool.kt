@@ -1,7 +1,7 @@
 package com.xiaomo.androidforclaw.agent.tools
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.schmizz.sshj.SSHClient

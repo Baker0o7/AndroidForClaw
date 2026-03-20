@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.memory
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.providers.LegacyRepository
 

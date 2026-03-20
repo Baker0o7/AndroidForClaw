@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.loop
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.google.gson.Gson
 import java.security.MessageDigest
 

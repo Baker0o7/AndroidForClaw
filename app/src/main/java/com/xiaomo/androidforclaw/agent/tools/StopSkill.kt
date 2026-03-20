@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.tools
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema

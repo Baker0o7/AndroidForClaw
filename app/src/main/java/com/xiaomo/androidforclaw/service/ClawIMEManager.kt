@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.service
 
 import android.content.Context
 import android.provider.Settings
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest

@@ -6,7 +6,7 @@
  */
 package com.xiaomo.androidforclaw.cron
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.*

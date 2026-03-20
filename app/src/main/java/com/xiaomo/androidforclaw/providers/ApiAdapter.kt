@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.providers
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.config.ModelApi
 import com.xiaomo.androidforclaw.config.ModelDefinition
 import com.xiaomo.androidforclaw.config.ProviderConfig

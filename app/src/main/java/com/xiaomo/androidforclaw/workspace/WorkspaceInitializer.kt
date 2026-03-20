@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.workspace
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import java.io.File
 import java.util.UUID
 

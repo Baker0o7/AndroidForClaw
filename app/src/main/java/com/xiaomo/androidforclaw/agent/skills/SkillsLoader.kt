@@ -12,7 +12,7 @@ import android.content.Context
 import android.os.FileObserver
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import java.io.File
 

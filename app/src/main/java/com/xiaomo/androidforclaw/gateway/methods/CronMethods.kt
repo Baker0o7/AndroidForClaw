@@ -6,7 +6,7 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.cron.*
 import com.xiaomo.androidforclaw.gateway.protocol.ErrorShape
 import org.json.JSONArray

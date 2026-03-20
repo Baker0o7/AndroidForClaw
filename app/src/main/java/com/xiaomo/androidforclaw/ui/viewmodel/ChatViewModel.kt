@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.ui.viewmodel
 
 import android.app.Application
 import com.xiaomo.androidforclaw.core.MainEntryNew
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.xiaomo.androidforclaw.channel.ChannelManager

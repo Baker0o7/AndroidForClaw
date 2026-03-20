@@ -1,6 +1,6 @@
 package com.xiaomo.androidforclaw.agent.tools.memory
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.memory.MemoryIndex
 import com.xiaomo.androidforclaw.agent.memory.MemoryManager
 import com.xiaomo.androidforclaw.agent.tools.Skill

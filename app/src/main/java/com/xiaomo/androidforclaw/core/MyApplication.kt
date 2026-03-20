@@ -21,7 +21,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.provider.Settings
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import android.widget.Toast
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.accessibility.AccessibilityHealthMonitor

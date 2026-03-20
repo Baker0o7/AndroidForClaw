@@ -10,7 +10,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods

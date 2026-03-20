@@ -12,7 +12,7 @@ package com.xiaomo.androidforclaw.core
 import android.app.Application
 import android.os.Build
 import android.text.TextUtils
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.context.ContextBuilder
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry

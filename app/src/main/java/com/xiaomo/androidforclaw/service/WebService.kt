@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 
 // TODO: MyWebServer 已删除，Web服务功能将通过新架构实现
 class WebService : Service() {

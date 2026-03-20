@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.tools
  * Aligned with OpenClaw web_search tool schema and behavior.
  */
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema

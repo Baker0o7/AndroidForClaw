@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
  */
 
 import android.graphics.Rect
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 
 object SnapshotBuilder {

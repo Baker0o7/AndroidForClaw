@@ -6,7 +6,7 @@
  */
 package com.xiaomo.androidforclaw.util
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**

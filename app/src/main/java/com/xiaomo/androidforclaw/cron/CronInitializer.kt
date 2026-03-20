@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.cron
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 
 object CronInitializer {
     private const val TAG = "CronInitializer"

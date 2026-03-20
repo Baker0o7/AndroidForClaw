@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.cron
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.*
 import java.util.UUID
 import java.util.concurrent.locks.ReentrantLock

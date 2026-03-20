@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.ui.float
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.TextView

@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.gateway.websocket
 import com.xiaomo.androidforclaw.gateway.protocol.Frame
 import com.xiaomo.androidforclaw.gateway.protocol.FrameSerializer
 import fi.iki.elonen.NanoWSD
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 
 /**
  * Encapsulates a WebSocket connection with metadata

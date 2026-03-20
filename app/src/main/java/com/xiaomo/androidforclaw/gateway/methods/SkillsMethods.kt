@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.gateway.methods
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.google.gson.JsonObject
 import com.xiaomo.androidforclaw.agent.skills.*
 import com.xiaomo.androidforclaw.config.ConfigLoader

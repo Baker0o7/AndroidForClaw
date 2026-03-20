@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.agent.skills
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 
 /**
  * SkillParser 测试运行器

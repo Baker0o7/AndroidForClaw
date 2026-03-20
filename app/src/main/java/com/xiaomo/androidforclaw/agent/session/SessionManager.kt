@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.session
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.memory.ContextCompressor
 import com.xiaomo.androidforclaw.agent.memory.TokenEstimator
 import com.xiaomo.androidforclaw.providers.LegacyMessage

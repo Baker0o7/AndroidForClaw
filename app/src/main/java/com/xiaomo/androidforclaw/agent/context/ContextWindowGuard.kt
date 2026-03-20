@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.context
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.config.ModelDefinition
 

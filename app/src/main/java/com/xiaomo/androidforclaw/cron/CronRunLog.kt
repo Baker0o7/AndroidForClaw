@@ -6,7 +6,7 @@
  */
 package com.xiaomo.androidforclaw.cron
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.google.gson.Gson
 import java.io.File
 import java.io.FileOutputStream

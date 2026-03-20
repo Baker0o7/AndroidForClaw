@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.session
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.llm.Message
 import com.xiaomo.androidforclaw.providers.llm.ToolCall
 

@@ -6,7 +6,7 @@
  */
 package com.xiaomo.androidforclaw.mcp
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType

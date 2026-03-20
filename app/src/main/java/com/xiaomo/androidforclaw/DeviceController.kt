@@ -10,7 +10,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.graphics.Bitmap
 import android.provider.Settings
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import android.graphics.BitmapFactory
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy

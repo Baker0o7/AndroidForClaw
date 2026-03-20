@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.test
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.config.FeishuConfigAdapter
 import com.xiaomo.feishu.FeishuChannel

@@ -6,7 +6,7 @@
  */
 package com.xiaomo.androidforclaw.data.model
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

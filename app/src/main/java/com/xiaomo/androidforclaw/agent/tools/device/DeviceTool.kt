@@ -15,7 +15,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.agent.tools.Tool
 import com.xiaomo.androidforclaw.agent.tools.ToolResult

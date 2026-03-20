@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.gateway
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.channel.ChannelManager
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoWSD

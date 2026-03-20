@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.config
 
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date

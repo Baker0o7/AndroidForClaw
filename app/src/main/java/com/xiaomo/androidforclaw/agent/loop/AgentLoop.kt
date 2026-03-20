@@ -10,7 +10,7 @@ import com.xiaomo.androidforclaw.util.ReasoningTagFilter
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.context.ContextErrors
 import com.xiaomo.androidforclaw.agent.context.ContextManager
 import com.xiaomo.androidforclaw.agent.context.ContextRecoveryResult

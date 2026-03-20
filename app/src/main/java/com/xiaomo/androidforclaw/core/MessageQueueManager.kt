@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.core
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean

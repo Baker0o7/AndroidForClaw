@@ -11,7 +11,7 @@ package com.xiaomo.androidforclaw.config
 
 import android.content.Context
 import android.os.FileObserver
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File

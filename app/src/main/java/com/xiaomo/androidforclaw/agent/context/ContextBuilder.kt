@@ -10,7 +10,7 @@ package com.xiaomo.androidforclaw.agent.context
 
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.skills.RequirementsCheckResult
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry

@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 

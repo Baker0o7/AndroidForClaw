@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.agent.skills
 
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import java.io.File
 

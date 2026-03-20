@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.browser
 
 import android.content.Context
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.mcp.McpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

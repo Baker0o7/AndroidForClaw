@@ -7,7 +7,7 @@ package com.xiaomo.androidforclaw.agent.tools
  * AndroidForClaw adaptation: unified function-call dispatcher across universal tools and Android tools.
  */
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 
 /**
  * Unified tool/function dispatcher.

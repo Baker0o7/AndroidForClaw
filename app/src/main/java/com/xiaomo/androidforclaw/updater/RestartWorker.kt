@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.updater
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 

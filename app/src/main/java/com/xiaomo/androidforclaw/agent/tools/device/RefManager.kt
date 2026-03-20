@@ -10,7 +10,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
  */
 
 import android.graphics.Rect
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 
 data class RefNode(
     val ref: String,

@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.providers
  */
 
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName

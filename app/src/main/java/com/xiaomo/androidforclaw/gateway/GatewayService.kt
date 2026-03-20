@@ -6,7 +6,7 @@
  */
 package com.xiaomo.androidforclaw.gateway
 
-import android.util.Log
+import com.xiaomo.androidforclaw.logging.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
