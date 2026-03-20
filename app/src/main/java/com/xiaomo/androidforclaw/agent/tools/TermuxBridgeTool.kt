@@ -101,6 +101,24 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     fun getStatus(): TermuxStatus {
         val termuxInstalled = isTermuxInstalled()
+
+        // Short-circuit: skip Android-specific API calls when Termux isn't installed.
+        // This avoids Intent.setComponent etc. which aren't available in JVM unit tests.
+        if (!termuxInstalled) {
+            return TermuxStatus(
+                termuxInstalled = false,
+                termuxApiInstalled = false,
+                runCommandPermissionDeclared = false,
+                runCommandServiceAvailable = false,
+                sshReachable = false,
+                sshAuthOk = false,
+                sshConfigPresent = false,
+                keypairPresent = false,
+                lastStep = TermuxSetupStep.TERMUX_NOT_INSTALLED,
+                message = "Termux 未安装"
+            ).also { persistStatus(it) }
+        }
+
         val termuxApiInstalled = isTermuxApiInstalled()
         val runCommandPermissionDeclared = isRunCommandPermissionDeclared()
         val runCommandServiceAvailable = isRunCommandServiceAvailable()
@@ -111,7 +129,6 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         val sshAuthOk = if (sshReachable && hasCredentials()) testSSHAuth() else false
 
         val (step, message) = when {
-            !termuxInstalled -> TermuxSetupStep.TERMUX_NOT_INSTALLED to "Termux 未安装"
             !termuxApiInstalled -> TermuxSetupStep.TERMUX_API_NOT_INSTALLED to "Termux:API 未安装"
             !runCommandPermissionDeclared -> TermuxSetupStep.RUN_COMMAND_PERMISSION_DENIED to "App 未声明 RUN_COMMAND 权限"
             !runCommandServiceAvailable -> TermuxSetupStep.RUN_COMMAND_SERVICE_MISSING to "Termux RUN_COMMAND 服务不可用"
