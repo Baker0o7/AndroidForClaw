@@ -481,7 +481,7 @@ class ModelConfigActivity : AppCompatActivity() {
                 PresetModel(
                     id = id,
                     name = id, // API usually doesn't provide display names
-                    contextWindow = 128000,
+                    contextWindow = 200000,  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
                     maxTokens = 8192
                 )
             )
@@ -500,7 +500,7 @@ class ModelConfigActivity : AppCompatActivity() {
                 PresetModel(
                     id = name,
                     name = name,
-                    contextWindow = 128000,
+                    contextWindow = 200000,  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
                     maxTokens = 8192
                 )
             )
@@ -517,7 +517,7 @@ class ModelConfigActivity : AppCompatActivity() {
         val etModelName = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_model_name)
         val etContextWindow = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_context_window)
 
-        etContextWindow.setText("128000")
+        etContextWindow.setText("200000")  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
 
         AlertDialog.Builder(this)
             .setTitle("添加模型")
@@ -529,7 +529,7 @@ class ModelConfigActivity : AppCompatActivity() {
                     return@setPositiveButton
                 }
                 val modelName = etModelName.text?.toString()?.trim()?.takeIf { it.isNotBlank() } ?: modelId
-                val ctxWindow = etContextWindow.text?.toString()?.toIntOrNull() ?: 128000
+                val ctxWindow = etContextWindow.text?.toString()?.toIntOrNull() ?: 200000
 
                 val newModel = PresetModel(
                     id = modelId,

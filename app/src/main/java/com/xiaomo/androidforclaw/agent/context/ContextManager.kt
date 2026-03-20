@@ -29,7 +29,7 @@ class ContextManager(
     companion object {
         private const val TAG = "ContextManager"
         private const val MAX_COMPACTION_ATTEMPTS = 3
-        private const val DEFAULT_CONTEXT_WINDOW = 128_000  // Aligned with ContextWindowGuard default
+        private const val DEFAULT_CONTEXT_WINDOW = 200_000  // Aligned with ContextWindowGuard default (OpenClaw = 200K)
     }
 
     private val compactor = MessageCompactor(llmProvider)

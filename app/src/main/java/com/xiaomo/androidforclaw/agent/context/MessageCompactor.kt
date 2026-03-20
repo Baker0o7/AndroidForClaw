@@ -504,7 +504,7 @@ class MessageCompactor(
      */
     fun shouldCompact(
         messages: List<LegacyMessage>,
-        contextWindowTokens: Int = 128_000
+        contextWindowTokens: Int = 200_000  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
     ): Boolean {
         val estimatedTokens = estimateTokens(messages)
         val threshold = (contextWindowTokens * 0.7).toInt()

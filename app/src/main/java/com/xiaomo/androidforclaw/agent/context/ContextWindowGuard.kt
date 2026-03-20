@@ -23,7 +23,7 @@ object ContextWindowGuard {
 
     const val CONTEXT_WINDOW_HARD_MIN_TOKENS = 16_000
     const val CONTEXT_WINDOW_WARN_BELOW_TOKENS = 32_000
-    const val DEFAULT_CONTEXT_WINDOW_TOKENS = 128_000
+    const val DEFAULT_CONTEXT_WINDOW_TOKENS = 200_000  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS = 2e5
 
     enum class ContextWindowSource { MODEL, MODELS_CONFIG, AGENT_CONTEXT_TOKENS, DEFAULT }
 
