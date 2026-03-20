@@ -128,7 +128,7 @@ object ProviderRegistry {
     private const val QIANFAN_BASE_URL = "https://qianfan.baidubce.com/v2"
 
     /** MiMo — 对齐 OpenClaw 官方配置 */
-    private const val XIAOMI_BASE_URL = "https://api.xiaomimimo.com/anthropic"
+    private const val XIAOMI_BASE_URL = "https://api.xiaomimimo.com/v1" // 对齐 OpenClaw: /v1 (原 /anthropic)
 
     /** OpenClaw auth-profiles-UpqQjKB-.js:2337 */
     private const val TOGETHER_BASE_URL = "https://api.together.xyz/v1"
@@ -563,7 +563,7 @@ object ProviderRegistry {
         name = "小米 (MiMo)",
         description = "小米 MiMo 大模型",
         baseUrl = XIAOMI_BASE_URL,
-        api = ModelApi.ANTHROPIC_MESSAGES, // 对齐 OpenClaw 官方配置
+        api = ModelApi.OPENAI_COMPLETIONS, // 对齐 OpenClaw: openai-completions (原 anthropic-messages)
         keyRequired = true,
         keyHint = "小米 API Key",
         envVarName = "XIAOMI_API_KEY",
@@ -575,7 +575,8 @@ object ProviderRegistry {
         tutorialUrl = "https://api.xiaomimimo.com/",
         presetModels = listOf(
             PresetModel("mimo-v2-flash", "MiMo V2 Flash (免费，262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
-            PresetModel("mimo-v2-pro", "MiMo V2 Pro (128K)", reasoning = false, contextWindow = 128000, maxTokens = 16384)
+            PresetModel("mimo-v2-pro", "MiMo V2 Pro (免费，1M，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+            PresetModel("mimo-v2-omni", "MiMo V2 Omni (免费，262K，推理+图片)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
         ),
         supportsDiscovery = false,
         group = ProviderGroup.PRIMARY,
