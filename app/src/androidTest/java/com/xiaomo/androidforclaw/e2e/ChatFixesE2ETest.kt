@@ -6,8 +6,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
 import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -50,42 +48,43 @@ import java.util.concurrent.CopyOnWriteArrayList
 class ChatFixesE2ETest {
 
     companion object {
-        private const val PKG          = "com.xiaomo.androidforclaw"
-        private const val GATEWAY_URL  = "ws://localhost:8765"
-        private const val UI_TIMEOUT   = 10_000L
-        private const val AI_TIMEOUT   = 90_000L
-        // Unique session key per test run so tests don't interfere with each other
+        private const val PKG         = "com.xiaomo.androidforclaw"
+        private const val GATEWAY_URL = "ws://localhost:8765"
+        private const val AI_TIMEOUT  = 90_000L
         private val RUN_ID = UUID.randomUUID().toString().take(8)
-    }
 
-    private lateinit var device: UiDevice
-    private lateinit var scenario: ActivityScenario<MainActivityCompose>
+        private var scenario: ActivityScenario<MainActivityCompose>? = null
 
-    @Before
-    fun setUp() {
-        val instr = InstrumentationRegistry.getInstrumentation()
-        device = UiDevice.getInstance(instr)
-        instr.uiAutomation.executeShellCommand(
-            "appops set $PKG MANAGE_EXTERNAL_STORAGE allow"
-        ).close()
+        @BeforeClass
+        @JvmStatic
+        fun setUpClass() {
+            val instr = InstrumentationRegistry.getInstrumentation()
+            instr.uiAutomation.executeShellCommand(
+                "appops set $PKG MANAGE_EXTERNAL_STORAGE allow"
+            ).close()
 
-        val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivityCompose::class.java)
-        scenario = ActivityScenario.launch(intent)
-        Thread.sleep(3000)
+            val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivityCompose::class.java)
+            scenario = ActivityScenario.launch(intent)
 
-        // Dismiss onboarding if present
-        if (device.findObject(UiSelector().textContains("欢迎使用")).exists()) {
-            device.pressBack()
-            Thread.sleep(1000)
+            // Poll until Gateway TCP port is accepting — no blind sleep
+            val deadline = System.currentTimeMillis() + 30_000L
+            var ready = false
+            while (System.currentTimeMillis() < deadline) {
+                try {
+                    java.net.Socket().use { it.connect(java.net.InetSocketAddress("127.0.0.1", 8765), 500) }
+                    ready = true
+                    break
+                } catch (_: Exception) { Thread.sleep(300) }
+            }
+            assertTrue("Gateway port 8765 should be ready within 30s", ready)
         }
 
-        device.findObject(UiSelector().text("Connect")).waitForExists(UI_TIMEOUT)
-        device.waitForIdle()
-    }
-
-    @After
-    fun tearDown() {
-        scenario.close()
+        @AfterClass
+        @JvmStatic
+        fun tearDownClass() {
+            scenario?.close()
+            scenario = null
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════

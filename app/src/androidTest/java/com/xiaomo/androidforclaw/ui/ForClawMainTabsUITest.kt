@@ -45,10 +45,11 @@ class ForClawMainTabsUITest {
         val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivityCompose::class.java)
         scenario = ActivityScenario.launch(intent)
 
-        Thread.sleep(2000)
+        // Give onboarding time to appear (short), then dismiss if present
+        Thread.sleep(800)
         if (device.findObject(UiSelector().textContains("欢迎使用")).exists()) {
             device.pressBack()
-            Thread.sleep(1000)
+            Thread.sleep(500)
         }
         device.findObject(UiSelector().text("Connect")).waitForExists(TIMEOUT)
         device.waitForIdle()
@@ -76,7 +77,7 @@ class ForClawMainTabsUITest {
         assertTrue("Tab '$label' not found within ${TIMEOUT}ms", obj.waitForExists(TIMEOUT))
         obj.click()
         device.waitForIdle()
-        Thread.sleep(600)
+        Thread.sleep(350)
     }
 
     private fun scrollDown() {
@@ -103,7 +104,13 @@ class ForClawMainTabsUITest {
         findText("Skills")
 
         findText("修改配置").click()
-        Thread.sleep(1200)
+        // Wait until the new screen settles (up to 3s) instead of blind sleep
+        val deadline1 = System.currentTimeMillis() + 3_000L
+        while (device.currentPackageName == PKG &&
+               device.findObject(UiSelector().text("修改配置")).waitForExists(200) &&
+               System.currentTimeMillis() < deadline1) {
+            Thread.sleep(100)
+        }
         device.waitForIdle()
         assertEquals("Should stay in app", PKG, device.currentPackageName)
         assertFalse("Should NOT open 引导页", hasText("欢迎使用", 2000))
@@ -124,7 +131,12 @@ class ForClawMainTabsUITest {
 
         scrollUntilText("模型配置")
         findText("模型配置").click()
-        Thread.sleep(1200)
+        val deadline2 = System.currentTimeMillis() + 3_000L
+        while (device.currentPackageName == PKG &&
+               device.findObject(UiSelector().text("模型配置")).waitForExists(200) &&
+               System.currentTimeMillis() < deadline2) {
+            Thread.sleep(100)
+        }
         device.waitForIdle()
         assertEquals("Should stay in app", PKG, device.currentPackageName)
         device.pressBack()
