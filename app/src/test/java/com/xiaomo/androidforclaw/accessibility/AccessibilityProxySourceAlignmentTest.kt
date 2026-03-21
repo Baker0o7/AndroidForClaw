@@ -6,7 +6,14 @@ import java.io.File
 
 class AccessibilityProxySourceAlignmentTest {
 
-    private val sourceFile = File("src/main/java/com/xiaomo/androidforclaw/accessibility/AccessibilityProxy.kt")
+    private val sourceFile = run {
+        val candidates = listOf(
+            "extensions/observer/src/main/java/com/xiaomo/androidforclaw/accessibility/AccessibilityProxy.kt",
+            "../extensions/observer/src/main/java/com/xiaomo/androidforclaw/accessibility/AccessibilityProxy.kt",
+            "src/main/java/com/xiaomo/androidforclaw/accessibility/AccessibilityProxy.kt"
+        )
+        candidates.map { File(it) }.first { it.exists() }
+    }
 
     @Test
     fun tapAndLongPress_waitForServiceReady_notJustBinderConnected() {
