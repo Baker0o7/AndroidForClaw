@@ -30,7 +30,8 @@ class AgentMethods(
     private val context: Context,
     private val agentLoop: AgentLoop,
     private val sessionManager: SessionManager,
-    private val gateway: GatewayWebSocketServer
+    private val gateway: GatewayWebSocketServer,
+    private val externalActiveJobs: ConcurrentHashMap<String, kotlinx.coroutines.Job>? = null
 ) {
     private val TAG = "AgentMethods"
     private val agentScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -90,39 +91,69 @@ class AgentMethods(
 
     /**
      * agent.wait() - Wait for agent run completion
+     *
+     * Checks both internal runningTasks (from agent()) and externalActiveJobs
+     * (from chat.send in GatewayController) so callers can wait on runs
+     * started through either path.
      */
     suspend fun agentWait(params: AgentWaitParams): AgentWaitResponse {
-        val task = runningTasks[params.runId]
-            ?: return AgentWaitResponse(
-                runId = params.runId,
-                status = "not_found",
-                result = null
-            )
-
         val timeout = params.timeout ?: 30000L
 
-        // Wait for task completion
-        val result = withTimeoutOrNull(timeout) {
-            task.resultChannel.receive()
+        // 1. Check internal runningTasks first (agent() path)
+        val task = runningTasks[params.runId]
+        if (task != null) {
+            val result = withTimeoutOrNull(timeout) {
+                task.resultChannel.receive()
+            }
+
+            return if (result != null) {
+                AgentWaitResponse(
+                    runId = params.runId,
+                    status = "completed",
+                    result = mapOf(
+                        "content" to result.finalContent,
+                        "iterations" to result.iterations,
+                        "toolsUsed" to result.toolsUsed
+                    )
+                )
+            } else {
+                AgentWaitResponse(
+                    runId = params.runId,
+                    status = if (task.status == "error") "error" else "timeout",
+                    result = if (task.status == "error") mapOf("error" to task.error) else null
+                )
+            }
         }
 
-        return if (result != null) {
-            AgentWaitResponse(
-                runId = params.runId,
-                status = "completed",
-                result = mapOf(
-                    "content" to result.finalContent,
-                    "iterations" to result.iterations,
-                    "toolsUsed" to result.toolsUsed
+        // 2. Check externalActiveJobs (chat.send path in GatewayController)
+        val externalJob = externalActiveJobs?.get(params.runId)
+        if (externalJob != null) {
+            if (!externalJob.isActive) {
+                // Job already finished
+                return AgentWaitResponse(
+                    runId = params.runId,
+                    status = "completed",
+                    result = null
                 )
-            )
-        } else {
-            AgentWaitResponse(
+            }
+            // Suspend until the coroutine Job completes, with timeout
+            val completed = withTimeoutOrNull(timeout) {
+                externalJob.join()
+                true
+            }
+            return AgentWaitResponse(
                 runId = params.runId,
-                status = if (task.status == "error") "error" else "timeout",
-                result = if (task.status == "error") mapOf("error" to task.error) else null
+                status = if (completed == true) "completed" else "timeout",
+                result = null
             )
         }
+
+        // 3. Not found in either map — already completed or never existed
+        return AgentWaitResponse(
+            runId = params.runId,
+            status = "completed",
+            result = null
+        )
     }
 
     /**
@@ -251,6 +282,13 @@ Instructions:
                             com.xiaomo.androidforclaw.gateway.GatewayServer.getInstance()?.broadcast("agent.block_reply", mapOf(
                                 "text" to progress.text,
                                 "iteration" to progress.iteration
+                            ))
+                        }
+                        is ProgressUpdate.SteerMessageInjected -> {
+                            Log.d(TAG, "🎯 Steer message injected: ${progress.content.take(100)}")
+                            broadcastEvent("agent.steer_injected", mapOf(
+                                "runId" to runId,
+                                "content" to progress.content.take(200)
                             ))
                         }
                     }

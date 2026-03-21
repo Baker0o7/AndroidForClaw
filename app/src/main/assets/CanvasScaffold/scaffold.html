@@ -25,7 +25,22 @@
 </head>
 <body>
   <div class="icon">🖥️</div>
-  <h2>Screen 功能</h2>
-  <p>请在桌面端 OpenClaw 中使用 Screen / Canvas 功能，Android 端暂不支持。</p>
+  <h2>Canvas</h2>
+  <p>Agent 可通过 canvas.present 命令在此显示网页内容。当前无活跃画布。</p>
+  <script>
+    // OpenClaw Canvas bridge stubs — CanvasController will inject real state
+    window.__openclaw = window.__openclaw || {
+      setDebugStatusEnabled: function() {},
+      setStatus: function() {},
+      renderHome: function(payload) {
+        try {
+          var data = JSON.parse(payload);
+          if (data && data.sessions && data.sessions.length > 0) {
+            document.querySelector('p').textContent = '已连接 · ' + data.sessions.length + ' 个会话';
+          }
+        } catch(e) {}
+      }
+    };
+  </script>
 </body>
 </html>

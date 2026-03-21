@@ -66,7 +66,11 @@ data class OpenClawConfig(
 
 data class ChannelsConfig(
     val feishu: FeishuChannelConfig = FeishuChannelConfig(),
-    val discord: DiscordChannelConfig? = null
+    val discord: DiscordChannelConfig? = null,
+    val slack: SlackChannelConfig? = null,
+    val telegram: TelegramChannelConfig? = null,
+    val whatsapp: WhatsAppChannelConfig? = null,
+    val signal: SignalChannelConfig? = null
 )
 
 data class FeishuChannelConfig(
@@ -171,6 +175,38 @@ data class DiscordAccountPolicyConfig(
     val name: String? = null,
     val dm: DmPolicyConfig? = null,
     val guilds: Map<String, GuildPolicyConfig>? = null
+)
+
+data class SlackChannelConfig(
+    val enabled: Boolean = false,
+    val token: String = "",
+    val dmPolicy: String = "open",
+    val groupPolicy: String = "open",
+    val requireMention: Boolean = true
+)
+
+data class TelegramChannelConfig(
+    val enabled: Boolean = false,
+    val token: String = "",
+    val dmPolicy: String = "open",
+    val groupPolicy: String = "open",
+    val requireMention: Boolean = true
+)
+
+data class WhatsAppChannelConfig(
+    val enabled: Boolean = false,
+    val phoneNumber: String = "",
+    val dmPolicy: String = "open",
+    val groupPolicy: String = "open",
+    val requireMention: Boolean = true
+)
+
+data class SignalChannelConfig(
+    val enabled: Boolean = false,
+    val phoneNumber: String = "",
+    val dmPolicy: String = "open",
+    val groupPolicy: String = "open",
+    val requireMention: Boolean = true
 )
 
 // ============ gateway（对齐 types.gateway.d.ts）============

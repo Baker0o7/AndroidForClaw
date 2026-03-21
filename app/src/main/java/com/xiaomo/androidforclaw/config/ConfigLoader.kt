@@ -408,7 +408,19 @@ class ConfigLoader private constructor() {
             ?: gatewayJson?.optJSONObject("discord")  // legacy fallback
         val discord = discordJson?.let { parseDiscordConfig(it) }
 
-        return ChannelsConfig(feishu = feishu, discord = discord)
+        val slackJson = channelsJson?.optJSONObject("slack")
+        val slack = slackJson?.let { parseSlackConfig(it) }
+
+        val telegramJson = channelsJson?.optJSONObject("telegram")
+        val telegram = telegramJson?.let { parseTelegramConfig(it) }
+
+        val whatsappJson = channelsJson?.optJSONObject("whatsapp")
+        val whatsapp = whatsappJson?.let { parseWhatsAppConfig(it) }
+
+        val signalJson = channelsJson?.optJSONObject("signal")
+        val signal = signalJson?.let { parseSignalConfig(it) }
+
+        return ChannelsConfig(feishu = feishu, discord = discord, slack = slack, telegram = telegram, whatsapp = whatsapp, signal = signal)
     }
 
     /**
@@ -585,6 +597,46 @@ class ConfigLoader private constructor() {
             guilds = guilds,
             replyToMode = if (json.has("replyToMode")) json.optString("replyToMode") else null,
             accounts = accounts
+        )
+    }
+
+    private fun parseSlackConfig(json: JSONObject): SlackChannelConfig {
+        return SlackChannelConfig(
+            enabled = json.optBoolean("enabled", false),
+            token = json.optString("token", ""),
+            dmPolicy = json.optString("dmPolicy", "open"),
+            groupPolicy = json.optString("groupPolicy", "open"),
+            requireMention = json.optBoolean("requireMention", true)
+        )
+    }
+
+    private fun parseTelegramConfig(json: JSONObject): TelegramChannelConfig {
+        return TelegramChannelConfig(
+            enabled = json.optBoolean("enabled", false),
+            token = json.optString("token", ""),
+            dmPolicy = json.optString("dmPolicy", "open"),
+            groupPolicy = json.optString("groupPolicy", "open"),
+            requireMention = json.optBoolean("requireMention", true)
+        )
+    }
+
+    private fun parseWhatsAppConfig(json: JSONObject): WhatsAppChannelConfig {
+        return WhatsAppChannelConfig(
+            enabled = json.optBoolean("enabled", false),
+            phoneNumber = json.optString("phoneNumber", ""),
+            dmPolicy = json.optString("dmPolicy", "open"),
+            groupPolicy = json.optString("groupPolicy", "open"),
+            requireMention = json.optBoolean("requireMention", true)
+        )
+    }
+
+    private fun parseSignalConfig(json: JSONObject): SignalChannelConfig {
+        return SignalChannelConfig(
+            enabled = json.optBoolean("enabled", false),
+            phoneNumber = json.optString("phoneNumber", ""),
+            dmPolicy = json.optString("dmPolicy", "open"),
+            groupPolicy = json.optString("groupPolicy", "open"),
+            requireMention = json.optBoolean("requireMention", true)
         )
     }
 
@@ -808,6 +860,47 @@ class ConfigLoader private constructor() {
         feishuObj.put("groupCommandMentionBypass", feishu.groupCommandMentionBypass)
         feishuObj.put("allowMentionlessInMultiBotGroup", feishu.allowMentionlessInMultiBotGroup)
         channelsObj.put("feishu", feishuObj)
+
+        config.channels.slack?.let { slack ->
+            val obj = JSONObject()
+            obj.put("enabled", slack.enabled)
+            obj.put("token", slack.token)
+            obj.put("dmPolicy", slack.dmPolicy)
+            obj.put("groupPolicy", slack.groupPolicy)
+            obj.put("requireMention", slack.requireMention)
+            channelsObj.put("slack", obj)
+        }
+
+        config.channels.telegram?.let { telegram ->
+            val obj = JSONObject()
+            obj.put("enabled", telegram.enabled)
+            obj.put("token", telegram.token)
+            obj.put("dmPolicy", telegram.dmPolicy)
+            obj.put("groupPolicy", telegram.groupPolicy)
+            obj.put("requireMention", telegram.requireMention)
+            channelsObj.put("telegram", obj)
+        }
+
+        config.channels.whatsapp?.let { whatsapp ->
+            val obj = JSONObject()
+            obj.put("enabled", whatsapp.enabled)
+            obj.put("phoneNumber", whatsapp.phoneNumber)
+            obj.put("dmPolicy", whatsapp.dmPolicy)
+            obj.put("groupPolicy", whatsapp.groupPolicy)
+            obj.put("requireMention", whatsapp.requireMention)
+            channelsObj.put("whatsapp", obj)
+        }
+
+        config.channels.signal?.let { signal ->
+            val obj = JSONObject()
+            obj.put("enabled", signal.enabled)
+            obj.put("phoneNumber", signal.phoneNumber)
+            obj.put("dmPolicy", signal.dmPolicy)
+            obj.put("groupPolicy", signal.groupPolicy)
+            obj.put("requireMention", signal.requireMention)
+            channelsObj.put("signal", obj)
+        }
+
         root.put("channels", channelsObj)
 
         // Gateway (对齐 OpenClaw: 只有 port/mode/bind/auth)

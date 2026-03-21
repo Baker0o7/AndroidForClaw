@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.TelegramChannelConfig
 import kotlinx.coroutines.launch
 
 class TelegramChannelActivity : ComponentActivity() {
@@ -40,11 +41,12 @@ fun TelegramChannelScreen(
     val scope = rememberCoroutineScope()
     val configLoader = remember { ConfigLoader(context) }
 
-    var enabled by remember { mutableStateOf(false) }
-    var token by remember { mutableStateOf("") }
-    var dmPolicy by remember { mutableStateOf("open") }
-    var groupPolicy by remember { mutableStateOf("open") }
-    var requireMention by remember { mutableStateOf(true) }
+    val savedConfig = remember { configLoader.loadOpenClawConfig().channels.telegram }
+    var enabled by remember { mutableStateOf(savedConfig?.enabled ?: false) }
+    var token by remember { mutableStateOf(savedConfig?.token ?: "") }
+    var dmPolicy by remember { mutableStateOf(savedConfig?.dmPolicy ?: "open") }
+    var groupPolicy by remember { mutableStateOf(savedConfig?.groupPolicy ?: "open") }
+    var requireMention by remember { mutableStateOf(savedConfig?.requireMention ?: true) }
     var showSaveSuccess by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -60,7 +62,18 @@ fun TelegramChannelScreen(
                     TextButton(
                         onClick = {
                             scope.launch {
-                                // TODO: Save telegram config to openclaw.json
+                                val currentConfig = configLoader.loadOpenClawConfig()
+                                val updatedChannelConfig = (currentConfig.channels.telegram ?: TelegramChannelConfig()).copy(
+                                    enabled = enabled,
+                                    token = token,
+                                    dmPolicy = dmPolicy,
+                                    groupPolicy = groupPolicy,
+                                    requireMention = requireMention
+                                )
+                                val updatedConfig = currentConfig.copy(
+                                    channels = currentConfig.channels.copy(telegram = updatedChannelConfig)
+                                )
+                                configLoader.saveOpenClawConfig(updatedConfig)
                                 showSaveSuccess = true
                             }
                         }

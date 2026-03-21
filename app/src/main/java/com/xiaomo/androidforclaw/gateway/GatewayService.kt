@@ -12,6 +12,9 @@ import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoWSD
 import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Gateway Service - WebSocket RPC service
@@ -33,6 +36,9 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
     private val gson = Gson()
     private val sessions = mutableMapOf<String, GatewaySession>()
     private var agentHandler: AgentHandler? = null
+
+    // Track active agent runs: runId -> CountDownLatch (signaled on completion)
+    private val activeRuns = ConcurrentHashMap<String, CountDownLatch>()
 
     /**
      * Set Agent handler
@@ -142,6 +148,11 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                 Log.d(TAG, "   ↳ Use current WebSocket session")
             }
 
+            // Generate a runId for tracking by agent.wait
+            val runId = "run_${System.currentTimeMillis()}_${(1000..9999).random()}"
+            val latch = CountDownLatch(1)
+            activeRuns[runId] = latch
+
             // Execute Agent asynchronously
             Thread {
                 try {
@@ -166,6 +177,10 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                             }.start()
                         },
                         completeCallback = { result ->
+                            // Signal completion for agent.wait callers
+                            latch.countDown()
+                            activeRuns.remove(runId)
+
                             // Send completion result (in new thread to avoid NetworkOnMainThreadException)
                             Thread {
                                 try {
@@ -177,6 +192,8 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                         }
                     )
                 } catch (e: Exception) {
+                    latch.countDown()
+                    activeRuns.remove(runId)
                     sendError("Agent execution failed: ${e.message}", request.id)
                 }
             }.start()
@@ -184,6 +201,10 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
 
         /**
          * agent.wait() - Wait for Agent completion
+         *
+         * Looks up the run by runId in activeRuns. If found and still running,
+         * blocks until completion or timeout. If not found (already completed
+         * or never existed), returns completed immediately.
          */
         private fun handleAgentWaitRequest(request: RpcRequest) {
             val params = request.params ?: run {
@@ -196,11 +217,40 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                 return
             }
 
-            // TODO: implement agent.wait logic
-            sendResponse(request.id, mapOf(
-                "status" to "completed",
-                "runId" to runId
-            ))
+            val timeoutMs = params.timeout ?: 30000L
+
+            val latch = activeRuns[runId]
+            if (latch == null) {
+                // Run not found — already completed or never existed
+                sendResponse(request.id, mapOf(
+                    "status" to "completed",
+                    "runId" to runId
+                ))
+                return
+            }
+
+            // Wait on a background thread to avoid blocking the WebSocket handler
+            Thread {
+                try {
+                    val completed = latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+                    if (completed) {
+                        sendResponse(request.id, mapOf(
+                            "status" to "completed",
+                            "runId" to runId
+                        ))
+                    } else {
+                        sendResponse(request.id, mapOf(
+                            "status" to "timeout",
+                            "runId" to runId
+                        ))
+                    }
+                } catch (e: InterruptedException) {
+                    sendResponse(request.id, mapOf(
+                        "status" to "timeout",
+                        "runId" to runId
+                    ))
+                }
+            }.start()
         }
 
         /**
@@ -374,7 +424,8 @@ data class RpcParams(
     val tools: List<Any>?,
     val maxIterations: Int?,
     val runId: String?,
-    val sessionId: String?
+    val sessionId: String?,
+    val timeout: Long? = null
 )
 
 /**

@@ -632,6 +632,14 @@ object MainEntryNew {
                     )
                 }
             }
+
+            is ProgressUpdate.SteerMessageInjected -> {
+                Log.d(TAG, "🎯 Steer message injected: ${update.content.take(100)}")
+                SessionFloatWindow.updateSessionInfo(
+                    title = "消息注入",
+                    content = update.content.take(100) + if (update.content.length > 100) "..." else ""
+                )
+            }
         }
     }
 

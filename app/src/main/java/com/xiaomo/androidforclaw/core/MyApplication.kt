@@ -1300,6 +1300,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     modelRef = null
                 )
 
+                // Register AgentLoop for STEER mode mid-run message injection
+                val steerQueueKey = "feishu:${event.chatId}"
+                messageQueueManager.setActiveAgentLoop(steerQueueKey, agentLoop)
+
                 // Build system prompt (with channel context for messaging awareness)
                 val channelCtx = ContextBuilder.ChannelContext(
                     channel = "feishu",
@@ -1336,12 +1340,17 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 }
 
                 // Run AgentLoop (convert history messages)
-                val result = agentLoop.run(
-                    systemPrompt = systemPrompt,
-                    userMessage = event.content,
-                    contextHistory = contextHistory.map { it.toNewMessage() },
-                    reasoningEnabled = true
-                )
+                val result = try {
+                    agentLoop.run(
+                        systemPrompt = systemPrompt,
+                        userMessage = event.content,
+                        contextHistory = contextHistory.map { it.toNewMessage() },
+                        reasoningEnabled = true
+                    )
+                } finally {
+                    // Always unregister after the run completes (or fails)
+                    messageQueueManager.clearActiveAgentLoop(steerQueueKey)
+                }
 
                 // Stop progress listener
                 progressJob.cancel()

@@ -130,6 +130,16 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
     fun get(jobId: String): CronJob? = lock.withLock { jobs.find { it.id == jobId } }
 
+    /**
+     * Query run history for a given job.
+     * @param jobId the cron job ID
+     * @param limit maximum number of entries to return (most recent first)
+     * @param status optional filter by RunStatus
+     */
+    fun queryRuns(jobId: String, limit: Int = 100, status: RunStatus? = null): List<CronRunLogEntry> {
+        return runLog.query(jobId, limit, status)
+    }
+
     fun run(jobId: String, force: Boolean = false): Boolean {
         val job = get(jobId) ?: return false
         if (!force && job.state.nextRunAtMs?.let { it > System.currentTimeMillis() } == true) {

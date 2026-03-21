@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.WhatsAppChannelConfig
 import kotlinx.coroutines.launch
 
 class WhatsAppChannelActivity : ComponentActivity() {
@@ -40,11 +41,12 @@ fun WhatsAppChannelScreen(
     val scope = rememberCoroutineScope()
     val configLoader = remember { ConfigLoader(context) }
 
-    var enabled by remember { mutableStateOf(false) }
-    var token by remember { mutableStateOf("") }
-    var dmPolicy by remember { mutableStateOf("open") }
-    var groupPolicy by remember { mutableStateOf("open") }
-    var requireMention by remember { mutableStateOf(true) }
+    val savedConfig = remember { configLoader.loadOpenClawConfig().channels.whatsapp }
+    var enabled by remember { mutableStateOf(savedConfig?.enabled ?: false) }
+    var phoneNumber by remember { mutableStateOf(savedConfig?.phoneNumber ?: "") }
+    var dmPolicy by remember { mutableStateOf(savedConfig?.dmPolicy ?: "open") }
+    var groupPolicy by remember { mutableStateOf(savedConfig?.groupPolicy ?: "open") }
+    var requireMention by remember { mutableStateOf(savedConfig?.requireMention ?: true) }
     var showSaveSuccess by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -60,7 +62,18 @@ fun WhatsAppChannelScreen(
                     TextButton(
                         onClick = {
                             scope.launch {
-                                // TODO: Save whatsapp config to openclaw.json
+                                val currentConfig = configLoader.loadOpenClawConfig()
+                                val updatedChannelConfig = (currentConfig.channels.whatsapp ?: WhatsAppChannelConfig()).copy(
+                                    enabled = enabled,
+                                    phoneNumber = phoneNumber,
+                                    dmPolicy = dmPolicy,
+                                    groupPolicy = groupPolicy,
+                                    requireMention = requireMention
+                                )
+                                val updatedConfig = currentConfig.copy(
+                                    channels = currentConfig.channels.copy(whatsapp = updatedChannelConfig)
+                                )
+                                configLoader.saveOpenClawConfig(updatedConfig)
                                 showSaveSuccess = true
                             }
                         }
@@ -91,10 +104,10 @@ fun WhatsAppChannelScreen(
 
             Divider()
 
-            // Token
+            // Phone Number
             OutlinedTextField(
-                value = token,
-                onValueChange = { token = it },
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
                 label = { Text("Phone Number") },
                 placeholder = { Text("WhatsApp registered phone number") },
                 modifier = Modifier.fillMaxWidth(),

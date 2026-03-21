@@ -162,8 +162,47 @@ object CronMethods {
     }
 
     fun runs(params: JSONObject): JSONObject {
-        return JSONObject().apply {
-            put("error", JSONObject(mapOf("code" to "NOT_IMPLEMENTED", "message" to "cron.runs not implemented")))
+        val service = cronService ?: return JSONObject().apply {
+            put("error", JSONObject(mapOf("code" to "SERVICE_NOT_INITIALIZED", "message" to "Cron not initialized")))
+        }
+
+        return try {
+            val jobId = params.optString("id").ifEmpty { null }
+                ?: params.optString("jobId").ifEmpty { null }
+            if (jobId == null) {
+                return JSONObject().apply {
+                    put("error", JSONObject(mapOf("code" to "MISSING_JOB_ID", "message" to "Missing job id")))
+                }
+            }
+
+            val limit = params.optInt("limit", 100)
+            val statusFilter = params.optString("status", "").ifEmpty { null }?.let { s ->
+                try { RunStatus.valueOf(s.uppercase()) } catch (_: Exception) { null }
+            }
+
+            val entries = service.queryRuns(jobId, limit, statusFilter)
+
+            JSONObject().apply {
+                put("runs", JSONArray(entries.map { entry ->
+                    JSONObject().apply {
+                        put("ts", entry.ts)
+                        put("jobId", entry.jobId)
+                        put("action", entry.action)
+                        entry.status?.let { put("status", it.name.lowercase()) }
+                        entry.error?.let { put("error", it) }
+                        entry.summary?.let { put("summary", it) }
+                        entry.runAtMs?.let { put("runAtMs", it) }
+                        entry.durationMs?.let { put("durationMs", it) }
+                        entry.nextRunAtMs?.let { put("nextRunAtMs", it) }
+                    }
+                }))
+                put("total", entries.size)
+                put("jobId", jobId)
+            }
+        } catch (e: Exception) {
+            JSONObject().apply {
+                put("error", JSONObject(mapOf("code" to "RUNS_FAILED", "message" to (e.message ?: "Failed"))))
+            }
         }
     }
 

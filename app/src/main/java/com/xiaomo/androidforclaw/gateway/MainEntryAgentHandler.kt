@@ -206,6 +206,10 @@ class MainEntryAgentHandler(
                 "text" to update.text,
                 "iteration" to update.iteration
             )
+            is ProgressUpdate.SteerMessageInjected -> mapOf(
+                "type" to "steer_message_injected",
+                "content" to update.content
+            )
         }
     }
 }

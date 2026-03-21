@@ -6,6 +6,7 @@ package com.xiaomo.androidforclaw.core
  */
 
 
+import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
@@ -85,6 +86,29 @@ class MessageQueueManager {
 
     // Base queue (for followup and queue modes)
     private val baseQueue = KeyedAsyncQueue()
+
+    // Active AgentLoop instances keyed by queue key.
+    // Set when an agent run starts; cleared when it finishes.
+    // Used by STEER mode to inject mid-run messages.
+    private val activeAgentLoops = ConcurrentHashMap<String, AgentLoop>()
+
+    /**
+     * Register the currently running AgentLoop for a queue key.
+     * Call this before starting an agent run so that STEER mode can
+     * push messages into the agent's steerChannel.
+     */
+    fun setActiveAgentLoop(key: String, agentLoop: AgentLoop) {
+        activeAgentLoops[key] = agentLoop
+        Log.d(TAG, "🎯 [STEER] Registered active AgentLoop for $key")
+    }
+
+    /**
+     * Unregister the AgentLoop for a queue key (call when the run finishes).
+     */
+    fun clearActiveAgentLoop(key: String) {
+        activeAgentLoops.remove(key)
+        Log.d(TAG, "🎯 [STEER] Cleared active AgentLoop for $key")
+    }
 
     /**
      * Enqueue message
@@ -380,17 +404,25 @@ class MessageQueueManager {
     }
 
     /**
-     * Notify AgentLoop of new message (STEER mode)
+     * Notify AgentLoop of new message (STEER mode).
      *
-     * TODO: Requires AgentLoop support for message injection
+     * Sends the message content into the active AgentLoop's steerChannel.
+     * The agent loop drains the channel after each tool-execution round and
+     * injects the messages as user turns before the next LLM call.
      */
     private fun notifyAgentLoop(key: String, message: QueuedMessage) {
-        // Need to implement communication mechanism with AgentLoop
-        // Possible approaches:
-        // 1. Use SharedFlow to broadcast new messages
-        // 2. Check queue before each AgentLoop iteration
-        // 3. Use Channel to pass messages
-        Log.d(TAG, "⚠️  [STEER] notifyAgentLoop not implemented yet")
+        val agentLoop = activeAgentLoops[key]
+        if (agentLoop == null) {
+            Log.w(TAG, "⚠️ [STEER] No active AgentLoop for key=$key, steer message dropped")
+            return
+        }
+
+        val sent = agentLoop.steerChannel.trySend(message.content)
+        if (sent.isSuccess) {
+            Log.i(TAG, "🎯 [STEER] Message injected into AgentLoop for $key: ${message.content.take(50)}...")
+        } else {
+            Log.w(TAG, "⚠️ [STEER] steerChannel full or closed for $key, message dropped")
+        }
     }
 
     /**

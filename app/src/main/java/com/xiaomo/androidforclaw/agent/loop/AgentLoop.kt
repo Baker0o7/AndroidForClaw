@@ -35,6 +35,7 @@ import com.xiaomo.androidforclaw.providers.llm.assistantMessage
 import com.xiaomo.androidforclaw.providers.llm.toolMessage
 import com.xiaomo.androidforclaw.util.LayoutExceptionLogger
 import com.google.gson.Gson
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -126,6 +127,17 @@ class AgentLoop(
         extraBufferCapacity = 10
     )
     val progressFlow: SharedFlow<ProgressUpdate> = _progressFlow.asSharedFlow()
+
+    /**
+     * Steer message channel: external code (e.g. MessageQueueManager) can send
+     * mid-run user messages into this channel.  The main loop drains it after
+     * each tool-execution round and injects the messages into the conversation
+     * before the next LLM call.
+     *
+     * Uses a Channel (not SharedFlow) so that tryReceive() is available for
+     * non-suspending drain inside the loop.
+     */
+    val steerChannel = Channel<String>(capacity = 16)
 
     // Stop flag
     @Volatile
@@ -655,6 +667,15 @@ class AgentLoop(
                     // Continue loop, let LLM decide next step after seeing function results
                     if (shouldStop) break
 
+                    // Drain steer messages injected by MessageQueueManager (STEER mode)
+                    while (true) {
+                        val steerMsg = steerChannel.tryReceive().getOrNull() ?: break
+                        Log.i(TAG, "Injecting steer message: ${steerMsg.take(50)}...")
+                        writeLog("🎯 [STEER] Injecting mid-run user message: ${steerMsg.take(100)}")
+                        messages.add(userMessage(steerMsg))
+                        _progressFlow.emit(ProgressUpdate.SteerMessageInjected(steerMsg))
+                    }
+
                     val iterationDuration = System.currentTimeMillis() - iterationStartTime
                     writeLog("⏱️ 本轮迭代总耗时: ${iterationDuration}ms (LLM: ${llmDuration}ms, 执行: ${totalExecDuration}ms)")
 
@@ -987,4 +1008,7 @@ sealed class ProgressUpdate {
      * (not held until the final answer).
      */
     data class BlockReply(val text: String, val iteration: Int) : ProgressUpdate()
+
+    /** A steer message was injected into the conversation mid-run */
+    data class SteerMessageInjected(val content: String) : ProgressUpdate()
 }

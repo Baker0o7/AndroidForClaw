@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.SlackChannelConfig
 import kotlinx.coroutines.launch
 
 class SlackChannelActivity : ComponentActivity() {
@@ -40,11 +41,12 @@ fun SlackChannelScreen(
     val scope = rememberCoroutineScope()
     val configLoader = remember { ConfigLoader(context) }
 
-    var enabled by remember { mutableStateOf(false) }
-    var token by remember { mutableStateOf("") }
-    var dmPolicy by remember { mutableStateOf("open") }
-    var groupPolicy by remember { mutableStateOf("open") }
-    var requireMention by remember { mutableStateOf(true) }
+    val savedConfig = remember { configLoader.loadOpenClawConfig().channels.slack }
+    var enabled by remember { mutableStateOf(savedConfig?.enabled ?: false) }
+    var token by remember { mutableStateOf(savedConfig?.token ?: "") }
+    var dmPolicy by remember { mutableStateOf(savedConfig?.dmPolicy ?: "open") }
+    var groupPolicy by remember { mutableStateOf(savedConfig?.groupPolicy ?: "open") }
+    var requireMention by remember { mutableStateOf(savedConfig?.requireMention ?: true) }
     var showSaveSuccess by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -60,7 +62,18 @@ fun SlackChannelScreen(
                     TextButton(
                         onClick = {
                             scope.launch {
-                                // TODO: Save slack config to openclaw.json
+                                val currentConfig = configLoader.loadOpenClawConfig()
+                                val updatedChannelConfig = (currentConfig.channels.slack ?: SlackChannelConfig()).copy(
+                                    enabled = enabled,
+                                    token = token,
+                                    dmPolicy = dmPolicy,
+                                    groupPolicy = groupPolicy,
+                                    requireMention = requireMention
+                                )
+                                val updatedConfig = currentConfig.copy(
+                                    channels = currentConfig.channels.copy(slack = updatedChannelConfig)
+                                )
+                                configLoader.saveOpenClawConfig(updatedConfig)
                                 showSaveSuccess = true
                             }
                         }

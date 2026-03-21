@@ -176,6 +176,7 @@ class AgentLoopE2ETest {
                         is ProgressUpdate.Error -> IterationLog(0, "error", toolResult = update.message)
                         is ProgressUpdate.ContextOverflow -> IterationLog(0, "error", toolResult = "context_overflow: ${update.message}")
                         is ProgressUpdate.ContextRecovered -> IterationLog(0, "context_recovered", toolResult = update.strategy)
+                        is ProgressUpdate.SteerMessageInjected -> IterationLog(0, "steer_injected", toolResult = update.content)
                     }
                     iterationLogs.add(log)
                 }

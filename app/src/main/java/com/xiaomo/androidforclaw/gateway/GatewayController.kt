@@ -104,7 +104,7 @@ class GatewayController(
                 tokenAuth = tokenAuth
             ).apply {
                 // Initialize method handlers
-                agentMethods = AgentMethods(context, agentLoop, sessionManager, this)
+                agentMethods = AgentMethods(context, agentLoop, sessionManager, this, activeJobs)
                 sessionMethods = SessionMethods(sessionManager)
                 healthMethods = HealthMethods()
                 modelsMethods = ModelsMethods(context)
