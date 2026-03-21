@@ -5,7 +5,7 @@
 package com.xiaomo.androidforclaw.accessibility
 
 import android.content.Context
-import com.xiaomo.androidforclaw.logging.Log
+import android.util.Log
 import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

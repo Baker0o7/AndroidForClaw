@@ -8,7 +8,7 @@ import android.content.Context
 import android.provider.Settings
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
-import com.xiaomo.androidforclaw.util.MediaProjectionHelper
+import com.xiaomo.androidforclaw.accessibility.MediaProjectionHelper
 import java.util.UUID
 
 /**

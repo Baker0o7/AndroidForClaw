@@ -40,7 +40,7 @@ import com.xiaomo.androidforclaw.util.ChatBroadcastReceiver
 import ai.openclaw.app.MainViewModel
 import ai.openclaw.app.ui.RootScreen
 import ai.openclaw.app.ui.OpenClawTheme
-import com.xiaomo.androidforclaw.util.MediaProjectionHelper
+import com.xiaomo.androidforclaw.accessibility.MediaProjectionHelper
 import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
 import com.tencent.mmkv.MMKV
 import com.xiaomo.androidforclaw.util.MMKVKeys
