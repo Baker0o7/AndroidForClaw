@@ -242,6 +242,12 @@ object ProviderRegistry {
             discoveryEndpoint = "/api/tags"
         ),
         ProviderDefinition(
+            id = "nvidia", name = "NVIDIA NIM", description = "NVIDIA 托管模型",
+            baseUrl = "https://integrate.api.nvidia.com/v1", api = ModelApi.OPENAI_COMPLETIONS,
+            keyRequired = true, keyHint = "NVIDIA API Key", envVarName = "NVIDIA_API_KEY",
+            group = ProviderGroup.PRIMARY, order = 60
+        ),
+        ProviderDefinition(
             id = "custom", name = "自定义 (OpenAI 兼容)", description = "自定义 API",
             baseUrl = "", api = ModelApi.OPENAI_COMPLETIONS,
             keyRequired = false, keyHint = "API Key", envVarName = "",

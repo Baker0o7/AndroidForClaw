@@ -118,6 +118,19 @@ class ModelSetupActivity : AppCompatActivity() {
                     ModelPreset("o3", "o3 (推理)")
                 )
             ),
+            "nvidia" to ProviderPreset(
+                name = "NVIDIA NIM",
+                baseUrl = "https://integrate.api.nvidia.com/v1",
+                api = "openai-completions",
+                hint = "NVIDIA NIM 托管模型，免费试用。注册: build.nvidia.com",
+                models = listOf(
+                    ModelPreset("moonshotai/kimi-k2.5", "Kimi K2.5 (免费，多模态)", contextWindow = 131072, maxTokens = 8192),
+                    ModelPreset("deepseek-ai/deepseek-r1", "DeepSeek R1 (免费，推理)", reasoning = true, contextWindow = 131072, maxTokens = 8192),
+                    ModelPreset("meta/llama-4-maverick-17b-128e-instruct", "Llama 4 Maverick 17B", contextWindow = 131072, maxTokens = 8192),
+                    ModelPreset("", "手动输入模型 ID")
+                ),
+                authHeader = true
+            ),
             "custom" to ProviderPreset(
                 name = "自定义",
                 baseUrl = "",
@@ -222,6 +235,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 checkedIds.contains(R.id.chip_google) -> "google"
                 checkedIds.contains(R.id.chip_anthropic) -> "anthropic"
                 checkedIds.contains(R.id.chip_openai) -> "openai"
+                checkedIds.contains(R.id.chip_nvidia) -> "nvidia"
                 checkedIds.contains(R.id.chip_custom) -> "custom"
                 else -> "openrouter"
             }
@@ -241,6 +255,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 "anthropic" -> "Anthropic API Key"
                 "openai" -> "OpenAI API Key"
                 "google" -> "Gemini API Key"
+                "nvidia" -> "NVIDIA API Key"
                 else -> "API Key"
             }
             (tilApiKey as? com.google.android.material.textfield.TextInputLayout)?.helperText = when (providerKey) {
@@ -249,6 +264,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 "anthropic" -> "以 sk-ant- 开头"
                 "openai" -> "以 sk- 开头"
                 "google" -> "在 aistudio.google.com/apikey 获取"
+                "nvidia" -> "以 nvapi- 开头，在 build.nvidia.com 获取"
                 else -> null
             }
 

@@ -223,6 +223,13 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice" />
 
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_nvidia"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="NVIDIA NIM"
+                        style="@style/Widget.MaterialComponents.Chip.Choice" />
+
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/chip_custom"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
