@@ -19,7 +19,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
 import com.xiaomo.androidforclaw.ui.compose.ForClawConnectTab
 import com.xiaomo.androidforclaw.ui.compose.ForClawSettingsTab
 import com.xiaomo.androidforclaw.util.ChatBroadcastReceiver
@@ -97,6 +97,10 @@ suspend fun isS4ClawAccessibilityEnabled(context: Context): Boolean {
  */
 class MainActivityCompose : ComponentActivity() {
 
+    private val openClawViewModel: MainViewModel by lazy {
+        ViewModelProvider(this)[MainViewModel::class.java]
+    }
+
     /**
      * Workaround for Compose 1.4.x hover event crash on some MIUI devices.
      * See: https://issuetracker.google.com/issues/286991266
@@ -167,8 +171,6 @@ class MainActivityCompose : ComponentActivity() {
             .apply()
 
         setContent {
-            val openClawViewModel: MainViewModel = viewModel()
-
             // Trigger loopback connection once the Compose tree is ready.
             LaunchedEffect(Unit) {
                 openClawViewModel.connectManual()
@@ -200,6 +202,11 @@ class MainActivityCompose : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        openClawViewModel.setForeground(true)
+    }
+
     override fun onResume() {
         super.onResume()
         // Refresh permission LiveData on every resume
@@ -208,6 +215,11 @@ class MainActivityCompose : ComponentActivity() {
         SessionFloatWindow.setMainActivityVisible(true, this)
         // Silent update check on every resume (cold + warm start)
         silentUpdateCheck()
+    }
+
+    override fun onStop() {
+        openClawViewModel.setForeground(false)
+        super.onStop()
     }
 
     /**
