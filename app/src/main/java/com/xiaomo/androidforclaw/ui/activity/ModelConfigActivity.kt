@@ -74,14 +74,11 @@ class ModelConfigActivity : AppCompatActivity() {
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val insets = windowInsets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             val bottomInset = insets.bottom
+            val dp16 = (16 * resources.displayMetrics.density).toInt()
             // Page 1: provider list scroll view needs bottom padding for nav bar
             binding.scrollProviderList.setPadding(0, 0, 0, bottomInset)
-            // Page 2: save button container sits above navigation bar
-            val btnContainer = binding.btnSave.parent as? android.view.View
-            btnContainer?.setPadding(
-                btnContainer.paddingLeft, btnContainer.paddingTop,
-                btnContainer.paddingRight, bottomInset + (16 * resources.displayMetrics.density).toInt()
-            )
+            // Page 2: bottom buttons container sits above navigation bar
+            binding.containerBottomButtons.setPadding(dp16, (8 * resources.displayMetrics.density).toInt(), dp16, bottomInset + dp16)
             windowInsets
         }
     }
