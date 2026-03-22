@@ -88,8 +88,10 @@ class ProcessExecutor(private val env: TermuxEnvironment) {
         // Wrap command with exec-wrappers.sh
         val wrappedCommand = wrapWithLinkerFunctions(command)
 
-        // Args: -c "command"
-        val args = arrayOf("-c", wrappedCommand)
+        // Args: --norc --noprofile -c "command"
+        // --norc/--noprofile prevents bash from reading /data/data/com.termux/... bashrc
+        // (hardcoded in the binary, not our package path)
+        val args = arrayOf("--norc", "--noprofile", "-c", wrappedCommand)
 
         val processId = intArrayOf(-1)
 
@@ -251,10 +253,11 @@ class ProcessExecutor(private val env: TermuxEnvironment) {
 
     /**
      * Build the command list to execute the shell via linker64.
+     * Uses --norc --noprofile to skip hardcoded /data/data/com.termux bashrc.
      */
     private fun buildExecCommand(shellPath: String, command: String): List<String> {
         val linker = if (File(LINKER64).exists()) LINKER64 else LINKER32
-        return listOf(linker, shellPath, "-c", command)
+        return listOf(linker, shellPath, "--norc", "--noprofile", "-c", command)
     }
 
     /**
