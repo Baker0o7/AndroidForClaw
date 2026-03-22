@@ -115,19 +115,19 @@ class ChatController(
     val key = sessionKey.trim()
     if (key.isEmpty()) return
     scope.launch {
-      try {
-        val params = buildJsonObject { put("sessionKey", JsonPrimitive(key)) }
-        session.request("session.clear", params.toString())
-      } catch (_: Throwable) {
-        // best-effort gateway clear
-      }
-      // Remove from local list immediately
+      // Remove from local list immediately for responsive UI
       _sessions.value = _sessions.value.filter { it.key != key }
       // If deleted the active session, switch to main
       if (_sessionKey.value == key) {
         val fallback = _sessions.value.firstOrNull()?.key ?: "main"
         _sessionKey.value = fallback
         bootstrap(forceHealth = false, refreshSessions = true)
+      }
+      try {
+        val params = buildJsonObject { put("key", JsonPrimitive(key)) }
+        session.request("sessions.delete", params.toString())
+      } catch (_: Throwable) {
+        // best-effort gateway delete
       }
     }
   }
