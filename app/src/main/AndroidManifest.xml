@@ -86,13 +86,6 @@
             </intent-filter>
         </activity>
 
-        <!-- 主页 - 旧版XML (备用) -->
-        <activity
-            android:name="com.xiaomo.androidforclaw.ui.activity.MainActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
-
         <!-- 模型配置引导页（首次启动） -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ModelSetupActivity"
