@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - ../openclaw/src/config/types.slack.ts  (SlackAccountConfig, SlackConfig)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -16,9 +17,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.config.SlackChannelConfig
+import com.xiaomo.androidforclaw.ui.compose.ChannelModelPicker
 import kotlinx.coroutines.launch
 
 class SlackChannelActivity : ComponentActivity() {
@@ -41,12 +44,20 @@ fun SlackChannelScreen(
     val scope = rememberCoroutineScope()
     val configLoader = remember { ConfigLoader(context) }
 
-    val savedConfig = remember { configLoader.loadOpenClawConfig().channels.slack }
+    val openClawConfig = remember { configLoader.loadOpenClawConfig() }
+    val savedConfig = remember { openClawConfig.channels.slack }
+
     var enabled by remember { mutableStateOf(savedConfig?.enabled ?: false) }
-    var token by remember { mutableStateOf(savedConfig?.token ?: "") }
+    var botToken by remember { mutableStateOf(savedConfig?.botToken ?: "") }
+    var appToken by remember { mutableStateOf(savedConfig?.appToken ?: "") }
+    var signingSecret by remember { mutableStateOf(savedConfig?.signingSecret ?: "") }
+    var mode by remember { mutableStateOf(savedConfig?.mode ?: "socket") }
     var dmPolicy by remember { mutableStateOf(savedConfig?.dmPolicy ?: "open") }
     var groupPolicy by remember { mutableStateOf(savedConfig?.groupPolicy ?: "open") }
     var requireMention by remember { mutableStateOf(savedConfig?.requireMention ?: true) }
+    var historyLimitText by remember { mutableStateOf(savedConfig?.historyLimit?.toString() ?: "") }
+    var streaming by remember { mutableStateOf(savedConfig?.streaming ?: "partial") }
+    var model by remember { mutableStateOf(savedConfig?.model) }
     var showSaveSuccess by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -63,23 +74,26 @@ fun SlackChannelScreen(
                         onClick = {
                             scope.launch {
                                 val currentConfig = configLoader.loadOpenClawConfig()
-                                val updatedChannelConfig = (currentConfig.channels.slack ?: SlackChannelConfig()).copy(
+                                val updated = (currentConfig.channels.slack ?: SlackChannelConfig()).copy(
                                     enabled = enabled,
-                                    token = token,
+                                    botToken = botToken,
+                                    appToken = appToken.takeIf { it.isNotBlank() },
+                                    signingSecret = signingSecret.takeIf { it.isNotBlank() },
+                                    mode = mode,
                                     dmPolicy = dmPolicy,
                                     groupPolicy = groupPolicy,
-                                    requireMention = requireMention
+                                    requireMention = requireMention,
+                                    historyLimit = historyLimitText.toIntOrNull(),
+                                    streaming = streaming,
+                                    model = model?.takeIf { it.isNotBlank() }
                                 )
-                                val updatedConfig = currentConfig.copy(
-                                    channels = currentConfig.channels.copy(slack = updatedChannelConfig)
+                                configLoader.saveOpenClawConfig(
+                                    currentConfig.copy(channels = currentConfig.channels.copy(slack = updated))
                                 )
-                                configLoader.saveOpenClawConfig(updatedConfig)
                                 showSaveSuccess = true
                             }
                         }
-                    ) {
-                        Text("保存")
-                    }
+                    ) { Text("保存") }
                 }
             )
         }
@@ -92,7 +106,7 @@ fun SlackChannelScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Enable switch
+            // ── 启用 ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,17 +118,58 @@ fun SlackChannelScreen(
 
             Divider()
 
-            // Token
+            // ── 连接模式 ──
+            Text("连接模式", style = MaterialTheme.typography.titleSmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("socket" to "Socket Mode（推荐）", "http" to "HTTP Mode").forEach { (value, label) ->
+                    FilterChip(
+                        selected = mode == value,
+                        onClick = { mode = value },
+                        label = { Text(label) }
+                    )
+                }
+            }
+            Text(
+                text = if (mode == "socket")
+                    "Socket Mode：需要 Bot Token + App-Level Token，无需公网 IP"
+                else
+                    "HTTP Mode：需要 Bot Token + Signing Secret + 公网 Webhook URL",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // ── Tokens ──
             OutlinedTextField(
-                value = token,
-                onValueChange = { token = it },
-                label = { Text("Bot Token") },
-                placeholder = { Text("xoxb-... Bot Token") },
+                value = botToken,
+                onValueChange = { botToken = it },
+                label = { Text("Bot Token (xoxb-...)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
-            // DM Policy
+            if (mode == "socket") {
+                OutlinedTextField(
+                    value = appToken,
+                    onValueChange = { appToken = it },
+                    label = { Text("App-Level Token (xapp-...)") },
+                    placeholder = { Text("从 Slack App → Basic Info → App-Level Token 获取") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            } else {
+                OutlinedTextField(
+                    value = signingSecret,
+                    onValueChange = { signingSecret = it },
+                    label = { Text("Signing Secret") },
+                    placeholder = { Text("从 Slack App → Basic Info → Signing Secret 获取") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+
+            Divider()
+
+            // ── DM Policy ──
             Text("DM Policy", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("open", "pairing", "allowlist").forEach { policy ->
@@ -126,7 +181,7 @@ fun SlackChannelScreen(
                 }
             }
 
-            // Group Policy
+            // ── Group Policy ──
             Text("Group Policy", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("open", "allowlist", "disabled").forEach { policy ->
@@ -138,7 +193,7 @@ fun SlackChannelScreen(
                 }
             }
 
-            // Require Mention
+            // ── Require Mention ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,16 +203,49 @@ fun SlackChannelScreen(
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
-            // Save success
+            Divider()
+
+            // ── History Limit ──
+            OutlinedTextField(
+                value = historyLimitText,
+                onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
+                label = { Text("历史消息条数限制（可选）") },
+                placeholder = { Text("留空 = 不限制，如 50") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            // ── Streaming ──
+            Text("流式回复模式", style = MaterialTheme.typography.titleSmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("off", "partial", "block", "progress").forEach { value ->
+                    FilterChip(
+                        selected = streaming == value,
+                        onClick = { streaming = value },
+                        label = { Text(value) }
+                    )
+                }
+            }
+
+            Divider()
+
+            // ── Model Picker ──
+            ChannelModelPicker(
+                config = openClawConfig,
+                selected = model,
+                onSelected = { model = it },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             if (showSaveSuccess) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 Text("✅ 配置已保存", color = MaterialTheme.colorScheme.primary)
             }
 
-            // Status info
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
             Text(
-                text = "📖 Slack 工作区接入\n\n配置保存后需要重启应用生效。",
+                text = "配置保存后需要重启应用生效。\n详细文档参见 OpenClaw Slack 接入指南。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

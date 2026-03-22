@@ -178,35 +178,71 @@ data class DiscordAccountPolicyConfig(
 )
 
 data class SlackChannelConfig(
+    // 对齐 OpenClaw types.slack.ts SlackAccountConfig
     val enabled: Boolean = false,
-    val token: String = "",
+    /** Bot Token (xoxb-...) */
+    val botToken: String = "",
+    /** App-Level Token (xapp-...) — socket 模式必填 */
+    val appToken: String? = null,
+    /** Signing Secret — http 模式必填 */
+    val signingSecret: String? = null,
+    /** 连接模式: "socket"(默认) 或 "http" */
+    val mode: String = "socket",
     val dmPolicy: String = "open",
     val groupPolicy: String = "open",
-    val requireMention: Boolean = true
+    val requireMention: Boolean = true,
+    val historyLimit: Int? = null,
+    /** 流式回复模式: off / partial / block / progress */
+    val streaming: String = "partial",
+    /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
+    val model: String? = null
 )
 
 data class TelegramChannelConfig(
+    // 对齐 OpenClaw types.telegram.ts TelegramAccountConfig
     val enabled: Boolean = false,
-    val token: String = "",
+    /** Bot Token (from @BotFather) */
+    val botToken: String = "",
     val dmPolicy: String = "open",
     val groupPolicy: String = "open",
-    val requireMention: Boolean = true
+    val requireMention: Boolean = true,
+    val historyLimit: Int? = null,
+    /** 流式回复模式: off / partial / block / progress */
+    val streaming: String = "partial",
+    /** Webhook URL (可选，不填则使用长轮询) */
+    val webhookUrl: String? = null,
+    /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
+    val model: String? = null
 )
 
 data class WhatsAppChannelConfig(
+    // 对齐 OpenClaw types.whatsapp.ts
     val enabled: Boolean = false,
+    /** 注册 WhatsApp 的手机号 (E.164 格式，如 +8613800138000) */
     val phoneNumber: String = "",
     val dmPolicy: String = "open",
     val groupPolicy: String = "open",
-    val requireMention: Boolean = true
+    val requireMention: Boolean = true,
+    val historyLimit: Int? = null,
+    /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
+    val model: String? = null
 )
 
 data class SignalChannelConfig(
+    // 对齐 OpenClaw types.signal.ts SignalAccountConfig
     val enabled: Boolean = false,
+    /** signal-cli 注册的手机号 (E.164，对应 OpenClaw account 字段) */
     val phoneNumber: String = "",
+    /** signal-cli HTTP daemon 完整 URL，如 http://127.0.0.1:8080 (可选) */
+    val httpUrl: String? = null,
+    /** signal-cli HTTP daemon 端口，默认 8080 */
+    val httpPort: Int = 8080,
     val dmPolicy: String = "open",
     val groupPolicy: String = "open",
-    val requireMention: Boolean = true
+    val requireMention: Boolean = true,
+    val historyLimit: Int? = null,
+    /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
+    val model: String? = null
 )
 
 // ============ gateway（对齐 types.gateway.d.ts）============

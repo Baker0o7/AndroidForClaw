@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - ../openclaw/src/config/types.telegram.ts  (TelegramAccountConfig, TelegramConfig)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -16,9 +17,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.config.TelegramChannelConfig
+import com.xiaomo.androidforclaw.ui.compose.ChannelModelPicker
 import kotlinx.coroutines.launch
 
 class TelegramChannelActivity : ComponentActivity() {
@@ -41,12 +44,18 @@ fun TelegramChannelScreen(
     val scope = rememberCoroutineScope()
     val configLoader = remember { ConfigLoader(context) }
 
-    val savedConfig = remember { configLoader.loadOpenClawConfig().channels.telegram }
+    val openClawConfig = remember { configLoader.loadOpenClawConfig() }
+    val savedConfig = remember { openClawConfig.channels.telegram }
+
     var enabled by remember { mutableStateOf(savedConfig?.enabled ?: false) }
-    var token by remember { mutableStateOf(savedConfig?.token ?: "") }
+    var botToken by remember { mutableStateOf(savedConfig?.botToken ?: "") }
     var dmPolicy by remember { mutableStateOf(savedConfig?.dmPolicy ?: "open") }
     var groupPolicy by remember { mutableStateOf(savedConfig?.groupPolicy ?: "open") }
     var requireMention by remember { mutableStateOf(savedConfig?.requireMention ?: true) }
+    var historyLimitText by remember { mutableStateOf(savedConfig?.historyLimit?.toString() ?: "") }
+    var streaming by remember { mutableStateOf(savedConfig?.streaming ?: "partial") }
+    var webhookUrl by remember { mutableStateOf(savedConfig?.webhookUrl ?: "") }
+    var model by remember { mutableStateOf(savedConfig?.model) }
     var showSaveSuccess by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -63,23 +72,24 @@ fun TelegramChannelScreen(
                         onClick = {
                             scope.launch {
                                 val currentConfig = configLoader.loadOpenClawConfig()
-                                val updatedChannelConfig = (currentConfig.channels.telegram ?: TelegramChannelConfig()).copy(
+                                val updated = (currentConfig.channels.telegram ?: TelegramChannelConfig()).copy(
                                     enabled = enabled,
-                                    token = token,
+                                    botToken = botToken,
                                     dmPolicy = dmPolicy,
                                     groupPolicy = groupPolicy,
-                                    requireMention = requireMention
+                                    requireMention = requireMention,
+                                    historyLimit = historyLimitText.toIntOrNull(),
+                                    streaming = streaming,
+                                    webhookUrl = webhookUrl.takeIf { it.isNotBlank() },
+                                    model = model?.takeIf { it.isNotBlank() }
                                 )
-                                val updatedConfig = currentConfig.copy(
-                                    channels = currentConfig.channels.copy(telegram = updatedChannelConfig)
+                                configLoader.saveOpenClawConfig(
+                                    currentConfig.copy(channels = currentConfig.channels.copy(telegram = updated))
                                 )
-                                configLoader.saveOpenClawConfig(updatedConfig)
                                 showSaveSuccess = true
                             }
                         }
-                    ) {
-                        Text("保存")
-                    }
+                    ) { Text("保存") }
                 }
             )
         }
@@ -92,7 +102,7 @@ fun TelegramChannelScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Enable switch
+            // ── 启用 ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,17 +114,19 @@ fun TelegramChannelScreen(
 
             Divider()
 
-            // Token
+            // ── Bot Token ──
             OutlinedTextField(
-                value = token,
-                onValueChange = { token = it },
+                value = botToken,
+                onValueChange = { botToken = it },
                 label = { Text("Bot Token") },
-                placeholder = { Text("Bot API Token from @BotFather") },
+                placeholder = { Text("从 @BotFather 获取，格式：123456:ABC-...") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
-            // DM Policy
+            Divider()
+
+            // ── DM Policy ──
             Text("DM Policy", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("open", "pairing", "allowlist").forEach { policy ->
@@ -126,7 +138,7 @@ fun TelegramChannelScreen(
                 }
             }
 
-            // Group Policy
+            // ── Group Policy ──
             Text("Group Policy", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("open", "allowlist", "disabled").forEach { policy ->
@@ -138,7 +150,7 @@ fun TelegramChannelScreen(
                 }
             }
 
-            // Require Mention
+            // ── Require Mention ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,16 +160,59 @@ fun TelegramChannelScreen(
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
-            // Save success
+            Divider()
+
+            // ── History Limit ──
+            OutlinedTextField(
+                value = historyLimitText,
+                onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
+                label = { Text("历史消息条数限制（可选）") },
+                placeholder = { Text("留空 = 不限制，如 50") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            // ── Streaming ──
+            Text("流式回复模式", style = MaterialTheme.typography.titleSmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("off", "partial", "block", "progress").forEach { value ->
+                    FilterChip(
+                        selected = streaming == value,
+                        onClick = { streaming = value },
+                        label = { Text(value) }
+                    )
+                }
+            }
+
+            // ── Webhook URL（可选） ──
+            OutlinedTextField(
+                value = webhookUrl,
+                onValueChange = { webhookUrl = it },
+                label = { Text("Webhook URL（可选）") },
+                placeholder = { Text("留空 = 使用长轮询（推荐）") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Divider()
+
+            // ── Model Picker ──
+            ChannelModelPicker(
+                config = openClawConfig,
+                selected = model,
+                onSelected = { model = it },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             if (showSaveSuccess) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 Text("✅ 配置已保存", color = MaterialTheme.colorScheme.primary)
             }
 
-            // Status info
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
             Text(
-                text = "📖 Telegram Bot 接入\n\n配置保存后需要重启应用生效。",
+                text = "配置保存后需要重启应用生效。\n获取 Bot Token：向 @BotFather 发送 /newbot。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

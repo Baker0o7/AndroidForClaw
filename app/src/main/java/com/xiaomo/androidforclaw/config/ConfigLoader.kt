@@ -601,22 +601,36 @@ class ConfigLoader private constructor() {
     }
 
     private fun parseSlackConfig(json: JSONObject): SlackChannelConfig {
+        // 兼容旧字段 token → botToken
+        val botToken = json.optString("botToken", "").ifEmpty { json.optString("token", "") }
         return SlackChannelConfig(
             enabled = json.optBoolean("enabled", false),
-            token = json.optString("token", ""),
+            botToken = botToken,
+            appToken = if (json.has("appToken")) json.optString("appToken") else null,
+            signingSecret = if (json.has("signingSecret")) json.optString("signingSecret") else null,
+            mode = json.optString("mode", "socket"),
             dmPolicy = json.optString("dmPolicy", "open"),
             groupPolicy = json.optString("groupPolicy", "open"),
-            requireMention = json.optBoolean("requireMention", true)
+            requireMention = json.optBoolean("requireMention", true),
+            historyLimit = if (json.has("historyLimit")) json.optInt("historyLimit") else null,
+            streaming = json.optString("streaming", "partial"),
+            model = if (json.has("model")) json.optString("model") else null
         )
     }
 
     private fun parseTelegramConfig(json: JSONObject): TelegramChannelConfig {
+        // 兼容旧字段 token → botToken
+        val botToken = json.optString("botToken", "").ifEmpty { json.optString("token", "") }
         return TelegramChannelConfig(
             enabled = json.optBoolean("enabled", false),
-            token = json.optString("token", ""),
+            botToken = botToken,
             dmPolicy = json.optString("dmPolicy", "open"),
             groupPolicy = json.optString("groupPolicy", "open"),
-            requireMention = json.optBoolean("requireMention", true)
+            requireMention = json.optBoolean("requireMention", true),
+            historyLimit = if (json.has("historyLimit")) json.optInt("historyLimit") else null,
+            streaming = json.optString("streaming", "partial"),
+            webhookUrl = if (json.has("webhookUrl")) json.optString("webhookUrl") else null,
+            model = if (json.has("model")) json.optString("model") else null
         )
     }
 
@@ -626,17 +640,25 @@ class ConfigLoader private constructor() {
             phoneNumber = json.optString("phoneNumber", ""),
             dmPolicy = json.optString("dmPolicy", "open"),
             groupPolicy = json.optString("groupPolicy", "open"),
-            requireMention = json.optBoolean("requireMention", true)
+            requireMention = json.optBoolean("requireMention", true),
+            historyLimit = if (json.has("historyLimit")) json.optInt("historyLimit") else null,
+            model = if (json.has("model")) json.optString("model") else null
         )
     }
 
     private fun parseSignalConfig(json: JSONObject): SignalChannelConfig {
+        // 兼容 OpenClaw account 字段 → phoneNumber
+        val phoneNumber = json.optString("phoneNumber", "").ifEmpty { json.optString("account", "") }
         return SignalChannelConfig(
             enabled = json.optBoolean("enabled", false),
-            phoneNumber = json.optString("phoneNumber", ""),
+            phoneNumber = phoneNumber,
+            httpUrl = if (json.has("httpUrl")) json.optString("httpUrl") else null,
+            httpPort = json.optInt("httpPort", 8080),
             dmPolicy = json.optString("dmPolicy", "open"),
             groupPolicy = json.optString("groupPolicy", "open"),
-            requireMention = json.optBoolean("requireMention", true)
+            requireMention = json.optBoolean("requireMention", true),
+            historyLimit = if (json.has("historyLimit")) json.optInt("historyLimit") else null,
+            model = if (json.has("model")) json.optString("model") else null
         )
     }
 
@@ -861,43 +883,80 @@ class ConfigLoader private constructor() {
         feishuObj.put("allowMentionlessInMultiBotGroup", feishu.allowMentionlessInMultiBotGroup)
         channelsObj.put("feishu", feishuObj)
 
+        config.channels.discord?.let { discord ->
+            val existing = channelsObj.optJSONObject("discord") ?: JSONObject()
+            existing.put("enabled", discord.enabled)
+            discord.token?.let { existing.put("token", it) }
+            discord.name?.let { existing.put("name", it) }
+            discord.groupPolicy?.let { existing.put("groupPolicy", it) }
+            discord.replyToMode?.let { existing.put("replyToMode", it) }
+            discord.dm?.let { dm ->
+                val dmObj = JSONObject()
+                dm.policy?.let { dmObj.put("policy", it) }
+                dm.allowFrom?.let { list ->
+                    val arr = JSONArray(); list.forEach { arr.put(it) }
+                    dmObj.put("allowFrom", arr)
+                }
+                existing.put("dm", dmObj)
+            }
+            channelsObj.put("discord", existing)
+        }
+
         config.channels.slack?.let { slack ->
-            val obj = JSONObject()
+            val obj = channelsObj.optJSONObject("slack") ?: JSONObject()
             obj.put("enabled", slack.enabled)
-            obj.put("token", slack.token)
+            obj.put("botToken", slack.botToken)
+            obj.put("mode", slack.mode)
             obj.put("dmPolicy", slack.dmPolicy)
             obj.put("groupPolicy", slack.groupPolicy)
             obj.put("requireMention", slack.requireMention)
+            obj.put("streaming", slack.streaming)
+            slack.appToken?.let { obj.put("appToken", it) }
+            slack.signingSecret?.let { obj.put("signingSecret", it) }
+            if (slack.historyLimit != null) obj.put("historyLimit", slack.historyLimit) else obj.remove("historyLimit")
+            if (slack.model != null) obj.put("model", slack.model) else obj.remove("model")
             channelsObj.put("slack", obj)
         }
 
         config.channels.telegram?.let { telegram ->
-            val obj = JSONObject()
+            val obj = channelsObj.optJSONObject("telegram") ?: JSONObject()
             obj.put("enabled", telegram.enabled)
-            obj.put("token", telegram.token)
+            obj.put("botToken", telegram.botToken)
             obj.put("dmPolicy", telegram.dmPolicy)
             obj.put("groupPolicy", telegram.groupPolicy)
             obj.put("requireMention", telegram.requireMention)
+            obj.put("streaming", telegram.streaming)
+            telegram.webhookUrl?.let { obj.put("webhookUrl", it) }
+            if (telegram.historyLimit != null) obj.put("historyLimit", telegram.historyLimit) else obj.remove("historyLimit")
+            if (telegram.model != null) obj.put("model", telegram.model) else obj.remove("model")
             channelsObj.put("telegram", obj)
         }
 
         config.channels.whatsapp?.let { whatsapp ->
-            val obj = JSONObject()
+            val obj = channelsObj.optJSONObject("whatsapp") ?: JSONObject()
             obj.put("enabled", whatsapp.enabled)
             obj.put("phoneNumber", whatsapp.phoneNumber)
             obj.put("dmPolicy", whatsapp.dmPolicy)
             obj.put("groupPolicy", whatsapp.groupPolicy)
             obj.put("requireMention", whatsapp.requireMention)
+            if (whatsapp.historyLimit != null) obj.put("historyLimit", whatsapp.historyLimit) else obj.remove("historyLimit")
+            if (whatsapp.model != null) obj.put("model", whatsapp.model) else obj.remove("model")
             channelsObj.put("whatsapp", obj)
         }
 
         config.channels.signal?.let { signal ->
-            val obj = JSONObject()
+            val obj = channelsObj.optJSONObject("signal") ?: JSONObject()
             obj.put("enabled", signal.enabled)
+            // OpenClaw 使用 account 字段存手机号
+            obj.put("account", signal.phoneNumber)
             obj.put("phoneNumber", signal.phoneNumber)
+            signal.httpUrl?.let { obj.put("httpUrl", it) }
+            obj.put("httpPort", signal.httpPort)
             obj.put("dmPolicy", signal.dmPolicy)
             obj.put("groupPolicy", signal.groupPolicy)
             obj.put("requireMention", signal.requireMention)
+            if (signal.historyLimit != null) obj.put("historyLimit", signal.historyLimit) else obj.remove("historyLimit")
+            if (signal.model != null) obj.put("model", signal.model) else obj.remove("model")
             channelsObj.put("signal", obj)
         }
 

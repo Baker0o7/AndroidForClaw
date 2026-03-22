@@ -1,150 +1,226 @@
-# 📱 AndroidForClaw — OpenClaw for Android, Now Available
+# 📱 AndroidForClaw
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
-[![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://www.android.com/)
+[![Release](https://img.shields.io/badge/Release-v1.0.9-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
+[![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://www.android.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**[中文文档](README.md)** | **[📖 Feishu Docs](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** | **[🚀 Quick Start](#-quick-start)** | **[🤝 Contributing](#-contributing)**
+> **Let AI truly control your Android phone.**
 
----
+Architecture aligned with [OpenClaw](https://github.com/openclaw/openclaw) (280k+ Stars), bringing full AI Agent capabilities to your phone — see the screen, tap apps, run code, connect platforms.
 
-## 📥 Download
-
-### Latest Release: [v1.0.0](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
-
-| APK | Description | Size |
-|-----|-------------|------|
-| **[AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Main app (required) | ~22MB |
-| **[S4Claw](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Accessibility + Screenshot (required) | ~4.4MB |
-| **[BrowserForClaw](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | AI Browser (optional) | ~8.4MB |
-| **[Termux](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Terminal environment (optional) | ~32MB |
-| **[Termux-API](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Terminal API (optional) | ~6.8MB |
-
-> 💡 First launch shows a setup wizard — just enter an [OpenRouter API Key](https://openrouter.ai/keys) (free to register) and you're good to go!
+**[📖 Docs (Chinese)](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** · **[🚀 Quick Start](#-quick-start)** · **[💬 Community](#-community)** · **[中文文档](README.md)**
 
 ---
 
-## 📖 Documentation
+## 🔥 What Can AI Do for You
 
-**Detailed feature demos and tutorials (Chinese):**
+### 📱 Control Any App
 
-👉 **[https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)**
+WeChat, Alipay, TikTok, Taobao, Maps… **Anything you can do manually, AI can do too.**
 
-Includes:
-- 🎬 **Feature demo videos** — Watch AI control a real phone
-- 📋 **Setup tutorials** — Feishu / Discord / model configuration
-- 💡 **Tips & tricks** — Best practices and FAQ
+```
+You: Open WeChat and send "See you tomorrow" to John
+AI:  → Open WeChat → Search John → Type message → Send ✅
+```
 
----
+### 🔗 Cross-App Workflows
 
-## 🌟 Why AndroidForClaw?
+```
+You: Got an address in WeChat, navigate me there
+AI:  → Copy address from WeChat → Open Maps → Search → Start navigation
+```
 
-**[OpenClaw](https://github.com/openclaw/openclaw)** (280k+ GitHub stars) is an amazing AI assistant framework — but it's designed for desktops. Your phone is just a "remote node."
+### 🐧 Run Code
 
-**AndroidForClaw** brings OpenClaw natively to Android. Same architecture (98% compatible), but the AI lives directly on your phone with full device control via Accessibility Service.
+Python, Node.js, Shell — run directly on your phone:
 
-No computer needed. No Gateway. No pairing. Install, authorize, go.
+```
+You: Use Python to analyze the CSV in my Downloads folder
+AI:  → exec("python3 analyze.py") → Return analysis results
+```
 
----
+### 🌐 Web Search & Fetch
 
-## ✨ Core Capabilities
+```
+You: Search for today's tech news
+AI:  → web_search("tech news") → Return titles + links + summaries
+```
 
-### OpenClaw-Compatible Foundation
+### 💬 Multi-Platform Messaging
 
-| Capability | Description |
-|-----------|-------------|
-| 🧠 Agent Loop | Observe → Think → Act → Verify cycle |
-| 🔧 Tool Calling | Standard function calls, fully compatible |
-| 📝 Bootstrap | IDENTITY / AGENTS / SOUL / TOOLS configuration |
-| 🧩 Skills | Five-tier loading + ClawHub skill marketplace |
-| 💬 Channels | Feishu / Discord / In-app chat |
-| 🤖 Multi-model | Claude / GPT / Gemini / DeepSeek |
-| 🌐 Browser | Navigation, clicks, forms, screenshots, JS |
-| 📁 File System | Read/write files, directory browsing, shell |
+Control your phone AI remotely via Feishu, Discord, Telegram, Slack and more:
 
-### Android-Exclusive Superpowers 🔥
+| Channel | Status |
+|---------|--------|
+| Feishu | ✅ Available |
+| Discord | ✅ Available |
+| Telegram | 🔧 Ready (config aligned with OpenClaw) |
+| Slack | 🔧 Ready (Socket / HTTP dual mode) |
+| Signal | 🔧 Ready (signal-cli integration) |
+| WhatsApp | 🔧 Ready |
 
-| Capability | Description |
-|-----------|-------------|
-| 👁️ Screen Vision | Real-time screenshots + UI tree parsing |
-| ✋ Touch Control | Tap, swipe, long-press, text input |
-| 📱 App Control | Launch any app, Activity navigation |
-| 🔗 Cross-app | Chain multiple apps for complex workflows |
+Each channel supports **per-channel model override** — pick a dedicated model from your configured providers.
 
-#### Control Any App
+### 🤖 MCP Server (For External Agents)
 
-Via Accessibility Service — anything you can do manually, AI can do too:
+Built-in MCP Server (port 8399) exposes the phone's accessibility and screenshot capabilities to external agents via the standard MCP protocol:
 
-| App | AI Can... |
-|-----|-----------|
-| WeChat | Send messages, read Moments |
-| Alipay | Check bills, scan to pay |
-| TikTok | Search videos, browse content |
-| Taobao | Search products, compare prices |
-| Maps | Search routes, start navigation |
+```
+Tools: get_view_tree / screenshot / tap / swipe / input_text / press_home / press_back / get_current_app
+```
 
-**Cross-app example:** "Got an address in WeChat, navigate me there"
-→ Open WeChat → Extract address → Copy → Open Maps → Paste → Navigate
+> This is NOT used by AndroidForClaw itself — it's for external agents like Claude Desktop, Cursor, etc.
+
+### 🧩 Skill Extensions
+
+Search and install new capabilities from [ClawHub](https://clawhub.com), or create your own Skills:
+
+```
+You: What skills are available on ClawHub?
+AI:  → skills_search("") → Show available skill list
+```
 
 ---
 
 ## ⚡ Quick Start
 
-### Option 1: Download APK (Recommended)
+### Download & Install
 
-1. **Download** from [Release page](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
-2. **Install** AndroidForClaw + S4Claw (required), BrowserForClaw (optional)
-3. **Configure** — First launch shows setup wizard, enter [OpenRouter API Key](https://openrouter.ai/keys)
-4. **Authorize** — Open S4Claw, enable Accessibility Service + Screen Capture
-5. **Go** — Chat via Feishu/Discord, or directly in the app
+Download from the [Release page](https://github.com/SelectXn00b/AndroidForClaw/releases/latest):
 
-### Option 2: Build from Source
+| APK | Description | Required? |
+|-----|-------------|-----------|
+| **AndroidForClaw** | Main app (Accessibility Service, Agent, Gateway) | ✅ Required |
+| **BrowserForClaw** | AI Browser (web automation) | Optional |
+| **termux-app + termux-api** | Terminal (run Python/Node.js) | Optional |
 
-```bash
-git clone https://github.com/SelectXn00b/AndroidForClaw.git
-cd AndroidForClaw
+### 3 Steps to Get Started
 
-./gradlew :app:assembleRelease
-adb install app/build/outputs/apk/release/app-release.apk
+1. **Install** — Download and install AndroidForClaw
+2. **Configure** — Open the app, enter an API Key (or skip to use built-in Key), enable Accessibility + Screen Capture permissions
+3. **Chat** — Talk directly in the app, or send messages via Feishu/Discord
 
-./gradlew :extensions:observer:assembleRelease
-adb install extensions/observer/build/outputs/apk/release/observer-release.apk
-```
+> 💡 First launch opens a setup wizard automatically. Default: OpenRouter + MiMo V2 Pro. One-click skip supported.
+
+### Termux Setup (Optional)
+
+With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup wizard:
+
+**Settings → Termux Config → Copy command → Paste into Termux → Done**
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────┐
-│      Gateway                         │  Feishu / Discord / HTTP
-├─────────────────────────────────────┤
-│      Agent Runtime                   │  AgentLoop / Skills / Tools
-├─────────────────────────────────────┤
-│      Android Platform                │  Accessibility / ADB / UI
-└─────────────────────────────────────┘
+324 source files · 62,000+ lines of code · 10 modules
 ```
 
-### Data Directory
+```
+┌──────────────────────────────────────────┐
+│  Channels                                 │
+│  Feishu · Discord · Telegram · Slack ·    │
+│  Signal · WhatsApp · In-app chat          │
+├──────────────────────────────────────────┤
+│  Agent Runtime                            │
+│  AgentLoop · 19 Tools · 20 Skills ·       │
+│  Context Management (4-layer) · Memory    │
+├──────────────────────────────────────────┤
+│  Providers                                │
+│  OpenRouter · MiMo · Gemini · Anthropic · │
+│  OpenAI · Custom                          │
+├──────────────────────────────────────────┤
+│  Android Platform                         │
+│  Accessibility · Termux SSH · device tool │
+│  MediaProjection · BrowserForClaw         │
+└──────────────────────────────────────────┘
+```
 
-```
-/sdcard/.androidforclaw/              ← Mirrors OpenClaw's ~/.openclaw/
-├── openclaw.json                     ← Main config
-├── workspace/                        ← User workspace
-│   ├── skills/                       ← Custom skills
-│   ├── memory/                       ← Persistent memory
-│   └── sessions/                     ← Session history
-├── skills/                           ← Managed skills
-└── logs/                             ← Logs
-```
+### Core Features
+
+| Feature | Description |
+|---------|-------------|
+| **Playwright Mode** | Screen ops aligned with Playwright — `snapshot` gets UI tree + ref → `act` operates elements |
+| **Unified exec** | Auto-routes to Termux (SSH) or built-in Shell, transparent to the model |
+| **Context Management** | 4-layer protection aligned with OpenClaw: limitHistoryTurns + tool result trimming + budget guard |
+| **Skill System** | 20 built-in Skills editable on device, ClawHub online installation |
+| **Multi-model** | MiMo V2 Pro · DeepSeek R1 · Claude Sonnet 4 · Gemini 2.5 · GPT-4.1 |
+| **MCP Server** | Expose accessibility/screenshot to external agents (port 8399, Streamable HTTP) |
+| **Per-channel Model** | Each messaging channel can independently select a model, fields aligned with OpenClaw types |
+| **Steer Injection** | Inject messages into a running Agent Loop mid-run via Channel (mid-run steering) |
+
+---
+
+## 📋 Full Capability Table
+
+### 🔧 19 Tools
+
+| Tool | Function | Alignment |
+|------|----------|-----------|
+| `device` | Screen ops: snapshot/tap/type/scroll/press/open | Playwright |
+| `read_file` | Read file contents | OpenClaw |
+| `write_file` | Create or overwrite files | OpenClaw |
+| `edit_file` | Precise file editing | OpenClaw |
+| `list_dir` | List directory contents | OpenClaw |
+| `exec` | Execute commands (Termux SSH / built-in Shell) | OpenClaw |
+| `web_search` | Brave search engine | OpenClaw |
+| `web_fetch` | Fetch web page content | OpenClaw |
+| `javascript` | Execute JavaScript (QuickJS) | OpenClaw |
+| `skills_search` | Search ClawHub skills | OpenClaw |
+| `skills_install` | Install skills from ClawHub | OpenClaw |
+| `memory_search` | Semantic memory search | OpenClaw |
+| `memory_get` | Read memory snippets | OpenClaw |
+| `config_get` | Read config entries | OpenClaw |
+| `config_set` | Write config entries | OpenClaw |
+| `list_installed_apps` | List installed apps | Android-specific |
+| `install_app` | Install APK | Android-specific |
+| `start_activity` | Launch Activity | Android-specific |
+| `stop` | Stop the Agent | Android-specific |
+
+### 🧩 20 Skills
+
+| Category | Skills |
+|----------|--------|
+| Feishu Suite | `feishu` · `feishu-doc` · `feishu-wiki` · `feishu-drive` · `feishu-bitable` · `feishu-chat` · `feishu-task` · `feishu-perm` · `feishu-urgent` |
+| Search & Web | `browser` · `weather` |
+| Skill Management | `clawhub` · `skill-creator` |
+| Dev & Debug | `debugging` · `data-processing` · `session-logs` |
+| Config Management | `model-config` · `channel-config` · `install-app` · `model-usage` |
+
+> Skills are stored at `/sdcard/.androidforclaw/skills/` — freely editable, addable, and removable.
+
+### 💬 Messaging Channels
+
+| Channel | Status | Features |
+|---------|--------|----------|
+| **Feishu** | ✅ Available | WebSocket real-time, group/DM, 32 Feishu tools |
+| **Discord** | ✅ Available | Gateway connection, group/DM |
+| **Telegram** | 🔧 Ready | Bot API polling/webhook, model override, streaming |
+| **Slack** | 🔧 Ready | Socket Mode / HTTP Mode, model override, streaming |
+| **Signal** | 🔧 Ready | signal-cli daemon integration, model override |
+| **WhatsApp** | 🔧 Ready | WhatsApp Business API, model override |
+| **In-app Chat** | ✅ Available | Built-in chat UI |
+
+> All channel config fields are aligned with OpenClaw TypeScript type definitions (`types.slack.ts`, `types.telegram.ts`, etc.).
+
+### 🤖 Supported Models
+
+| Provider | Models | Notes |
+|----------|--------|-------|
+| **OpenRouter** | MiMo V2 Pro, Hunter Alpha, DeepSeek R1, Claude Sonnet 4, GPT-4.1 | Recommended, built-in Key |
+| **Xiaomi MiMo** | MiMo V2 Pro, MiMo V2 Flash, MiMo V2 Omni | Direct Xiaomi API |
+| **Google** | Gemini 2.5 Pro, Gemini 2.5 Flash | Direct |
+| **Anthropic** | Claude Sonnet 4, Claude Opus 4 | Direct |
+| **OpenAI** | GPT-4.1, GPT-4.1 Mini, o3 | Direct |
+| **Custom** | Any OpenAI-compatible API | Ollama, vLLM, etc. |
+
+> **Default**: OpenRouter + MiMo V2 Pro (1M context + reasoning). Skip the wizard to auto-use built-in Key.
 
 ---
 
 ## 🛠️ Configuration
 
-Config file: `/sdcard/.androidforclaw/openclaw.json`
-
-Auto-generated on first launch. Only an API key is required:
+`/sdcard/.androidforclaw/openclaw.json`
 
 ```json
 {
@@ -152,52 +228,115 @@ Auto-generated on first launch. Only an API key is required:
     "providers": {
       "openrouter": {
         "baseUrl": "https://openrouter.ai/api/v1",
-        "apiKey": "sk-or-v1-your-key"
+        "apiKey": "sk-or-v1-your-key",
+        "models": [{"id": "xiaomi/mimo-v2-pro", "reasoning": true, "contextWindow": 1048576}]
       }
     }
   },
   "agents": {
     "defaults": {
-      "model": { "primary": "openrouter/hunter-alpha" }
+      "model": { "primary": "openrouter/xiaomi/mimo-v2-pro" }
     }
   },
   "channels": {
-    "feishu": {
+    "feishu": { "enabled": true, "appId": "cli_xxx", "appSecret": "xxx" },
+    "slack": {
       "enabled": true,
-      "appId": "your-feishu-app-id",
-      "appSecret": "your-feishu-app-secret"
+      "botToken": "xoxb-...",
+      "appToken": "xapp-...",
+      "mode": "socket",
+      "streaming": "partial",
+      "model": "openrouter/xiaomi/mimo-v2-pro"
+    },
+    "telegram": {
+      "enabled": true,
+      "botToken": "123456:ABC-...",
+      "streaming": "partial"
     }
   }
 }
 ```
 
+Each channel supports **per-channel model override** — pick a specific model from your configured providers, or leave empty to use the global default.
+
+See **[📖 Feishu Docs](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** for detailed configuration reference.
+
 ---
 
-## 🤝 Contributing
+## 🔨 Build from Source
 
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
+```bash
+git clone https://github.com/SelectXn00b/AndroidForClaw.git
+cd AndroidForClaw
+export JAVA_HOME=/path/to/jdk17
+./gradlew assembleRelease
+adb install releases/AndroidForClaw-v1.0.9-release.apk
+```
+
+---
+
+## 🔗 Related Projects
+
+| Project | Description |
+|---------|-------------|
+| [OpenClaw](https://github.com/openclaw/openclaw) | AI Agent framework (Desktop) |
+| [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | OpenClaw iOS client |
+| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | OpenClaw Android client (this project) |
 
 ---
 
 ## 📞 Community
 
-- **[Feishu Group](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)**
-- **[Discord](https://discord.gg/k9NKrXUN)**
-- **[GitHub Issues](https://github.com/SelectXn00b/AndroidForClaw/issues)**
+<div align="center">
+
+#### Feishu Group
+
+[![Join Feishu Group](docs/images/feishu-qrcode.jpg)](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)
+
+**[Click to join Feishu Group](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)**
+
+---
+
+#### Discord
+
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/k9NKrXUN)
+
+**[Join Discord](https://discord.gg/k9NKrXUN)**
+
+---
+
+#### WeChat Group
+
+<img src="docs/images/wechat-qrcode.png" width="300" alt="WeChat Group QR Code">
+
+**Scan to join WeChat group** — Valid for 7 days
+
+</div>
+
+---
+
+## 🔗 Links
+
+- [OpenClaw](https://github.com/openclaw/openclaw) — Architecture reference
+- [ClawHub](https://clawhub.com) — Skill marketplace
+- [Source Mapping](MAPPING.md) — OpenClaw ↔ AndroidForClaw alignment
+- [Architecture Doc](ARCHITECTURE.md) — Detailed design
 
 ---
 
 ## 📄 License
 
-MIT License - See [LICENSE](LICENSE)
+MIT — [LICENSE](LICENSE)
 
 ## 🙏 Acknowledgments
 
-- **[OpenClaw](https://github.com/openclaw/openclaw)** - Architecture inspiration
-- **[Claude](https://www.anthropic.com/claude)** - AI reasoning
+- **[OpenClaw](https://github.com/openclaw/openclaw)** — Architecture inspiration
+- **[Claude](https://www.anthropic.com/claude)** — AI reasoning capabilities
 
 ---
 
-⭐ **Like it? Give us a Star!** ⭐
+<div align="center">
 
-**AndroidForClaw** - Giving AI the ability to use your phone 🦞📱
+⭐ **If this project helps you, please give it a Star!** ⭐
+
+</div>

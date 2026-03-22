@@ -6,7 +6,7 @@ import org.junit.Test
 /**
  * Channel Config Persistence Tests
  *
- * Validates the 4 new channel config data classes (Slack, Telegram, WhatsApp, Signal)
+ * Validates the channel config data classes (Slack, Telegram, WhatsApp, Signal)
  * have correct defaults, nullable behaviour in ChannelsConfig, and data class
  * copy (round-trip) semantics.
  */
@@ -18,26 +18,53 @@ class ChannelConfigTest {
     fun slackConfig_defaults() {
         val config = SlackChannelConfig()
         assertFalse(config.enabled)
-        assertEquals("", config.token)
+        assertEquals("", config.botToken)
+        assertNull(config.appToken)
+        assertNull(config.signingSecret)
+        assertEquals("socket", config.mode)
         assertEquals("open", config.dmPolicy)
         assertEquals("open", config.groupPolicy)
         assertTrue(config.requireMention)
+        assertNull(config.historyLimit)
+        assertEquals("partial", config.streaming)
+        assertNull(config.model)
     }
 
     @Test
-    fun slackConfig_customValues() {
+    fun slackConfig_socketMode() {
         val config = SlackChannelConfig(
             enabled = true,
-            token = "xoxb-test-token",
+            botToken = "xoxb-test-token",
+            appToken = "xapp-test",
+            mode = "socket",
             dmPolicy = "allowlist",
-            groupPolicy = "closed",
-            requireMention = false
+            groupPolicy = "open",
+            requireMention = false,
+            historyLimit = 50,
+            streaming = "off",
+            model = "openrouter/claude-3-5-sonnet"
         )
         assertTrue(config.enabled)
-        assertEquals("xoxb-test-token", config.token)
+        assertEquals("xoxb-test-token", config.botToken)
+        assertEquals("xapp-test", config.appToken)
+        assertEquals("socket", config.mode)
         assertEquals("allowlist", config.dmPolicy)
-        assertEquals("closed", config.groupPolicy)
         assertFalse(config.requireMention)
+        assertEquals(50, config.historyLimit)
+        assertEquals("off", config.streaming)
+        assertEquals("openrouter/claude-3-5-sonnet", config.model)
+    }
+
+    @Test
+    fun slackConfig_httpMode() {
+        val config = SlackChannelConfig(
+            botToken = "xoxb-http",
+            signingSecret = "secret123",
+            mode = "http"
+        )
+        assertEquals("http", config.mode)
+        assertEquals("secret123", config.signingSecret)
+        assertNull(config.appToken)
     }
 
     // ===== TelegramChannelConfig defaults =====
@@ -46,26 +73,38 @@ class ChannelConfigTest {
     fun telegramConfig_defaults() {
         val config = TelegramChannelConfig()
         assertFalse(config.enabled)
-        assertEquals("", config.token)
+        assertEquals("", config.botToken)
         assertEquals("open", config.dmPolicy)
         assertEquals("open", config.groupPolicy)
         assertTrue(config.requireMention)
+        assertNull(config.historyLimit)
+        assertEquals("partial", config.streaming)
+        assertNull(config.webhookUrl)
+        assertNull(config.model)
     }
 
     @Test
     fun telegramConfig_customValues() {
         val config = TelegramChannelConfig(
             enabled = true,
-            token = "bot123456:ABC-DEF",
+            botToken = "bot123456:ABC-DEF",
             dmPolicy = "pairing",
             groupPolicy = "allowlist",
-            requireMention = false
+            requireMention = false,
+            historyLimit = 100,
+            streaming = "block",
+            webhookUrl = "https://example.com/webhook",
+            model = "anthropic/claude-3-5-sonnet-20241022"
         )
         assertTrue(config.enabled)
-        assertEquals("bot123456:ABC-DEF", config.token)
+        assertEquals("bot123456:ABC-DEF", config.botToken)
         assertEquals("pairing", config.dmPolicy)
         assertEquals("allowlist", config.groupPolicy)
         assertFalse(config.requireMention)
+        assertEquals(100, config.historyLimit)
+        assertEquals("block", config.streaming)
+        assertEquals("https://example.com/webhook", config.webhookUrl)
+        assertEquals("anthropic/claude-3-5-sonnet-20241022", config.model)
     }
 
     // ===== WhatsAppChannelConfig defaults =====
@@ -78,19 +117,25 @@ class ChannelConfigTest {
         assertEquals("open", config.dmPolicy)
         assertEquals("open", config.groupPolicy)
         assertTrue(config.requireMention)
+        assertNull(config.historyLimit)
+        assertNull(config.model)
     }
 
     @Test
     fun whatsappConfig_customValues() {
         val config = WhatsAppChannelConfig(
             enabled = true,
-            phoneNumber = "+1234567890",
-            dmPolicy = "closed",
+            phoneNumber = "+8613800138000",
+            dmPolicy = "pairing",
             groupPolicy = "open",
-            requireMention = false
+            requireMention = false,
+            historyLimit = 30,
+            model = "openai/gpt-4o"
         )
         assertTrue(config.enabled)
-        assertEquals("+1234567890", config.phoneNumber)
+        assertEquals("+8613800138000", config.phoneNumber)
+        assertEquals(30, config.historyLimit)
+        assertEquals("openai/gpt-4o", config.model)
     }
 
     // ===== SignalChannelConfig defaults =====
@@ -100,22 +145,34 @@ class ChannelConfigTest {
         val config = SignalChannelConfig()
         assertFalse(config.enabled)
         assertEquals("", config.phoneNumber)
+        assertNull(config.httpUrl)
+        assertEquals(8080, config.httpPort)
         assertEquals("open", config.dmPolicy)
         assertEquals("open", config.groupPolicy)
         assertTrue(config.requireMention)
+        assertNull(config.historyLimit)
+        assertNull(config.model)
     }
 
     @Test
     fun signalConfig_customValues() {
         val config = SignalChannelConfig(
             enabled = true,
-            phoneNumber = "+0987654321",
+            phoneNumber = "+8613800138001",
+            httpUrl = "http://127.0.0.1:8080",
+            httpPort = 8080,
             dmPolicy = "allowlist",
-            groupPolicy = "closed",
-            requireMention = true
+            groupPolicy = "open",
+            requireMention = true,
+            historyLimit = 20,
+            model = "deepseek/deepseek-chat"
         )
         assertTrue(config.enabled)
-        assertEquals("+0987654321", config.phoneNumber)
+        assertEquals("+8613800138001", config.phoneNumber)
+        assertEquals("http://127.0.0.1:8080", config.httpUrl)
+        assertEquals(8080, config.httpPort)
+        assertEquals(20, config.historyLimit)
+        assertEquals("deepseek/deepseek-chat", config.model)
     }
 
     // ===== ChannelsConfig nullable fields =====
@@ -127,26 +184,25 @@ class ChannelConfigTest {
         assertNull(channels.telegram)
         assertNull(channels.whatsapp)
         assertNull(channels.signal)
-        // feishu and discord also present in ChannelsConfig
-        assertNotNull(channels.feishu) // feishu has non-null default
+        assertNotNull(channels.feishu)
         assertNull(channels.discord)
     }
 
     @Test
     fun channelsConfig_includesAllChannels() {
         val channels = ChannelsConfig(
-            slack = SlackChannelConfig(enabled = true, token = "xoxb-test"),
-            telegram = TelegramChannelConfig(enabled = true, token = "bot123"),
+            slack = SlackChannelConfig(enabled = true, botToken = "xoxb-test"),
+            telegram = TelegramChannelConfig(enabled = true, botToken = "bot123"),
             whatsapp = WhatsAppChannelConfig(enabled = true, phoneNumber = "+1234567890"),
             signal = SignalChannelConfig(enabled = true, phoneNumber = "+0987654321")
         )
         assertNotNull(channels.slack)
         assertTrue(channels.slack!!.enabled)
-        assertEquals("xoxb-test", channels.slack!!.token)
+        assertEquals("xoxb-test", channels.slack!!.botToken)
 
         assertNotNull(channels.telegram)
         assertTrue(channels.telegram!!.enabled)
-        assertEquals("bot123", channels.telegram!!.token)
+        assertEquals("bot123", channels.telegram!!.botToken)
 
         assertNotNull(channels.whatsapp)
         assertTrue(channels.whatsapp!!.enabled)
@@ -161,28 +217,24 @@ class ChannelConfigTest {
 
     @Test
     fun slackConfig_copyRoundTrip() {
-        val original = SlackChannelConfig(enabled = true, token = "xoxb-abc")
-        val copied = original.copy(dmPolicy = "closed")
-        assertEquals("xoxb-abc", copied.token)
+        val original = SlackChannelConfig(enabled = true, botToken = "xoxb-abc")
+        val copied = original.copy(dmPolicy = "allowlist")
+        assertEquals("xoxb-abc", copied.botToken)
         assertTrue(copied.enabled)
-        assertEquals("closed", copied.dmPolicy)
-        // original unchanged
+        assertEquals("allowlist", copied.dmPolicy)
         assertEquals("open", original.dmPolicy)
     }
 
     @Test
     fun channelsConfig_copyRoundTrip() {
         val original = ChannelsConfig(
-            slack = SlackChannelConfig(enabled = true, token = "xoxb-orig")
+            slack = SlackChannelConfig(enabled = true, botToken = "xoxb-orig")
         )
         val updated = original.copy(
-            telegram = TelegramChannelConfig(enabled = true, token = "bot-new")
+            telegram = TelegramChannelConfig(enabled = true, botToken = "bot-new")
         )
-        // slack preserved
-        assertEquals("xoxb-orig", updated.slack!!.token)
-        // telegram added
-        assertEquals("bot-new", updated.telegram!!.token)
-        // original telegram still null
+        assertEquals("xoxb-orig", updated.slack!!.botToken)
+        assertEquals("bot-new", updated.telegram!!.botToken)
         assertNull(original.telegram)
     }
 
@@ -199,16 +251,16 @@ class ChannelConfigTest {
 
     @Test
     fun slackConfig_equality() {
-        val a = SlackChannelConfig(enabled = true, token = "tok")
-        val b = SlackChannelConfig(enabled = true, token = "tok")
+        val a = SlackChannelConfig(enabled = true, botToken = "tok")
+        val b = SlackChannelConfig(enabled = true, botToken = "tok")
         assertEquals(a, b)
         assertEquals(a.hashCode(), b.hashCode())
     }
 
     @Test
     fun telegramConfig_equality() {
-        val a = TelegramChannelConfig(enabled = false, token = "bot1")
-        val b = TelegramChannelConfig(enabled = false, token = "bot1")
+        val a = TelegramChannelConfig(enabled = false, botToken = "bot1")
+        val b = TelegramChannelConfig(enabled = false, botToken = "bot1")
         assertEquals(a, b)
     }
 

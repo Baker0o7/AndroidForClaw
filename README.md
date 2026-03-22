@@ -48,13 +48,28 @@ AI：→ web_search("科技新闻") → 返回标题+链接+摘要
 
 ### 💬 多平台消息
 
-通过飞书、Discord 远程控制你的手机 AI：
+通过飞书、Discord、Telegram、Slack 等远程控制你的手机 AI：
 
 | 渠道 | 状态 |
 |------|------|
 | 飞书 | ✅ 可用 |
 | Discord | ✅ 可用 |
-| Telegram · Slack · Signal · WhatsApp | 🔧 开发中 |
+| Telegram | 🔧 框架就绪（配置对齐 OpenClaw） |
+| Slack | 🔧 框架就绪（Socket/HTTP 双模式） |
+| Signal | 🔧 框架就绪（signal-cli 接入） |
+| WhatsApp | 🔧 框架就绪 |
+
+每个渠道支持**独立模型覆盖**——从已配置的 Provider 中选择该渠道专用的模型。
+
+### 🤖 MCP Server（给外部 Agent 用）
+
+内置 MCP Server（端口 8399），将手机的无障碍和截屏能力通过标准 MCP 协议暴露给外部 Agent：
+
+```
+工具：get_view_tree / screenshot / tap / swipe / input_text / press_home / press_back / get_current_app
+```
+
+> 这不是 AndroidForClaw 自身使用的——是给 Claude Desktop、Cursor 等外部 Agent 调用的。
 
 ### 🧩 技能扩展
 
@@ -130,6 +145,9 @@ AI：→ skills_search("") → 展示可用技能列表
 | **Context 管理** | 4 层防护对齐 OpenClaw：limitHistoryTurns + 工具结果裁剪 + budget guard |
 | **Skill 体系** | 20 个内置 Skill 可在设备上自由编辑，支持 ClawHub 在线安装 |
 | **多模型** | MiMo V2 Pro · DeepSeek R1 · Claude Sonnet 4 · Gemini 2.5 · GPT-4.1 |
+| **MCP Server** | 将无障碍/截屏能力暴露给外部 Agent（端口 8399，Streamable HTTP） |
+| **渠道模型覆盖** | 每个消息渠道可独立选择模型，字段对齐 OpenClaw types |
+| **Steer 注入** | 运行中通过 Channel 向 Agent Loop 注入消息（mid-run steering） |
 
 ---
 
@@ -177,11 +195,13 @@ AI：→ skills_search("") → 展示可用技能列表
 |------|------|------|
 | **飞书** | ✅ 可用 | WebSocket 实时连接，群聊/私聊，32 个飞书工具 |
 | **Discord** | ✅ 可用 | Gateway 连接，群聊/私聊 |
-| **Telegram** | 🔧 框架就绪 | Bot API polling/webhook |
-| **Slack** | 🔧 框架就绪 | Socket Mode / Events API |
-| **Signal** | 🔧 框架就绪 | Signal CLI |
-| **WhatsApp** | 🔧 框架就绪 | Web Protocol |
+| **Telegram** | 🔧 框架就绪 | Bot API polling/webhook，模型覆盖，流式回复 |
+| **Slack** | 🔧 框架就绪 | Socket Mode / HTTP Mode，模型覆盖，流式回复 |
+| **Signal** | 🔧 框架就绪 | signal-cli daemon 接入，模型覆盖 |
+| **WhatsApp** | 🔧 框架就绪 | WhatsApp Business API，模型覆盖 |
 | **设备内对话** | ✅ 可用 | 内置聊天界面 |
+
+> 所有渠道配置字段均对齐 OpenClaw TypeScript 类型定义（`types.slack.ts`、`types.telegram.ts` 等）。
 
 ### 🤖 支持的模型
 
@@ -217,7 +237,20 @@ AI：→ skills_search("") → 展示可用技能列表
     }
   },
   "channels": {
-    "feishu": { "enabled": true, "appId": "cli_xxx", "appSecret": "xxx" }
+    "feishu": { "enabled": true, "appId": "cli_xxx", "appSecret": "xxx" },
+    "slack": {
+      "enabled": true,
+      "botToken": "xoxb-...",
+      "appToken": "xapp-...",
+      "mode": "socket",
+      "streaming": "partial",
+      "model": "openrouter/xiaomi/mimo-v2-pro"
+    },
+    "telegram": {
+      "enabled": true,
+      "botToken": "123456:ABC-...",
+      "streaming": "partial"
+    }
   }
 }
 ```
