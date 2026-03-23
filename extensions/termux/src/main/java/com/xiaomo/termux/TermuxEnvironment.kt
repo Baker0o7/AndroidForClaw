@@ -16,9 +16,6 @@ class TermuxEnvironment(context: Context) {
     /** Termux PREFIX — equivalent to /data/data/com.termux/files/usr */
     val prefixDir: File = File(filesDir, "usr")
 
-    /** Staging directory used during bootstrap extraction (renamed to prefixDir atomically) */
-    val stagingPrefixDir: File = File(filesDir, "usr-staging")
-
     /** User home directory */
     val homeDir: File = File(filesDir, "home")
 
