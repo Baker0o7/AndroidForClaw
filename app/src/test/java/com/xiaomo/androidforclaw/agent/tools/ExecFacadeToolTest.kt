@@ -1,44 +1,101 @@
 package com.xiaomo.androidforclaw.agent.tools
 
-import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * ExecFacadeTool unit tests.
- *
- * Full execution requires a device with EmbeddedTermuxRuntime installed;
- * here we only verify tool definition and parameter schema.
- */
 class ExecFacadeToolTest {
 
-    private val tool = ExecFacadeTool(context = mockk(relaxed = true))
+    private class FakeTool(
+        override val name: String,
+        private val result: ToolResult
+    ) : Tool {
+        var callCount: Int = 0
+            private set
+        var lastArgs: Map<String, Any?>? = null
+            private set
 
-    @Test
-    fun `tool name is exec`() {
-        assertEquals("exec", tool.name)
-    }
+        override val description: String = name
 
-    @Test
-    fun `tool definition has command parameter`() {
-        val def = tool.getToolDefinition()
-        assertTrue(def.function.parameters.properties.containsKey("command"))
-        assertTrue(def.function.parameters.required.contains("command"))
-    }
+        override fun getToolDefinition() = com.xiaomo.androidforclaw.providers.ToolDefinition(
+            type = "function",
+            function = com.xiaomo.androidforclaw.providers.FunctionDefinition(
+                name = name,
+                description = description,
+                parameters = com.xiaomo.androidforclaw.providers.ParametersSchema(
+                    type = "object",
+                    properties = emptyMap(),
+                    required = emptyList()
+                )
+            )
+        )
 
-    @Test
-    fun `tool definition has timeout parameter`() {
-        val def = tool.getToolDefinition()
-        assertTrue(def.function.parameters.properties.containsKey("timeout"))
-    }
-
-    @Test
-    fun `missing command returns error`() {
-        val result = kotlinx.coroutines.runBlocking {
-            tool.execute(emptyMap())
+        override suspend fun execute(args: Map<String, Any?>): ToolResult {
+            callCount++
+            lastArgs = args
+            return result
         }
-        assertTrue(!result.success)
-        assertTrue(result.content.contains("Missing"))
+    }
+
+    @Test
+    fun `auto routes to termux when available`() {
+        val internal = FakeTool("exec", ToolResult.success("internal"))
+        val termux = FakeTool("exec", ToolResult.success("termux"))
+        val facade = ExecFacadeTool(internal, termux, termuxAvailable = true)
+
+        val result = kotlinx.coroutines.runBlocking {
+            facade.execute(mapOf("command" to "echo hi"))
+        }
+
+        assertTrue(result.success)
+        assertEquals("termux", result.content)
+        assertEquals(0, internal.callCount)
+        assertEquals(1, termux.callCount)
+    }
+
+    @Test
+    fun `auto falls back to internal when termux unavailable`() {
+        val internal = FakeTool("exec", ToolResult.success("internal"))
+        val termux = FakeTool("exec", ToolResult.success("termux"))
+        val facade = ExecFacadeTool(internal, termux, termuxAvailable = false)
+
+        val result = kotlinx.coroutines.runBlocking {
+            facade.execute(mapOf("command" to "echo hi"))
+        }
+
+        assertTrue(result.success)
+        assertEquals("internal", result.content)
+        assertEquals(1, internal.callCount)
+        assertEquals(0, termux.callCount)
+    }
+
+    @Test
+    fun `backend internal forces internal exec`() {
+        val internal = FakeTool("exec", ToolResult.success("internal"))
+        val termux = FakeTool("exec", ToolResult.success("termux"))
+        val facade = ExecFacadeTool(internal, termux, termuxAvailable = true)
+
+        val result = kotlinx.coroutines.runBlocking {
+            facade.execute(mapOf("command" to "echo hi", "backend" to "internal"))
+        }
+
+        assertEquals("internal", result.content)
+        assertEquals(1, internal.callCount)
+        assertEquals(0, termux.callCount)
+    }
+
+    @Test
+    fun `backend termux forces termux exec`() {
+        val internal = FakeTool("exec", ToolResult.success("internal"))
+        val termux = FakeTool("exec", ToolResult.success("termux"))
+        val facade = ExecFacadeTool(internal, termux, termuxAvailable = false)
+
+        val result = kotlinx.coroutines.runBlocking {
+            facade.execute(mapOf("command" to "echo hi", "backend" to "termux"))
+        }
+
+        assertEquals("termux", result.content)
+        assertEquals(0, internal.callCount)
+        assertEquals(1, termux.callCount)
     }
 }
