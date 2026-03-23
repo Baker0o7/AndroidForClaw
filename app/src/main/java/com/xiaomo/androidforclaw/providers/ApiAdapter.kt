@@ -155,8 +155,8 @@ object ApiAdapter {
         return when (api) {
             ModelApi.ANTHROPIC_MESSAGES -> parseAnthropicResponse(responseBody)
             ModelApi.OPENAI_COMPLETIONS,
-            ModelApi.OLLAMA,
             ModelApi.GITHUB_COPILOT -> parseOpenAIResponse(responseBody)
+            ModelApi.OLLAMA -> parseOllamaResponse(responseBody)
             ModelApi.OPENAI_RESPONSES,
             ModelApi.OPENAI_CODEX_RESPONSES -> parseOpenAIResponsesResponse(responseBody)
             ModelApi.GOOGLE_GENERATIVE_AI -> parseGeminiResponse(responseBody)
@@ -719,16 +719,132 @@ object ApiAdapter {
         temperature: Double,
         maxTokens: Int?
     ): JSONObject {
-        val json = buildOpenAIRequest(model, messages, tools, temperature, maxTokens, false)
+        // Ollama /api/chat uses its own format: model, messages, stream, tools, options
+        val json = JSONObject()
+        json.put("model", model.id)
+        json.put("stream", false)
 
-        // Ollama special handling: may need to inject num_ctx
-        if (provider.injectNumCtxForOpenAICompat == true) {
-            json.put("options", JSONObject().apply {
-                put("num_ctx", model.contextWindow)
-            })
+        val ollamaMessages = JSONArray()
+        messages.forEach { message ->
+            val msg = JSONObject()
+            msg.put("role", message.role)
+            msg.put("content", message.content)
+
+            // tool call results use role="tool"
+            if (message.toolCallId != null) {
+                msg.put("tool_call_id", message.toolCallId)
+            }
+
+            // assistant tool_calls
+            if (!message.toolCalls.isNullOrEmpty()) {
+                val toolCallsArray = JSONArray()
+                message.toolCalls.forEach { toolCall ->
+                    toolCallsArray.put(JSONObject().apply {
+                        put("id", toolCall.id)
+                        put("type", "function")
+                        put("function", JSONObject().apply {
+                            put("name", toolCall.name)
+                            put("arguments", JSONObject(toolCall.arguments))
+                        })
+                    })
+                }
+                msg.put("tool_calls", toolCallsArray)
+            }
+
+            ollamaMessages.put(msg)
+        }
+        json.put("messages", ollamaMessages)
+
+        // Tools
+        if (!tools.isNullOrEmpty()) {
+            val ollamaTools = JSONArray()
+            tools.forEach { tool ->
+                ollamaTools.put(buildToolJson(tool))
+            }
+            json.put("tools", ollamaTools)
         }
 
+        // Options
+        val options = JSONObject()
+        options.put("temperature", temperature)
+        if (maxTokens != null) {
+            options.put("num_predict", maxTokens)
+        } else if (model.maxTokens > 0) {
+            options.put("num_predict", model.maxTokens)
+        }
+        if (provider.injectNumCtxForOpenAICompat == true && model.contextWindow > 0) {
+            options.put("num_ctx", model.contextWindow)
+        }
+        json.put("options", options)
+
         return json
+    }
+
+    /**
+     * 解析 Ollama /api/chat 响应
+     * Ollama 格式: { "model": "...", "message": { "role": "assistant", "content": "...", "tool_calls": [...] }, "done": true }
+     */
+    private fun parseOllamaResponse(responseBody: String): ParsedResponse {
+        val json = JSONObject(responseBody)
+
+        // Check for error
+        val error = json.optString("error", "")
+        if (error.isNotBlank()) {
+            Log.e("ApiAdapter", "Ollama error: $error")
+            throw LLMException("Ollama error: $error")
+        }
+
+        // Ollama may also support OpenAI-compatible format (if using /v1/chat/completions)
+        // Fall back to OpenAI parser if 'choices' field exists
+        if (json.has("choices")) {
+            return parseOpenAIResponse(responseBody)
+        }
+
+        val message = json.optJSONObject("message")
+            ?: return ParsedResponse(content = null)
+
+        val content = message.optString("content", "").ifBlank { null }
+
+        // Parse tool calls
+        val toolCallsArray = message.optJSONArray("tool_calls")
+        val toolCalls = if (toolCallsArray != null && toolCallsArray.length() > 0) {
+            mutableListOf<ToolCall>().apply {
+                for (i in 0 until toolCallsArray.length()) {
+                    val tc = toolCallsArray.getJSONObject(i)
+                    val function = tc.optJSONObject("function")
+                    if (function != null) {
+                        add(
+                            ToolCall(
+                                id = tc.optString("id", "call_${System.currentTimeMillis()}_$i"),
+                                name = function.getString("name"),
+                                arguments = function.optJSONObject("arguments")?.toString()
+                                    ?: function.optString("arguments", "{}")
+                            )
+                        )
+                    }
+                }
+            }
+        } else null
+
+        // Parse usage (Ollama provides prompt_eval_count / eval_count)
+        val promptEval = json.optInt("prompt_eval_count", 0)
+        val evalCount = json.optInt("eval_count", 0)
+        val usage = if (promptEval > 0 || evalCount > 0) {
+            Usage(promptTokens = promptEval, completionTokens = evalCount)
+        } else null
+
+        val finishReason = when {
+            toolCalls != null && toolCalls.isNotEmpty() -> "tool_calls"
+            json.optBoolean("done", false) -> "stop"
+            else -> null
+        }
+
+        return ParsedResponse(
+            content = content,
+            toolCalls = toolCalls?.ifEmpty { null },
+            usage = usage,
+            finishReason = finishReason
+        )
     }
 
     // ============ GitHub Copilot API ============
