@@ -165,7 +165,10 @@ class WeixinApi(
 
     suspend fun sendMessage(msg: WeixinMessage) {
         val req = SendMessageRequest(msg = msg, baseInfo = buildBaseInfo())
-        post(apiClient, "ilink/bot/sendmessage", gson.toJson(req), "sendMessage")
+        val body = gson.toJson(req)
+        Log.d(TAG, "sendMessage request: ${body.take(500)}")
+        val resp = post(apiClient, "ilink/bot/sendmessage", body, "sendMessage")
+        Log.d(TAG, "sendMessage response: ${resp.take(500)}")
     }
 
     /** Send a text message to a user. */
@@ -173,6 +176,8 @@ class WeixinApi(
         val msg = WeixinMessage(
             toUserId = toUserId,
             contextToken = contextToken,
+            messageType = MessageType.BOT,
+            messageState = MessageState.FINISH,
             itemList = listOf(
                 MessageItem(
                     type = MessageItemType.TEXT,

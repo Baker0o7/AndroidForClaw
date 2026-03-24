@@ -28,6 +28,9 @@ object ContextTokenStore {
     fun clear() {
         store.clear()
     }
+
+    /** Debug: return all cached keys (for logging) */
+    fun debugKeys(): String = store.keys.joinToString(", ")
 }
 
 /**

@@ -22,9 +22,10 @@ class WeixinSender(private val api: WeixinApi, private val accountId: String) {
     suspend fun sendText(toUserId: String, text: String): Boolean {
         val contextToken = ContextTokenStore.get(accountId, toUserId)
         if (contextToken == null) {
-            Log.e(TAG, "No context token for user=$toUserId, cannot send")
+            Log.e(TAG, "No context token for accountId=$accountId user=$toUserId, cannot send. Store keys: ${ContextTokenStore.debugKeys()}")
             return false
         }
+        Log.d(TAG, "sendText to=$toUserId contextToken=${contextToken.take(20)}... text=${text.take(100)}")
 
         return try {
             if (text.length <= TEXT_CHUNK_LIMIT) {
