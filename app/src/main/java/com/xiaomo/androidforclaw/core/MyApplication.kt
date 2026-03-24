@@ -112,6 +112,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         private var weixinChannel: com.xiaomo.weixin.WeixinChannel? = null
         fun getWeixinChannel(): com.xiaomo.weixin.WeixinChannel? = weixinChannel
 
+        // Track active Weixin agent loops per user for stop/cancel support
+        private val activeWeixinAgentLoops = java.util.concurrent.ConcurrentHashMap<String, AgentLoop>()
+        private val activeWeixinJobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
+
         // Accessibility Health Monitor
         private var healthMonitor: AccessibilityHealthMonitor? = null
 
@@ -2088,7 +2092,26 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         return@collect
                     }
 
-                    launch {
+                    // Check if this is a stop command
+                    val trimmedBody = msg.body.trim()
+                    if (isWeixinStopCommand(trimmedBody)) {
+                        val userId = msg.fromUserId
+                        val loop = activeWeixinAgentLoops[userId]
+                        val job = activeWeixinJobs[userId]
+                        if (loop != null || job != null) {
+                            Log.i(TAG, "🛑 Weixin: 用户 $userId 请求停止任务")
+                            loop?.stop()
+                            job?.cancel()
+                            activeWeixinAgentLoops.remove(userId)
+                            activeWeixinJobs.remove(userId)
+                            channel.sender?.sendText(userId, "✅ 已停止当前任务")
+                        } else {
+                            channel.sender?.sendText(userId, "当前没有正在执行的任务")
+                        }
+                        return@collect
+                    }
+
+                    val job = launch {
                         try {
                             // Send typing indicator
                             channel.sender?.sendTyping(msg.fromUserId)
@@ -2114,19 +2137,32 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
                             // Cancel typing
                             channel.sender?.cancelTyping(msg.fromUserId)
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            Log.i(TAG, "Weixin: 任务被用户取消 ${msg.fromUserId}")
                         } catch (e: Exception) {
                             Log.e(TAG, "Weixin 消息处理异常", e)
                             try {
                                 channel.sender?.sendText(msg.fromUserId, "处理消息时出错：${e.message}")
                             } catch (_: Exception) {}
+                        } finally {
+                            activeWeixinAgentLoops.remove(msg.fromUserId)
+                            activeWeixinJobs.remove(msg.fromUserId)
                         }
                     }
+                    activeWeixinJobs[msg.fromUserId] = job
                 }
 
             } catch (e: Exception) {
                 Log.e(TAG, "Weixin Channel 启动异常", e)
             }
         }
+    }
+
+    private fun isWeixinStopCommand(text: String): Boolean {
+        val lower = text.lowercase()
+        return lower == "停止" || lower == "停" || lower == "stop" || lower == "cancel"
+                || lower == "取消" || lower == "停止任务" || lower == "停止全部任务"
+                || lower == "中止" || lower == "终止"
     }
 
     private fun shouldSkipWeixinReply(response: String): Boolean {
@@ -2190,6 +2226,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 maxIterations = maxIterations,
                 modelRef = weixinModel
             )
+
+            // Register for stop/cancel support
+            activeWeixinAgentLoops[msg.fromUserId] = agentLoop
 
             val channelCtx = ContextBuilder.ChannelContext(
                 channel = "weixin",
