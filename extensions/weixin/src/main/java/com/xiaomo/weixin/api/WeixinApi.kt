@@ -13,11 +13,16 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import okhttp3.Dispatcher
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.random.Random
 import android.util.Base64
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.atomic.AtomicInteger
 
 class WeixinApi(
     private val baseUrl: String,
@@ -30,18 +35,38 @@ class WeixinApi(
         private val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
         private const val DEFAULT_LONG_POLL_TIMEOUT_MS = 35_000L
         private const val DEFAULT_API_TIMEOUT_MS = 15_000L
+
+        /** 创建独立 Dispatcher，避免 shutdown 影响全局共享 executor */
+        private fun newIsolatedDispatcher(name: String): Dispatcher {
+            val counter = AtomicInteger(0)
+            val executor = ThreadPoolExecutor(
+                0, Int.MAX_VALUE, 60, TimeUnit.SECONDS,
+                SynchronousQueue(),
+                ThreadFactory { r ->
+                    Thread(r, "WeixinApi-$name-${counter.getAndIncrement()}").apply {
+                        isDaemon = true
+                    }
+                }
+            )
+            return Dispatcher(executor)
+        }
     }
 
     private val gson = Gson()
 
-    // Separate clients for long-poll vs regular API
+    // 每个 client 使用独立的 Dispatcher，shutdown 时不会影响全局 OkHttp
+    private val longPollDispatcher = newIsolatedDispatcher("longpoll")
+    private val apiDispatcher = newIsolatedDispatcher("api")
+
     private val longPollClient = OkHttpClient.Builder()
+        .dispatcher(longPollDispatcher)
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(45, TimeUnit.SECONDS)  // > server long-poll timeout
         .writeTimeout(10, TimeUnit.SECONDS)
         .build()
 
     private val apiClient = OkHttpClient.Builder()
+        .dispatcher(apiDispatcher)
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS)
@@ -272,7 +297,14 @@ class WeixinApi(
     }
 
     fun shutdown() {
+        // 取消所有排队和进行中的请求
+        longPollClient.dispatcher.cancelAll()
+        apiClient.dispatcher.cancelAll()
+        // 关闭独立的 executor（不会影响全局 OkHttp）
         longPollClient.dispatcher.executorService.shutdown()
         apiClient.dispatcher.executorService.shutdown()
+        // 关闭连接池
+        longPollClient.connectionPool.evictAll()
+        apiClient.connectionPool.evictAll()
     }
 }
