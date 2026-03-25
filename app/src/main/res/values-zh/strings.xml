@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App基本信息 -->
-    <string name="app_name">ForClaw</string>
+    <string name="app_name">小龙虾</string>
 
     <!-- Shell命令相关 -->
     <string name="command_hint">Shell 命令</string>
@@ -40,7 +40,7 @@
     <string name="code_hint">配对码</string>
 
     <string name="pair_title">配对信息</string>
-    <string name="pair_message">您必须使用开发者设置中「无线调试」页面的配对码将此设备连接到 AndroidForClaw。如果您之前没有做过此操作，请点击「帮助」查看教程。</string>
+    <string name="pair_message">您必须使用开发者设置中「无线调试」页面的配对码将此设备连接到小龙虾。如果您之前没有做过此操作，请点击「帮助」查看教程。</string>
 
     <!-- 设置相关 -->
     <string name="settings">设置</string>
@@ -73,14 +73,14 @@
 
     <!-- 错误信息 -->
     <string name="error_waiting_title">卡在「等待」状态</string>
-    <string name="error_waiting_summary">您可能输入了错误的配对信息，或者您的设备未被检测到。首先，确保无线调试确实已启用。如果仍然无法正常工作，请尝试 AndroidForClaw 中的「恢复出厂设置」来重新配对。</string>
+    <string name="error_waiting_summary">您可能输入了错误的配对信息，或者您的设备未被检测到。首先，确保无线调试确实已启用。如果仍然无法正常工作，请尝试 小龙虾中的「恢复出厂设置」来重新配对。</string>
 
     <string name="error_no_wireless_debugging_title">没有「无线调试」选项</string>
-    <string name="error_no_wireless_debugging_summary">您的设备本身不支持无线调试，这是 AndroidForClaw 所必需的。或者，您可以使用 PC 启用此功能，即使在不支持的设备上也可以。这将持续到下次重启。将设备连接到 PC 并输入：adb tcpip 5555</string>
+    <string name="error_no_wireless_debugging_summary">您的设备本身不支持无线调试，这是 小龙虾所必需的。或者，您可以使用 PC 启用此功能，即使在不支持的设备上也可以。这将持续到下次重启。将设备连接到 PC 并输入：adb tcpip 5555</string>
 
     <!-- 关于页面 -->
     <string name="developer_title">开发者</string>
-    <string name="developer_summary">AndroidForClaw 团队</string>
+    <string name="developer_summary">Claw 团队</string>
     <string name="developer_key">开发者</string>
 
     <string name="source_title">源代码</string>
@@ -114,7 +114,7 @@
 
     <!-- 通知相关 -->
     <string name="notification_channel_created">通知渠道已创建</string>
-    <string name="foreground_service_title">AndroidForClaw 服务</string>
+    <string name="foreground_service_title">小龙虾服务</string>
     <string name="foreground_service_content">服务正在运行</string>
 
     <!-- 截图相关 -->
@@ -194,8 +194,8 @@
     <string name="days_ago">%d 天前</string>
 
     <!-- 无障碍服务 -->
-    <string name="accessibility_service_description">AndroidForClaw 无障碍服务，用于控制设备界面</string>
-    <string name="accessibility_service_name">AndroidForClaw 无障碍服务</string>
+    <string name="accessibility_service_description">小龙虾无障碍服务，用于控制设备界面</string>
+    <string name="accessibility_service_name">小龙虾无障碍服务</string>
 
     <!-- 语言设置 -->
     <string name="language_setting">语言 / Language</string>
@@ -245,7 +245,7 @@
     <string name="settings_feishu_join">点击加入</string>
     <string name="settings_github">GitHub 仓库</string>
     <string name="settings_github_desc">查看源码 / 提交 Issue</string>
-    <string name="settings_copyright">© 2024–2025 AndroidForClaw</string>
+    <string name="settings_copyright">© 2024–2025 小龙虾</string>
     <string name="settings_inspired">Inspired by OpenClaw</string>
     <string name="settings_copied">已复制</string>
     <string name="settings_cannot_open_link">无法打开链接</string>

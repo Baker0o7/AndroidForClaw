@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App基本信息 -->
-    <string name="app_name">ForClaw</string>
+    <string name="app_name">Claw</string>
 
     <!-- 通用操作 -->
     <string name="bookmarks">Bookmarks</string>
@@ -30,7 +30,7 @@
     <string name="code_hint">Pairing code</string>
 
     <string name="pair_title">Pairing information</string>
-    <string name="pair_message">You must connect this device to AndroidForClaw using a pairing code from the \"Wireless debugging\" page in the Developer Settings page. If you have not done this before, click \"Help\" for a tutorial.</string>
+    <string name="pair_message">You must connect this device to Claw using a pairing code from the \"Wireless debugging\" page in the Developer Settings page. If you have not done this before, click \"Help\" for a tutorial.</string>
 
     <!-- 设置相关 -->
     <string name="settings">Settings</string>
@@ -63,14 +63,14 @@
 
     <!-- 错误信息 -->
     <string name="error_waiting_title">Stuck on \"Waiting\"</string>
-    <string name="error_waiting_summary">Either you entered the pairing information incorrectly, or your device is not being detected. First, ensure that Wireless Debugging is actually enabled. If that does not work, Try the \"Factory reset\" setting in AndroidForClaw to try pairing again.</string>
+    <string name="error_waiting_summary">Either you entered the pairing information incorrectly, or your device is not being detected. First, ensure that Wireless Debugging is actually enabled. If that does not work, Try the \"Factory reset\" setting in Claw to try pairing again.</string>
 
     <string name="error_no_wireless_debugging_title">No \"Wireless Debugging\" toggle</string>
-    <string name="error_no_wireless_debugging_summary">Your device does not natively support Wireless Debugging, which is required by AndroidForClaw. Alternatively, you can use a PC to enable this feature, even on unsupported devices. It will last until the next reboot. Connect the device to a PC and type: adb tcpip 5555</string>
+    <string name="error_no_wireless_debugging_summary">Your device does not natively support Wireless Debugging, which is required by Claw. Alternatively, you can use a PC to enable this feature, even on unsupported devices. It will last until the next reboot. Connect the device to a PC and type: adb tcpip 5555</string>
 
     <!-- 关于页面 -->
     <string name="developer_title">Developer</string>
-    <string name="developer_summary">AndroidForClaw Team</string>
+    <string name="developer_summary">Claw Team</string>
     <string name="developer_key">developer</string>
 
     <string name="source_title">Source code</string>
@@ -106,7 +106,7 @@
 
     <!-- 通知相关 -->
     <string name="notification_channel_created">Notification Channel Created</string>
-    <string name="foreground_service_title">AndroidForClaw Service</string>
+    <string name="foreground_service_title">Claw 服务</string>
     <string name="foreground_service_content">Service is running</string>
 
     <!-- 截图相关 -->
@@ -186,8 +186,8 @@
     <string name="days_ago">%d days ago</string>
 
     <!-- 无障碍服务 -->
-    <string name="accessibility_service_description">AndroidForClaw Accessibility Service for controlling device interface</string>
-    <string name="accessibility_service_name">AndroidForClaw Accessibility Service</string>
+    <string name="accessibility_service_description">Claw 无障碍服务，用于控制设备界面</string>
+    <string name="accessibility_service_name">Claw 无障碍服务</string>
 
     <!-- 语言设置 -->
     <string name="language_setting">Language / 语言</string>
@@ -237,7 +237,7 @@
     <string name="settings_feishu_join">Click to join</string>
     <string name="settings_github">GitHub Repository</string>
     <string name="settings_github_desc">View source / Submit issue</string>
-    <string name="settings_copyright">© 2024–2025 AndroidForClaw</string>
+    <string name="settings_copyright">© 2024–2025 Claw</string>
     <string name="settings_inspired">Inspired by OpenClaw</string>
     <string name="settings_copied">Copied</string>
     <string name="settings_cannot_open_link">Cannot open link</string>
