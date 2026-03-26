@@ -220,14 +220,36 @@ object ApiAdapter {
                     anthropicMessages.put(msg)
                 }
                 "tool" -> {
-                    // Anthropic 使用 tool_result 格式
+                    // Anthropic 使用 tool_result 格式，支持多模态（文本+图片）
+                    val toolResultContent = if (!message.images.isNullOrEmpty()) {
+                        // Multimodal tool result: text block + image blocks
+                        JSONArray().apply {
+                            put(JSONObject().apply {
+                                put("type", "text")
+                                put("text", message.content)
+                            })
+                            message.images.forEach { img ->
+                                put(JSONObject().apply {
+                                    put("type", "image")
+                                    put("source", JSONObject().apply {
+                                        put("type", "base64")
+                                        put("media_type", img.mimeType)
+                                        put("data", img.base64)
+                                    })
+                                })
+                            }
+                        }
+                    } else {
+                        // Plain text tool result
+                        message.content
+                    }
                     val msg = JSONObject()
                     msg.put("role", "user")
                     msg.put("content", JSONArray().apply {
                         put(JSONObject().apply {
                             put("type", "tool_result")
                             put("tool_use_id", message.toolCallId ?: "")
-                            put("content", message.content)
+                            put("content", toolResultContent)
                         })
                     })
                     anthropicMessages.put(msg)

@@ -638,12 +638,13 @@ class AgentLoop(
                             toolCallId = toolCall.id
                         )
 
-                        // Add result to message list
+                        // Add result to message list (with images if tool returned any)
                         messages.add(
                             toolMessage(
                                 toolCallId = toolCall.id,
                                 content = result.toString(),
-                                name = functionName
+                                name = functionName,
+                                images = result.images
                             )
                         )
 

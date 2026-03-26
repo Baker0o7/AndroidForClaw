@@ -7,13 +7,19 @@ package com.xiaomo.androidforclaw.agent.tools
 
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.DeviceController
+import com.xiaomo.androidforclaw.media.ImageSanitizer
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.llm.ImageBlock
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 
 /**
  * Screenshot Skill
@@ -98,11 +104,27 @@ class ScreenshotSkill(private val context: Context) : Skill {
             val (bitmap, path) = screenshotResult
             Log.d(TAG, "Screenshot captured: ${bitmap.width}x${bitmap.height}, path: $path")
 
-            // 4. Combine output
+            // 4. Compress screenshot for model (aligned with OpenClaw image-sanitization)
+            val imageBlock = withContext(Dispatchers.IO) {
+                val baos = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos)
+                val rawBytes = baos.toByteArray()
+                val rawBase64 = android.util.Base64.encodeToString(rawBytes, android.util.Base64.NO_WRAP)
+                val sanitized = ImageSanitizer.sanitize(rawBase64, "image/jpeg")
+                if (sanitized != null) {
+                    ImageBlock(base64 = sanitized.base64, mimeType = sanitized.mimeType)
+                } else {
+                    // Fallback: use raw JPEG if sanitization fails
+                    ImageBlock(base64 = rawBase64, mimeType = "image/jpeg")
+                }
+            }
+
+            // 5. Combine output
             val output = buildString {
                 appendLine("【截图信息】")
                 appendLine("分辨率: ${bitmap.width}x${bitmap.height}")
                 appendLine("路径: $path")
+                appendLine("（截图已内嵌，请直接描述你看到的内容）")
                 appendLine()
 
                 appendLine("【屏幕 UI 元素】（共 ${processedNodes.size} 个）")
@@ -134,7 +156,8 @@ class ScreenshotSkill(private val context: Context) : Skill {
                     "height" to bitmap.height,
                     "view_count" to processedNodes.size,
                     "original_count" to originalNodes.size
-                )
+                ),
+                images = listOf(imageBlock)
             )
         } catch (e: Exception) {
             Log.e(TAG, "Screenshot with UI tree failed", e)

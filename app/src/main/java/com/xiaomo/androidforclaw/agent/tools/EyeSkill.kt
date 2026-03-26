@@ -16,10 +16,12 @@ import android.content.pm.PackageManager
 import com.xiaomo.androidforclaw.camera.CameraCaptureManager
 import com.xiaomo.androidforclaw.camera.CameraPermissionActivity
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.media.ImageSanitizer
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.llm.ImageBlock
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -190,29 +192,35 @@ class EyeSkill(
                 deviceId = deviceId,
             )
 
+            // 压缩图片（对齐 OpenClaw image-sanitization 策略）
+            val sanitized = withContext(Dispatchers.IO) {
+                ImageSanitizer.sanitize(result.base64, "image/jpeg")
+            } ?: return SkillResult.error("图片压缩失败")
+
             // 保存到工作空间
             val photoDir = File(StoragePaths.workspace, "eye").apply { mkdirs() }
             val photoFile = File(photoDir, "look_${System.currentTimeMillis()}.jpg")
             withContext(Dispatchers.IO) {
-                val bytes = android.util.Base64.decode(result.base64, android.util.Base64.NO_WRAP)
+                val bytes = android.util.Base64.decode(sanitized.base64, android.util.Base64.NO_WRAP)
                 photoFile.writeBytes(bytes)
             }
 
             val output = buildString {
                 appendLine("👁️ 通过${eyeName}观察完成")
-                appendLine("分辨率: ${result.width}x${result.height}")
+                appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
                 appendLine("文件: ${photoFile.absolutePath}")
+                appendLine("（图片已内嵌，请直接描述你看到的内容）")
             }
 
             SkillResult.success(
                 output,
                 mapOf(
-                    "format" to result.format,
-                    "width" to result.width,
-                    "height" to result.height,
+                    "format" to "jpeg",
+                    "width" to sanitized.width,
+                    "height" to sanitized.height,
                     "file_path" to photoFile.absolutePath,
-                    "base64" to result.base64,
-                )
+                ),
+                images = listOf(ImageBlock(base64 = sanitized.base64, mimeType = sanitized.mimeType))
             )
         } catch (e: Exception) {
             Log.e(TAG, "eye.look failed", e)

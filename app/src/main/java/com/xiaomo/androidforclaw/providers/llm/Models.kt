@@ -38,7 +38,7 @@ data class Message(
     val name: String? = null,  // tool name for tool role
     val toolCallId: String? = null,  // for tool role
     val toolCalls: List<ToolCall>? = null,  // for assistant with tool calls
-    val images: List<ImageBlock>? = null  // inline images (user messages only)
+    val images: List<ImageBlock>? = null  // inline images (user messages & tool results)
 )
 
 /**
@@ -202,12 +202,14 @@ fun assistantMessage(
 fun toolMessage(
     toolCallId: String,
     content: String,
-    name: String? = null
+    name: String? = null,
+    images: List<ImageBlock>? = null
 ) = Message(
     role = "tool",
     content = content,
     toolCallId = toolCallId,
-    name = name
+    name = name,
+    images = images
 )
 
 // ============= Compatibility Extensions =============

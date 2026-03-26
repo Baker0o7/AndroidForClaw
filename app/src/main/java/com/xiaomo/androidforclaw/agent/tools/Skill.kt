@@ -7,6 +7,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.llm.ImageBlock
 
 /**
  * Skill interface
@@ -42,11 +43,13 @@ interface Skill {
 data class SkillResult(
     val success: Boolean,
     val content: String,
-    val metadata: Map<String, Any?> = emptyMap()
+    val metadata: Map<String, Any?> = emptyMap(),
+    /** Inline images to include in the tool result (multimodal). */
+    val images: List<ImageBlock>? = null
 ) {
     companion object {
-        fun success(content: String, metadata: Map<String, Any?> = emptyMap()) =
-            SkillResult(true, content, metadata)
+        fun success(content: String, metadata: Map<String, Any?> = emptyMap(), images: List<ImageBlock>? = null) =
+            SkillResult(true, content, metadata, images)
 
         fun error(message: String) =
             SkillResult(false, "Error: $message")
