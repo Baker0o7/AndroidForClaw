@@ -154,6 +154,51 @@ class GatewayController(
                     val attachments = p["attachments"] as? List<Map<String, Any?>> ?: emptyList()
                     val runId = "run_${UUID.randomUUID()}"
 
+                    // Extract and sanitize images from attachments
+                    // Aligned with OpenClaw image-sanitization.ts: max 1200px, 5MB
+                    val imageBlocks = mutableListOf<com.xiaomo.androidforclaw.providers.llm.ImageBlock>()
+                    for (att in attachments) {
+                        val type = att["type"] as? String ?: continue
+                        if (type == "image" || type == "image_url") {
+                            // Anthropic format: { type: "image", source: { data, media_type } }
+                            val source = att["source"] as? Map<*, *>
+                            val rawBase64 = source?.get("data") as? String
+                            val mimeType = source?.get("media_type") as? String ?: "image/jpeg"
+                            if (!rawBase64.isNullOrBlank()) {
+                                val sanitized = com.xiaomo.androidforclaw.media.ImageSanitizer.sanitize(
+                                    base64Data = rawBase64,
+                                    sourceMimeType = mimeType
+                                )
+                                if (sanitized != null) {
+                                    imageBlocks.add(com.xiaomo.androidforclaw.providers.llm.ImageBlock(
+                                        base64 = sanitized.base64,
+                                        mimeType = sanitized.mimeType
+                                    ))
+                                    Log.i(TAG, "📷 Image sanitized: ${sanitized.originalBytes}→${sanitized.sanitizedBytes} bytes, resized=${sanitized.resized}")
+                                }
+                            }
+                            // OpenAI format: { type: "image_url", image_url: { url: "data:...;base64,..." } }
+                            val imageUrl = att["image_url"] as? Map<*, *>
+                            val url = imageUrl?.get("url") as? String
+                            if (url != null && url.startsWith("data:")) {
+                                val parts = url.removePrefix("data:").split(";base64,", limit = 2)
+                                if (parts.size == 2) {
+                                    val sanitized = com.xiaomo.androidforclaw.media.ImageSanitizer.sanitize(
+                                        base64Data = parts[1],
+                                        sourceMimeType = parts[0]
+                                    )
+                                    if (sanitized != null) {
+                                        imageBlocks.add(com.xiaomo.androidforclaw.providers.llm.ImageBlock(
+                                            base64 = sanitized.base64,
+                                            mimeType = sanitized.mimeType
+                                        ))
+                                        Log.i(TAG, "📷 Image sanitized (URL): ${sanitized.originalBytes}→${sanitized.sanitizedBytes} bytes")
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // Build content as raw maps — lossless roundtrip through SessionManager
                     val textPart: Map<String, Any?> = mapOf("type" to "text", "text" to userMsg)
                     val userContent: Any = if (attachments.isEmpty()) {
@@ -230,7 +275,8 @@ class GatewayController(
                                 systemPrompt = "You are a helpful AI assistant.",
                                 userMessage = userMsg,
                                 contextHistory = contextHistory,
-                                reasoningEnabled = reasoningEnabled
+                                reasoningEnabled = reasoningEnabled,
+                                images = imageBlocks.ifEmpty { null }
                             )
                             streamJob.cancel()
 

@@ -192,7 +192,31 @@ object ApiAdapter {
                 "user", "assistant" -> {
                     val msg = JSONObject()
                     msg.put("role", message.role)
-                    msg.put("content", message.content)
+                    // Multimodal: if user message has images, build content array
+                    if (message.role == "user" && !message.images.isNullOrEmpty()) {
+                        val contentArray = JSONArray()
+                        // Images first (aligned with Anthropic best practice)
+                        for (img in message.images!!) {
+                            contentArray.put(JSONObject().apply {
+                                put("type", "image")
+                                put("source", JSONObject().apply {
+                                    put("type", "base64")
+                                    put("media_type", img.mimeType)
+                                    put("data", img.base64)
+                                })
+                            })
+                        }
+                        // Then text
+                        if (message.content.isNotBlank()) {
+                            contentArray.put(JSONObject().apply {
+                                put("type", "text")
+                                put("text", message.content)
+                            })
+                        }
+                        msg.put("content", contentArray)
+                    } else {
+                        msg.put("content", message.content)
+                    }
                     anthropicMessages.put(msg)
                 }
                 "tool" -> {
@@ -347,6 +371,26 @@ object ApiAdapter {
                 // Some providers reject the following tool result if the preceding assistant tool_calls
                 // message used content="", then report: tool result's tool id not found.
                 msg.put("content", JSONObject.NULL)
+            } else if (message.role == "user" && !message.images.isNullOrEmpty()) {
+                // Multimodal: OpenAI vision format with image_url
+                val contentArray = JSONArray()
+                // Images first
+                for (img in message.images!!) {
+                    contentArray.put(JSONObject().apply {
+                        put("type", "image_url")
+                        put("image_url", JSONObject().apply {
+                            put("url", "data:${img.mimeType};base64,${img.base64}")
+                        })
+                    })
+                }
+                // Then text
+                if (message.content.isNotBlank()) {
+                    contentArray.put(JSONObject().apply {
+                        put("type", "text")
+                        put("text", message.content)
+                    })
+                }
+                msg.put("content", contentArray)
             } else {
                 msg.put("content", message.content)
             }
@@ -671,11 +715,25 @@ object ApiAdapter {
                 "assistant" -> "model"
                 else -> "user"
             })
-            content.put("parts", JSONArray().apply {
-                put(JSONObject().apply {
+            val parts = JSONArray()
+            // Multimodal: add inline images for Gemini
+            if (message.role == "user" && !message.images.isNullOrEmpty()) {
+                for (img in message.images!!) {
+                    parts.put(JSONObject().apply {
+                        put("inline_data", JSONObject().apply {
+                            put("mime_type", img.mimeType)
+                            put("data", img.base64)
+                        })
+                    })
+                }
+            }
+            // Text part
+            if (message.content.isNotBlank()) {
+                parts.put(JSONObject().apply {
                     put("text", message.content)
                 })
-            })
+            }
+            content.put("parts", parts)
             contents.put(content)
         }
 
@@ -729,6 +787,15 @@ object ApiAdapter {
             val msg = JSONObject()
             msg.put("role", message.role)
             msg.put("content", message.content)
+
+            // Ollama multimodal: images as base64 array
+            if (message.role == "user" && !message.images.isNullOrEmpty()) {
+                msg.put("images", JSONArray().apply {
+                    for (img in message.images!!) {
+                        put(img.base64)
+                    }
+                })
+            }
 
             // tool call results use role="tool"
             if (message.toolCallId != null) {

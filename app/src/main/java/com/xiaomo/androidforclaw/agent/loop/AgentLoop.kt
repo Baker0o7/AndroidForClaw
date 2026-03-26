@@ -28,6 +28,7 @@ import com.xiaomo.androidforclaw.agent.tools.SkillResult
 import com.xiaomo.androidforclaw.agent.tools.ToolCallDispatcher
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
+import com.xiaomo.androidforclaw.providers.llm.ImageBlock
 import com.xiaomo.androidforclaw.providers.llm.Message
 import com.xiaomo.androidforclaw.providers.llm.ToolCall
 import com.xiaomo.androidforclaw.providers.llm.systemMessage
@@ -254,11 +255,12 @@ class AgentLoop(
         systemPrompt: String,
         userMessage: String,
         contextHistory: List<Message> = emptyList(),
-        reasoningEnabled: Boolean = true
+        reasoningEnabled: Boolean = true,
+        images: List<ImageBlock>? = null
     ): AgentResult {
         // 🛡️ 全局错误兜底: 确保任何未捕获的错误都能返回给用户
         return try {
-            runInternal(systemPrompt, userMessage, contextHistory, reasoningEnabled)
+            runInternal(systemPrompt, userMessage, contextHistory, reasoningEnabled, images)
         } catch (e: Exception) {
             Log.e(TAG, "❌ AgentLoop 未捕获的错误", e)
             LayoutExceptionLogger.log("AgentLoop#run", e)
@@ -294,7 +296,8 @@ class AgentLoop(
         systemPrompt: String,
         userMessage: String,
         contextHistory: List<Message>,
-        reasoningEnabled: Boolean
+        reasoningEnabled: Boolean,
+        images: List<ImageBlock>? = null
     ): AgentResult {
         shouldStop = false
         val messages = mutableListOf<Message>()
@@ -327,9 +330,14 @@ class AgentLoop(
             }
         }
 
-        // 3. Add user message
-        messages.add(userMessage(userMessage))
-        writeLog("✅ User message: $userMessage")
+        // 3. Add user message (with images if present — aligned with OpenClaw native image injection)
+        if (!images.isNullOrEmpty()) {
+            messages.add(userMessage(userMessage, images))
+            writeLog("✅ User message: $userMessage [+${images.size} image(s)]")
+        } else {
+            messages.add(userMessage(userMessage))
+            writeLog("✅ User message: $userMessage")
+        }
         writeLog("📤 准备发送第一次 LLM 请求...")
 
         var iteration = 0

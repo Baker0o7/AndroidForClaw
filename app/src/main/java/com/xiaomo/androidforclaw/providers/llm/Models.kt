@@ -18,14 +18,27 @@ import com.google.gson.annotations.SerializedName
 // ============= Message Models =============
 
 /**
+ * Inline image attached to a message (base64-encoded).
+ * Aligned with OpenClaw ImageContent (pi-ai).
+ */
+data class ImageBlock(
+    val base64: String,
+    val mimeType: String = "image/jpeg"
+)
+
+/**
  * 通用消息格式
+ *
+ * For multimodal messages the text goes in [content] and images in [images].
+ * The API adapter will assemble them into the provider-specific content array.
  */
 data class Message(
     val role: String,  // "system", "user", "assistant", "tool"
     val content: String,
     val name: String? = null,  // tool name for tool role
     val toolCallId: String? = null,  // for tool role
-    val toolCalls: List<ToolCall>? = null  // for assistant with tool calls
+    val toolCalls: List<ToolCall>? = null,  // for assistant with tool calls
+    val images: List<ImageBlock>? = null  // inline images (user messages only)
 )
 
 /**
@@ -141,7 +154,9 @@ data class TokenUsage(
  */
 fun Message.toLogString(): String {
     val preview = content.take(50) + if (content.length > 50) "..." else ""
-    return "Message(role=$role, content=\"$preview\", toolCalls=${toolCalls?.size ?: 0})"
+    val imgCount = images?.size ?: 0
+    val imgSuffix = if (imgCount > 0) ", images=$imgCount" else ""
+    return "Message(role=$role, content=\"$preview\", toolCalls=${toolCalls?.size ?: 0}$imgSuffix)"
 }
 
 /**
@@ -158,6 +173,15 @@ fun systemMessage(content: String) = Message(
 fun userMessage(content: String) = Message(
     role = "user",
     content = content
+)
+
+/**
+ * 创建带图片的用户消息 (multimodal)
+ */
+fun userMessage(content: String, images: List<ImageBlock>) = Message(
+    role = "user",
+    content = content,
+    images = images.ifEmpty { null }
 )
 
 /**
@@ -190,33 +214,122 @@ fun toolMessage(
 
 /**
  * 从旧的 LegacyMessage 转换到新的 Message
+ *
+ * LegacyMessage.content can be:
+ *   - String  → plain text
+ *   - List<Map<String, Any?>>  → multimodal content blocks
+ *     Each block has "type" key: "text" or "image_url" / "image"
+ *
+ * This extracts text parts into Message.content and image parts into Message.images,
+ * instead of calling toString() on the whole structure (which was the old bug).
  */
 fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
-    return Message(
-        role = this.role,
-        content = when (val c = this.content) {
-            is String -> c
-            else -> c.toString()
-        },
-        name = this.name,
-        toolCallId = this.toolCallId,
-        toolCalls = this.toolCalls?.map { tc ->
-            ToolCall(
-                id = tc.id,
-                name = tc.function.name,
-                arguments = tc.function.arguments
+    return when (val c = this.content) {
+        is String -> Message(
+            role = this.role,
+            content = c,
+            name = this.name,
+            toolCallId = this.toolCallId,
+            toolCalls = this.toolCalls?.map { tc ->
+                ToolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
+            }
+        )
+        is List<*> -> {
+            // Parse multimodal content blocks
+            val textParts = mutableListOf<String>()
+            val imageBlocks = mutableListOf<ImageBlock>()
+
+            for (item in c) {
+                if (item !is Map<*, *>) continue
+                when (item["type"]) {
+                    "text" -> {
+                        val text = item["text"] as? String
+                        if (!text.isNullOrBlank()) textParts.add(text)
+                    }
+                    "image_url" -> {
+                        // OpenAI format: { type: "image_url", image_url: { url: "data:image/jpeg;base64,..." } }
+                        val imageUrl = item["image_url"]
+                        val url = when (imageUrl) {
+                            is Map<*, *> -> imageUrl["url"] as? String
+                            is String -> imageUrl
+                            else -> null
+                        }
+                        if (url != null && url.startsWith("data:")) {
+                            val parts = url.removePrefix("data:").split(";base64,", limit = 2)
+                            if (parts.size == 2) {
+                                imageBlocks.add(ImageBlock(
+                                    base64 = parts[1],
+                                    mimeType = parts[0]
+                                ))
+                            }
+                        }
+                    }
+                    "image" -> {
+                        // Anthropic format: { type: "image", source: { type: "base64", media_type: "...", data: "..." } }
+                        val source = item["source"] as? Map<*, *>
+                        val data = source?.get("data") as? String
+                        val mediaType = source?.get("media_type") as? String ?: "image/jpeg"
+                        if (!data.isNullOrBlank()) {
+                            imageBlocks.add(ImageBlock(base64 = data, mimeType = mediaType))
+                        }
+                    }
+                }
+            }
+
+            Message(
+                role = this.role,
+                content = textParts.joinToString("\n").ifBlank { "" },
+                name = this.name,
+                toolCallId = this.toolCallId,
+                toolCalls = this.toolCalls?.map { tc ->
+                    ToolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
+                },
+                images = imageBlocks.ifEmpty { null }
             )
         }
-    )
+        else -> Message(
+            role = this.role,
+            content = c?.toString() ?: "",
+            name = this.name,
+            toolCallId = this.toolCallId,
+            toolCalls = this.toolCalls?.map { tc ->
+                ToolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
+            }
+        )
+    }
 }
 
 /**
  * 从新的 Message 转换到旧的 LegacyMessage
+ *
+ * If the message carries images, content is stored as List<Map> (multimodal blocks)
+ * so it round-trips correctly through session persistence.
  */
 fun Message.toLegacyMessage(): com.xiaomo.androidforclaw.providers.LegacyMessage {
+    // Build multimodal content if images present
+    val legacyContent: Any = if (!images.isNullOrEmpty()) {
+        buildList {
+            if (content.isNotBlank()) {
+                add(mapOf("type" to "text", "text" to content))
+            }
+            for (img in images!!) {
+                add(mapOf(
+                    "type" to "image",
+                    "source" to mapOf(
+                        "type" to "base64",
+                        "media_type" to img.mimeType,
+                        "data" to img.base64
+                    )
+                ))
+            }
+        }
+    } else {
+        content
+    }
+
     return com.xiaomo.androidforclaw.providers.LegacyMessage(
         role = this.role,
-        content = this.content,
+        content = legacyContent,
         name = this.name,
         toolCallId = this.toolCallId,
         toolCalls = this.toolCalls?.map { tc ->
