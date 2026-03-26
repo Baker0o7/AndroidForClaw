@@ -31,6 +31,9 @@ object TermuxSshdLauncher {
     /** sshd 的完整路径 */
     const val SSHD_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/sshd"
 
+    /** 确保 Termux 拉起后再发 RUN_COMMAND 的等待时间 */
+    private const val TERMUX_LAUNCH_WAIT_MS = 2000L
+
     /**
      * 构建 RUN_COMMAND intent（可用于测试）。
      */
@@ -38,6 +41,31 @@ object TermuxSshdLauncher {
         setClassName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
         putExtra(EXTRA_COMMAND, SSHD_PATH)
         putExtra(EXTRA_BACKGROUND, true)
+    }
+
+    /**
+     * 确保 Termux 进程已启动。
+     * RUN_COMMAND 需要 Termux 的 RunCommandService 在运行才能响应，
+     * 所以先用 launch intent 把 Termux 拉起来。
+     *
+     * @return true 如果成功发送了启动 intent
+     */
+    fun ensureTermuxRunning(context: Context): Boolean {
+        val pm = context.packageManager
+        val launchIntent = pm.getLaunchIntentForPackage(TERMUX_PACKAGE)
+        if (launchIntent == null) {
+            Log.w(TAG, "Termux 未安装，无法拉起")
+            return false
+        }
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            context.startActivity(launchIntent)
+            Log.i(TAG, "✅ 已发送 Termux 启动 intent")
+            return true
+        } catch (e: Exception) {
+            Log.w(TAG, "启动 Termux 失败: ${e.message}")
+            return false
+        }
     }
 
     /**
@@ -56,5 +84,18 @@ object TermuxSshdLauncher {
             Log.w(TAG, "RUN_COMMAND 发送失败: ${e.message}")
             throw e
         }
+    }
+
+    /**
+     * 先确保 Termux 已启动，等待其初始化完成，再发送 RUN_COMMAND 执行 sshd。
+     * 适合在 IO 协程中调用（包含 delay）。
+     */
+    suspend fun ensureAndLaunch(context: Context) {
+        // 先拉起 Termux
+        ensureTermuxRunning(context)
+        // 等 Termux 初始化（RunCommandService 注册）
+        kotlinx.coroutines.delay(TERMUX_LAUNCH_WAIT_MS)
+        // 再发 sshd 命令
+        launch(context)
     }
 }

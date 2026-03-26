@@ -263,10 +263,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationContext)
                     Log.i(TAG, "Termux SSH pool warmed up")
                 } else if (status.keypairPresent && !status.sshReachable) {
-                    // sshd not running but keypair is configured → auto-start via RUN_COMMAND
-                    Log.i(TAG, "🐧 Termux sshd 未运行，通过 RUN_COMMAND 自动启动...")
+                    // sshd not running but keypair is configured → ensure Termux is running, then auto-start sshd
+                    Log.i(TAG, "🐧 Termux sshd 未运行，先确保 Termux 已启动，再通过 RUN_COMMAND 启动 sshd...")
                     try {
-                        TermuxSshdLauncher.launch(applicationContext)
+                        TermuxSshdLauncher.ensureAndLaunch(applicationContext)
                         // Wait for sshd to come up, then warm up SSH pool
                         for (attempt in 1..10) {
                             kotlinx.coroutines.delay(1000)
