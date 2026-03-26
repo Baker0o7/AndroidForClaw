@@ -403,7 +403,7 @@ class SkillsMethods(private val context: Context) {
             Log.d(TAG, "  limit: $limit, offset: $offset")
 
             // Call ClawHub API
-            val clawHubClient = ClawHubClient()
+            val clawHubClient = ClawHubClient(context)
             val searchResult = runBlocking {
                 clawHubClient.searchSkills(query, limit, offset)
             }

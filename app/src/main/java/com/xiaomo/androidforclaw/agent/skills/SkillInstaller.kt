@@ -31,7 +31,7 @@ class SkillInstaller(private val context: Context) {
         private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
     }
 
-    private val clawHubClient = ClawHubClient()
+    private val clawHubClient = ClawHubClient(context)
     private val workspacePath = StoragePaths.workspace.absolutePath
     private val managedSkillsDir = StoragePaths.skills.absolutePath
     private val downloadCacheDir = File(context.cacheDir, "skill-downloads")

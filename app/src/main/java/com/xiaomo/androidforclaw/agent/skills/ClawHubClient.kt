@@ -3,10 +3,13 @@ package com.xiaomo.androidforclaw.agent.skills
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/skills-install.ts (ClawHub API)
+ * - ../openclaw/src/infra/clawhub.ts (token resolution)
  */
 
 
+import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.util.SPHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -23,12 +26,41 @@ import java.util.concurrent.TimeUnit
  *
  * Interfaces with https://clawhub.ai API
  * Provides skill search, download, and details query functions
+ *
+ * Token 优先级（对齐 OpenClaw src/infra/clawhub.ts）:
+ * 1. SharedPreferences "clawhub_token"
+ * 2. 无 token → 匿名请求（可能被限流）
  */
-class ClawHubClient {
+class ClawHubClient(private val context: Context? = null) {
     companion object {
         private const val TAG = "ClawHubClient"
         private const val BASE_URL = "https://clawhub.ai"
         private const val API_BASE = "$BASE_URL/api/v1"  // 使用 v1 API
+        private const val PREF_KEY_TOKEN = "clawhub_token"
+
+        /**
+         * 保存 ClawHub token
+         */
+        fun saveToken(context: Context, token: String) {
+            SPHelper.getInstance(context).saveData(PREF_KEY_TOKEN, token)
+            Log.i(TAG, "ClawHub token 已保存")
+        }
+
+        /**
+         * 获取 ClawHub token（可能为 null）
+         */
+        fun getToken(context: Context): String? {
+            val token = SPHelper.getInstance(context).getData(PREF_KEY_TOKEN, "")
+            return if (token.isNullOrBlank()) null else token
+        }
+
+        /**
+         * 清除 ClawHub token
+         */
+        fun clearToken(context: Context) {
+            SPHelper.getInstance(context).saveData(PREF_KEY_TOKEN, "")
+            Log.i(TAG, "ClawHub token 已清除")
+        }
     }
 
     private val httpClient = OkHttpClient.Builder()
@@ -38,6 +70,24 @@ class ClawHubClient {
         .build()
 
     private val gson = Gson()
+
+    /**
+     * 获取当前 token
+     */
+    private fun resolveToken(): String? {
+        return context?.let { getToken(it) }
+    }
+
+    /**
+     * 构建请求，自动附加 Authorization header（如果有 token）
+     */
+    private fun buildRequest(url: String): Request.Builder {
+        val builder = Request.Builder().url(url)
+        resolveToken()?.let { token ->
+            builder.addHeader("Authorization", "Bearer $token")
+        }
+        return builder
+    }
 
     /**
      * Search skills
@@ -54,10 +104,7 @@ class ClawHubClient {
             val url = "$API_BASE/search?q=$query&limit=$limit"
             Log.d(TAG, "Searching skills: $url")
 
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+            val request = buildRequest(url).get().build()
 
             val response = httpClient.newCall(request).execute()
             val body = response.body?.string()
@@ -111,10 +158,7 @@ class ClawHubClient {
             val url = "$API_BASE/skills/$slug"
             Log.d(TAG, "Getting skill details: $url")
 
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+            val request = buildRequest(url).get().build()
 
             val response = httpClient.newCall(request).execute()
             val body = response.body?.string()
@@ -171,10 +215,7 @@ class ClawHubClient {
             val url = "$API_BASE/skills/$slug/versions"
             Log.d(TAG, "Getting skill versions: $url")
 
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+            val request = buildRequest(url).get().build()
 
             val response = httpClient.newCall(request).execute()
             val body = response.body?.string()
@@ -224,10 +265,7 @@ class ClawHubClient {
             val url = "$API_BASE/download?slug=$slug&version=$version"
             Log.d(TAG, "Downloading skill: $url")
 
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+            val request = buildRequest(url).get().build()
 
             val response = httpClient.newCall(request).execute()
 

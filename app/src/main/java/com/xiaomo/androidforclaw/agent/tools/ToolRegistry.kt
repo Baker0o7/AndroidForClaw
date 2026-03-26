@@ -89,8 +89,9 @@ class ToolRegistry(
 
         // === ClawHub skill hub tools ===
         // Aligned with OpenClaw gateway RPC: skills.search / skills.install
-        register(SkillsSearchTool())
+        register(SkillsSearchTool(context))
         register(SkillsInstallTool(context))
+        register(ClawHubConfigTool(context))
 
         Log.d(TAG, "✅ Registered ${tools.size} universal tools (memory tools in AndroidToolRegistry)")
     }
