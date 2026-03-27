@@ -335,11 +335,12 @@ fun resolveSubagentCapabilities(depth: Int, maxSpawnDepth: Int = DEFAULT_MAX_SPA
  * Maps SubagentRunOutcome to SubagentLifecycleEndedOutcome.
  */
 fun resolveLifecycleOutcome(outcome: SubagentRunOutcome?): SubagentLifecycleEndedOutcome {
+    // Aligned with OpenClaw resolveLifecycleOutcomeFromRunOutcome:
+    // Only error/timeout are explicit; everything else (including unknown/null) → OK.
     return when (outcome?.status) {
-        SubagentRunStatus.OK -> SubagentLifecycleEndedOutcome.OK
         SubagentRunStatus.ERROR -> SubagentLifecycleEndedOutcome.ERROR
         SubagentRunStatus.TIMEOUT -> SubagentLifecycleEndedOutcome.TIMEOUT
-        SubagentRunStatus.UNKNOWN, null -> SubagentLifecycleEndedOutcome.ERROR
+        else -> SubagentLifecycleEndedOutcome.OK
     }
 }
 
@@ -349,9 +350,12 @@ fun resolveLifecycleOutcome(outcome: SubagentRunOutcome?): SubagentLifecycleEnde
  */
 fun capFrozenResultText(text: String?): String? {
     if (text == null) return null
-    val bytes = text.toByteArray(Charsets.UTF_8)
-    if (bytes.size <= FROZEN_RESULT_TEXT_MAX_BYTES) return text
-    val notice = "\n\n[truncated: frozen output exceeded ${FROZEN_RESULT_TEXT_MAX_BYTES / 1024}KB]"
+    val trimmed = text.trim()
+    if (trimmed.isEmpty()) return null
+    val bytes = trimmed.toByteArray(Charsets.UTF_8)
+    if (bytes.size <= FROZEN_RESULT_TEXT_MAX_BYTES) return trimmed
+    val actualKB = bytes.size / 1024
+    val notice = "\n\n[truncated: frozen output was ${actualKB}KB, exceeds ${FROZEN_RESULT_TEXT_MAX_BYTES / 1024}KB limit]"
     val noticeBytes = notice.toByteArray(Charsets.UTF_8).size
     val maxContent = FROZEN_RESULT_TEXT_MAX_BYTES - noticeBytes
     if (maxContent <= 0) return notice
@@ -360,12 +364,18 @@ fun capFrozenResultText(text: String?): String? {
 }
 
 /**
- * Compute announce retry delay with exponential backoff.
- * Aligned with OpenClaw transient retry pattern.
+ * Fixed announce retry delay table.
+ * Aligned with OpenClaw DIRECT_ANNOUNCE_TRANSIENT_RETRY_DELAYS_MS = [5000, 10000, 20000].
  */
-fun computeAnnounceRetryDelayMs(retryCount: Int): Long {
-    val baseDelay = MIN_ANNOUNCE_RETRY_DELAY_MS * (1L shl retryCount)
-    return minOf(baseDelay, MAX_ANNOUNCE_RETRY_DELAY_MS)
+val ANNOUNCE_RETRY_DELAYS_MS = longArrayOf(5_000L, 10_000L, 20_000L)
+
+/**
+ * Get announce retry delay for a given attempt index.
+ * Returns null if retryIndex exceeds the table (no more retries).
+ * Aligned with OpenClaw runAnnounceDeliveryWithRetry.
+ */
+fun computeAnnounceRetryDelayMs(retryIndex: Int): Long? {
+    return ANNOUNCE_RETRY_DELAYS_MS.getOrNull(retryIndex)
 }
 
 /** Note returned to LLM after successful spawn (aligned with OpenClaw SUBAGENT_SPAWN_ACCEPTED_NOTE) */
@@ -377,7 +387,22 @@ const val SPAWN_SESSION_ACCEPTED_NOTE = "thread-bound session stays active after
 /** Maximum recentMinutes for subagent list queries (24 hours). Aligned with OpenClaw MAX_RECENT_MINUTES. */
 const val MAX_RECENT_MINUTES = 24 * 60
 
-// ==================== Missing Utility Functions ====================
+// ==================== Utility Functions ====================
+
+/**
+ * Resolve display label from a run record.
+ * Falls back through label → task → childSessionKey → "subagent".
+ * Aligned with OpenClaw resolveSubagentLabel.
+ */
+fun resolveSubagentLabel(entry: SubagentRunRecord): String {
+    val label = entry.label.trim()
+    if (label.isNotEmpty()) return label
+    val task = entry.task.trim()
+    if (task.isNotEmpty()) return task.take(48).replace('\n', ' ')
+    val key = entry.childSessionKey.trim()
+    if (key.isNotEmpty()) return key
+    return "subagent"
+}
 
 /**
  * Resolve human-readable session status from a run record.

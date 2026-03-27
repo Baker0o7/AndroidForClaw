@@ -133,6 +133,14 @@ class SubagentSpawner(
             )
         }
 
+        // SESSION mode requires thread=true (aligned with OpenClaw)
+        if (params.mode == SpawnMode.SESSION && params.thread != true) {
+            return SpawnSubagentResult(
+                status = SpawnStatus.ERROR,
+                error = "mode=\"session\" requires thread=true so the subagent can stay bound to a thread."
+            )
+        }
+
         // 1. Depth check (aligned with OpenClaw: callerDepth >= maxSpawnDepth → forbidden)
         val childDepth = parentDepth + 1
         if (parentDepth >= config.maxSpawnDepth) {
@@ -155,7 +163,9 @@ class SubagentSpawner(
         val childSessionKey = "agent:main:subagent:$runId"
 
         // 3a. Run SUBAGENT_SPAWNING hook (can deny spawn, aligned with OpenClaw)
-        val label = params.label ?: params.task.take(40).replace('\n', ' ')
+        // Label defaults to empty string (aligned with OpenClaw: params.label?.trim() || "")
+        // Display label is resolved later via resolveSubagentLabel()
+        val label = params.label?.trim() ?: ""
         val spawningResult = hooks.runSpawning(SubagentSpawningEvent(
             childSessionKey = childSessionKey,
             label = label,
@@ -228,7 +238,8 @@ class SubagentSpawner(
             depth = childDepth,
         ).apply {
             sessionStartedAt = System.currentTimeMillis()
-            expectsCompletionMessage = true
+            // Aligned with OpenClaw: defaults to true unless explicitly set to false
+            expectsCompletionMessage = params.expectsCompletionMessage != false
         }
 
         // 10. Timeout
@@ -426,30 +437,36 @@ class SubagentSpawner(
         val findings = SubagentPromptBuilder.buildChildCompletionFindings(children)
 
         // 4. Build announcement using output text selection
-        val outputText = SubagentPromptBuilder.selectSubagentOutputText(record, null)
-        val announcement = SubagentPromptBuilder.buildAnnouncement(record, outcome, findings)
+        // Determine if requester is itself a subagent (for reply instruction)
+        val requesterIsSubagent = registry.getRunByChildSessionKey(record.requesterSessionKey) != null
+        val announcement = SubagentPromptBuilder.buildAnnouncement(
+            record, outcome, findings, requesterIsSubagent
+        )
 
-        // 5. Retry with exponential backoff (aligned with OpenClaw: MAX_ANNOUNCE_RETRY_COUNT retries)
+        // 5. Retry with fixed delay table (aligned with OpenClaw DIRECT_ANNOUNCE_TRANSIENT_RETRY_DELAYS_MS)
         var sent = false
-        for (attempt in 0..MAX_ANNOUNCE_RETRY_COUNT) {
+        val maxAttempts = ANNOUNCE_RETRY_DELAYS_MS.size + 1
+        for (attempt in 0 until maxAttempts) {
             val result = parentAgentLoop.steerChannel.trySend(announcement)
             if (result.isSuccess) {
                 sent = true
                 record.announceRetryCount = attempt
-                Log.i(TAG, "Announced ${record.runId} to parent (attempt ${attempt + 1})")
+                Log.i(TAG, "Announced ${record.runId} to parent (attempt ${attempt + 1}/$maxAttempts)")
                 break
             }
 
             record.lastAnnounceRetryAt = System.currentTimeMillis()
-            if (attempt < MAX_ANNOUNCE_RETRY_COUNT) {
-                val delayMs = computeAnnounceRetryDelayMs(attempt)
-                Log.w(TAG, "Announce retry ${attempt + 1}/$MAX_ANNOUNCE_RETRY_COUNT for ${record.runId}, waiting ${delayMs}ms")
+            val delayMs = computeAnnounceRetryDelayMs(attempt)
+            if (delayMs != null) {
+                Log.w(TAG, "Announce retry ${attempt + 1}/$maxAttempts for ${record.runId}, waiting ${delayMs}ms")
                 delay(delayMs)
+            } else {
+                break // No more retries
             }
         }
 
         if (!sent) {
-            Log.e(TAG, "Failed to announce ${record.runId} after ${MAX_ANNOUNCE_RETRY_COUNT + 1} attempts")
+            Log.e(TAG, "Failed to announce ${record.runId} after $maxAttempts attempts")
             record.suppressAnnounceReason = "channel_full_after_retries"
         }
 
@@ -510,6 +527,18 @@ class SubagentSpawner(
      * @return Pair of (success, list of killed runIds)
      */
     fun kill(runId: String, cascade: Boolean = false, callerSessionKey: String? = null): Pair<Boolean, List<String>> {
+        // ControlScope check (aligned with OpenClaw: leaf subagents cannot kill)
+        if (callerSessionKey != null) {
+            val callerRun = registry.getRunByChildSessionKey(callerSessionKey)
+            if (callerRun != null) {
+                val callerCaps = resolveSubagentCapabilities(callerRun.depth)
+                if (callerCaps.controlScope == SubagentControlScope.NONE) {
+                    Log.w(TAG, "Kill denied: leaf subagents cannot control other sessions")
+                    return Pair(false, emptyList())
+                }
+            }
+        }
+
         // Ownership check
         if (callerSessionKey != null) {
             val record = registry.getRunById(runId) ?: return Pair(false, emptyList())
@@ -580,24 +609,33 @@ class SubagentSpawner(
         val childLoop = registry.getAgentLoop(runId) ?: return Pair(false, "AgentLoop not found for: $runId")
         val job = registry.getJob(runId) ?: return Pair(false, "Job not found for: $runId")
 
-        // 1. Ownership check
+        // 1. ControlScope check (aligned with OpenClaw: leaf subagents cannot steer)
+        val callerRun = registry.getRunByChildSessionKey(callerSessionKey)
+        if (callerRun != null) {
+            val callerCaps = resolveSubagentCapabilities(callerRun.depth)
+            if (callerCaps.controlScope == SubagentControlScope.NONE) {
+                return Pair(false, "Leaf subagents cannot control other sessions.")
+            }
+        }
+
+        // 2. Ownership check
         val ownershipError = ensureControllerOwnsRun(callerSessionKey, record)
         if (ownershipError != null) {
             return Pair(false, ownershipError)
         }
 
-        // 2. Self-steer prevention (aligned with OpenClaw)
+        // 3. Self-steer prevention (aligned with OpenClaw)
         if (callerSessionKey == record.childSessionKey) {
             return Pair(false, "Cannot steer own session")
         }
 
-        // 3. Message length check (aligned with OpenClaw MAX_STEER_MESSAGE_CHARS)
+        // 4. Message length check (aligned with OpenClaw MAX_STEER_MESSAGE_CHARS)
         if (message.length > MAX_STEER_MESSAGE_CHARS) {
             return Pair(false, "Message too long: ${message.length} > $MAX_STEER_MESSAGE_CHARS chars")
         }
 
-        // 4. Rate limit check (aligned with OpenClaw STEER_RATE_LIMIT_MS)
-        val rateKey = "$callerSessionKey:$runId"
+        // 5. Rate limit check (aligned with OpenClaw: key is caller:childSessionKey, not caller:runId)
+        val rateKey = "$callerSessionKey:${record.childSessionKey}"
         val now = System.currentTimeMillis()
         val lastTime = lastSteerTime[rateKey]
         if (lastTime != null && (now - lastTime) < STEER_RATE_LIMIT_MS) {

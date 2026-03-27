@@ -13,6 +13,7 @@ import com.xiaomo.androidforclaw.agent.subagent.SessionVisibilityGuard
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRunStatus
 import com.xiaomo.androidforclaw.agent.subagent.isActiveSubagentRun
+import com.xiaomo.androidforclaw.agent.subagent.resolveSubagentLabel
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
@@ -189,8 +190,9 @@ class SessionsListTool(
                         }
                         val runtime = formatDurationCompact(run.runtimeMs)
                         val model = run.model?.let { " ($it)" } ?: ""
-                        val taskSnippet = if (run.task != run.label) ", ${run.task.take(80)}" else ""
-                        appendLine("  ${i + 1}. ${run.label}$model, $runtime [$status]$taskSnippet")
+                        val displayLabel = resolveSubagentLabel(run)
+                        val taskSnippet = if (run.task != displayLabel) ", ${run.task.take(80)}" else ""
+                        appendLine("  ${i + 1}. $displayLabel$model, $runtime [$status]$taskSnippet")
                     }
                 }
                 appendLine()
@@ -209,7 +211,8 @@ class SessionsListTool(
                     val runtime = formatDurationCompact(run.runtimeMs)
                     val model = run.model?.let { " ($it)" } ?: ""
                     val error = run.outcome?.error?.let { " - $it" } ?: ""
-                    appendLine("  ${offset + i + 1}. ${run.label}$model, $runtime [$status]$error")
+                    val displayLabel = resolveSubagentLabel(run)
+                    appendLine("  ${offset + i + 1}. $displayLabel$model, $runtime [$status]$error")
                 }
             }
         }.trimEnd()

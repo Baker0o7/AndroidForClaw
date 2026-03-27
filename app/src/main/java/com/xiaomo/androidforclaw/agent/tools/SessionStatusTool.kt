@@ -11,6 +11,7 @@ package com.xiaomo.androidforclaw.agent.tools
 import com.xiaomo.androidforclaw.agent.subagent.SessionAccessResult
 import com.xiaomo.androidforclaw.agent.subagent.SessionVisibilityGuard
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry
+import com.xiaomo.androidforclaw.agent.subagent.resolveSubagentLabel
 import com.xiaomo.androidforclaw.agent.subagent.resolveSubagentSessionStatus
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -124,7 +125,7 @@ class SessionStatusTool(
                 val activeList = allRuns.filter { it.isActive }
                 for (run in activeList.take(10)) {
                     val runtime = SessionsListTool.formatDurationCompact(run.runtimeMs)
-                    appendLine("  - ${run.label} ($runtime, model=${run.model ?: "default"})")
+                    appendLine("  - ${resolveSubagentLabel(run)} ($runtime, model=${run.model ?: "default"})")
                 }
             }
             appendLine()

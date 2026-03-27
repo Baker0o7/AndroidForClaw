@@ -15,6 +15,7 @@ import com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry
 import com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner
 import com.xiaomo.androidforclaw.agent.subagent.getSubagentSessionStartedAt
 import com.xiaomo.androidforclaw.agent.subagent.isActiveSubagentRun
+import com.xiaomo.androidforclaw.agent.subagent.resolveSubagentLabel
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
@@ -127,10 +128,11 @@ class SubagentsTool(
                     } else {
                         "running"
                     }
+                    val displayLabel = resolveSubagentLabel(run)
                     val task = run.task.take(72).replace('\n', ' ')
-                    val taskSuffix = if (task.lowercase() != run.label.lowercase()) " - $task" else ""
+                    val taskSuffix = if (task.lowercase() != displayLabel.lowercase()) " - $task" else ""
                     val startedAt = getSubagentSessionStartedAt(run)
-                    appendLine("${index}. ${run.label} (${run.model ?: "default"}, $runtime) $status$taskSuffix")
+                    appendLine("${index}. $displayLabel (${run.model ?: "default"}, $runtime) $status$taskSuffix")
                     appendLine("   runId=${run.runId} session=${run.childSessionKey} startedAt=$startedAt")
                     index++
                 }
@@ -147,9 +149,10 @@ class SubagentsTool(
                         else -> run.outcome?.status?.wireValue ?: "unknown"
                     }
                     val runtime = SessionsListTool.formatDurationCompact(run.runtimeMs)
+                    val displayLabel = resolveSubagentLabel(run)
                     val task = run.task.take(72).replace('\n', ' ')
-                    val taskSuffix = if (task.lowercase() != run.label.lowercase()) " - $task" else ""
-                    appendLine("${index}. ${run.label} (${run.model ?: "default"}, $runtime) $status$taskSuffix")
+                    val taskSuffix = if (task.lowercase() != displayLabel.lowercase()) " - $task" else ""
+                    appendLine("${index}. $displayLabel (${run.model ?: "default"}, $runtime) $status$taskSuffix")
                     appendLine("   runId=${run.runId} session=${run.childSessionKey} endedAt=${run.endedAt}")
                     index++
                 }

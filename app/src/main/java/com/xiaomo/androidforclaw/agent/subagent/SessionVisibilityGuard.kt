@@ -56,6 +56,7 @@ object SessionVisibilityGuard {
     fun resolveVisibility(
         callerSessionKey: String,
         registry: SubagentRegistry,
+        maxSpawnDepth: Int = DEFAULT_MAX_SPAWN_DEPTH,
     ): SessionToolsVisibility {
         // Check if caller is a subagent
         val callerRun = registry.getRunByChildSessionKey(callerSessionKey)
@@ -65,9 +66,8 @@ object SessionVisibilityGuard {
             return SessionToolsVisibility.TREE
         }
 
-        // Resolve stored capabilities from run depth
-        // Aligned with OpenClaw resolveStoredSubagentCapabilities
-        val capabilities = resolveSubagentCapabilities(callerRun.depth)
+        // Resolve capabilities using config maxSpawnDepth (aligned with OpenClaw)
+        val capabilities = resolveSubagentCapabilities(callerRun.depth, maxSpawnDepth)
         return if (capabilities.controlScope == SubagentControlScope.NONE) {
             // LEAF: controlScope = "none" → SELF visibility
             SessionToolsVisibility.SELF
@@ -134,19 +134,21 @@ object SessionVisibilityGuard {
 
     /**
      * Check if targetSessionKey is a descendant of ancestorSessionKey.
-     * Uses BFS through the spawn tree.
+     * Uses requester-based BFS (aligned with OpenClaw spawnedBy / requesterSessionKey).
+     * OpenClaw uses gateway `sessions.list { spawnedBy }` which traverses by requester,
+     * not by controller.
      */
     fun isDescendant(
         ancestorSessionKey: String,
         targetSessionKey: String,
         registry: SubagentRegistry,
     ): Boolean {
-        // BFS: start from ancestor's direct children
+        // BFS using requesterSessionKey (aligned with OpenClaw spawnedBy)
         val visited = mutableSetOf<String>()
         val queue = ArrayDeque<String>()
 
-        // Get direct children of ancestor
-        val children = registry.listRunsForController(ancestorSessionKey)
+        // Get direct children spawned by ancestor (requester-based)
+        val children = registry.listRunsForRequester(ancestorSessionKey)
         for (child in children) {
             if (child.childSessionKey == targetSessionKey) return true
             if (visited.add(child.childSessionKey)) {
@@ -157,7 +159,7 @@ object SessionVisibilityGuard {
         // BFS through descendants
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
-            val grandchildren = registry.listRunsForController(current)
+            val grandchildren = registry.listRunsForRequester(current)
             for (gc in grandchildren) {
                 if (gc.childSessionKey == targetSessionKey) return true
                 if (visited.add(gc.childSessionKey)) {

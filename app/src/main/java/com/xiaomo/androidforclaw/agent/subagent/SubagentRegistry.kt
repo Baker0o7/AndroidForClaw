@@ -68,21 +68,34 @@ class SubagentRegistry(
         val loaded = store?.load() ?: return
         if (loaded.isEmpty()) return
 
-        var orphanCount = 0
+        // Step 1: Merge restored runs (aligned with OpenClaw restoreSubagentRunsFromDisk mergeOnly)
+        var added = 0
         for ((runId, record) in loaded) {
-            if (record.isActive) {
-                // Active run without a Job = orphan
+            if (!runs.containsKey(runId)) {
+                runs[runId] = record
+                added++
+            }
+        }
+        if (added == 0) return
+
+        // Step 2: Reconcile orphans — separate step aligned with OpenClaw reconcileOrphanedRestoredRuns.
+        // OpenClaw verifies against session store (gateway sessions.get); on Android there is no
+        // external session store, so all active runs without a Job are orphaned.
+        // These orphans are flagged here; SubagentOrphanRecovery.scheduleOrphanRecovery() handles
+        // the actual recovery/cleanup with retries.
+        var orphanCount = 0
+        for ((_, record) in runs) {
+            if (record.isActive && jobs[record.runId] == null) {
                 record.endedAt = System.currentTimeMillis()
-                record.outcome = SubagentRunOutcome(SubagentRunStatus.ERROR, "orphaned subagent run")
+                record.outcome = SubagentRunOutcome(SubagentRunStatus.ERROR, "orphaned after process restart")
                 record.endedReason = SubagentLifecycleEndedReason.SUBAGENT_ERROR
                 orphanCount++
             }
-            runs[runId] = record
         }
         if (orphanCount > 0) {
             Log.w(TAG, "Reconciled $orphanCount orphaned subagent runs from disk")
         }
-        Log.i(TAG, "Restored ${loaded.size} subagent runs from disk (orphans=$orphanCount)")
+        Log.i(TAG, "Restored $added subagent runs from disk (orphans=$orphanCount)")
         persistToDisk()
     }
 
@@ -177,12 +190,29 @@ class SubagentRegistry(
 
     /**
      * List all runs spawned by a given requester session key (direct children).
-     * Used for building child completion findings in announce.
+     * Optional requesterRunId provides time-window scoping.
      * Aligned with OpenClaw listRunsForRequesterFromRuns.
      */
-    fun listRunsForRequester(requesterSessionKey: String): List<SubagentRunRecord> {
+    fun listRunsForRequester(
+        requesterSessionKey: String,
+        requesterRunId: String? = null,
+    ): List<SubagentRunRecord> {
+        val key = requesterSessionKey.trim()
+        if (key.isEmpty()) return emptyList()
+
+        // Time-window scoping from requester run (aligned with OpenClaw)
+        val requesterRun = requesterRunId?.trim()?.let { rid -> runs[rid] }
+        val scopedRun = if (requesterRun != null && requesterRun.childSessionKey == key) requesterRun else null
+        val lowerBound = scopedRun?.startedAt ?: scopedRun?.createdAt
+        val upperBound = scopedRun?.endedAt
+
         return runs.values
-            .filter { it.requesterSessionKey == requesterSessionKey }
+            .filter { entry ->
+                if (entry.requesterSessionKey != key) return@filter false
+                if (lowerBound != null && entry.createdAt < lowerBound) return@filter false
+                if (upperBound != null && entry.createdAt > upperBound) return@filter false
+                true
+            }
             .sortedByDescending { it.createdAt }
     }
 

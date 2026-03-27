@@ -35,20 +35,36 @@ object SubagentOrphanRecovery {
 
     /**
      * Build a resume message for an orphaned subagent.
-     * Aligned with OpenClaw buildResumeMessage.
+     * Aligned with OpenClaw buildResumeMessage (includes lastHumanMessage + configChangeHint).
+     *
+     * On Android, "gateway reload" is replaced with "process restart" as the equivalent event.
      */
-    fun buildResumeMessage(task: String): String {
+    fun buildResumeMessage(
+        task: String,
+        lastHumanMessage: String? = null,
+        configChangeHint: String? = null,
+    ): String {
         val truncatedTask = if (task.length > TASK_TRUNCATE_CHARS) {
-            task.take(TASK_TRUNCATE_CHARS) + "...(truncated)"
+            "${task.take(TASK_TRUNCATE_CHARS)}..."
         } else task
 
         return buildString {
-            appendLine("[System] Your previous turn was interrupted by a process restart.")
-            appendLine()
+            append("[System] Your previous turn was interrupted by a process restart. ")
             appendLine("Your original task was:")
+            appendLine()
             appendLine(truncatedTask)
             appendLine()
-            appendLine("Please continue where you left off.")
+            if (!lastHumanMessage.isNullOrBlank()) {
+                appendLine("The last message from the user before the interruption was:")
+                appendLine()
+                appendLine(lastHumanMessage)
+                appendLine()
+            }
+            append("Please continue where you left off.")
+            if (!configChangeHint.isNullOrBlank()) {
+                appendLine()
+                append(configChangeHint)
+            }
         }.trimEnd()
     }
 
