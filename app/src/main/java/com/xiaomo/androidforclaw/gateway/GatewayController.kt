@@ -7,6 +7,7 @@
 package com.xiaomo.androidforclaw.gateway
 
 import android.content.Context
+import com.xiaomo.androidforclaw.agent.context.ContextBuilder
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.agent.session.SessionManager
 import com.xiaomo.androidforclaw.gateway.methods.AgentMethods
@@ -63,6 +64,15 @@ class GatewayController(
     private val authToken: String? = null
 ) {
     private val TAG = "GatewayController"
+
+    // ContextBuilder for full system prompt (SOUL.md, AGENTS.md, skills, etc.)
+    private val contextBuilder: ContextBuilder by lazy {
+        ContextBuilder(
+            context = context,
+            toolRegistry = toolRegistry,
+            androidToolRegistry = androidToolRegistry
+        )
+    }
     private companion object {
         private const val PREF_THINKING_LEVEL = "chat_thinking_level"
     }
@@ -280,8 +290,15 @@ class GatewayController(
                         }
 
                         try {
+                            val systemPrompt = contextBuilder.buildSystemPrompt(
+                                userGoal = userMsg,
+                                packageName = "",
+                                testMode = "exploration"
+                            )
+                            Log.d(TAG, "✅ Gateway system prompt built (${systemPrompt.length} chars)")
+
                             val result = agentLoop.run(
-                                systemPrompt = "You are a helpful AI assistant.",
+                                systemPrompt = systemPrompt,
                                 userMessage = userMsg,
                                 contextHistory = contextHistory,
                                 reasoningEnabled = reasoningEnabled,
