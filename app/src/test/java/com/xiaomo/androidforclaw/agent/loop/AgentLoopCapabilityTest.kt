@@ -40,6 +40,7 @@ class AgentLoopCapabilityTest {
         "config" to listOf("config_get", "config_set"),
         "scripting" to listOf("javascript", "javascript_exec"),
         "skills_hub" to listOf("skills_search", "skills_install"),
+        "tts" to listOf("tts"),
 
         // Android Platform Tools (AndroidToolRegistry)
         "screen_interaction" to listOf("device", "tap", "swipe", "long_press", "type", "adb_ime_input"),
@@ -52,13 +53,13 @@ class AgentLoopCapabilityTest {
 
     @Test
     fun `all capability categories are defined`() {
-        assertEquals(13, allCapabilities.size)
+        assertEquals(14, allCapabilities.size)
     }
 
     @Test
     fun `total capability count is 39`() {
         val total = allCapabilities.values.sumOf { it.size }
-        assertEquals(39, total)
+        assertEquals(40, total)
     }
 
     @Test
@@ -89,7 +90,8 @@ class AgentLoopCapabilityTest {
         "memory_search", "memory_get",
         "config_get", "config_set",
         "javascript", "javascript_exec",
-        "skills_search", "skills_install"
+        "skills_search", "skills_install",
+        "tts"
     )
 
     private val androidToolNames = listOf(

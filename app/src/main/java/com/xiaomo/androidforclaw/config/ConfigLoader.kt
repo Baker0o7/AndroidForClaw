@@ -105,14 +105,38 @@ class ConfigLoader private constructor() {
             createDefaultConfig()
         }
 
-        val configJson = openclawConfigFile.readText()
+        var configJson = openclawConfigFile.readText()
         val processedJson = replaceEnvVars(configJson)
-        val config = parseConfig(processedJson)
+        var rootJson = JSONObject(processedJson)
+
+        // Workspace config merge (OpenClaw merge-config.ts)
+        val workspaceConfigFile = File(StoragePaths.workspace, "openclaw.json")
+        if (workspaceConfigFile.exists() && workspaceConfigFile.absolutePath != openclawConfigFile.absolutePath) {
+            try {
+                val workspaceJson = JSONObject(replaceEnvVars(workspaceConfigFile.readText()))
+                rootJson = ConfigMerge.mergeJsonConfigs(rootJson, workspaceJson)
+                Log.i(TAG, "📦 Workspace config merged from: ${workspaceConfigFile.absolutePath}")
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to merge workspace config: ${e.message}")
+            }
+        }
+
+        val config = parseConfig(rootJson.toString())
         val migrated = migrateProviderIds(config)
         validateConfig(migrated)
 
         Log.i(TAG, "✅ 配置加载成功")
         return migrated
+    }
+
+    /**
+     * Resolve a model ID through the model aliases map.
+     * Returns the aliased ID if found, otherwise the original.
+     * (OpenClaw model-selection.ts: buildModelAliasIndex)
+     */
+    fun resolveModelId(modelId: String): String {
+        val config = loadOpenClawConfig()
+        return ConfigMerge.resolveModelAlias(modelId, config.modelAliases)
     }
 
     /**
@@ -238,6 +262,25 @@ class ConfigLoader private constructor() {
         // Legacy providers (top-level)
         val legacyProviders = root.optJSONObject("providers")?.let { parseProvidersMap(it) } ?: emptyMap()
 
+        // Model aliases (OpenClaw model-selection.ts)
+        val modelAliases = mutableMapOf<String, String>()
+        root.optJSONObject("modelAliases")?.let { aliasJson ->
+            for (key in aliasJson.keys()) {
+                modelAliases[key] = aliasJson.optString(key, key)
+            }
+        }
+
+        // Model allowlist/blocklist (OpenClaw model-selection.ts)
+        val modelAllowlist = root.optJSONObject("modelAllowlist")?.let { alJson ->
+            val allow = alJson.optJSONArray("allow")?.let { arr ->
+                (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotEmpty() }
+            }
+            val block = alJson.optJSONArray("block")?.let { arr ->
+                (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotEmpty() }
+            }
+            ModelAllowlistConfig(allow = allow, block = block)
+        }
+
         return OpenClawConfig(
             models = models,
             agents = agents,
@@ -251,6 +294,8 @@ class ConfigLoader private constructor() {
             session = session,
             logging = logging,
             ui = ui,
+            modelAliases = modelAliases,
+            modelAllowlist = modelAllowlist,
             agent = agent,
             providers = legacyProviders
         )
@@ -327,7 +372,13 @@ class ConfigLoader private constructor() {
                 maxTokensField = if (c.has("maxTokensField")) c.optString("maxTokensField") else null,
                 thinkingFormat = if (c.has("thinkingFormat")) c.optString("thinkingFormat") else null,
                 requiresToolResultName = if (c.has("requiresToolResultName")) c.optBoolean("requiresToolResultName") else null,
-                requiresAssistantAfterToolResult = if (c.has("requiresAssistantAfterToolResult")) c.optBoolean("requiresAssistantAfterToolResult") else null
+                requiresAssistantAfterToolResult = if (c.has("requiresAssistantAfterToolResult")) c.optBoolean("requiresAssistantAfterToolResult") else null,
+                toolSchemaProfile = if (c.has("toolSchemaProfile")) c.optString("toolSchemaProfile") else null,
+                nativeWebSearchTool = if (c.has("nativeWebSearchTool")) c.optBoolean("nativeWebSearchTool") else null,
+                toolCallArgumentsEncoding = if (c.has("toolCallArgumentsEncoding")) c.optString("toolCallArgumentsEncoding") else null,
+                supportsDeveloperRole = if (c.has("supportsDeveloperRole")) c.optBoolean("supportsDeveloperRole") else null,
+                supportsUsageInStreaming = if (c.has("supportsUsageInStreaming")) c.optBoolean("supportsUsageInStreaming") else null,
+                supportsStrictMode = if (c.has("supportsStrictMode")) c.optBoolean("supportsStrictMode") else null
             )
         }
 
@@ -784,7 +835,11 @@ class ConfigLoader private constructor() {
 
     private fun parseSessionConfig(json: JSONObject): SessionConfig {
         return SessionConfig(
-            maxMessages = json.optInt("maxMessages", 100)
+            maxMessages = json.optInt("maxMessages", 100),
+            maxAgeDays = json.optInt("maxAgeDays", 30),
+            maxEntries = json.optInt("maxEntries", 500),
+            maxDiskBytes = json.optLong("maxDiskBytes", 100_000_000L),
+            highWaterRatio = json.optDouble("highWaterRatio", 0.8).toFloat()
         )
     }
 

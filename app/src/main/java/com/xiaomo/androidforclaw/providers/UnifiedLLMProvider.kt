@@ -120,32 +120,57 @@ class UnifiedLLMProvider(private val context: Context) {
         // Convert tool definitions to new format
         val newTools = tools?.map { convertToolDefinition(it) }
 
-        // Retry logic
-        var lastException: Exception? = null
+        // Parse primary model reference
+        val (primaryProvider, primaryModel) = parseModelRef(modelRef)
 
+        // Use model fallback chain (OpenClaw model-fallback.ts)
+        val config = configLoader.loadOpenClawConfig()
+        val fallbackResult = ModelFallback.runWithModelFallback(
+            config = config,
+            configLoader = configLoader,
+            provider = primaryProvider,
+            model = primaryModel,
+            run = { provider, model ->
+                performRequestForModel(
+                    messages, newTools, provider, model, temperature, maxTokens, reasoningEnabled, maxRetries
+                )
+            },
+            onError = { provider, model, error, attempt, total ->
+                Log.w(TAG, "⚠️ Fallback attempt $attempt/$total failed for $provider/$model: ${error.message}")
+            }
+        )
+
+        return@withContext fallbackResult.result
+    }
+
+    /**
+     * Execute LLM request for a specific provider/model with retry and API key rotation.
+     * Called by the fallback chain for each candidate.
+     */
+    private suspend fun performRequestForModel(
+        messages: List<Message>,
+        tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
+        providerName: String,
+        modelId: String,
+        temperature: Double,
+        maxTokens: Int?,
+        reasoningEnabled: Boolean,
+        maxRetries: Int
+    ): LLMResponse {
+        var lastException: Exception? = null
         for (attempt in 1..maxRetries) {
             try {
-                return@withContext performRequest(
-                    messages, newTools, modelRef, temperature, maxTokens, reasoningEnabled
-                )
+                return performRequest(messages, tools, providerName, modelId, temperature, maxTokens, reasoningEnabled)
             } catch (e: LLMException) {
                 lastException = e
-
-                // Check if retryable
-                if (!isRetryable(e) || attempt == maxRetries) {
-                    throw e
-                }
-
-                // Exponential backoff — longer for rate limit (429)
+                if (!isRetryable(e) || attempt == maxRetries) throw e
                 val isRateLimit = e.message?.contains("429") == true || e.message?.contains("rate limit", ignoreCase = true) == true
-                val baseDelay = if (isRateLimit) 5000L else 1000L  // 5s for 429, 1s for others
-                val delayMs = baseDelay * attempt  // 5s, 10s, 15s (429) or 1s, 2s, 3s (others)
+                val baseDelay = if (isRateLimit) 5000L else 1000L
+                val delayMs = baseDelay * attempt
                 Log.w(TAG, "⚠️ LLM request failed (attempt $attempt/$maxRetries), retrying in ${delayMs}ms: ${e.message}")
                 delay(delayMs)
             }
         }
-
-        // Should not reach here
         throw lastException!!
     }
 
@@ -155,97 +180,65 @@ class UnifiedLLMProvider(private val context: Context) {
     private suspend fun performRequest(
         messages: List<Message>,
         tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
-        modelRef: String?,
+        providerName: String,
+        modelId: String,
         temperature: Double,
         maxTokens: Int?,
         reasoningEnabled: Boolean
     ): LLMResponse {
         try {
-            // Parse model reference
-            val (providerName, modelId) = parseModelRef(modelRef)
+            // Resolve model aliases (OpenClaw model-selection.ts)
+            val aliasResolved = configLoader.resolveModelId(modelId)
+
+            // Model allowlist check (OpenClaw model-selection.ts)
+            val config = configLoader.loadOpenClawConfig()
+            if (!com.xiaomo.androidforclaw.config.ModelAllowlist.isModelAllowed(aliasResolved, config.modelAllowlist)) {
+                throw LLMException("Model '$aliasResolved' is not allowed by the model allowlist configuration")
+            }
+
+            // Normalize model ID per provider (OpenClaw model-id-normalization.ts)
+            val normalizedModelId = ModelIdNormalization.normalizeModelId(providerName, aliasResolved)
 
             // Load provider and model config
-            val provider = configLoader.getProviderConfig(providerName)
+            val providerRaw = configLoader.getProviderConfig(providerName)
                 ?: throw IllegalArgumentException("Provider not found: $providerName")
 
-            val model = provider.models.find { it.id == modelId }
-                ?: throw IllegalArgumentException("Model not found: $modelId in provider: $providerName")
+            val modelRaw = providerRaw.models.find { it.id == normalizedModelId }
+                ?: providerRaw.models.find { it.id == modelId }  // fallback to original ID
+                ?: throw IllegalArgumentException("Model not found: $normalizedModelId in provider: $providerName")
+
+            // Apply model compat normalization (OpenClaw model-compat.ts)
+            val (provider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, providerName)
 
             Log.d(TAG, "📡 LLM Request:")
             Log.d(TAG, "  Provider: $providerName")
-            Log.d(TAG, "  Model: $modelId")
+            Log.d(TAG, "  Model: ${model.id}${if (model.id != modelId) " (normalized from $modelId)" else ""}")
             Log.d(TAG, "  API: ${model.api ?: provider.api}")
             Log.d(TAG, "  Messages: ${messages.size}")
             Log.d(TAG, "  Tools: ${tools?.size ?: 0}")
             Log.d(TAG, "  Reasoning: $reasoningEnabled")
 
-            // Build request (using converted new format tools)
-            val requestBody = ApiAdapter.buildRequestBody(
-                provider = provider,
-                model = model,
-                messages = messages,
-                tools = tools,
-                temperature = temperature,
-                maxTokens = maxTokens,
-                reasoningEnabled = reasoningEnabled
-            )
+            // API key rotation (OpenClaw api-key-rotation.ts)
+            // Split comma-separated keys and try each on rate limit
+            val apiKeys = ApiKeyRotation.splitApiKeys(provider.apiKey)
 
-            val headers = ApiAdapter.buildHeaders(provider, model)
-
-            // Build complete API endpoint
-            val apiUrl = buildApiUrl(provider, model)
-
-            Log.d(TAG, "  URL: $apiUrl")
-            Log.d(TAG, "  Headers: ${headers.names()}")
-            headers.names().forEach { name ->
-                if (name.lowercase() == "authorization") {
-                    Log.d(TAG, "    $name: Bearer ${provider.apiKey?.take(10)}...")
-                } else {
-                    Log.d(TAG, "    $name: ${headers[name]}")
-                }
+            val responseBody = if (apiKeys.size > 1) {
+                ApiKeyRotation.executeWithApiKeyRotation(
+                    apiKeys = apiKeys,
+                    provider = providerName,
+                    execute = { apiKey ->
+                        executeHttpRequest(provider.copy(apiKey = apiKey), model, messages, tools, temperature, maxTokens, reasoningEnabled)
+                    }
+                )
+            } else {
+                executeHttpRequest(provider, model, messages, tools, temperature, maxTokens, reasoningEnabled)
             }
-
-            val finalRequestBody = normalizeOpenAiTokenField(model, requestBody)
-
-            // Send request
-            val request = Request.Builder()
-                .url(apiUrl)
-                .headers(headers)
-                .post(finalRequestBody.toString().toRequestBody("application/json".toMediaType()))
-                .build()
-
-            // Log request details for debugging
-            val reqStr = finalRequestBody.toString()
-            val reqTrunc = if (reqStr.length > 1500) reqStr.substring(0, 1500) + "..." else reqStr
-            Log.d(TAG, "📤 Request to $apiUrl: $reqTrunc")
-
-            val response = httpClient.newCall(request).execute()
-
-            if (!response.isSuccessful) {
-                val errorBody = response.body?.string() ?: "Unknown error"
-                Log.e(TAG, "❌ API Error (${response.code}): $errorBody")
-                throw LLMException("API request failed: ${response.code} - $errorBody")
-            }
-
-            val responseBody = response.body?.string()
-                ?: throw LLMException("Empty response body")
 
             Log.d(TAG, "✅ LLM Response received (${responseBody.length} bytes)")
 
             // Log raw response for debugging (truncated)
             val truncated = if (responseBody.length > 2000) responseBody.substring(0, 2000) + "..." else responseBody
             Log.d(TAG, "📥 Raw response: $truncated")
-
-            // Guard: detect non-JSON responses (HTML pages, login redirects, etc.)
-            val trimmed = responseBody.trimStart()
-            if (trimmed.startsWith("<") || trimmed.startsWith("<!")) {
-                Log.e(TAG, "❌ API returned HTML instead of JSON — check baseUrl and API key")
-                throw LLMException(
-                    "API returned an HTML page instead of JSON. " +
-                    "This usually means the baseUrl is wrong or the API key is invalid. " +
-                    "URL: $apiUrl"
-                )
-            }
 
             // Parse response
             val api = model.api ?: provider.api
@@ -275,6 +268,79 @@ class UnifiedLLMProvider(private val context: Context) {
             Log.e(TAG, "❌ LLM request failed", e)
             throw LLMException("LLM request failed: ${e.message}", e)
         }
+    }
+
+    /**
+     * Execute the HTTP request to the LLM API and return the raw response body.
+     * Extracted to support API key rotation.
+     */
+    private fun executeHttpRequest(
+        provider: ProviderConfig,
+        model: ModelDefinition,
+        messages: List<Message>,
+        tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
+        temperature: Double,
+        maxTokens: Int?,
+        reasoningEnabled: Boolean
+    ): String {
+        val requestBody = ApiAdapter.buildRequestBody(
+            provider = provider,
+            model = model,
+            messages = messages,
+            tools = tools,
+            temperature = temperature,
+            maxTokens = maxTokens,
+            reasoningEnabled = reasoningEnabled
+        )
+
+        val headers = ApiAdapter.buildHeaders(provider, model)
+        val apiUrl = buildApiUrl(provider, model)
+
+        Log.d(TAG, "  URL: $apiUrl")
+        Log.d(TAG, "  Headers: ${headers.names()}")
+        headers.names().forEach { name ->
+            if (name.lowercase() == "authorization") {
+                Log.d(TAG, "    $name: Bearer ${provider.apiKey?.take(10)}...")
+            } else {
+                Log.d(TAG, "    $name: ${headers[name]}")
+            }
+        }
+
+        val finalRequestBody = normalizeOpenAiTokenField(model, requestBody)
+
+        val request = Request.Builder()
+            .url(apiUrl)
+            .headers(headers)
+            .post(finalRequestBody.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+
+        val reqStr = finalRequestBody.toString()
+        val reqTrunc = if (reqStr.length > 1500) reqStr.substring(0, 1500) + "..." else reqStr
+        Log.d(TAG, "📤 Request to $apiUrl: $reqTrunc")
+
+        val response = httpClient.newCall(request).execute()
+
+        if (!response.isSuccessful) {
+            val errorBody = response.body?.string() ?: "Unknown error"
+            Log.e(TAG, "❌ API Error (${response.code}): $errorBody")
+            throw LLMException("API request failed: ${response.code} - $errorBody")
+        }
+
+        val responseBody = response.body?.string()
+            ?: throw LLMException("Empty response body")
+
+        // Guard: detect non-JSON responses (HTML pages, login redirects, etc.)
+        val trimmed = responseBody.trimStart()
+        if (trimmed.startsWith("<") || trimmed.startsWith("<!")) {
+            Log.e(TAG, "❌ API returned HTML instead of JSON — check baseUrl and API key")
+            throw LLMException(
+                "API returned an HTML page instead of JSON. " +
+                "This usually means the baseUrl is wrong or the API key is invalid. " +
+                "URL: $apiUrl"
+            )
+        }
+
+        return responseBody
     }
 
     private fun normalizeOpenAiTokenField(model: ModelDefinition, requestBody: JSONObject): JSONObject {

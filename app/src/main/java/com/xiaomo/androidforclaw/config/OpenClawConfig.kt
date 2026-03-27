@@ -32,6 +32,10 @@ data class OpenClawConfig(
     val logging: LoggingConfig = LoggingConfig(),
     val ui: UIConfig = UIConfig(),
 
+    // ======= Model Aliases & Allowlist (OpenClaw model-selection.ts) =======
+    val modelAliases: Map<String, String> = emptyMap(),
+    val modelAllowlist: ModelAllowlistConfig? = null,
+
     // ======= Android 扩展 =======
     val agent: AgentConfig = AgentConfig(),
 
@@ -394,7 +398,12 @@ data class MemoryConfig(
 // ============ session / logging / ui ============
 
 data class SessionConfig(
-    val maxMessages: Int = 100
+    val maxMessages: Int = 100,
+    // OpenClaw store-maintenance.ts alignment
+    val maxAgeDays: Int = 30,
+    val maxEntries: Int = 500,
+    val maxDiskBytes: Long = 100_000_000L,  // 100MB default
+    val highWaterRatio: Float = 0.8f
 )
 
 data class LoggingConfig(

@@ -290,6 +290,42 @@ class SessionManager(
         }
     }
 
+    /**
+     * Run full maintenance cycle (OpenClaw store-maintenance.ts + disk-budget.ts).
+     * Prune stale entries, cap count, rotate index file, enforce disk budget.
+     */
+    suspend fun runMaintenance(
+        activeSessionKey: String? = null,
+        maxAgeDays: Int = AUTO_PRUNE_DAYS,
+        maxEntries: Int = 500,
+        maxDiskBytes: Long = 100_000_000L,
+        highWaterRatio: Float = 0.8f
+    ) = withContext(Dispatchers.IO) {
+        try {
+            val maxAgeMs = maxAgeDays.toLong() * 24 * 60 * 60 * 1000
+
+            // 1. Prune stale entries
+            SessionStoreMaintenance.pruneStaleEntries(sessionIndex, sessionsDir, maxAgeMs, activeSessionKey)
+
+            // 2. Cap entry count
+            SessionStoreMaintenance.capEntryCount(sessionIndex, sessionsDir, maxEntries, activeSessionKey)
+
+            // 3. Rotate index file if too large
+            SessionStoreMaintenance.rotateSessionFile(indexFile)
+
+            // 4. Enforce disk budget
+            val highWaterBytes = (maxDiskBytes * highWaterRatio).toLong()
+            SessionDiskBudget.enforceSessionDiskBudget(
+                sessionsDir, sessionIndex, activeSessionKey, maxDiskBytes, highWaterBytes
+            )
+
+            // 5. Persist updated index
+            saveIndex()
+        } catch (e: Exception) {
+            Log.e(TAG, "Session maintenance failed", e)
+        }
+    }
+
     // ================ Private Helpers ================
 
     /**

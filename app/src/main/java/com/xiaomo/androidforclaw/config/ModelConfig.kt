@@ -48,7 +48,14 @@ data class ModelCompatConfig(
     val maxTokensField: String? = null,
     val thinkingFormat: String? = null,
     val requiresToolResultName: Boolean? = null,
-    val requiresAssistantAfterToolResult: Boolean? = null
+    val requiresAssistantAfterToolResult: Boolean? = null,
+    // OpenClaw model-compat.ts additions
+    val toolSchemaProfile: String? = null,
+    val nativeWebSearchTool: Boolean? = null,
+    val toolCallArgumentsEncoding: String? = null,
+    val supportsDeveloperRole: Boolean? = null,
+    val supportsUsageInStreaming: Boolean? = null,
+    val supportsStrictMode: Boolean? = null
 )
 
 data class CostConfig(

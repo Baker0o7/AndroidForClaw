@@ -87,6 +87,9 @@ class ToolRegistry(
         register(ConfigGetTool(configMethods))
         register(ConfigSetTool(configMethods))
 
+        // === TTS tool (OpenClaw tts-tool.ts) ===
+        register(TtsTool(context))
+
         // === ClawHub skill hub tools ===
         // Aligned with OpenClaw gateway RPC: skills.search / skills.install
         register(SkillsSearchTool(context))
