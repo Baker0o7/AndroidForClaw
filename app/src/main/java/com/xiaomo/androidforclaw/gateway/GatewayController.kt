@@ -131,7 +131,7 @@ class GatewayController(
                 toolsMethods = ToolsMethods(toolRegistry, androidToolRegistry)
                 skillsMethods = SkillsMethods(context)
                 configMethods = ConfigMethods(context)
-                talkMethods = TalkMethods(context)
+                talkMethods = TalkMethods.getInstance(context)
                 talkMethods.init()
 
                 // ── OpenClaw loopback handshake ───────────────────────────

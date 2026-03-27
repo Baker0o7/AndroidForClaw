@@ -17,12 +17,25 @@ import java.util.concurrent.TimeUnit
  * 使用 Android 内置 TextToSpeech 引擎合成 WAV，base64 编码返回，
  * 与 OpenClaw gateway talk.speak 协议完全对齐。
  */
-class TalkMethods(private val context: Context) {
+class TalkMethods private constructor(private val context: Context) {
 
     companion object {
         private const val TAG = "TalkMethods"
         private const val TTS_INIT_TIMEOUT_MS = 5000L
         private const val TTS_SYNTH_TIMEOUT_MS = 30000L
+
+        @Volatile
+        private var instance: TalkMethods? = null
+
+        /**
+         * Get or create the shared TalkMethods instance.
+         * Avoids creating duplicate Android TTS engines.
+         */
+        fun getInstance(context: Context): TalkMethods {
+            return instance ?: synchronized(this) {
+                instance ?: TalkMethods(context.applicationContext).also { instance = it }
+            }
+        }
     }
 
     private var tts: TextToSpeech? = null

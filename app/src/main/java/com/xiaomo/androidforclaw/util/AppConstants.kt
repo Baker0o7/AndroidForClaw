@@ -30,22 +30,4 @@ object AppConstants {
     // 配置文件位置：/sdcard/.androidforclaw/config/models.json
     const val OPENROUTER_API_KEY = ""  // 请在 /sdcard/.androidforclaw/config/models.json 中配置
 
-    // ============= 旧常量（兼容性保留） =============
-    @Deprecated("已停用，使用 OpenRouter", ReplaceWith("OPENROUTER_API_KEY"))
-    const val ANTHROPIC_API_KEY = ""
-    @Deprecated("已停用，使用 OpenRouter", ReplaceWith("\"https://openrouter.ai/api/v1\""))
-    const val ANTHROPIC_BASE_URL = ""
-
-    // ============= 旧常量（已废弃，仅用于向后兼容） =============
-    @Deprecated("从 openclaw.json 的 agent.defaultModel 读取")
-    const val ANTHROPIC_DEFAULT_OPUS_MODEL = "ppio/pa/claude-opus-4-6"
-
-    @Deprecated("从 openclaw.json 的 agent.defaultModel 读取")
-    const val ANTHROPIC_DEFAULT_SONNET_MODEL = "ppio/pa/claude-sonnet-4-6"
-
-    @Deprecated("从 openclaw.json 的 thinking.enabled 读取")
-    const val REASONING_ENABLED_DEFAULT = true
-
-    @Deprecated("从 openclaw.json 的 thinking.budgetTokens 读取")
-    const val REASONING_BUDGET_TOKENS = 10000
 }

@@ -28,7 +28,6 @@ import com.xiaomo.androidforclaw.util.SPHelper
 import com.xiaomo.androidforclaw.util.WakeLockManager
 import com.xiaomo.androidforclaw.camera.CameraCaptureManager
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
-import com.xiaomo.androidforclaw.util.AppInfoScanner
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Dispatchers
@@ -314,14 +313,6 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
 
 
-        // Delayed scan and export app info (avoid blocking app startup)
-//        Handler(Looper.getMainLooper()).postDelayed({
-//            try {
-//                AppInfoScanner.scanAndExport(this)
-//            } catch (e: Exception) {
-//                Log.e(TAG, "扫描应用信息失败: ${e.message}", e)
-//            }
-//        }, 2000) // 2 second delay to ensure app is fully started
     }
 
     fun isAppInBackground(): Boolean {
@@ -487,154 +478,6 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         }
     }
 
-    /**
-     * Test SkillParser (Block 1)
-     */
-    private fun testSkillParser() {
-        try {
-            Log.d(TAG, "========================================")
-            Log.d(TAG, "🧪 Block 1: SkillParser 测试开始")
-            Log.d(TAG, "========================================")
-
-            // val result = com.xiaomo.androidforclaw.agent.skills.SkillParserTestRunner.runAllTests(this)
-            // Test code removed
-            Log.i(TAG, "⚠️ SkillParser 测试已禁用（测试框架已移除）")
-            /*
-            Log.d(TAG, "")
-            Log.d(TAG, result.getSummary())
-            Log.d(TAG, "")
-            Log.d(TAG, result.getDetailedReport())
-            Log.d(TAG, "")
-            Log.d(TAG, "========================================")
-
-            if (result.isSuccess()) {
-                Log.i(TAG, "✅ Block 1 完成: SkillParser 所有测试通过!")
-
-                // Block 1 passed, continue to test Block 2
-                testSkillsLoader()
-            } else {
-                Log.e(TAG, "❌ Block 1 失败: 有 ${result.total - result.passed} 个测试失败")
-            }
-
-            Log.d(TAG, "========================================")
-            */
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ SkillParser 测试异常: ${e.message}", e)
-        }
-    }
-
-    /**
-     * Test SkillsLoader (Block 2)
-     */
-    private fun testSkillsLoader() {
-        try {
-            Log.d(TAG, "")
-            Log.d(TAG, "========================================")
-            Log.d(TAG, "🧪 Block 2: SkillsLoader 测试开始")
-            Log.d(TAG, "========================================")
-
-            // val result = com.xiaomo.androidforclaw.agent.skills.SkillsLoaderTestRunner.runAllTests(this)
-            // Test code removed
-            Log.i(TAG, "⚠️ SkillsLoader 测试已禁用（测试框架已移除）")
-            /*
-            Log.d(TAG, "")
-            Log.d(TAG, result.getSummary())
-            Log.d(TAG, "")
-            Log.d(TAG, result.getDetailedReport())
-            Log.d(TAG, "")
-            Log.d(TAG, "========================================")
-
-            if (result.isSuccess()) {
-                Log.i(TAG, "✅ Block 2 完成: SkillsLoader 所有测试通过!")
-
-                // Block 2 passed, continue to test Block 3
-                testContextBuilder()
-            } else {
-                Log.e(TAG, "❌ Block 2 失败: 有 ${result.total - result.passed} 个测试失败")
-            }
-
-            Log.d(TAG, "========================================")
-            */
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ SkillsLoader 测试异常: ${e.message}", e)
-        }
-    }
-
-    /**
-     * Test ContextBuilder (Block 3)
-     */
-    private fun testContextBuilder() {
-        try {
-            Log.d(TAG, "")
-            Log.d(TAG, "========================================")
-            Log.d(TAG, "🧪 Block 3: ContextBuilder 测试开始")
-            Log.d(TAG, "========================================")
-
-            // val result = com.xiaomo.androidforclaw.agent.context.ContextBuilderTestRunner.runAllTests(this)
-            // Test code removed
-            Log.i(TAG, "⚠️ ContextBuilder 测试已禁用（测试框架已移除）")
-            /*
-            Log.d(TAG, "")
-            Log.d(TAG, result.getSummary())
-            Log.d(TAG, "")
-            Log.d(TAG, result.getDetailedReport())
-            Log.d(TAG, "")
-            Log.d(TAG, "========================================")
-
-            if (result.isSuccess()) {
-                Log.i(TAG, "✅ Block 3 完成: ContextBuilder 所有测试通过!")
-
-                // Block 3 passed, print final summary
-                printFinalSummary()
-            } else {
-                Log.e(TAG, "❌ Block 3 失败: 有 ${result.total - result.passed} 个测试失败")
-            }
-
-            Log.d(TAG, "========================================")
-            */
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ContextBuilder 测试异常: ${e.message}", e)
-        }
-    }
-
-    /**
-     * Print Block 1-6 final summary
-     */
-    private fun printFinalSummary() {
-        try {
-            Log.d(TAG, "")
-            Log.d(TAG, "========================================")
-            Log.d(TAG, "🎉 OpenClaw 对齐完成总结")
-            Log.d(TAG, "========================================")
-            Log.d(TAG, "")
-            Log.d(TAG, "✅ Block 1: Skills Parser      (100% 完成)")
-            Log.d(TAG, "✅ Block 2: Skills Loader      (100% 完成)")
-            Log.d(TAG, "✅ Block 3: Context Builder    (100% 完成)")
-            Log.d(TAG, "✅ Block 4: Bootstrap 文件     (100% 完成)")
-            Log.d(TAG, "✅ Block 5: 按需加载优化        (100% 完成)")
-            Log.d(TAG, "✅ Block 6: 用户扩展能力        (100% 完成)")
-            Log.d(TAG, "")
-            Log.d(TAG, "📊 成果统计:")
-
-            // Get Skills statistics
-            val loader = com.xiaomo.androidforclaw.agent.skills.SkillsLoader(this)
-            val stats = loader.getStatistics()
-            Log.d(TAG, "")
-            stats.getReport().lines().forEach { line ->
-                Log.d(TAG, "   $line")
-            }
-
-            Log.d(TAG, "")
-            Log.d(TAG, "🎯 对齐度: 60% → 90% (+30%)")
-            Log.d(TAG, "⚡ Token 优化: 2350 → 800 (-66%)")
-            Log.d(TAG, "")
-            Log.d(TAG, "========================================")
-            Log.i(TAG, "🚀 AndroidForClaw 已完全对齐 OpenClaw 架构!")
-            Log.d(TAG, "========================================")
-        } catch (e: Exception) {
-            Log.e(TAG, "打印总结失败: ${e.message}", e)
-        }
-    }
 
 
     /**

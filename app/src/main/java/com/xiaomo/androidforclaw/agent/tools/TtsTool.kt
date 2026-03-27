@@ -21,7 +21,7 @@ class TtsTool(private val context: Context) : Tool {
     override val description = "Convert text to speech using the device's TTS engine"
 
     private val talkMethods by lazy {
-        TalkMethods(context).also { it.init() }
+        TalkMethods.getInstance(context).also { it.init() }
     }
 
     override fun getToolDefinition(): ToolDefinition {
