@@ -610,7 +610,7 @@ private fun InlineBase64Image(base64: String, mimeType: String?) {
     )
   } else if (imageState.failed) {
     Text(
-      text = "Image unavailable",
+      text = "图片不可用",
       modifier = Modifier.padding(vertical = 2.dp),
       style = mobileCaption1,
       color = mobileTextSecondary,
