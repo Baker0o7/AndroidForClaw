@@ -141,6 +141,7 @@ fun ChatComposer(
           ThinkingMenuItem("low", thinkingLevel, onSetThinkingLevel) { showThinkingMenu = false }
           ThinkingMenuItem("medium", thinkingLevel, onSetThinkingLevel) { showThinkingMenu = false }
           ThinkingMenuItem("high", thinkingLevel, onSetThinkingLevel) { showThinkingMenu = false }
+          ThinkingMenuItem("deep", thinkingLevel, onSetThinkingLevel) { showThinkingMenu = false }
         }
       }
 
@@ -269,6 +270,7 @@ private fun thinkingLabel(raw: String): String {
     "low" -> "低"
     "medium" -> "中"
     "high" -> "高"
+    "deep" -> "深度思考"
     else -> "关"
   }
 }

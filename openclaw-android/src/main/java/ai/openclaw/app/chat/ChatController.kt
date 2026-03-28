@@ -575,6 +575,7 @@ class ChatController(
       "low" -> "low"
       "medium" -> "medium"
       "high" -> "high"
+      "deep" -> "deep"
       else -> "off"
     }
   }
