@@ -318,6 +318,39 @@ class NodeRuntime(
       },
     )
 
+  // micCapture 必须在 init 块之前声明，否则 init 中的 scope.launch 可能
+  // 在 lazy 委托字段初始化之前就访问它，导致 NPE。
+  private val micCapture: MicCaptureManager by lazy {
+    MicCaptureManager(
+      context = appContext,
+      scope = scope,
+      sendToGateway = { message, onRunIdKnown ->
+        val idempotencyKey = UUID.randomUUID().toString()
+        // Notify MicCaptureManager of the idempotency key *before* the network
+        // call so pendingRunId is set before any chat events can arrive.
+        onRunIdKnown(idempotencyKey)
+        val params =
+          buildJsonObject {
+            put("sessionKey", JsonPrimitive(resolveMainSessionKey()))
+            put("message", JsonPrimitive(message))
+            put("thinking", JsonPrimitive(chatThinkingLevel.value))
+            put("timeoutMs", JsonPrimitive(30_000))
+            put("idempotencyKey", JsonPrimitive(idempotencyKey))
+          }
+        val chatChannel = localChatChannel ?: operatorSession
+        val response = chatChannel.request("chat.send", params.toString())
+        parseChatSendRunId(response) ?: idempotencyKey
+      },
+      speakAssistantReply = { text ->
+        // Skip if TalkModeManager is handling TTS (ttsOnAllResponses) to avoid
+        // double-speaking the same assistant reply from both pipelines.
+        if (!talkMode.ttsOnAllResponses) {
+          voiceReplySpeaker.speakAssistantReply(text)
+        }
+      },
+    )
+  }
+
   init {
     DeviceNotificationListenerService.setNodeEventSink { event, payloadJson ->
       scope.launch {
@@ -357,36 +390,6 @@ class NodeRuntime(
   private val voiceReplySpeaker: TalkModeManager
     get() = voiceReplySpeakerLazy.value
 
-  private val micCapture: MicCaptureManager by lazy {
-    MicCaptureManager(
-      context = appContext,
-      scope = scope,
-      sendToGateway = { message, onRunIdKnown ->
-        val idempotencyKey = UUID.randomUUID().toString()
-        // Notify MicCaptureManager of the idempotency key *before* the network
-        // call so pendingRunId is set before any chat events can arrive.
-        onRunIdKnown(idempotencyKey)
-        val params =
-          buildJsonObject {
-            put("sessionKey", JsonPrimitive(resolveMainSessionKey()))
-            put("message", JsonPrimitive(message))
-            put("thinking", JsonPrimitive(chatThinkingLevel.value))
-            put("timeoutMs", JsonPrimitive(30_000))
-            put("idempotencyKey", JsonPrimitive(idempotencyKey))
-          }
-        val chatChannel = localChatChannel ?: operatorSession
-        val response = chatChannel.request("chat.send", params.toString())
-        parseChatSendRunId(response) ?: idempotencyKey
-      },
-      speakAssistantReply = { text ->
-        // Skip if TalkModeManager is handling TTS (ttsOnAllResponses) to avoid
-        // double-speaking the same assistant reply from both pipelines.
-        if (!talkMode.ttsOnAllResponses) {
-          voiceReplySpeaker.speakAssistantReply(text)
-        }
-      },
-    )
-  }
 
   val micStatusText: StateFlow<String>
     get() = micCapture.statusText
