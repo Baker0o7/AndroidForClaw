@@ -1971,17 +1971,69 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
                 // Collect inbound messages and dispatch to agent via MessageQueueManager
                 channel.messageFlow?.collect { msg ->
-                    Log.i(TAG, "📨 Weixin 收到消息: from=${msg.fromUserId} body=${msg.body.take(50)}")
+                    Log.i(TAG, "📨 Weixin 收到消息: from=${msg.fromUserId} body=${msg.body.take(50)} hasMedia=${msg.hasMedia} mediaType=${msg.mediaType}")
 
-                    if (msg.body.isBlank()) {
-                        Log.d(TAG, "Weixin: 空消息，跳过")
+                    // Download media if present
+                    var downloadedMediaFile: java.io.File? = null
+                    if (msg.hasMedia && msg.mediaCdn != null) {
+                        try {
+                            downloadedMediaFile = com.xiaomo.weixin.cdn.WeixinCdnDownloader.downloadAndDecrypt(
+                                media = msg.mediaCdn!!,
+                                fileExtension = msg.mediaFileExtension ?: "bin",
+                            )
+                            if (downloadedMediaFile != null) {
+                                Log.i(TAG, "📎 Weixin 媒体下载成功: ${downloadedMediaFile.absolutePath} (${downloadedMediaFile.length()} bytes)")
+                            } else {
+                                Log.w(TAG, "⚠️ Weixin 媒体下载失败")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Weixin 媒体下载异常", e)
+                        }
+                    }
+
+                    if (msg.body.isBlank() && !msg.hasMedia) {
+                        Log.d(TAG, "Weixin: 空消息且无媒体，跳过")
                         return@collect
                     }
 
                     val queueKey = "weixin:${msg.fromUserId}"
 
+                    // Build content for agent: text + media context
+                    val agentContent = buildString {
+                        if (msg.body.isNotBlank()) {
+                            append(msg.body)
+                        }
+                        if (msg.hasMedia && downloadedMediaFile != null) {
+                            if (isNotEmpty()) append("\n\n")
+                            when (msg.mediaType) {
+                                com.xiaomo.weixin.api.MessageItemType.IMAGE -> {
+                                    append("[用户发送了一张图片: ${downloadedMediaFile.absolutePath}")
+                                    if (msg.imageWidth != null && msg.imageHeight != null) {
+                                        append(", ${msg.imageWidth}x${msg.imageHeight}")
+                                    }
+                                    append("]")
+                                }
+                                com.xiaomo.weixin.api.MessageItemType.VOICE -> {
+                                    append("[用户发送了一条语音")
+                                    if (msg.voicePlaytime != null) append(", 时长${msg.voicePlaytime}秒")
+                                    if (!msg.voiceText.isNullOrBlank()) append(", 内容: ${msg.voiceText}")
+                                    append(", 文件: ${downloadedMediaFile.absolutePath}]")
+                                }
+                                com.xiaomo.weixin.api.MessageItemType.FILE -> {
+                                    append("[用户发送了一个文件: ${msg.mediaFileName ?: downloadedMediaFile.name}, 路径: ${downloadedMediaFile.absolutePath}]")
+                                }
+                                com.xiaomo.weixin.api.MessageItemType.VIDEO -> {
+                                    append("[用户发送了一个视频: ${downloadedMediaFile.absolutePath}]")
+                                }
+                            }
+                        } else if (msg.hasMedia && downloadedMediaFile == null) {
+                            if (isNotEmpty()) append("\n\n")
+                            append("[用户发送了媒体文件，但下载失败]")
+                        }
+                    }
+
                     // Channel-agnostic stop command check
-                    if (messageQueueManager.isStopCommand(msg.body)) {
+                    if (messageQueueManager.isStopCommand(agentContent)) {
                         if (messageQueueManager.stopActiveRun(queueKey)) {
                             channel.sender?.sendText(msg.fromUserId, "✅ 已停止当前任务")
                         } else {
@@ -1992,11 +2044,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
                     val queuedMessage = MessageQueueManager.QueuedMessage(
                         messageId = msg.messageId?.toString() ?: "weixin_${System.currentTimeMillis()}",
-                        content = msg.body,
+                        content = agentContent,
                         senderId = msg.fromUserId,
                         chatId = msg.fromUserId,
                         chatType = "p2p",
-                        metadata = mapOf("weixinMsg" to msg)
+                        metadata = mapOf("weixinMsg" to msg, "mediaFile" to downloadedMediaFile)
                     )
 
                     val queueMode = getQueueModeForChat(msg.fromUserId, "p2p")
@@ -2047,6 +2099,33 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
             val sessionId = "weixin_${msg.fromUserId}"
             Log.i(TAG, "🆔 Weixin Session ID: $sessionId")
+
+            // Rebuild agent content from message fields (includes media context)
+            val agentContent = buildString {
+                if (msg.body.isNotBlank()) {
+                    append(msg.body)
+                }
+                if (msg.hasMedia) {
+                    if (isNotEmpty()) append("\n\n")
+                    when (msg.mediaType) {
+                        com.xiaomo.weixin.api.MessageItemType.IMAGE -> {
+                            append("[用户发送了一张图片]")
+                        }
+                        com.xiaomo.weixin.api.MessageItemType.VOICE -> {
+                            append("[用户发送了一条语音")
+                            if (msg.voicePlaytime != null) append(", 时长${msg.voicePlaytime}秒")
+                            if (!msg.voiceText.isNullOrBlank()) append(", 内容: ${msg.voiceText}")
+                            append("]")
+                        }
+                        com.xiaomo.weixin.api.MessageItemType.FILE -> {
+                            append("[用户发送了一个文件: ${msg.mediaFileName ?: "未知文件名"}]")
+                        }
+                        com.xiaomo.weixin.api.MessageItemType.VIDEO -> {
+                            append("[用户发送了一个视频]")
+                        }
+                    }
+                }
+            }
 
             if (MainEntryNew.getSessionManager() == null) {
                 MainEntryNew.initialize(this@MyApplication)
@@ -2109,7 +2188,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 messageId = msg.messageId?.toString() ?: ""
             )
             val systemPrompt = contextBuilder.buildSystemPrompt(
-                userGoal = msg.body,
+                userGoal = agentContent,
                 packageName = "",
                 testMode = "chat",
                 channelContext = channelCtx
@@ -2153,7 +2232,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             val result = try {
                 agentLoop.run(
                     systemPrompt = systemPrompt,
-                    userMessage = msg.body,
+                    userMessage = agentContent,
                     contextHistory = contextHistory.map { it.toNewMessage() },
                 )
             } finally {
@@ -2166,7 +2245,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
             // Save to session history
             session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
-                role = "user", content = msg.body
+                role = "user", content = agentContent
             ))
             session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
                 role = "assistant", content = result.finalContent
