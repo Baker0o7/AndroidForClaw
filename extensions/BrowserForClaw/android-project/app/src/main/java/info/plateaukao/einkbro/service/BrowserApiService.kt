@@ -23,7 +23,7 @@ import info.plateaukao.einkbro.browser.control.server.SimpleBrowserHttpServer
 /**
  * BrowserForClaw HTTP API 前台服务
  *
- * 确保 HTTP Server (端口 8766) 持续运行在后台
+ * 确保 HTTP Server (端口 58765) 持续运行在后台
  * 即使应用在后台或被系统回收,API 仍可响应
  */
 class BrowserApiService : Service() {
@@ -32,7 +32,7 @@ class BrowserApiService : Service() {
         private const val TAG = "BrowserApiService"
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "browser_api_channel"
-        private const val PORT = 8766
+        private const val PORT = 58765
 
         fun start(context: Context) {
             val intent = Intent(context, BrowserApiService::class.java)

@@ -22,9 +22,9 @@ import kotlin.concurrent.thread
 /**
  * Simple HTTP Server for Browser Control
  *
- * 监听端口 8080，处理浏览器控制请求
+ * 监听端口 58765，处理浏览器控制请求
  */
-class SimpleBrowserHttpServer(private val port: Int = 8080) {
+class SimpleBrowserHttpServer(private val port: Int = 58765) {
 
     companion object {
         private const val TAG = "BrowserHttpServer"
