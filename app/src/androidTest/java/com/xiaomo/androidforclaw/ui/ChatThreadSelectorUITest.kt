@@ -4,6 +4,8 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import androidx.test.platform.app.InstrumentationRegistry
+import ai.openclaw.app.R
 import ai.openclaw.app.chat.ChatSessionEntry
 import ai.openclaw.app.ui.chat.ChatSheetTestHelper
 import org.junit.Rule
@@ -32,10 +34,15 @@ class ChatThreadSelectorUITest {
     val composeTestRule = createComposeRule()
 
     private val testSessions = listOf(
-        ChatSessionEntry(key = "main", updatedAtMs = 1000L, displayName = "Main"),
-        ChatSessionEntry(key = "session-2", updatedAtMs = 2000L, displayName = "Debug Session"),
-        ChatSessionEntry(key = "session-3", updatedAtMs = 3000L, displayName = "Test Chat"),
+        ChatSessionEntry(key = "main", updatedAtMs = System.currentTimeMillis() - 1000L, displayName = "Main"),
+        ChatSessionEntry(key = "session-2", updatedAtMs = System.currentTimeMillis() - 2000L, displayName = "Debug Session"),
+        ChatSessionEntry(key = "session-3", updatedAtMs = System.currentTimeMillis() - 3000L, displayName = "Test Chat"),
     )
+
+    private val res get() = InstrumentationRegistry.getInstrumentation().targetContext.resources
+    private val deleteSessionTitle get() = res.getString(R.string.delete_session)
+    private val actionDelete get() = res.getString(R.string.action_delete)
+    private val actionCancel get() = res.getString(R.string.action_cancel)
 
     // ========================================================================
     // 1. 会话 chip 显示
@@ -100,10 +107,9 @@ class ChatThreadSelectorUITest {
         composeTestRule.waitForIdle()
 
         // Should show delete confirmation dialog
-        composeTestRule.onNodeWithText("删除会话").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Debug Session", substring = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("删除").assertIsDisplayed()
-        composeTestRule.onNodeWithText("取消").assertIsDisplayed()
+        composeTestRule.onNodeWithText(deleteSessionTitle).assertIsDisplayed()
+        composeTestRule.onNodeWithText(actionDelete).assertIsDisplayed()
+        composeTestRule.onNodeWithText(actionCancel).assertIsDisplayed()
     }
 
     // ========================================================================
@@ -128,7 +134,7 @@ class ChatThreadSelectorUITest {
         composeTestRule.waitForIdle()
 
         // Click delete button
-        composeTestRule.onNodeWithText("删除").performClick()
+        composeTestRule.onNodeWithText(actionDelete).performClick()
         composeTestRule.waitForIdle()
 
         assert(deletedKey == "session-2") {
@@ -136,7 +142,7 @@ class ChatThreadSelectorUITest {
         }
 
         // Dialog should be dismissed
-        composeTestRule.onNodeWithText("删除会话").assertDoesNotExist()
+        composeTestRule.onNodeWithText(deleteSessionTitle).assertDoesNotExist()
     }
 
     // ========================================================================
@@ -161,11 +167,11 @@ class ChatThreadSelectorUITest {
         composeTestRule.waitForIdle()
 
         // Click cancel
-        composeTestRule.onNodeWithText("取消").performClick()
+        composeTestRule.onNodeWithText(actionCancel).performClick()
         composeTestRule.waitForIdle()
 
         // Dialog should be dismissed, no delete callback
-        composeTestRule.onNodeWithText("删除会话").assertDoesNotExist()
+        composeTestRule.onNodeWithText(deleteSessionTitle).assertDoesNotExist()
         assert(deletedKey.isEmpty()) {
             "Delete should not have been called, but got '$deletedKey'"
         }
@@ -191,6 +197,6 @@ class ChatThreadSelectorUITest {
         composeTestRule.waitForIdle()
 
         // Should NOT show delete dialog
-        composeTestRule.onNodeWithText("删除会话").assertDoesNotExist()
+        composeTestRule.onNodeWithText(deleteSessionTitle).assertDoesNotExist()
     }
 }

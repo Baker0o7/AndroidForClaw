@@ -180,9 +180,9 @@ configurations.all {
     resolutionStrategy {
         // 强制所有模块使用完整版protobuf-java
         force 'com.google.protobuf:protobuf-java:3.25.5'
-        // Espresso 3.7.0-alpha02 需要 androidx.test:core:1.7.0-alpha02（修复了 API 36 InputManager 问题）
-        force 'androidx.test:core:1.7.0-alpha02'
-        force 'androidx.test:monitor:1.7.0-alpha02'
+        // Espresso 3.7.0-alpha02 需要 androidx.test:core:1.7.0-beta01（修复了 API 36 InputManager 问题）
+        force 'androidx.test:core:1.7.0-beta01'
+        force 'androidx.test:monitor:1.7.0-beta01'
     }
     // 排除旧版 kotlin-android-extensions-runtime (已被 parcelize-runtime 替代)
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-android-extensions-runtime'
@@ -300,20 +300,20 @@ dependencies {
 
     // ========== Android UI 测试依赖 ==========
     // Espresso 核心 - 3.7.0-alpha02 修复了 API 36 InputManager.getInstance() NoSuchMethodException
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0-alpha02'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.7.0-alpha02'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0-beta01'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.7.0-beta01'
     // 排除protobuf-lite以避免与飞书SDK的protobuf-java冲突
-    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.7.0-alpha02') {
+    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.7.0-beta01') {
         exclude group: 'com.google.protobuf', module: 'protobuf-lite'
     }
-    androidTestImplementation 'androidx.test.espresso:espresso-idling-resource:3.7.0-alpha02'
+    androidTestImplementation 'androidx.test.espresso:espresso-idling-resource:3.7.0-beta01'
 
     // AndroidX Test
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test:runner:1.7.0-alpha02'
-    androidTestImplementation 'androidx.test:rules:1.7.0-alpha02'
-    androidTestImplementation 'androidx.test:core:1.7.0-alpha02'
-    androidTestImplementation 'androidx.test:core-ktx:1.7.0-alpha02'
+    androidTestImplementation 'androidx.test:runner:1.7.0-beta01'
+    androidTestImplementation 'androidx.test:rules:1.7.0-beta01'
+    androidTestImplementation 'androidx.test:core:1.7.0-beta01'
+    androidTestImplementation 'androidx.test:core-ktx:1.7.0-beta01'
 
     // UI Automator (用于跨应用测试)
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.3.0'
