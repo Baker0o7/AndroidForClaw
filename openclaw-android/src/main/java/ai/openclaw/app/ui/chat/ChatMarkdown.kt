@@ -79,6 +79,11 @@ import org.commonmark.node.Text as MarkdownTextNode
 import org.commonmark.node.ThematicBreak
 import org.commonmark.parser.Parser
 
+// Coil Compose for URL image loading
+import coil.compose.AsyncImage
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+
 private const val LIST_INDENT_DP = 14
 private val dataImageRegex = Regex("^data:image/([a-zA-Z0-9+.-]+);base64,([A-Za-z0-9+/=\\n\\r]+)$")
 
@@ -227,6 +232,13 @@ private fun RenderParagraph(
   val standaloneImage = remember(paragraph) { standaloneDataImage(paragraph) }
   if (standaloneImage != null) {
     InlineBase64Image(base64 = standaloneImage.base64, mimeType = standaloneImage.mimeType)
+    return
+  }
+
+  // Detect standalone URL image: paragraph with only an Image node
+  val standaloneUrlImage = remember(paragraph) { standaloneUrlImage(paragraph) }
+  if (standaloneUrlImage != null) {
+    UrlImage(url = standaloneUrlImage, alt = null)
     return
   }
 
@@ -539,6 +551,14 @@ private fun standaloneDataImage(paragraph: Paragraph): ParsedDataImage? {
   return parseDataImageDestination(only.destination)
 }
 
+/** Detect a standalone URL image: paragraph containing only a MarkdownImage with http(s) URL. */
+private fun standaloneUrlImage(paragraph: Paragraph): String? {
+  val only = paragraph.firstChild as? MarkdownImage ?: return null
+  if (only.next != null) return null
+  val dest = only.destination?.trim() ?: return null
+  return if (dest.startsWith("http://") || dest.startsWith("https://")) dest else null
+}
+
 private fun parseDataImageDestination(destination: String?): ParsedDataImage? {
   val raw = destination?.trim().orEmpty()
   if (raw.isEmpty()) return null
@@ -596,4 +616,17 @@ private fun InlineBase64Image(base64: String, mimeType: String?) {
       color = mobileTextSecondary,
     )
   }
+}
+
+/** Render an image from URL using Coil's AsyncImage. */
+@Composable
+private fun UrlImage(url: String, alt: String?) {
+  AsyncImage(
+    model = url,
+    contentDescription = alt ?: "image",
+    contentScale = ContentScale.Fit,
+    modifier = Modifier
+      .fillMaxWidth()
+      .clip(RoundedCornerShape(8.dp)),
+  )
 }
