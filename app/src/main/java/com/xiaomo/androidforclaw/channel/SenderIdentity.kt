@@ -3,7 +3,8 @@ package com.xiaomo.androidforclaw.channel
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/channels/sender-identity.ts (validateSenderIdentity)
- * - ../openclaw/src/channels/sender-label.ts
+ * - ../openclaw/src/channels/sender-label.ts (resolveSenderLabel, listSenderLabelCandidates)
+ * - ../openclaw/src/channels/chat-type.ts (ChatType, normalizeChatType)
  *
  * AndroidForClaw adaptation: sender identity validation and label resolution.
  */
@@ -17,8 +18,32 @@ data class SenderIdentity(
     val senderName: String? = null,
     val senderUsername: String? = null,
     val senderE164: String? = null,  // E.164 phone number
-    val chatType: String? = null     // "direct" / "group" / "channel" / "thread"
+    val chatType: String? = null     // "direct" / "group" / "channel"
 )
+
+/**
+ * Normalized chat types.
+ * Aligned with OpenClaw ChatType.
+ */
+object ChatTypes {
+    const val DIRECT = "direct"
+    const val GROUP = "group"
+    const val CHANNEL = "channel"
+
+    /**
+     * Normalize raw chat type string.
+     * Aligned with OpenClaw normalizeChatType.
+     */
+    fun normalize(raw: String?): String? {
+        if (raw == null) return null
+        return when (raw.trim().lowercase()) {
+            "direct", "dm" -> DIRECT
+            "group" -> GROUP
+            "channel" -> CHANNEL
+            else -> null
+        }
+    }
+}
 
 /**
  * SenderIdentity validation and label resolution.
@@ -26,30 +51,26 @@ data class SenderIdentity(
  */
 object SenderIdentityValidator {
 
-    /** E.164 phone number pattern */
     private val E164_PATTERN = Regex("^\\+\\d{3,}$")
-
-    /** Username must not contain @ or whitespace */
     private val USERNAME_INVALID_PATTERN = Regex("[@\\s]")
 
     /**
      * Validate sender identity fields.
      * Aligned with OpenClaw validateSenderIdentity.
-     *
-     * @return List of validation issues (empty = valid)
      */
     fun validate(identity: SenderIdentity): List<String> {
         val issues = mutableListOf<String>()
+        val normalizedChatType = ChatTypes.normalize(identity.chatType)
 
         // Non-direct chats must have at least one sender field
-        if (identity.chatType != null && identity.chatType != "direct" && identity.chatType != "p2p") {
+        if (normalizedChatType != null && normalizedChatType != ChatTypes.DIRECT) {
             val hasSender = !identity.senderId.isNullOrBlank() ||
                 !identity.senderName.isNullOrBlank() ||
                 !identity.senderUsername.isNullOrBlank() ||
                 !identity.senderE164.isNullOrBlank()
 
             if (!hasSender) {
-                issues.add("Non-direct chat must have at least one sender field (senderId/senderName/senderUsername/senderE164)")
+                issues.add("missing sender identity (SenderId/SenderName/SenderUsername/SenderE164)")
             }
         }
 
@@ -76,18 +97,49 @@ object SenderIdentityValidator {
     }
 
     /**
-     * Build a display label for a sender.
-     * Aligned with OpenClaw sender-label.ts.
+     * Resolve a display label for a sender.
+     * Aligned with OpenClaw resolveSenderLabel.
      *
-     * Priority: senderName > senderUsername > senderId > "Unknown"
+     * Priority:
+     * - Display part: name > username > tag (no tag in Android, skip)
+     * - ID part: e164 > id
+     * - Combined: "display (idPart)" if both and different, otherwise whichever is present
+     */
+    fun resolveSenderLabel(identity: SenderIdentity): String? {
+        val display = identity.senderName?.takeIf { it.isNotBlank() }
+            ?: identity.senderUsername?.takeIf { it.isNotBlank() }
+
+        val idPart = identity.senderE164?.takeIf { it.isNotBlank() }
+            ?: identity.senderId?.takeIf { it.isNotBlank() }
+
+        return when {
+            display != null && idPart != null && display != idPart -> "$display ($idPart)"
+            display != null -> display
+            idPart != null -> idPart
+            else -> null
+        }
+    }
+
+    /**
+     * Build a display label, with fallback to "Unknown".
+     * Convenience wrapper over resolveSenderLabel.
      */
     fun buildLabel(identity: SenderIdentity): String {
-        return when {
-            !identity.senderName.isNullOrBlank() -> identity.senderName
-            !identity.senderUsername.isNullOrBlank() -> "@${identity.senderUsername}"
-            !identity.senderId.isNullOrBlank() -> identity.senderId
-            else -> "Unknown"
-        }
+        return resolveSenderLabel(identity) ?: "Unknown"
+    }
+
+    /**
+     * List all non-empty sender label candidates (for deduplication).
+     * Aligned with OpenClaw listSenderLabelCandidates.
+     */
+    fun listSenderLabelCandidates(identity: SenderIdentity): List<String> {
+        val candidates = mutableListOf<String>()
+        identity.senderName?.takeIf { it.isNotBlank() }?.let { candidates.add(it) }
+        identity.senderUsername?.takeIf { it.isNotBlank() }?.let { candidates.add(it) }
+        identity.senderE164?.takeIf { it.isNotBlank() }?.let { candidates.add(it) }
+        identity.senderId?.takeIf { it.isNotBlank() }?.let { candidates.add(it) }
+        resolveSenderLabel(identity)?.let { candidates.add(it) }
+        return candidates.distinct()
     }
 
     /**

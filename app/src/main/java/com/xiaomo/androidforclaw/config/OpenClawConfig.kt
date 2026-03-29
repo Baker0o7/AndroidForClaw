@@ -29,6 +29,7 @@ data class OpenClawConfig(
     val memory: MemoryConfig = MemoryConfig(),
     val messages: MessagesConfig = MessagesConfig(),
     val session: SessionConfig = SessionConfig(),
+    val hooks: HooksConfig? = null,
     val logging: LoggingConfig = LoggingConfig(),
     val ui: UIConfig = UIConfig(),
 
@@ -276,12 +277,19 @@ data class GatewayConfig(
     val port: Int = 19789,
     val mode: String = "local",
     val bind: String = "loopback",
-    val auth: GatewayAuthConfig? = null
+    val auth: GatewayAuthConfig? = null,
+    val controlUi: GatewayControlUiConfig? = null
 )
 
 data class GatewayAuthConfig(
     val mode: String = "token",
     val token: String? = null
+)
+
+data class GatewayControlUiConfig(
+    val allowInsecureAuth: Boolean? = null,
+    val dangerouslyAllowHostHeaderOriginFallback: Boolean? = null,
+    val dangerouslyDisableDeviceAuth: Boolean? = null
 )
 
 // ============ agents（对齐 types.agents.d.ts）============
@@ -378,7 +386,16 @@ data class PluginEntry(
 // ============ tools（对齐 types.tools.d.ts）============
 
 data class ToolsConfig(
-    val screenshot: ScreenshotToolConfig = ScreenshotToolConfig()
+    val screenshot: ScreenshotToolConfig = ScreenshotToolConfig(),
+    val exec: ToolsExecConfig? = null
+)
+
+data class ToolsExecConfig(
+    val applyPatch: ToolsApplyPatchConfig? = null
+)
+
+data class ToolsApplyPatchConfig(
+    val workspaceOnly: Boolean? = null
 )
 
 data class ScreenshotToolConfig(
@@ -386,6 +403,21 @@ data class ScreenshotToolConfig(
     val quality: Int = 85,
     val maxWidth: Int = 1080,
     val format: String = "jpeg"
+)
+
+// ============ hooks（对齐 types.hooks.d.ts）============
+
+data class HooksConfig(
+    val gmail: HooksGmailConfig? = null,
+    val mappings: List<HooksMappingConfig> = emptyList()
+)
+
+data class HooksGmailConfig(
+    val allowUnsafeExternalContent: Boolean? = null
+)
+
+data class HooksMappingConfig(
+    val allowUnsafeExternalContent: Boolean? = null
 )
 
 // ============ messages ============

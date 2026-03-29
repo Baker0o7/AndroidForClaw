@@ -19,8 +19,8 @@ import com.xiaomo.androidforclaw.logging.Log
  * Aligned with OpenClaw SecretRef.
  */
 data class SecretRef(
-    val source: String,   // "env", "keystore", "file", "config"
-    val key: String,      // the key/path to resolve
+    val source: String,   // "env", "config", "exec", "file"
+    val key: String,
     val fallback: String? = null
 )
 
@@ -34,12 +34,40 @@ data class SecretResolverWarning(
 )
 
 /**
+ * Auth store snapshot for a single agent directory.
+ * Aligned with OpenClaw PreparedSecretsRuntimeSnapshot.authStores.
+ */
+data class AuthStoreSnapshot(
+    val agentDir: String,
+    val store: Map<String, Any?> = emptyMap()
+)
+
+/**
+ * Web tools metadata.
+ * Aligned with OpenClaw RuntimeWebToolsMetadata.
+ */
+data class RuntimeWebToolsMetadata(
+    val search: RuntimeWebSearchMetadata = RuntimeWebSearchMetadata(),
+    val fetchFirecrawlActive: Boolean = false,
+    val diagnostics: List<String> = emptyList()
+)
+
+data class RuntimeWebSearchMetadata(
+    val providerConfigured: String? = null,
+    val providerSource: String = "none",  // "configured" | "auto-detect" | "none"
+    val selectedProvider: String? = null,
+    val diagnostics: List<String> = emptyList()
+)
+
+/**
  * Runtime secrets snapshot.
  * Aligned with OpenClaw PreparedSecretsRuntimeSnapshot.
  */
 data class SecretsRuntimeSnapshot(
     val sourceConfig: OpenClawConfig,
     val config: OpenClawConfig,
+    val authStores: List<AuthStoreSnapshot> = emptyList(),
+    val webTools: RuntimeWebToolsMetadata = RuntimeWebToolsMetadata(),
     val warnings: List<SecretResolverWarning>,
     val preparedAt: Long = System.currentTimeMillis()
 )
@@ -62,11 +90,9 @@ object SecretsRuntime {
 
     private const val TAG = "SecretsRuntime"
 
-    /** Active runtime snapshot (singleton) */
     @Volatile
     private var activeSnapshot: SecretsRuntimeSnapshot? = null
 
-    /** Known secret targets in config */
     val SECRET_TARGETS = listOf(
         SecretTarget("channels.feishu.appSecret", "Feishu App Secret", true),
         SecretTarget("channels.feishu.encryptKey", "Feishu Encrypt Key"),
@@ -82,43 +108,29 @@ object SecretsRuntime {
     /**
      * Prepare a secrets runtime snapshot.
      * Aligned with OpenClaw prepareSecretsRuntimeSnapshot.
-     *
-     * Deep-clones config and resolves any secret references.
      */
-    fun prepare(config: OpenClawConfig): SecretsRuntimeSnapshot {
+    fun prepare(
+        config: OpenClawConfig,
+        authStores: List<AuthStoreSnapshot> = emptyList()
+    ): SecretsRuntimeSnapshot {
         val warnings = mutableListOf<SecretResolverWarning>()
-
-        // On Android, secrets are stored in config directly (no external secret store).
-        // Future: integrate with Android Keystore for encrypted storage.
-        // For now, validate that required secrets are present.
         validateSecretTargets(config, warnings)
 
         return SecretsRuntimeSnapshot(
             sourceConfig = config,
-            config = config,  // On Android, no transformation needed yet
+            config = config,
+            authStores = authStores,
             warnings = warnings
         )
     }
 
-    /**
-     * Activate a prepared snapshot.
-     * Aligned with OpenClaw activateSecretsRuntimeSnapshot.
-     */
     fun activate(snapshot: SecretsRuntimeSnapshot) {
         activeSnapshot = snapshot
         Log.i(TAG, "Secrets runtime snapshot activated (${snapshot.warnings.size} warnings)")
     }
 
-    /**
-     * Get the active snapshot.
-     * Aligned with OpenClaw getActiveSecretsRuntimeSnapshot.
-     */
     fun getActiveSnapshot(): SecretsRuntimeSnapshot? = activeSnapshot
 
-    /**
-     * Clear the active snapshot.
-     * Aligned with OpenClaw clearSecretsRuntimeSnapshot.
-     */
     fun clear() {
         activeSnapshot = null
         Log.d(TAG, "Secrets runtime snapshot cleared")
@@ -127,22 +139,41 @@ object SecretsRuntime {
     /**
      * Resolve a secret reference to its value.
      * Aligned with OpenClaw resolveSecretRef.
+     * Supports: env, config, exec (stub), file (stub).
      */
     fun resolveSecretRef(ref: SecretRef): String? {
         return when (ref.source) {
             "env" -> System.getenv(ref.key) ?: ref.fallback
             "config" -> {
-                // Read from active config
                 val config = activeSnapshot?.config
                 resolveConfigPath(config, ref.key) ?: ref.fallback
+            }
+            "exec" -> {
+                // On Android, exec source is not supported (no shell spawning)
+                Log.w(TAG, "Secret source 'exec' not supported on Android: ${ref.key}")
+                ref.fallback
+            }
+            "file" -> {
+                // File source: read from file path
+                try {
+                    val content = java.io.File(ref.key).readText().trim()
+                    content.ifEmpty { ref.fallback }
+                } catch (_: Exception) {
+                    ref.fallback
+                }
             }
             else -> ref.fallback
         }
     }
 
     /**
-     * Validate that required secret targets have values.
+     * Get active web tools metadata.
+     * Aligned with OpenClaw getActiveRuntimeWebToolsMetadata.
      */
+    fun getActiveWebToolsMetadata(): RuntimeWebToolsMetadata? {
+        return activeSnapshot?.webTools
+    }
+
     private fun validateSecretTargets(config: OpenClawConfig, warnings: MutableList<SecretResolverWarning>) {
         for (target in SECRET_TARGETS) {
             if (!target.required) continue
@@ -156,13 +187,8 @@ object SecretsRuntime {
         }
     }
 
-    /**
-     * Simple config path resolver (dot-notation).
-     * Resolves paths like "channels.feishu.appSecret" against OpenClawConfig.
-     */
     private fun resolveConfigPath(config: OpenClawConfig?, path: String): String? {
         if (config == null) return null
-        // Simple lookup for known paths
         return when (path) {
             "channels.feishu.appSecret" -> config.channels?.feishu?.appSecret
             "channels.feishu.encryptKey" -> config.channels?.feishu?.encryptKey

@@ -3,50 +3,74 @@ package com.xiaomo.androidforclaw.security
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/security/dangerous-config-flags.ts
- * - ../openclaw/src/security/dangerous-tools.ts
+ *   (collectEnabledInsecureOrDangerousFlags)
  *
- * AndroidForClaw adaptation: detect dangerous configuration flags and tool settings.
+ * AndroidForClaw adaptation: detect dangerous configuration flags.
  */
 
 import com.xiaomo.androidforclaw.config.OpenClawConfig
 
 /**
  * DangerousConfigFlags — Detect dangerous configuration.
- * Aligned with OpenClaw dangerous-config-flags.ts.
+ * Aligned with OpenClaw collectEnabledInsecureOrDangerousFlags.
  */
 object DangerousConfigFlags {
 
     /**
-     * Check configuration for dangerous settings.
-     * Returns list of warnings.
+     * Collect enabled insecure or dangerous flags from configuration.
+     * Returns list of flag paths that are dangerously enabled.
+     * Aligned with OpenClaw collectEnabledInsecureOrDangerousFlags.
      */
     fun check(config: OpenClawConfig): List<String> {
-        val warnings = mutableListOf<String>()
+        val flags = mutableListOf<String>()
 
-        // Check for overly permissive channel policies
+        // Gateway controlUi flags (aligned with OpenClaw)
+        config.gateway.controlUi?.let { ui ->
+            if (ui.allowInsecureAuth == true) {
+                flags.add("gateway.controlUi.allowInsecureAuth=true")
+            }
+            if (ui.dangerouslyAllowHostHeaderOriginFallback == true) {
+                flags.add("gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true")
+            }
+            if (ui.dangerouslyDisableDeviceAuth == true) {
+                flags.add("gateway.controlUi.dangerouslyDisableDeviceAuth=true")
+            }
+        }
+
+        // Hooks gmail unsafe content
+        config.hooks?.gmail?.let { gmail ->
+            if (gmail.allowUnsafeExternalContent == true) {
+                flags.add("hooks.gmail.allowUnsafeExternalContent=true")
+            }
+        }
+
+        // Hooks mappings unsafe content
+        config.hooks?.mappings?.forEachIndexed { index, mapping ->
+            if (mapping.allowUnsafeExternalContent == true) {
+                flags.add("hooks.mappings[$index].allowUnsafeExternalContent=true")
+            }
+        }
+
+        // Tools exec applyPatch workspaceOnly explicitly false
+        config.tools?.exec?.applyPatch?.let { ap ->
+            if (ap.workspaceOnly == false) {
+                flags.add("tools.exec.applyPatch.workspaceOnly=false")
+            }
+        }
+
+        // Android-specific: overly permissive channel policies
         val channels = config.channels
         channels?.feishu?.let { feishu ->
             if (feishu.enabled && feishu.dmPolicy == "open" && feishu.groupPolicy == "open") {
-                warnings.add("Feishu: both DM and group policies are 'open' — no access control")
+                flags.add("channels.feishu: both DM and group policies are 'open'")
             }
         }
-
         channels?.discord?.let { discord ->
             if (discord.enabled && discord.dm?.policy == "open" && discord.groupPolicy == "open") {
-                warnings.add("Discord: both DM and group policies are 'open' — no access control")
+                flags.add("channels.discord: both DM and group policies are 'open'")
             }
         }
 
-        // Check for subagent depth too high
-        config.agents?.defaults?.subagents?.let { sub ->
-            if (sub.maxSpawnDepth > 5) {
-                warnings.add("agents.subagents.maxSpawnDepth=${sub.maxSpawnDepth} — deeply nested subagents may be hard to control")
-            }
-            if (sub.maxConcurrent > 20) {
-                warnings.add("agents.subagents.maxConcurrent=${sub.maxConcurrent} — high concurrency may exhaust resources")
-            }
-        }
-
-        return warnings
+        return flags
     }
 }

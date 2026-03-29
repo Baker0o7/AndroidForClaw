@@ -23,6 +23,52 @@ object HistoryTurnLimiter {
     /** Default turn limit when no config is specified */
     const val DEFAULT_HISTORY_LIMIT = 30
 
+    /**
+     * Limit history turns by keeping only the last N user turns and their responses.
+     * Aligned with OpenClaw limitHistoryTurns.
+     *
+     * Walks backward counting "user" role messages. When user count exceeds limit,
+     * slices from that user message index onward.
+     *
+     * @param messages Full message history
+     * @param limit Max number of user turns to keep (null or <= 0 means no limit)
+     * @return Trimmed message list
+     */
+    fun <T> limitHistoryTurns(
+        messages: List<T>,
+        limit: Int?,
+        roleSelector: (T) -> String
+    ): List<T> {
+        if (limit == null || limit <= 0 || messages.isEmpty()) return messages
+        if (messages.size <= 1) return messages
+
+        var userCount = 0
+        var lastUserIndex = 0
+
+        for (i in messages.indices.reversed()) {
+            if (roleSelector(messages[i]) == "user") {
+                userCount++
+                if (userCount > limit) {
+                    // We've found more than `limit` user turns;
+                    // keep from the next user message forward
+                    lastUserIndex = i + 1
+                    // Find the actual next user message
+                    while (lastUserIndex < messages.size &&
+                        roleSelector(messages[lastUserIndex]) != "user") {
+                        lastUserIndex++
+                    }
+                    break
+                }
+            }
+        }
+
+        return if (lastUserIndex > 0 && lastUserIndex < messages.size) {
+            messages.subList(lastUserIndex, messages.size)
+        } else {
+            messages
+        }
+    }
+
     /** Thread/topic suffix pattern — stripped from session keys for DM lookup */
     private val THREAD_SUFFIX_REGEX = Regex("^(.*)(?::(?:thread|topic):\\d+)$", RegexOption.IGNORE_CASE)
 

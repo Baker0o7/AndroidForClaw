@@ -4,9 +4,12 @@ package com.xiaomo.androidforclaw.agent.context
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tool-policy-pipeline.ts (buildDefaultToolPolicyPipelineSteps, applyToolPolicyPipeline)
  * - ../openclaw/src/agents/tool-policy.ts (isOwnerOnlyToolName, applyOwnerOnlyToolPolicy, ToolPolicyLike, ToolProfileId)
+ * - ../openclaw/src/agents/tool-policy-shared.ts (TOOL_NAME_ALIASES, normalizeToolName, expandToolGroups)
+ * - ../openclaw/src/security/dangerous-tools.ts (DEFAULT_GATEWAY_HTTP_TOOL_DENY, DANGEROUS_ACP_TOOLS)
  *
  * AndroidForClaw adaptation: multi-step tool policy pipeline.
- * Filters tools through ordered policy steps: profile, global, agent, group, owner-only, subagent.
+ * Filters tools through ordered policy steps: profile, byProvider.profile, allow, byProvider.allow,
+ * agent, agent.byProvider, group, owner-only, subagent.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
@@ -42,12 +45,35 @@ enum class ToolProfileId(val id: String) {
  */
 data class ToolPolicyPipelineStep(
     val policy: ToolPolicyLike?,
-    val label: String
+    val label: String,
+    val stripPluginOnlyAllowlist: Boolean = false
 )
 
 /**
+ * Tool name aliases for normalization.
+ * Aligned with OpenClaw TOOL_NAME_ALIASES.
+ */
+object ToolNameAliases {
+    private val ALIASES = mapOf(
+        "bash" to "exec",
+        "apply-patch" to "apply_patch"
+    )
+
+    /** Normalize a tool name: trim, lowercase, resolve aliases. */
+    fun normalizeToolName(name: String): String {
+        val normalized = name.trim().lowercase()
+        return ALIASES[normalized] ?: normalized
+    }
+
+    /** Normalize a list of tool names. */
+    fun normalizeToolList(list: List<String>?): List<String>? {
+        return list?.map { normalizeToolName(it) }
+    }
+}
+
+/**
  * Built-in tool groups for policy expansion.
- * Aligned with OpenClaw TOOL_GROUPS.
+ * Aligned with OpenClaw TOOL_GROUPS / CORE_TOOL_GROUPS.
  */
 object ToolGroups {
     val GROUPS: Map<String, List<String>> = mapOf(
@@ -67,32 +93,32 @@ object ToolGroups {
         if (names == null) return null
         val expanded = mutableListOf<String>()
         for (name in names) {
-            val group = GROUPS[name.removePrefix("group:")]
+            val groupName = name.removePrefix("group:")
+            val group = GROUPS[groupName]
             if (group != null) {
                 expanded.addAll(group)
             } else {
-                expanded.add(name)
+                expanded.add(ToolNameAliases.normalizeToolName(name))
             }
         }
-        return expanded
+        return expanded.distinct()
     }
 }
 
 /**
  * Owner-only tools that require sender to be the device owner.
- * Aligned with OpenClaw isOwnerOnlyToolName.
+ * Aligned with OpenClaw OWNER_ONLY_TOOL_NAME_FALLBACKS.
  */
 object OwnerOnlyTools {
     private val OWNER_ONLY_TOOL_NAMES = setOf(
+        "whatsapp_login",
         "cron",
-        "config_set",
-        "config_get",
-        "sessions_spawn",
-        "sessions_kill"
+        "gateway",
+        "nodes"
     )
 
     fun isOwnerOnlyToolName(name: String): Boolean =
-        name in OWNER_ONLY_TOOL_NAMES
+        ToolNameAliases.normalizeToolName(name) in OWNER_ONLY_TOOL_NAMES
 
     /**
      * Filter tools based on owner status.
@@ -112,15 +138,22 @@ object OwnerOnlyTools {
  * Aligned with OpenClaw dangerous-tools.ts.
  */
 object DangerousTools {
-    /** Tools denied on Gateway HTTP by default */
+    /**
+     * Tools denied on Gateway HTTP by default.
+     * Aligned with OpenClaw DEFAULT_GATEWAY_HTTP_TOOL_DENY.
+     */
     val DEFAULT_GATEWAY_HTTP_TOOL_DENY = setOf(
-        "sessions_spawn", "sessions_send", "cron", "config_set"
+        "sessions_spawn", "sessions_send", "cron", "gateway", "whatsapp_login"
     )
 
-    /** Tools dangerous for ACP (inter-agent) calls */
+    /**
+     * Tools dangerous for ACP (inter-agent) calls.
+     * Aligned with OpenClaw DANGEROUS_ACP_TOOL_NAMES.
+     */
     val DANGEROUS_ACP_TOOLS = setOf(
-        "exec", "sessions_spawn", "sessions_send",
-        "config_set", "write_file", "edit_file"
+        "exec", "spawn", "shell",
+        "sessions_spawn", "sessions_send", "gateway",
+        "fs_write", "fs_delete", "fs_move", "apply_patch"
     )
 }
 
@@ -175,20 +208,26 @@ object ToolPolicyPipeline {
     private const val TAG = "ToolPolicyPipeline"
 
     /**
-     * Build default pipeline steps.
+     * Build default pipeline steps (7 steps).
      * Aligned with OpenClaw buildDefaultToolPolicyPipelineSteps.
      */
     fun buildDefaultSteps(
         profilePolicy: ToolPolicyLike? = null,
+        providerProfilePolicy: ToolPolicyLike? = null,
         globalPolicy: ToolPolicyLike? = null,
+        globalProviderPolicy: ToolPolicyLike? = null,
         agentPolicy: ToolPolicyLike? = null,
+        agentProviderPolicy: ToolPolicyLike? = null,
         groupPolicy: ToolPolicyLike? = null
     ): List<ToolPolicyPipelineStep> {
         return listOf(
-            ToolPolicyPipelineStep(profilePolicy, "profile"),
-            ToolPolicyPipelineStep(globalPolicy, "global"),
-            ToolPolicyPipelineStep(agentPolicy, "agent"),
-            ToolPolicyPipelineStep(groupPolicy, "group")
+            ToolPolicyPipelineStep(profilePolicy, "tools.profile", stripPluginOnlyAllowlist = true),
+            ToolPolicyPipelineStep(providerProfilePolicy, "tools.byProvider.profile", stripPluginOnlyAllowlist = true),
+            ToolPolicyPipelineStep(globalPolicy, "tools.allow", stripPluginOnlyAllowlist = true),
+            ToolPolicyPipelineStep(globalProviderPolicy, "tools.byProvider.allow", stripPluginOnlyAllowlist = true),
+            ToolPolicyPipelineStep(agentPolicy, "agents.{id}.tools.allow", stripPluginOnlyAllowlist = true),
+            ToolPolicyPipelineStep(agentProviderPolicy, "agents.{id}.tools.byProvider.allow", stripPluginOnlyAllowlist = true),
+            ToolPolicyPipelineStep(groupPolicy, "group tools.allow", stripPluginOnlyAllowlist = true)
         )
     }
 
@@ -223,9 +262,12 @@ object ToolPolicyPipeline {
 
         // Apply allowlist: keep only allowed tools
         val expandedAllow = ToolGroups.expandToolGroups(policy.allow)
-        if (expandedAllow != null) {
+        if (expandedAllow != null && expandedAllow.isNotEmpty()) {
             val allowSet = expandedAllow.map { it.lowercase() }.toSet()
-            result = result.filter { it.lowercase() in allowSet }
+            result = result.filter { it.lowercase() in allowSet ||
+                // Special: apply_patch is allowed if exec is allowed
+                (it.lowercase() == "apply_patch" && "exec" in allowSet)
+            }
         }
 
         // Apply denylist: remove denied tools

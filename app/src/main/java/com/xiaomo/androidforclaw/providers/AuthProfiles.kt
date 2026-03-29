@@ -3,27 +3,38 @@ package com.xiaomo.androidforclaw.providers
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/auth-profiles/types.ts
- *   (AuthProfileCredential, AuthProfileStore, ProfileUsageStats, AuthProfileFailureReason)
+ * - ../openclaw/src/agents/auth-profiles/constants.ts
+ * - ../openclaw/src/agents/auth-profiles/credential-state.ts
  * - ../openclaw/src/agents/auth-profiles/profiles.ts
- *   (upsertAuthProfile, listProfilesForProvider, markAuthProfileGood, setAuthProfileOrder)
  * - ../openclaw/src/agents/auth-profiles/usage.ts
- *   (recordProfileFailure, recordProfileSuccess, isProfileCoolingDown)
  * - ../openclaw/src/agents/auth-profiles/order.ts
- *   (resolveProfileOrder, advanceRoundRobinOrder)
  *
  * AndroidForClaw adaptation: multi-provider credential profile management.
- * Supports API key rotation, cooldown on failure, round-robin ordering.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.secrets.SecretRef
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
+// ── Constants (aligned with OpenClaw auth-profiles/constants.ts) ──
+
+const val AUTH_STORE_VERSION = 1
+const val AUTH_PROFILE_FILENAME = "auth-profiles.json"
+const val LEGACY_AUTH_FILENAME = "auth.json"
+const val CLAUDE_CLI_PROFILE_ID = "anthropic:claude-cli"
+const val CODEX_CLI_PROFILE_ID = "openai-codex:codex-cli"
+const val QWEN_CLI_PROFILE_ID = "qwen-portal:qwen-cli"
+const val MINIMAX_CLI_PROFILE_ID = "minimax-portal:minimax-cli"
+const val EXTERNAL_CLI_SYNC_TTL_MS = 15 * 60 * 1000L    // 15 minutes
+const val EXTERNAL_CLI_NEAR_EXPIRY_MS = 10 * 60 * 1000L  // 10 minutes
+
 /**
  * Credential types.
  * Aligned with OpenClaw AuthProfileCredential.
+ * Now includes SecretRef support (keyRef, tokenRef).
  */
 sealed class AuthProfileCredential {
     abstract val provider: String
@@ -31,23 +42,25 @@ sealed class AuthProfileCredential {
 
     data class ApiKey(
         override val provider: String,
-        val key: String,
+        val key: String? = null,
+        val keyRef: SecretRef? = null,
         override val email: String? = null,
         val metadata: Map<String, String>? = null
     ) : AuthProfileCredential()
 
     data class Token(
         override val provider: String,
-        val token: String,
+        val token: String? = null,
+        val tokenRef: SecretRef? = null,
         val expires: Long? = null,
         override val email: String? = null
     ) : AuthProfileCredential()
 
     data class OAuth(
         override val provider: String,
-        val clientId: String?,
-        val accessToken: String?,
-        val refreshToken: String?,
+        val clientId: String? = null,
+        val accessToken: String? = null,
+        val refreshToken: String? = null,
         val expiresAt: Long? = null,
         override val email: String? = null
     ) : AuthProfileCredential()
@@ -71,6 +84,29 @@ enum class AuthProfileFailureReason {
 }
 
 /**
+ * Credential eligibility reason codes.
+ * Aligned with OpenClaw AuthCredentialReasonCode.
+ */
+enum class AuthCredentialReasonCode {
+    OK,
+    MISSING_CREDENTIAL,
+    INVALID_EXPIRES,
+    EXPIRED,
+    UNRESOLVED_REF
+}
+
+/**
+ * Token expiry state.
+ * Aligned with OpenClaw TokenExpiryState.
+ */
+enum class TokenExpiryState {
+    MISSING,
+    VALID,
+    EXPIRED,
+    INVALID_EXPIRES
+}
+
+/**
  * Per-profile usage statistics.
  * Aligned with OpenClaw ProfileUsageStats.
  */
@@ -89,11 +125,20 @@ data class ProfileUsageStats(
  * Aligned with OpenClaw AuthProfileStore.
  */
 data class AuthProfileStore(
-    val version: Int = 1,
+    val version: Int = AUTH_STORE_VERSION,
     val profiles: MutableMap<String, AuthProfileCredential> = mutableMapOf(),
     val order: MutableMap<String, MutableList<String>> = mutableMapOf(),
     val lastGood: MutableMap<String, String> = mutableMapOf(),
     val usageStats: MutableMap<String, ProfileUsageStats> = mutableMapOf()
+)
+
+/**
+ * Credential eligibility result.
+ * Aligned with OpenClaw evaluateStoredCredentialEligibility.
+ */
+data class CredentialEligibility(
+    val eligible: Boolean,
+    val reasonCode: AuthCredentialReasonCode
 )
 
 /**
@@ -103,30 +148,19 @@ data class AuthProfileStore(
 object AuthProfiles {
 
     private const val TAG = "AuthProfiles"
-    private const val STORE_FILE = "auth-profiles.json"
 
-    /** Default cooldown after rate limit (60 seconds) */
     const val DEFAULT_RATE_LIMIT_COOLDOWN_MS = 60_000L
-
-    /** Default cooldown after auth failure (5 minutes) */
     const val DEFAULT_AUTH_COOLDOWN_MS = 5 * 60_000L
-
-    /** Max consecutive errors before disabling */
     const val MAX_CONSECUTIVE_ERRORS = 5
 
-    /** In-memory store */
     private var store = AuthProfileStore()
-
-    /** Runtime usage stats (not persisted) */
     private val runtimeStats = ConcurrentHashMap<String, ProfileUsageStats>()
-
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
 
-    /**
-     * Load store from disk.
-     */
+    // ── Store I/O ──
+
     fun load(workspaceDir: File) {
-        val file = File(workspaceDir, STORE_FILE)
+        val file = File(workspaceDir, AUTH_PROFILE_FILENAME)
         if (file.exists()) {
             try {
                 store = gson.fromJson(file.readText(), AuthProfileStore::class.java) ?: AuthProfileStore()
@@ -138,11 +172,8 @@ object AuthProfiles {
         }
     }
 
-    /**
-     * Save store to disk.
-     */
     fun save(workspaceDir: File) {
-        val file = File(workspaceDir, STORE_FILE)
+        val file = File(workspaceDir, AUTH_PROFILE_FILENAME)
         try {
             file.writeText(gson.toJson(store))
         } catch (e: Exception) {
@@ -150,43 +181,29 @@ object AuthProfiles {
         }
     }
 
-    /**
-     * Upsert (create or update) an auth profile.
-     * Aligned with OpenClaw upsertAuthProfile.
-     */
+    // ── CRUD ──
+
     fun upsert(profileId: String, credential: AuthProfileCredential) {
         store.profiles[profileId] = credential
         Log.d(TAG, "Upserted profile: $profileId (provider=${credential.provider})")
     }
 
-    /**
-     * List profile IDs for a given provider.
-     * Aligned with OpenClaw listProfilesForProvider.
-     */
     fun listForProvider(provider: String): List<String> {
         return store.profiles.entries
             .filter { it.value.provider.equals(provider, ignoreCase = true) }
             .map { it.key }
     }
 
-    /**
-     * Get a profile credential by ID.
-     */
     fun get(profileId: String): AuthProfileCredential? = store.profiles[profileId]
 
-    /**
-     * Remove a profile.
-     */
     fun remove(profileId: String) {
         store.profiles.remove(profileId)
         store.usageStats.remove(profileId)
         runtimeStats.remove(profileId)
     }
 
-    /**
-     * Mark a profile as the last known good for a provider.
-     * Aligned with OpenClaw markAuthProfileGood.
-     */
+    // ── Usage tracking ──
+
     fun markGood(provider: String, profileId: String) {
         store.lastGood[provider] = profileId
         val stats = getOrCreateStats(profileId)
@@ -194,21 +211,16 @@ object AuthProfiles {
         stats.errorCount = 0
     }
 
-    /**
-     * Record a profile failure and apply cooldown.
-     * Aligned with OpenClaw recordProfileFailure.
-     */
     fun recordFailure(profileId: String, reason: AuthProfileFailureReason) {
         val stats = getOrCreateStats(profileId)
         stats.errorCount++
         stats.lastFailureAt = System.currentTimeMillis()
         stats.failureCounts[reason.name] = (stats.failureCounts[reason.name] ?: 0) + 1
 
-        // Apply cooldown based on failure type
         val cooldownMs = when (reason) {
             AuthProfileFailureReason.RATE_LIMIT -> DEFAULT_RATE_LIMIT_COOLDOWN_MS
             AuthProfileFailureReason.AUTH, AuthProfileFailureReason.BILLING -> DEFAULT_AUTH_COOLDOWN_MS
-            AuthProfileFailureReason.AUTH_PERMANENT -> Long.MAX_VALUE  // permanently disabled
+            AuthProfileFailureReason.AUTH_PERMANENT -> Long.MAX_VALUE
             else -> DEFAULT_RATE_LIMIT_COOLDOWN_MS
         }
 
@@ -219,7 +231,6 @@ object AuthProfiles {
             stats.disabledReason = reason
         }
 
-        // Disable after too many consecutive errors
         if (stats.errorCount >= MAX_CONSECUTIVE_ERRORS) {
             stats.disabledUntil = System.currentTimeMillis() + DEFAULT_AUTH_COOLDOWN_MS * 2
             stats.disabledReason = reason
@@ -229,10 +240,6 @@ object AuthProfiles {
         Log.d(TAG, "Profile $profileId failure recorded: $reason (errors=${stats.errorCount})")
     }
 
-    /**
-     * Check if a profile is in cooldown.
-     * Aligned with OpenClaw isProfileCoolingDown.
-     */
     fun isCoolingDown(profileId: String): Boolean {
         val stats = runtimeStats[profileId] ?: return false
         val now = System.currentTimeMillis()
@@ -240,24 +247,41 @@ object AuthProfiles {
         if (stats.disabledUntil != null && now < stats.disabledUntil!!) return true
         if (stats.cooldownUntil != null && now < stats.cooldownUntil!!) return true
 
-        // Cooldown expired, clear it
         if (stats.cooldownUntil != null && now >= stats.cooldownUntil!!) {
             stats.cooldownUntil = null
         }
         return false
     }
 
-    /**
-     * Resolve profile order for a provider (round-robin).
-     * Aligned with OpenClaw resolveProfileOrder.
-     */
+    fun clearCooldown(profileId: String) {
+        runtimeStats[profileId]?.let {
+            it.cooldownUntil = null
+            it.disabledUntil = null
+            it.disabledReason = null
+        }
+    }
+
+    fun clearExpiredCooldowns() {
+        val now = System.currentTimeMillis()
+        for ((_, stats) in runtimeStats) {
+            if (stats.cooldownUntil != null && now >= stats.cooldownUntil!!) {
+                stats.cooldownUntil = null
+            }
+            if (stats.disabledUntil != null && stats.disabledUntil != Long.MAX_VALUE && now >= stats.disabledUntil!!) {
+                stats.disabledUntil = null
+                stats.disabledReason = null
+            }
+        }
+    }
+
+    // ── Ordering ──
+
     fun resolveOrder(provider: String): List<String> {
         val customOrder = store.order[provider]
         if (!customOrder.isNullOrEmpty()) {
             return customOrder.filter { !isCoolingDown(it) }
         }
 
-        // Default: lastGood first, then all others
         val all = listForProvider(provider)
         val lastGood = store.lastGood[provider]
         val available = all.filter { !isCoolingDown(it) }
@@ -269,10 +293,6 @@ object AuthProfiles {
         }
     }
 
-    /**
-     * Set custom profile rotation order.
-     * Aligned with OpenClaw setAuthProfileOrder.
-     */
     fun setOrder(provider: String, order: List<String>?) {
         if (order.isNullOrEmpty()) {
             store.order.remove(provider)
@@ -281,9 +301,54 @@ object AuthProfiles {
         }
     }
 
+    // ── Credential eligibility (aligned with OpenClaw) ──
+
     /**
-     * Get all profiles count.
+     * Resolve token expiry state.
+     * Aligned with OpenClaw resolveTokenExpiryState.
      */
+    fun resolveTokenExpiryState(expires: Long?, now: Long = System.currentTimeMillis()): TokenExpiryState {
+        if (expires == null) return TokenExpiryState.MISSING
+        if (expires <= 0) return TokenExpiryState.INVALID_EXPIRES
+        return if (now >= expires) TokenExpiryState.EXPIRED else TokenExpiryState.VALID
+    }
+
+    /**
+     * Evaluate whether a stored credential is eligible for use.
+     * Aligned with OpenClaw evaluateStoredCredentialEligibility.
+     */
+    fun evaluateCredentialEligibility(
+        credential: AuthProfileCredential,
+        now: Long = System.currentTimeMillis()
+    ): CredentialEligibility {
+        return when (credential) {
+            is AuthProfileCredential.ApiKey -> {
+                if (credential.key.isNullOrBlank() && credential.keyRef == null) {
+                    CredentialEligibility(false, AuthCredentialReasonCode.MISSING_CREDENTIAL)
+                } else {
+                    CredentialEligibility(true, AuthCredentialReasonCode.OK)
+                }
+            }
+            is AuthProfileCredential.Token -> {
+                if (credential.token.isNullOrBlank() && credential.tokenRef == null) {
+                    return CredentialEligibility(false, AuthCredentialReasonCode.MISSING_CREDENTIAL)
+                }
+                when (resolveTokenExpiryState(credential.expires, now)) {
+                    TokenExpiryState.EXPIRED -> CredentialEligibility(false, AuthCredentialReasonCode.EXPIRED)
+                    TokenExpiryState.INVALID_EXPIRES -> CredentialEligibility(false, AuthCredentialReasonCode.INVALID_EXPIRES)
+                    else -> CredentialEligibility(true, AuthCredentialReasonCode.OK)
+                }
+            }
+            is AuthProfileCredential.OAuth -> {
+                if (credential.accessToken.isNullOrBlank() && credential.refreshToken.isNullOrBlank()) {
+                    CredentialEligibility(false, AuthCredentialReasonCode.MISSING_CREDENTIAL)
+                } else {
+                    CredentialEligibility(true, AuthCredentialReasonCode.OK)
+                }
+            }
+        }
+    }
+
     fun profileCount(): Int = store.profiles.size
 
     private fun getOrCreateStats(profileId: String): ProfileUsageStats {

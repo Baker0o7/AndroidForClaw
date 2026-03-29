@@ -14,7 +14,6 @@ package com.xiaomo.androidforclaw.acp
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.context.DangerousTools
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.withTimeout
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -95,11 +94,33 @@ object AcpClient {
 
     private const val TAG = "AcpClient"
 
-    /** Safe tools that are auto-approved without permission prompt */
+    /**
+     * Safe tools that are auto-approved without permission prompt.
+     * Aligned with OpenClaw SAFE_AUTO_APPROVE_TOOL_IDS.
+     */
     val SAFE_AUTO_APPROVE_TOOLS = setOf(
-        "read_file", "list_dir", "web_search", "web_fetch",
-        "memory_search", "memory_get"
+        "read", "search", "web_search", "memory_search"
     )
+
+    /**
+     * Trusted safe tool aliases.
+     * Aligned with OpenClaw TRUSTED_SAFE_TOOL_ALIASES.
+     */
+    val TRUSTED_SAFE_TOOL_ALIASES = setOf("search")
+
+    /**
+     * Tool kind mapping for safe tool identification.
+     * Aligned with OpenClaw TOOL_KIND_BY_ID.
+     */
+    val TOOL_KIND_BY_ID = mapOf(
+        "read" to "read",
+        "search" to "search",
+        "web_search" to "search",
+        "memory_search" to "search"
+    )
+
+    /** Path keys that may contain file paths in read tool calls */
+    val READ_TOOL_PATH_KEYS = listOf("path", "file_path", "filePath")
 
     /** Active ACP sessions */
     private val sessions = ConcurrentHashMap<String, AcpSessionHandle>()
