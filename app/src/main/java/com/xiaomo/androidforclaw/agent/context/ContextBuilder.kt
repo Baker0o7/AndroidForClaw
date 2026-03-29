@@ -289,10 +289,18 @@ class ContextBuilder(
         val accessibilityStatus = if (accessibilityEnabled) "✅ available" else "❌ not available"
         val screenshotStatus = if (screenshotEnabled) "✅ available" else "❌ not available"
 
+        // Resolve agent identity name — aligned with OpenClaw identity.ts
+        val agentName = try {
+            val config = configLoader?.loadOpenClawConfig()
+            if (config != null) {
+                com.xiaomo.androidforclaw.agent.AgentIdentity.resolveIdentityName(config) ?: "AndroidForClaw"
+            } else "AndroidForClaw"
+        } catch (_: Exception) { "AndroidForClaw" }
+
         return """
 # Identity
 
-You are AndroidForClaw, an AI agent running on Android devices.
+You are $agentName, an AI agent running on Android devices.
 
 ## Screen Interaction (Playwright-aligned)
 
@@ -619,16 +627,24 @@ This is a single-user Android device. All requests come from the device owner.
     }
 
     /**
-     * 9. Model Aliases Section (aligned with OpenClaw)
+     * 9. Model Aliases Section (aligned with OpenClaw model-alias-lines.ts)
+     * Now dynamically reads from config modelAliases instead of hardcoding.
      */
     private fun buildModelAliasesSection(): String {
-        return """
-## Model Aliases
-Prefer aliases when specifying model overrides; full provider/model is also accepted.
-- ClaudeOpus46: mify/ppio/pa/claude-opus-4-61
-- Codex: mify/azure_openai/gpt-5-codex
-- Gemini3: mify/vertex_ai/gemini-3-pro-preview
-        """.trimIndent()
+        val config = try { configLoader?.loadOpenClawConfig() } catch (_: Exception) { null }
+        val lines = if (config != null) {
+            com.xiaomo.androidforclaw.providers.ModelSelection.buildModelAliasLines(config)
+        } else {
+            emptyList()
+        }
+        if (lines.isEmpty()) {
+            return "## Model Aliases\nNo aliases configured. Use full provider/model format."
+        }
+        return buildString {
+            appendLine("## Model Aliases")
+            appendLine("Prefer aliases when specifying model overrides; full provider/model is also accepted.")
+            lines.forEach { appendLine(it) }
+        }.trimEnd()
     }
 
     /**

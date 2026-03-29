@@ -60,6 +60,9 @@ class ToolRegistry(
         
         // Memory tools registered in AndroidToolRegistry (MemorySearchSkill/MemoryGetSkill)
 
+        // === Patch tool (OpenClaw apply-patch.ts) ===
+        register(ApplyPatchTool(workspace = workspace))
+
         // === Shell tools ===
         // Single exec entry with backend routing (auto/termux/internal).
         register(ExecFacadeTool(context, workingDir = workspace.absolutePath))
