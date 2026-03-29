@@ -328,6 +328,7 @@ class MicCaptureManager(
           armPendingRunTimeout(runId)
         }
       } catch (err: Throwable) {
+        if (err is kotlinx.coroutines.CancellationException) throw err
         pendingRunTimeoutJob?.cancel()
         pendingRunTimeoutJob = null
         _isSending.value = false
@@ -431,6 +432,7 @@ class MicCaptureManager(
       try {
         speakAssistantReply(spoken)
       } catch (err: Throwable) {
+        if (err is kotlinx.coroutines.CancellationException) throw err
         Log.w(tag, "assistant speech failed: ${err.message ?: err::class.simpleName}")
       }
     }

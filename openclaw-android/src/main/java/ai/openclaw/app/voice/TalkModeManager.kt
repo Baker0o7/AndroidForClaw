@@ -170,6 +170,7 @@ class TalkModeManager(
           _statusText.value = "No reply"
         }
       } catch (err: Throwable) {
+        if (err is CancellationException) throw err
         Log.w(tag, "speakWakeCommand failed: ${err.message}")
       }
       onComplete()
