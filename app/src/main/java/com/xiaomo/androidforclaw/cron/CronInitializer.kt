@@ -60,8 +60,7 @@ object CronInitializer {
 
         try {
             // Read heartbeat instructions from HEARTBEAT.md
-            val workspaceDir = context.filesDir
-            val heartbeatFile = File(workspaceDir, "openclaw/workspace/HEARTBEAT.md")
+            val heartbeatFile = File(StoragePaths.workspace, "HEARTBEAT.md")
             val heartbeatContent = if (heartbeatFile.exists()) {
                 heartbeatFile.readText().trim()
             } else {
