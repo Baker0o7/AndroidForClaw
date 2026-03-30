@@ -2153,7 +2153,27 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     if (isNotEmpty()) append("\n\n")
                     when (msg.mediaType) {
                         com.xiaomo.weixin.api.MessageItemType.IMAGE -> {
-                            append("[用户发送了一张图片]")
+                            // 下载微信 CDN 图片（AES 解密）→ 附加 Image: source 路径（对齐 OpenClaw 延迟加载模式）
+                            if (msg.mediaCdn != null) {
+                                try {
+                                    val imageFile = com.xiaomo.weixin.cdn.WeixinCdnDownloader.downloadAndDecrypt(
+                                        media = msg.mediaCdn!!,
+                                        fileExtension = "jpg"
+                                    )
+                                    if (imageFile != null) {
+                                        append("[Image: source: ${imageFile.absolutePath}]")
+                                        Log.i(TAG, "🖼️ Weixin image downloaded: ${imageFile.absolutePath}")
+                                    } else {
+                                        append("[用户发送了一张图片]")
+                                        Log.w(TAG, "🖼️ Weixin image CDN download returned null")
+                                    }
+                                } catch (e: Exception) {
+                                    append("[用户发送了一张图片]")
+                                    Log.e(TAG, "🖼️ Weixin image download failed", e)
+                                }
+                            } else {
+                                append("[用户发送了一张图片]")
+                            }
                         }
                         com.xiaomo.weixin.api.MessageItemType.VOICE -> {
                             append("[用户发送了一条语音")
