@@ -105,6 +105,15 @@ object ImageLoader {
      */
     private fun isImageFile(filePath: String): Boolean {
         val ext = filePath.substringAfterLast('.', "").lowercase()
-        return ext in IMAGE_EXTENSIONS
+        if (ext !in IMAGE_EXTENSIONS) {
+            Log.d(TAG, "isImageFile: extension '$ext' not in supported set")
+            return false
+        }
+        val file = java.io.File(filePath)
+        if (!file.exists()) {
+            Log.w(TAG, "isImageFile: file does not exist: $filePath")
+            return false
+        }
+        return true
     }
 }
