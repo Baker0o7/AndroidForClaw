@@ -49,6 +49,8 @@ import ai.openclaw.app.ui.mobileText
 import ai.openclaw.app.ui.mobileTextSecondary
 import ai.openclaw.app.ui.mobileWarning
 import ai.openclaw.app.ui.mobileWarningSoft
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 private data class ChatBubbleStyle(
@@ -74,8 +76,20 @@ fun ChatMessageBubble(message: ChatMessage) {
 
   if (displayableContent.isEmpty()) return
 
-  ChatBubbleContainer(style = style, roleLabel = roleLabel(role)) {
-    ChatMessageBody(content = displayableContent, textColor = mobileText)
+  Column(modifier = Modifier.fillMaxWidth()) {
+    message.timestampMs?.let { ts ->
+      Text(
+        text = remember(ts) { formatMessageTime(ts) },
+        style = mobileCaption2,
+        color = mobileTextSecondary,
+        modifier = Modifier
+          .align(if (style.alignEnd) Alignment.End else Alignment.Start)
+          .padding(bottom = 3.dp),
+      )
+    }
+    ChatBubbleContainer(style = style, roleLabel = roleLabel(role)) {
+      ChatMessageBody(content = displayableContent, textColor = mobileText)
+    }
   }
 }
 
@@ -291,6 +305,17 @@ private fun ChatBase64Image(base64: String, mimeType: String?) {
   } else if (imageState.failed) {
     Text(stringResource(R.string.unsupported_attachment), style = mobileCaption1, color = mobileTextSecondary)
   }
+}
+
+private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+private val dateFormat = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
+
+private fun formatMessageTime(timestampMs: Long): String {
+  val date = Date(timestampMs)
+  val now = System.currentTimeMillis()
+  val diffMs = now - timestampMs
+  val dayMs = 24 * 60 * 60 * 1000L
+  return if (diffMs < dayMs) timeFormat.format(date) else dateFormat.format(date)
 }
 
 @Composable
