@@ -400,6 +400,56 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     private fun shellEscape(s: String) = "'" + s.replace("'", "'\\''") + "'"
 
+    /**
+     * 按需启动 Termux sshd：先拉起 Termux，启动 sshd，等待就绪。
+     * 如果认证失败（authorized_keys 丢失），自动注入公钥。
+     */
+    private suspend fun autoStartSshd(): TermuxStatus {
+        // 连接池已连接则直接返回
+        if (TermuxSSHPool.isConnected) {
+            Log.i(TAG, "SSH 连接池已连接，跳过按需启动")
+            return getStatus()
+        }
+        Log.i(TAG, "🐧 按需启动 Termux sshd...")
+        val launcher = com.xiaomo.androidforclaw.core.TermuxSshdLauncher
+        try {
+            launcher.ensureAndLaunch(context)
+        } catch (e: Exception) {
+            Log.w(TAG, "ensureAndLaunch failed: ${e.message}")
+        }
+
+        // 轮询等待 sshd 就绪
+        var keyInjected = false
+        for (attempt in 1..20) {
+            kotlinx.coroutines.delay(1000)
+            val s = getStatus()
+            if (s.ready) {
+                TermuxSSHPool.warmUp(context)
+                Log.i(TAG, "✅ 按需启动 sshd 成功（等待 ${attempt}s）")
+                return s
+            }
+            // sshd 可达但认证失败 → 自动注入公钥
+            if (s.sshReachable && !s.sshAuthOk && !keyInjected) {
+                val pubKey = getPublicKey()
+                if (pubKey != null) {
+                    Log.i(TAG, "🔑 sshd 可达但认证失败，自动注入公钥...")
+                    launcher.injectPublicKey(context, pubKey)
+                    keyInjected = true
+                }
+            }
+            // 重试 RUN_COMMAND
+            if (!s.sshReachable && (attempt == 5 || attempt == 10)) {
+                try { launcher.launch(context) } catch (_: Exception) { }
+            }
+        }
+        // 超时，返回最终状态
+        val finalStatus = getStatus()
+        if (!finalStatus.ready && launcher.isMiui()) {
+            launcher.showAutoStartGuide(context)
+        }
+        return finalStatus
+    }
+
     // ==================== Tool Interface ====================
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
@@ -411,8 +461,11 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             )
         }
 
-        // Check SSH availability (no auto-setup)
-        val status = getStatus()
+        // Check SSH availability — if sshd not running but keypair ready, auto-start on demand
+        var status = getStatus()
+        if (!status.ready && status.keypairPresent) {
+            status = withContext(Dispatchers.IO) { autoStartSshd() }
+        }
         if (!status.ready) {
             return ToolResult(
                 success = false,

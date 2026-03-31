@@ -259,40 +259,18 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // 🌐 Start Gateway service
         startGatewayService()
 
-        // 🐧 Termux SSH pre-warm (non-blocking, auto-start sshd via RUN_COMMAND)
+        // 🐧 Termux SSH pre-warm: 仅在 sshd 已运行时 warm-up，不主动拉起 Termux
+        // Termux 按需启动：在 AI 实际调用 exec 工具时才会触发 ensureAndLaunch
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                Log.i(TAG, "Termux SSH pre-warm: checking availability...")
                 val termux = com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool(applicationContext)
-                if (!termux.isTermuxInstalled()) {
-                    Log.i(TAG, "Termux SSH warm-up skipped: Termux not installed")
-                    return@launch
-                }
+                if (!termux.isTermuxInstalled()) return@launch
                 val status = termux.getStatus()
                 if (status.ready) {
                     com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationContext)
-                    Log.i(TAG, "Termux SSH pool warmed up")
-                } else if (status.keypairPresent && !status.sshReachable) {
-                    // sshd not running but keypair is configured → ensure Termux is running, then auto-start sshd
-                    Log.i(TAG, "🐧 Termux sshd 未运行，先确保 Termux 已启动，再通过 RUN_COMMAND 启动 sshd...")
-                    try {
-                        TermuxSshdLauncher.ensureAndLaunch(applicationContext)
-                        // Wait for sshd to come up, then warm up SSH pool
-                        for (attempt in 1..10) {
-                            kotlinx.coroutines.delay(1000)
-                            val retryStatus = termux.getStatus()
-                            if (retryStatus.ready) {
-                                com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationContext)
-                                Log.i(TAG, "✅ Termux sshd 自动启动成功（等待 ${attempt}s）")
-                                return@launch
-                            }
-                        }
-                        Log.w(TAG, "⚠️ Termux sshd 自动启动后 10s 内未就绪")
-                    } catch (e: Exception) {
-                        Log.w(TAG, "Termux RUN_COMMAND 启动 sshd 失败: ${e.message}")
-                    }
+                    Log.i(TAG, "✅ Termux SSH pool warmed up (sshd already running)")
                 } else {
-                    Log.i(TAG, "Termux SSH warm-up skipped: ${status.message} (step=${status.lastStep})")
+                    Log.i(TAG, "Termux SSH warm-up skipped: sshd not running (按需启动)")
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Termux SSH warm-up skipped: ${e.message}")
