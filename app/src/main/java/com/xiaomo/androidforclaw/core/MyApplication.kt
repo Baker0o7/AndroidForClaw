@@ -2329,9 +2329,22 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                         .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                         .trim()
-                    // Deduplicate: remove block reply text already sent mid-process
-                    for (sent in blockRepliesSent) {
-                        sanitized = sanitized.replace(sent, "").trim()
+                    // Deduplicate: if final content exactly matches a block reply already sent, skip entirely.
+                    // Otherwise, remove block reply substrings from final content.
+                    if (blockRepliesSent.isNotEmpty()) {
+                        val normalizedSanitized = sanitized.replace(Regex("\\s+"), " ")
+                        val exactMatch = blockRepliesSent.any { sent ->
+                            val normalizedSent = sent.replace(Regex("\\s+"), " ")
+                            normalizedSanitized == normalizedSent
+                        }
+                        if (exactMatch) {
+                            Log.d(TAG, "Weixin: final content matches block reply, skipping send")
+                            sanitized = ""
+                        } else {
+                            for (sent in blockRepliesSent) {
+                                sanitized = sanitized.replace(sent, "").trim()
+                            }
+                        }
                     }
                     if (sanitized.isNotBlank()) {
                         sender?.sendText(toUser, sanitized)

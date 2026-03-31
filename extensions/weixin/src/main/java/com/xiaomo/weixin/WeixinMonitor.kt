@@ -28,6 +28,7 @@ class WeixinMonitor(
         private const val BACKOFF_DELAY_MS = 30_000L
         private const val RETRY_DELAY_MS = 2_000L
         private const val SESSION_PAUSE_MS = 5 * 60_000L // 5 min
+        private const val SEEN_IDS_MAX_SIZE = 500
     }
 
     private val _messageFlow = MutableSharedFlow<WeixinInboundMessage>(
@@ -38,6 +39,12 @@ class WeixinMonitor(
 
     private var monitorJob: Job? = null
     @Volatile private var running = false
+
+    /** 消息 ID 去重：防止 getUpdates 重复返回同一条消息 */
+    private val seenMessageIds = java.util.Collections.newSetFromMap(
+        java.util.LinkedHashMap<Long, Boolean>()
+    )
+    @Volatile private var seenIdsLock = Object()
 
     fun start(scope: CoroutineScope) {
         if (running) {
@@ -55,6 +62,9 @@ class WeixinMonitor(
         running = false
         monitorJob?.cancel()
         monitorJob = null
+        synchronized(seenIdsLock) {
+            seenMessageIds.clear()
+        }
         Log.i(TAG, "Monitor stopped")
     }
 
@@ -111,10 +121,31 @@ class WeixinMonitor(
                 // Process messages
                 val msgs = resp.msgs ?: emptyList()
                 for (msg in msgs) {
-                    // Skip bot's own messages
-                    if (msg.messageType == MessageType.BOT) continue
+                    // Skip bot's own messages (also skip null messageType to be safe)
+                    if (msg.messageType == MessageType.BOT || msg.messageType == null) continue
 
+                    // Skip messages without fromUserId
                     val fromUser = msg.fromUserId ?: continue
+
+                    // Deduplicate by message ID (getUpdates may return same message across polls)
+                    val msgId = msg.messageId
+                    if (msgId != null) {
+                        synchronized(seenIdsLock) {
+                            if (!seenMessageIds.add(msgId)) {
+                                Log.d(TAG, "⏭️ Duplicate message ID=$msgId, skipping")
+                                continue
+                            }
+                            // Evict oldest entries when exceeding max size
+                            while (seenMessageIds.size > SEEN_IDS_MAX_SIZE) {
+                                val iterator = seenMessageIds.iterator()
+                                if (iterator.hasNext()) {
+                                    iterator.next()
+                                    iterator.remove()
+                                } else break
+                            }
+                        }
+                    }
+
                     Log.i(TAG, "Inbound message from=$fromUser types=${msg.itemList?.map { it.type }?.joinToString(",") ?: "none"}")
 
                     val inbound = parseInbound(msg, accountId)
