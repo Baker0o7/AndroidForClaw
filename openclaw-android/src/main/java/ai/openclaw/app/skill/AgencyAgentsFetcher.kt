@@ -163,7 +163,7 @@ object AgencyAgentsFetcher {
             }
         }
 
-        return (catalog + discovered).distinctBy { it.filename }
+        return (catalog + discovered).distinctBy { it.name }.distinctBy { it.filename }
     }
 
     /** Fetch raw markdown content for a specific skill. */
