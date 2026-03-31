@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ScreenShare
 import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -53,6 +54,7 @@ private enum class HomeTab(
   val icon: ImageVector,
 ) {
   Chat(labelRes = R.string.tab_chat, icon = Icons.Default.ChatBubble),
+  Skills(labelRes = R.string.tab_skills, icon = Icons.Default.Extension),
   Voice(labelRes = R.string.tab_voice, icon = Icons.Default.RecordVoiceOver),
   Screen(labelRes = R.string.tab_screen, icon = Icons.AutoMirrored.Filled.ScreenShare),
   Settings(labelRes = R.string.tab_settings, icon = Icons.Default.Settings),
@@ -132,6 +134,7 @@ fun PostOnboardingTabs(
 
       when (activeTab) {
         HomeTab.Chat -> if (!chatTabStarted) ChatSheet(viewModel = viewModel)
+        HomeTab.Skills -> SkillTabScreen()
         HomeTab.Voice -> VoiceTabScreen(viewModel = viewModel)
         HomeTab.Screen -> Unit
         HomeTab.Settings -> if (settingsTabSlot != null) settingsTabSlot() else SettingsSheet(viewModel = viewModel)
