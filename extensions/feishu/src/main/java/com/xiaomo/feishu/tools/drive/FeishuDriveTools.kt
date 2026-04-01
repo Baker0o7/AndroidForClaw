@@ -43,19 +43,19 @@ class FeishuDriveFileTool(
     override val name = "feishu_drive_file"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "【以用户身份】飞书云空间文件管理工具。当用户要求查看云空间(云盘)中的文件列表、获取文件信息、" +
-            "复制/移动/删除文件、上传/下载文件时使用。消息中的文件读写**禁止**使用该工具!" +
+    override val description = "【以User身份】Feishu云Empty间File ManagerTool。当User要求View云Empty间(云盘)Medium的文件List、获取文件Info、" +
+            "Copy/移动/Delete file、上传/Download File时使用。MessageMedium的文件读写**禁止**使用该Tool!" +
             "\n\nActions:" +
-            "\n- list（列出文件）：列出文件夹下的文件。不提供 folder_token 时获取根目录清单" +
-            "\n- get_meta（批量获取元数据）：批量查询文档元信息，使用 request_docs 数组参数，格式：[{doc_token: '...', doc_type: 'sheet'}]" +
-            "\n- copy（复制文件）：复制文件到指定位置" +
-            "\n- move（移动文件）：移动文件到指定文件夹" +
-            "\n- delete（删除文件）：删除文件" +
-            "\n- upload（上传文件）：上传本地文件到云空间。提供 file_path（本地文件路径）或 file_content_base64（Base64 编码）" +
-            "\n- download（下载文件）：下载文件到本地。提供 output_path（本地保存路径）则保存到本地，否则返回 Base64 编码" +
-            "\n\n【重要】copy/move/delete 操作需要 file_token 和 type 参数。get_meta 使用 request_docs 数组参数。" +
-            "\n【重要】upload 优先使用 file_path（自动读取文件、提取文件名和大小），也支持 file_content_base64（需手动提供 file_name 和 size）。" +
-            "\n【重要】download 提供 output_path 时保存到本地（可以是文件路径或文件夹路径+file_name），不提供则返回 Base64。"
+            "\n- list（List files）：List files夹下的文件。不提供 folder_token 时获取根目录清单" +
+            "\n- get_meta（批量获取元数据）：批量查询Documentation元Info，使用 request_docs ArrayParameter，Format：[{doc_token: '...', doc_type: 'sheet'}]" +
+            "\n- copy（Copy file）：Copy file到指定位置" +
+            "\n- move（Move file）：Move file到指定文件夹" +
+            "\n- delete（Delete file）：Delete file" +
+            "\n- upload（Upload File）：上传本地文件到云Empty间。提供 file_path（本地File Path）或 file_content_base64（Base64 Encode）" +
+            "\n- download（Download File）：Download File到本地。提供 output_path（本地Save路径）则Save到本地，No则Back Base64 Encode" +
+            "\n\n【Important】copy/move/delete 操作Need to file_token 和 type Parameter。get_meta 使用 request_docs ArrayParameter。" +
+            "\n【Important】upload 优先使用 file_path（AutoRead file、提取File Name和大小），也支持 file_content_base64（需Manual提供 file_name 和 size）。" +
+            "\n【Important】download 提供 output_path 时Save到本地（CanYesFile Path或文件夹路径+file_name），不提供则Back Base64。"
 
     override fun isEnabled() = config.enableDriveTools
 
@@ -466,37 +466,37 @@ class FeishuDriveFileTool(
                 properties = mapOf(
                     "action" to PropertySchema(
                         type = "string",
-                        description = "操作类型",
+                        description = "操作Type",
                         enum = listOf("list", "get_meta", "copy", "move", "delete", "upload", "download")
                     ),
                     "file_token" to PropertySchema(
                         type = "string",
-                        description = "文件 token（copy/move/delete/download 操作必填）"
+                        description = "文件 token（copy/move/delete/download 操作Required）"
                     ),
                     "folder_token" to PropertySchema(
                         type = "string",
-                        description = "文件夹 token（list 操作可选，copy 操作可选指定目标文件夹，move 操作必填）"
+                        description = "文件夹 token（list 操作Optional，copy 操作Optional指定Target文件夹，move 操作Required）"
                     ),
                     "name" to PropertySchema(
                         type = "string",
-                        description = "目标文件名（copy 操作必填）"
+                        description = "TargetFile Name（copy 操作Required）"
                     ),
                     "type" to PropertySchema(
                         type = "string",
-                        description = "文档类型（copy/move/delete 操作必填）",
+                        description = "DocumentationType（copy/move/delete 操作Required）",
                         enum = listOf("doc", "sheet", "file", "bitable", "docx", "folder", "mindnote", "slides")
                     ),
                     "request_docs" to PropertySchema(
                         type = "array",
-                        description = "要查询的文档列表（get_meta 操作必填，批量查询，最多 50 个）。示例：[{doc_token: 'Z1FjxxxxxxxxxxxxxxxxxxxtnAc', doc_type: 'sheet'}]",
+                        description = "要查询的DocumentationList（get_meta 操作Required，批量查询，最多 50 个）。Example：[{doc_token: 'Z1FjxxxxxxxxxxxxxxxxxxxtnAc', doc_type: 'sheet'}]",
                         items = PropertySchema(
                             type = "object",
-                            description = "文档查询项",
+                            description = "Documentation查询项",
                             properties = mapOf(
-                                "doc_token" to PropertySchema("string", "文档 token（从浏览器 URL 中获取，如 spreadsheet_token、doc_token 等）"),
+                                "doc_token" to PropertySchema("string", "Documentation token（从Browser URL Medium获取，如 spreadsheet_token、doc_token 等）"),
                                 "doc_type" to PropertySchema(
                                     "string",
-                                    "文档类型：doc、sheet、file、bitable、docx、folder、mindnote、slides",
+                                    "DocumentationType：doc、sheet、file、bitable、docx、folder、mindnote、slides",
                                     enum = listOf("doc", "sheet", "file", "bitable", "docx", "folder", "mindnote", "slides")
                                 )
                             )
@@ -504,44 +504,44 @@ class FeishuDriveFileTool(
                     ),
                     "parent_node" to PropertySchema(
                         type = "string",
-                        description = "父节点 token（upload 操作可选）。explorer 类型填文件夹 token，bitable 类型填 app_token。不填写或填空字符串时，上传到云空间根目录"
+                        description = "父Node token（upload 操作Optional）。explorer Type填文件夹 token，bitable Type填 app_token。不填写或填Empty字符串时，上传到云Empty间根目录"
                     ),
                     "file_path" to PropertySchema(
                         type = "string",
-                        description = "本地文件路径（upload 操作，与 file_content_base64 二选一）。优先使用此参数，会自动读取文件内容、计算大小、提取文件名。"
+                        description = "本地File Path（upload 操作，与 file_content_base64 二选一）。优先使用此Parameter，会AutoRead file内容、计算大小、提取File Name。"
                     ),
                     "file_content_base64" to PropertySchema(
                         type = "string",
-                        description = "文件内容的 Base64 编码（upload 操作，与 file_path 二选一）。当不提供 file_path 时使用。"
+                        description = "文件内容的 Base64 Encode（upload 操作，与 file_path 二选一）。当不提供 file_path 时使用。"
                     ),
                     "file_name" to PropertySchema(
                         type = "string",
-                        description = "文件名（upload 操作可选）。如果提供了 file_path，会自动从路径中提取文件名；如果使用 file_content_base64，则必须提供此参数。"
+                        description = "File Name（upload 操作Optional）。如果提供了 file_path，会Auto从路径Medium提取File Name；如果使用 file_content_base64，则Must提供此Parameter。"
                     ),
                     "size" to PropertySchema(
                         type = "integer",
-                        description = "文件大小（字节，upload 操作可选）。如果提供了 file_path，会自动计算；如果使用 file_content_base64，则必须提供此参数。"
+                        description = "File Size（字节，upload 操作Optional）。如果提供了 file_path，会Auto计算；如果使用 file_content_base64，则Must提供此Parameter。"
                     ),
                     "output_path" to PropertySchema(
                         type = "string",
-                        description = "本地保存的完整文件路径（download 操作可选）。必须包含文件名和扩展名，例如 '/tmp/file.pdf'。如果不提供，则返回 Base64 编码的文件内容。"
+                        description = "本地Save的完整File Path（download 操作Optional）。Must包含File Name和Extended名，例如 '/tmp/file.pdf'。如果不提供，则Back Base64 Encode的文件内容。"
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "分页大小（默认 200，最大 200）"
+                        description = "Page Size（Default 200，Maximum 200）"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "分页标记。首次请求无需填写"
+                        description = "分页标记。首次RequestNone需填写"
                     ),
                     "order_by" to PropertySchema(
                         type = "string",
-                        description = "排序方式：EditedTime（编辑时间）、CreatedTime（创建时间）",
+                        description = "Sort方式：EditedTime（Edit时间）、CreatedTime（Created At）",
                         enum = listOf("EditedTime", "CreatedTime")
                     ),
                     "direction" to PropertySchema(
                         type = "string",
-                        description = "排序方向：ASC（升序）、DESC（降序）",
+                        description = "SortDirection：ASC（Ascending）、DESC（Descending）",
                         enum = listOf("ASC", "DESC")
                     )
                 ),

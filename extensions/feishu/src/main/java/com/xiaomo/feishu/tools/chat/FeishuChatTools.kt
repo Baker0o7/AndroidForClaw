@@ -44,8 +44,8 @@ class FeishuChatTool(
     override val name = "feishu_chat"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "以用户身份调用飞书群聊管理工具。Actions: search（搜索群列表，支持关键词匹配群名称、群成员）, " +
-            "get（获取指定群的详细信息，包括群名称、描述、头像、群主、权限配置等）。"
+    override val description = "以User身份调用Feishu Group ChatManagedTool。Actions: search（Search群List，支持Off键词匹配群Name、群Member）, " +
+            "get（获取指定群的VerboseInfo，包括群Name、Description、Avatar、群主、PermissionConfigure等）。"
 
     override fun isEnabled() = config.enableChatTools
 
@@ -145,29 +145,29 @@ class FeishuChatTool(
                 properties = mapOf(
                     "action" to PropertySchema(
                         type = "string",
-                        description = "操作类型",
+                        description = "操作Type",
                         enum = listOf("search", "get")
                     ),
                     "chat_id" to PropertySchema(
                         type = "string",
-                        description = "群 ID（格式如 oc_xxx）（get 操作必填）"
+                        description = "群 ID（Format如 oc_xxx）（get 操作Required）"
                     ),
                     "query" to PropertySchema(
                         type = "string",
-                        description = "搜索关键词（search 操作必填）。支持匹配群名称、群成员名称。支持多语种、拼音、前缀等模糊搜索。"
+                        description = "SearchOff键词（search 操作Required）。支持匹配群Name、群MemberName。支持多语种、拼音、Prefix等模糊Search。"
                     ),
                     "user_id_type" to PropertySchema(
                         type = "string",
-                        description = "用户 ID 类型（可选，默认 open_id）",
+                        description = "User ID Type（Optional，Default open_id）",
                         enum = listOf("open_id", "union_id", "user_id")
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "分页大小（默认 20）"
+                        description = "Page Size（Default 20）"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "分页标记。首次请求无需填写"
+                        description = "分页标记。首次RequestNone需填写"
                     )
                 ),
                 required = listOf("action")
@@ -198,9 +198,9 @@ class FeishuChatMembersTool(
     override val name = "feishu_chat_members"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "以用户的身份获取指定群组的成员列表。" +
-            "返回成员信息，包含成员 ID、姓名等。" +
-            "注意：不会返回群组内的机器人成员。"
+    override val description = "以User的身份获取指定Group的MemberList。" +
+            "BackMemberInfo，包含Member ID、姓名等。" +
+            "Attention：不会BackGroup内的BotMember。"
 
     override fun isEnabled() = config.enableChatTools
 
@@ -262,20 +262,20 @@ class FeishuChatMembersTool(
                 properties = mapOf(
                     "chat_id" to PropertySchema(
                         type = "string",
-                        description = "群 ID（格式如 oc_xxx）。可以通过 feishu_chat_search 工具搜索获取"
+                        description = "群 ID（Format如 oc_xxx）。Can通过 feishu_chat_search ToolSearch获取"
                     ),
                     "member_id_type" to PropertySchema(
                         type = "string",
-                        description = "成员 ID 类型（可选，默认 open_id）",
+                        description = "Member ID Type（Optional，Default open_id）",
                         enum = listOf("open_id", "union_id", "user_id")
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "分页大小（默认 20）"
+                        description = "Page Size（Default 20）"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "分页标记。首次请求无需填写"
+                        description = "分页标记。首次RequestNone需填写"
                     )
                 ),
                 required = listOf("chat_id")

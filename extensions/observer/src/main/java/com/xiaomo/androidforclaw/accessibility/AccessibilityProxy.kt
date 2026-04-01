@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw equivalent (Android platform specific)
  */
 package com.xiaomo.androidforclaw.accessibility
 
@@ -27,7 +27,7 @@ object AccessibilityProxy {
     private val _screenCaptureGranted = MutableLiveData(false)
     val screenCaptureGranted: LiveData<Boolean> = _screenCaptureGranted
 
-    /** 从任意地方调用来刷新权限状态（PermissionActivity 授权后调用） */
+    /** Refresh permission status from anywhere (called after PermissionActivity authorization) */
     fun refreshPermissions(context: android.content.Context) {
         _overlayGranted.postValue(android.provider.Settings.canDrawOverlays(context))
         _screenCaptureGranted.postValue(isMediaProjectionGranted())
@@ -118,14 +118,14 @@ object AccessibilityProxy {
     }
 
     /**
-     * 异步检查服务是否就绪
+     * Asynchronously check if service is ready
      */
     suspend fun isServiceReadyAsync(): Boolean {
         return service?.rootInActiveWindow != null
     }
 
     /**
-     * 同步检查服务是否就绪
+     * Synchronously check if service is ready
      */
     fun isServiceReady(): Boolean {
         return service?.rootInActiveWindow != null
@@ -147,7 +147,7 @@ object AccessibilityProxy {
     }
 
     /**
-     * 确保服务已连接；可选地等待 AccessibilityService 真正 ready。
+     * Ensure service is connected; optionally wait for AccessibilityService to be truly ready.
      */
     private suspend fun ensureConnectedWithRetry(requireReady: Boolean = false) {
         if (service != null && (!requireReady || checkServiceReadyOnce())) {

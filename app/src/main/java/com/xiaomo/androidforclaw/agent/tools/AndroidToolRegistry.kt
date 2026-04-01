@@ -150,9 +150,9 @@ class AndroidToolRegistry(
                 "观察" to listOf("screenshot", "get_view_tree"),
                 "交互" to listOf("tap", "swipe", "type", "long_press"),
                 "导航" to listOf("home", "back", "open_app"),
-                "应用管理" to listOf("list_installed_apps", "install_app", "start_activity"),
+                "应用Managed" to listOf("list_installed_apps", "install_app", "start_activity"),
                 "控制" to listOf("wait", "stop", "log"),
-                "浏览器" to listOf("browser")
+                "Browser" to listOf("browser")
             )
 
             categories.forEach { (category, toolNames) ->

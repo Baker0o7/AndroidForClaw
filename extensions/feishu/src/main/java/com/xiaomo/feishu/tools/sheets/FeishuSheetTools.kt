@@ -248,17 +248,17 @@ private fun truncateRows(values: JsonArray?, maxRows: Int): TruncateResult {
 class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_sheet"
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "【以用户身份】飞书电子表格工具。支持创建、读写、查找、导出电子表格。" +
-        "\n\n电子表格（Sheets）类似 Excel/Google Sheets，与多维表格（Bitable/Airtable）是不同产品。" +
-        "\n\n所有 action（除 create 外）均支持传入 url 或 spreadsheet_token，工具会自动解析。支持知识库 wiki URL，自动解析为电子表格 token。" +
+    override val description = "【以User身份】FeishuSpreadsheetTool。支持创建、读写、查找、ExportSpreadsheet。" +
+        "\n\nSpreadsheet（Sheets）Class似 Excel/Google Sheets，与Bitable（Bitable/Airtable）Yes不同产品。" +
+        "\n\n所Has action（除 create 外）均支持传入 url 或 spreadsheet_token，Tool会Auto解析。支持Knowledge Base wiki URL，Auto解析为Spreadsheet token。" +
         "\n\nActions:" +
-        "\n- info：获取表格信息 + 全部工作表列表（一次调用替代 get_info + list_sheets）" +
-        "\n- read：读取数据。不填 range 自动读取第一个工作表全部数据" +
-        "\n- write：覆盖写入,高危,请谨慎使用该操作。不填 range 自动写入第一个工作表（从 A1 开始）" +
-        "\n- append：在已有数据末尾追加行" +
-        "\n- find：在工作表中查找单元格" +
-        "\n- create：创建电子表格。支持带 headers + data 一步创建含数据的表格" +
-        "\n- export：导出为 xlsx 或 csv（csv 必须指定 sheet_id）"
+        "\n- info：获取TableInfo + All工作表List（一次调用替代 get_info + list_sheets）" +
+        "\n- read：读取数据。不填 range Auto读取第一个工作表All数据" +
+        "\n- write：覆盖写入,High危,Please谨慎使用该操作。不填 range Auto写入第一个工作表（从 A1 Start）" +
+        "\n- append：在已Has数据末尾追加Row" +
+        "\n- find：在工作表Medium查找Cell" +
+        "\n- create：创建Spreadsheet。支持带 headers + data 一步创建含数据的Table" +
+        "\n- export：Export为 xlsx 或 csv（csv Must指定 sheet_id）"
 
     override fun isEnabled() = config.enableSheetTools
 
@@ -689,28 +689,28 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
                 properties = mapOf(
                     "action" to PropertySchema(
                         "string",
-                        "操作类型",
+                        "操作Type",
                         enum = listOf("info", "read", "write", "append", "find", "create", "export")
                     ),
-                    "spreadsheet_token" to PropertySchema("string", "电子表格 token（与 url 二选一）"),
-                    "url" to PropertySchema("string", "电子表格 URL，例如 https://xxx.feishu.cn/sheets/TOKEN 或 https://xxx.feishu.cn/wiki/TOKEN（与 spreadsheet_token 二选一）"),
-                    "sheet_id" to PropertySchema("string", "工作表 ID（read/write/append 时可选，仅当不提供 range 时生效；find 时必填；export csv 时必填）"),
-                    "range" to PropertySchema("string", "数据范围（可选）。格式：<sheetId>!A1:D10 或 <sheetId>。不填则自动读取第一个工作表全部数据"),
-                    "values" to PropertySchema("array", "二维数组，每个元素是一行。例如 [[\"姓名\",\"年龄\"],[\"张三\",25]]（write/append 时使用）"),
+                    "spreadsheet_token" to PropertySchema("string", "Spreadsheet token（与 url 二选一）"),
+                    "url" to PropertySchema("string", "Spreadsheet URL，例如 https://xxx.feishu.cn/sheets/TOKEN 或 https://xxx.feishu.cn/wiki/TOKEN（与 spreadsheet_token 二选一）"),
+                    "sheet_id" to PropertySchema("string", "工作表 ID（read/write/append 时Optional，仅当不提供 range 时生效；find 时Required；export csv 时Required）"),
+                    "range" to PropertySchema("string", "数据范围（Optional）。Format：<sheetId>!A1:D10 或 <sheetId>。不填则Auto读取第一个工作表All数据"),
+                    "values" to PropertySchema("array", "二维Array，每个元素Yes一Row。例如 [[\"姓名\",\"年龄\"],[\"张三\",25]]（write/append 时使用）"),
                     "find" to PropertySchema("string", "查找内容（字符串或正则表达式）（find 时使用）"),
-                    "match_case" to PropertySchema("boolean", "是否区分大小写（find 时使用，默认 true）"),
-                    "match_entire_cell" to PropertySchema("boolean", "是否完全匹配整个单元格（find 时使用，默认 false）"),
-                    "search_by_regex" to PropertySchema("boolean", "是否使用正则表达式（find 时使用，默认 false）"),
-                    "include_formulas" to PropertySchema("boolean", "是否搜索公式（find 时使用，默认 false）"),
-                    "title" to PropertySchema("string", "电子表格标题（create 时使用）"),
-                    "folder_token" to PropertySchema("string", "文件夹 token（create 时可选）。不填时创建到「我的空间」根目录"),
-                    "headers" to PropertySchema("array", "表头列名（create 时可选）。例如 [\"姓名\", \"部门\", \"入职日期\"]。提供后会写入第一行",
-                        items = PropertySchema("string", "列名")),
-                    "data" to PropertySchema("array", "初始数据（create 时可选）。二维数组，写在表头之后。例如 [[\"张三\", \"工程\", \"2026-01-01\"]]"),
-                    "file_extension" to PropertySchema("string", "导出格式：xlsx 或 csv（export 时使用）", enum = listOf("xlsx", "csv")),
-                    "value_render_option" to PropertySchema("string", "值渲染方式：ToString（默认）、FormattedValue（按格式）、Formula（公式）、UnformattedValue（原始值）",
+                    "match_case" to PropertySchema("boolean", "YesNo区分大小写（find 时使用，Default true）"),
+                    "match_entire_cell" to PropertySchema("boolean", "YesNo完全匹配整个Cell（find 时使用，Default false）"),
+                    "search_by_regex" to PropertySchema("boolean", "YesNo使用正则表达式（find 时使用，Default false）"),
+                    "include_formulas" to PropertySchema("boolean", "YesNoSearch公式（find 时使用，Default false）"),
+                    "title" to PropertySchema("string", "Spreadsheet标题（create 时使用）"),
+                    "folder_token" to PropertySchema("string", "文件夹 token（create 时Optional）。不填时创建到「我的Empty间」根目录"),
+                    "headers" to PropertySchema("array", "表头Column名（create 时Optional）。例如 [\"姓名\", \"部门\", \"入职日期\"]。提供后会写入第一Row",
+                        items = PropertySchema("string", "Column名")),
+                    "data" to PropertySchema("array", "初始数据（create 时Optional）。二维Array，写在表头之后。例如 [[\"张三\", \"工程\", \"2026-01-01\"]]"),
+                    "file_extension" to PropertySchema("string", "ExportFormat：xlsx 或 csv（export 时使用）", enum = listOf("xlsx", "csv")),
+                    "value_render_option" to PropertySchema("string", "Value渲染方式：ToString（Default）、FormattedValue（按Format）、Formula（公式）、UnformattedValue（原始Value）",
                         enum = listOf("ToString", "FormattedValue", "Formula", "UnformattedValue")),
-                    "output_path" to PropertySchema("string", "本地保存路径（含文件名）。不填则只返回文件信息（export 时可选）")
+                    "output_path" to PropertySchema("string", "本地Save路径（含File Name）。不填则只Back文件Info（export 时Optional）")
                 ),
                 required = listOf("action")
             )

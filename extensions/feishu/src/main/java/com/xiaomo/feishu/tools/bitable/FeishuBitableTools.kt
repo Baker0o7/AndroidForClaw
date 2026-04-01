@@ -64,9 +64,9 @@ class FeishuBitableAppTool(
 
     override val name = "feishu_bitable_app"
     override val description =
-        "【以用户身份】飞书多维表格应用管理工具。当用户要求创建/查询/管理多维表格时使用。" +
-        "Actions: create（创建多维表格）, get（获取多维表格元数据）, list（列出多维表格）, " +
-        "patch（更新元数据）, delete（删除多维表格）, copy（复制多维表格）。"
+        "【以User身份】FeishuBitable应用ManagedTool。当User要求创建/查询/ManagedBitable时使用。" +
+        "Actions: create（创建Bitable）, get（获取Bitable元数据）, list（Column出Bitable）, " +
+        "patch（Update元数据）, delete（DeleteBitable）, copy（CopyBitable）。"
 
     override fun isEnabled() = config.enableBitableTools
 
@@ -235,15 +235,15 @@ class FeishuBitableAppTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "get", "list", "patch", "copy")
                     ),
-                    "app_token" to PropertySchema("string", "多维表格的唯一标识 token（get/patch/copy 必填）"),
-                    "name" to PropertySchema("string", "多维表格名称（create/copy 必填，patch 可选）"),
-                    "folder_token" to PropertySchema("string", "所在文件夹 token（默认创建在我的空间）（create/copy/list 可选）"),
-                    "is_advanced" to PropertySchema("boolean", "是否开启高级权限（patch 可选）"),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 200（list 可选）"),
-                    "page_token" to PropertySchema("string", "分页标记（list 可选）")
+                    "app_token" to PropertySchema("string", "Bitable的Unique ID token（get/patch/copy Required）"),
+                    "name" to PropertySchema("string", "BitableName（create/copy Required，patch Optional）"),
+                    "folder_token" to PropertySchema("string", "所在文件夹 token（Default创建在我的Empty间）（create/copy/list Optional）"),
+                    "is_advanced" to PropertySchema("boolean", "YesNoOn启AdvancedPermission（patch Optional）"),
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 200（list Optional）"),
+                    "page_token" to PropertySchema("string", "分页标记（list Optional）")
                 ),
                 required = listOf("action")
             )
@@ -268,9 +268,9 @@ class FeishuBitableAppTableTool(
 
     override val name = "feishu_bitable_app_table"
     override val description =
-        "【以用户身份】飞书多维表格数据表管理工具。当用户要求创建/查询/管理数据表时使用。" +
-        "\n\nActions: create（创建数据表，可选择在创建时传入 fields 数组定义字段，或后续逐个添加）, list（列出所有数据表）, patch（更新数据表）, batch_create（批量创建）。" +
-        "\n\n【字段定义方式】支持两种模式：1) 明确需求时，在 create 中通过 table.fields 一次性定义所有字段（减少 API 调用）；2) 探索式场景时，使用默认表 + feishu_bitable_app_table_field 逐步修改字段（更稳定，易调整）。"
+        "【以User身份】FeishuBitable数据表ManagedTool。当User要求创建/查询/Managed数据表时使用。" +
+        "\n\nActions: create（创建数据表，Optional择在创建时传入 fields Array定义Field，或后续逐个添加）, list（Column出所Has数据表）, patch（Update数据表）, batch_create（批量创建）。" +
+        "\n\n【Field定义方式】支持两种模式：1) 明确需求时，在 create Medium通过 table.fields One-time定义所HasField（减少 API 调用）；2) 探索式场景时，使用Default表 + feishu_bitable_app_table_field 逐步ModifiedField（更稳定，易调整）。"
 
     override fun isEnabled() = config.enableBitableTools
 
@@ -424,27 +424,27 @@ class FeishuBitableAppTableTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "list", "patch", "batch_create")
                     ),
-                    "app_token" to PropertySchema("string", "多维表格 token"),
-                    "table_id" to PropertySchema("string", "数据表 ID（patch 必填）"),
-                    "name" to PropertySchema("string", "新的表名（patch 可选）"),
+                    "app_token" to PropertySchema("string", "Bitable token"),
+                    "table_id" to PropertySchema("string", "数据表 ID（patch Required）"),
+                    "name" to PropertySchema("string", "新的表名（patch Optional）"),
                     "table" to PropertySchema(
-                        "object", "数据表定义（create 必填），含 name、default_view_name、fields",
+                        "object", "数据表定义（create Required），含 name、default_view_name、fields",
                         properties = mapOf(
-                            "name" to PropertySchema("string", "数据表名称"),
-                            "default_view_name" to PropertySchema("string", "默认视图名称"),
-                            "fields" to PropertySchema("array", "字段列表（可选，但强烈建议在创建表时就传入所有字段，避免后续逐个添加）。不传则创建空表。",
-                                items = PropertySchema("object", "字段定义，含 field_name、type、property"))
+                            "name" to PropertySchema("string", "数据表Name"),
+                            "default_view_name" to PropertySchema("string", "DefaultViewName"),
+                            "fields" to PropertySchema("array", "FieldList（Optional，但强烈Recommend在创建表时就传入所HasField，避免后续逐个添加）。不传则创建Empty表。",
+                                items = PropertySchema("object", "Field定义，含 field_name、type、property"))
                         )
                     ),
                     "tables" to PropertySchema(
-                        "array", "要批量创建的数据表列表（batch_create 必填）",
+                        "array", "要批量创建的数据表List（batch_create Required）",
                         items = PropertySchema("object", "数据表定义，含 name")
                     ),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 100（list 可选）"),
-                    "page_token" to PropertySchema("string", "分页标记（list 可选）")
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 100（list Optional）"),
+                    "page_token" to PropertySchema("string", "分页标记（list Optional）")
                 ),
                 required = listOf("action", "app_token")
             )
@@ -469,8 +469,8 @@ class FeishuBitableAppTableFieldTool(
 
     override val name = "feishu_bitable_app_table_field"
     override val description =
-        "【以用户身份】飞书多维表格字段（列）管理工具。当用户要求创建/查询/更新/删除字段、调整表结构时使用。" +
-        "Actions: create（创建字段）, list（列出所有字段）, update（更新字段，支持只传 field_name 改名）, delete（删除字段）。"
+        "【以User身份】FeishuBitableField（Column）ManagedTool。当User要求创建/查询/Update/DeleteField、调整表结构时使用。" +
+        "Actions: create（创建Field）, list（Column出所HasField）, update（UpdateField，支持只传 field_name 改名）, delete（DeleteField）。"
 
     override fun isEnabled() = config.enableBitableTools
 
@@ -667,21 +667,21 @@ class FeishuBitableAppTableFieldTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "list", "update", "delete")
                     ),
-                    "app_token" to PropertySchema("string", "多维表格 token"),
+                    "app_token" to PropertySchema("string", "Bitable token"),
                     "table_id" to PropertySchema("string", "数据表 ID"),
-                    "field_id" to PropertySchema("string", "字段 ID（update/delete 必填）"),
-                    "field_name" to PropertySchema("string", "字段名称（create 必填，update 可选不传则不修改）"),
-                    "type" to PropertySchema("number", "字段类型（create 必填，update 可选不传则自动查询）：1=文本, 2=数字, 3=单选, 4=多选, 5=日期, 7=复选框, 11=人员, 13=电话, 15=超链接, 17=附件, 1001=创建时间, 1002=修改时间等"),
+                    "field_id" to PropertySchema("string", "Field ID（update/delete Required）"),
+                    "field_name" to PropertySchema("string", "FieldName（create Required，update Optional不传则不Modified）"),
+                    "type" to PropertySchema("number", "FieldType（create Required，update Optional不传则Auto查询）：1=文本, 2=数字, 3=Single Select, 4=Multiple Select, 5=日期, 7=Checkbox, 11=人员, 13=电话, 15=超Link, 17=Attachment, 1001=Created At, 1002=Modified At等"),
                     "property" to PropertySchema("object",
-                        "字段属性配置（根据类型而定，例如单选/多选需要options，数字需要formatter等）。" +
-                        "重要：超链接字段（type=15）必须完全省略此参数，传空对象 {} 也会报错（URLFieldPropertyError）。",
+                        "FieldPropertyConfigure（根据Type而定，例如Single Select/Multiple SelectNeed tooptions，数字Need toformatter等）。" +
+                        "Important：超LinkField（type=15）Must完全省略此Parameter，传EmptyObject {} 也会报错（URLFieldPropertyError）。",
                         properties = emptyMap()),
-                    "view_id" to PropertySchema("string", "视图 ID（list 可选）"),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 100（list 可选）"),
-                    "page_token" to PropertySchema("string", "分页标记（list 可选）")
+                    "view_id" to PropertySchema("string", "View ID（list Optional）"),
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 100（list Optional）"),
+                    "page_token" to PropertySchema("string", "分页标记（list Optional）")
                 ),
                 required = listOf("action", "app_token", "table_id")
             )
@@ -706,18 +706,18 @@ class FeishuBitableAppTableRecordTool(
 
     override val name = "feishu_bitable_app_table_record"
     override val description =
-        "【以用户身份】飞书多维表格记录（行）管理工具。当用户要求创建/查询/更新/删除记录、搜索数据时使用。\n\n" +
+        "【以User身份】FeishuBitableRecord（Row）ManagedTool。当User要求创建/查询/Update/DeleteRecord、Search数据时使用。\n\n" +
         "Actions:\n" +
-        "- create（创建单条记录，使用 fields 参数）\n" +
-        "- batch_create（批量创建记录，使用 records 数组参数）\n" +
-        "- list（列出/搜索记录）\n" +
-        "- update（更新记录）\n" +
-        "- delete（删除记录）\n" +
-        "- batch_update（批量更新）\n" +
-        "- batch_delete（批量删除）\n\n" +
-        "\u26a0\ufe0f 注意参数区别：\n" +
-        "- create 使用 'fields' 对象（单条）\n" +
-        "- batch_create 使用 'records' 数组（批量）"
+        "- create（创建单条Record，使用 fields Parameter）\n" +
+        "- batch_create（批量创建Record，使用 records ArrayParameter）\n" +
+        "- list（Column出/SearchRecord）\n" +
+        "- update（UpdateRecord）\n" +
+        "- delete（DeleteRecord）\n" +
+        "- batch_update（批量Update）\n" +
+        "- batch_delete（批量Delete）\n\n" +
+        "\u26a0\ufe0f AttentionParameter区别：\n" +
+        "- create 使用 'fields' Object（单条）\n" +
+        "- batch_create 使用 'records' Array（批量）"
 
     override fun isEnabled() = config.enableBitableTools
 
@@ -747,11 +747,11 @@ class FeishuBitableAppTableRecordTool(
                             "hint" to "Use 'fields' for single record creation. For batch creation, use action: 'batch_create' with 'records' parameter.",
                             "correct_format" to mapOf(
                                 "action" to "create",
-                                "fields" to mapOf("字段名" to "字段值")
+                                "fields" to mapOf("Field名" to "FieldValue")
                             ),
                             "batch_create_format" to mapOf(
                                 "action" to "batch_create",
-                                "records" to listOf(mapOf("fields" to mapOf("字段名" to "字段值")))
+                                "records" to listOf(mapOf("fields" to mapOf("Field名" to "FieldValue")))
                             )
                         ))
                     }
@@ -792,11 +792,11 @@ class FeishuBitableAppTableRecordTool(
                             "correct_format" to mapOf(
                                 "action" to "update",
                                 "record_id" to "recXXX",
-                                "fields" to mapOf("字段名" to "字段值")
+                                "fields" to mapOf("Field名" to "FieldValue")
                             ),
                             "batch_update_format" to mapOf(
                                 "action" to "batch_update",
-                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("字段名" to "字段值")))
+                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("Field名" to "FieldValue")))
                             )
                         ))
                     }
@@ -853,11 +853,11 @@ class FeishuBitableAppTableRecordTool(
                             "hint" to "Use 'records' array for batch creation. For single record, use action: 'create' with 'fields' parameter.",
                             "correct_format" to mapOf(
                                 "action" to "batch_create",
-                                "records" to listOf(mapOf("fields" to mapOf("字段名" to "字段值")))
+                                "records" to listOf(mapOf("fields" to mapOf("Field名" to "FieldValue")))
                             ),
                             "single_create_format" to mapOf(
                                 "action" to "create",
-                                "fields" to mapOf("字段名" to "字段值")
+                                "fields" to mapOf("Field名" to "FieldValue")
                             )
                         ))
                     }
@@ -904,12 +904,12 @@ class FeishuBitableAppTableRecordTool(
                             "hint" to "Use 'records' array for batch update. For single record, use action: 'update' with 'record_id' + 'fields' parameters.",
                             "correct_format" to mapOf(
                                 "action" to "batch_update",
-                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("字段名" to "字段值")))
+                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("Field名" to "FieldValue")))
                             ),
                             "single_update_format" to mapOf(
                                 "action" to "update",
                                 "record_id" to "recXXX",
-                                "fields" to mapOf("字段名" to "字段值")
+                                "fields" to mapOf("Field名" to "FieldValue")
                             )
                         ))
                     }
@@ -1062,54 +1062,54 @@ class FeishuBitableAppTableRecordTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "list", "update", "delete", "batch_create", "batch_update", "batch_delete")
                     ),
-                    "app_token" to PropertySchema("string", "多维表格 token"),
+                    "app_token" to PropertySchema("string", "Bitable token"),
                     "table_id" to PropertySchema("string", "数据表 ID"),
-                    "record_id" to PropertySchema("string", "记录 ID（update/delete 必填）"),
+                    "record_id" to PropertySchema("string", "Record ID（update/delete Required）"),
                     "fields" to PropertySchema("object",
-                        "记录字段（单条记录）。键为字段名，值根据字段类型而定：\n" +
+                        "RecordField（单条Record）。键为Field名，Value根据FieldType而定：\n" +
                         "- 文本：string\n" +
                         "- 数字：number\n" +
-                        "- 单选：string（选项名）\n" +
-                        "- 多选：string[]（选项名数组）\n" +
+                        "- Single Select：string（Option名）\n" +
+                        "- Multiple Select：string[]（Option名Array）\n" +
                         "- 日期：number（毫秒时间戳，如 1740441600000）\n" +
-                        "- 复选框：boolean\n" +
+                        "- Checkbox：boolean\n" +
                         "- 人员：[{id: 'ou_xxx'}]\n" +
-                        "- 附件：[{file_token: 'xxx'}]\n" +
-                        "注意：create 只创建单条记录；批量创建请使用 batch_create",
+                        "- Attachment：[{file_token: 'xxx'}]\n" +
+                        "Attention：create 只创建单条Record；批量创建Please使用 batch_create",
                         properties = emptyMap()),
                     "records" to PropertySchema(
                         "array",
-                        "记录数组（batch_create 为 [{fields: {...}}]，batch_update 为 [{record_id, fields: {...}}]）（最多 500 条）",
-                        items = PropertySchema("object", "记录对象")
+                        "RecordArray（batch_create 为 [{fields: {...}}]，batch_update 为 [{record_id, fields: {...}}]）（最多 500 条）",
+                        items = PropertySchema("object", "RecordObject")
                     ),
                     "record_ids" to PropertySchema(
                         "array",
-                        "要删除的记录 ID 列表（batch_delete 必填，最多 500 条）",
+                        "要Delete的Record ID List（batch_delete Required，最多 500 条）",
                         items = PropertySchema("string", "record_id 字符串")
                     ),
-                    "view_id" to PropertySchema("string", "视图 ID（list 可选，建议指定以获得更好的性能）"),
+                    "view_id" to PropertySchema("string", "View ID（list Optional，Recommend指定以获得更好的性能）"),
                     "field_names" to PropertySchema(
-                        "array", "要返回的字段名列表（list 可选，不指定则返回所有字段）",
-                        items = PropertySchema("string", "字段名")
+                        "array", "要Back的Field名List（list Optional，不指定则Back所HasField）",
+                        items = PropertySchema("string", "Field名")
                     ),
                     "filter" to PropertySchema(
                         "object",
-                        "筛选条件（list 可选，必须是结构化对象）。示例：{conjunction: 'and', conditions: [{field_name: '文本', operator: 'is', value: ['测试']}]}",
+                        "Filter条件（list Optional，MustYes结构化Object）。Example：{conjunction: 'and', conditions: [{field_name: '文本', operator: 'is', value: ['Test']}]}",
                         properties = mapOf(
-                            "conjunction" to PropertySchema("string", "条件逻辑：and（全部满足）or（任一满足）"),
-                            "conditions" to PropertySchema("array", "筛选条件列表", items = PropertySchema("object", "条件对象，含 field_name, operator, value"))
+                            "conjunction" to PropertySchema("string", "条件逻辑：and（All满足）or（任一满足）"),
+                            "conditions" to PropertySchema("array", "Filter条件List", items = PropertySchema("object", "条件Object，含 field_name, operator, value"))
                         )
                     ),
                     "sort" to PropertySchema(
-                        "array", "排序规则（list 可选）",
-                        items = PropertySchema("object", "排序对象，含 field_name, desc")
+                        "array", "Sort规则（list Optional）",
+                        items = PropertySchema("object", "SortObject，含 field_name, desc")
                     ),
-                    "automatic_fields" to PropertySchema("boolean", "是否返回自动字段（created_time, last_modified_time, created_by, last_modified_by），默认 false（list 可选）"),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 500（list 可选）"),
-                    "page_token" to PropertySchema("string", "分页标记（list 可选）")
+                    "automatic_fields" to PropertySchema("boolean", "YesNoBackAutoField（created_time, last_modified_time, created_by, last_modified_by），Default false（list Optional）"),
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 500（list Optional）"),
+                    "page_token" to PropertySchema("string", "分页标记（list Optional）")
                 ),
                 required = listOf("action", "app_token", "table_id")
             )
@@ -1134,8 +1134,8 @@ class FeishuBitableAppTableViewTool(
 
     override val name = "feishu_bitable_app_table_view"
     override val description =
-        "【以用户身份】飞书多维表格视图管理工具。当用户要求创建/查询/更新视图、切换展示方式时使用。" +
-        "Actions: create（创建视图）, get（获取视图详情）, list（列出所有视图）, patch（更新视图）。"
+        "【以User身份】FeishuBitableViewManagedTool。当User要求创建/查询/UpdateView、切换展示方式时使用。" +
+        "Actions: create（创建View）, get（获取ViewDetails）, list（Column出所HasView）, patch（UpdateView）。"
 
     override fun isEnabled() = config.enableBitableTools
 
@@ -1267,16 +1267,16 @@ class FeishuBitableAppTableViewTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "get", "list", "patch")
                     ),
-                    "app_token" to PropertySchema("string", "多维表格 token"),
+                    "app_token" to PropertySchema("string", "Bitable token"),
                     "table_id" to PropertySchema("string", "数据表 ID"),
-                    "view_id" to PropertySchema("string", "视图 ID（get/patch 必填）"),
-                    "view_name" to PropertySchema("string", "视图名称（create 必填，patch 可选）"),
-                    "view_type" to PropertySchema("string", "视图类型（create 可选，默认 grid）：grid=表格视图, kanban=看板视图, gallery=画册视图, gantt=甘特图, form=表单视图"),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 100（list 可选）"),
-                    "page_token" to PropertySchema("string", "分页标记（list 可选）")
+                    "view_id" to PropertySchema("string", "View ID（get/patch Required）"),
+                    "view_name" to PropertySchema("string", "ViewName（create Required，patch Optional）"),
+                    "view_type" to PropertySchema("string", "ViewType（create Optional，Default grid）：grid=TableView, kanban=看板View, gallery=画册View, gantt=甘特图, form=FormView"),
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 100（list Optional）"),
+                    "page_token" to PropertySchema("string", "分页标记（list Optional）")
                 ),
                 required = listOf("action", "app_token", "table_id")
             )

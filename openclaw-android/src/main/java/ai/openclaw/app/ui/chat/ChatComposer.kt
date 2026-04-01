@@ -87,7 +87,7 @@ fun ChatComposer(
       value = input,
       onValueChange = { input = it },
       modifier = Modifier.fillMaxWidth(),
-      placeholder = { Text("输入消息…", style = mobileBodyStyle(), color = mobileTextTertiary) },
+      placeholder = { Text("Type a message…", style = mobileBodyStyle(), color = mobileTextTertiary) },
       minLines = 2,
       maxLines = 5,
       textStyle = mobileBodyStyle().copy(color = mobileText),
@@ -97,7 +97,7 @@ fun ChatComposer(
 
     if (!healthOk) {
       Text(
-        text = "网关离线，请先在连接标签页连接。",
+        text = "Gateway offline. Please connect in the Connect tab first.",
         style = mobileCallout,
         color = ai.openclaw.app.ui.mobileWarning,
       )
@@ -124,7 +124,7 @@ fun ChatComposer(
               style = mobileCaption1.copy(fontWeight = FontWeight.SemiBold),
               color = mobileTextSecondary,
             )
-            Icon(Icons.Default.ArrowDropDown, contentDescription = "选择思考级别", modifier = Modifier.size(18.dp), tint = mobileTextTertiary)
+            Icon(Icons.Default.ArrowDropDown, contentDescription = "Select thinking level", modifier = Modifier.size(18.dp), tint = mobileTextTertiary)
           }
         }
 
@@ -146,7 +146,7 @@ fun ChatComposer(
       }
 
       SecondaryActionButton(
-        label = "附件",
+        label = "Attachment",
         icon = Icons.Default.AttachFile,
         enabled = true,
         compact = true,
@@ -154,7 +154,7 @@ fun ChatComposer(
       )
 
       SecondaryActionButton(
-        label = "刷新",
+        label = "Refresh",
         icon = Icons.Default.Refresh,
         enabled = true,
         compact = true,
@@ -162,7 +162,7 @@ fun ChatComposer(
       )
 
       SecondaryActionButton(
-        label = "中止",
+        label = "Abort",
         icon = Icons.Default.Stop,
         enabled = pendingRunCount > 0,
         compact = true,
@@ -197,7 +197,7 @@ fun ChatComposer(
         }
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-          text = "发送",
+          text = "Send",
           style = mobileHeadline.copy(fontWeight = FontWeight.Bold),
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
@@ -267,11 +267,11 @@ private fun ThinkingMenuItem(
 
 private fun thinkingLabel(raw: String): String {
   return when (raw.trim().lowercase()) {
-    "low" -> "低"
-    "medium" -> "中"
-    "high" -> "高"
-    "deep" -> "深度思考"
-    else -> "关"
+    "low" -> "Low"
+    "medium" -> "Medium"
+    "high" -> "High"
+    "deep" -> "Deep Think"
+    else -> "Off"
   }
 }
 

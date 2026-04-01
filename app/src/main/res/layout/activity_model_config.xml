@@ -20,7 +20,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorSurface"
             app:navigationIcon="@drawable/ic_arrow_back_24"
-            app:title="模型配置"
+            app:title="Model Configuration"
             app:titleTextColor="?attr/colorOnSurface" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -66,7 +66,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="当前模型"
+                            android:text="Current Model"
                             android:textColor="?attr/colorPrimary"
                             android:textSize="12sp" />
 
@@ -87,7 +87,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:text="选择 AI 服务商"
+                    android:text="Select AI Provider"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -121,7 +121,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="更多服务商"
+                            android:text="More Providers"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="14sp" />
 
@@ -131,7 +131,7 @@
                             android:layout_height="24dp"
                             android:rotation="0"
                             android:src="@drawable/ic_expand_more_24"
-                            android:contentDescription="展开" />
+                            android:contentDescription="Expand" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -148,7 +148,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="8dp"
-                    android:text="自定义"
+                    android:text="Custom"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -207,7 +207,7 @@
                         android:id="@+id/tv_provider_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="已配置"
+                        android:text="Configured"
                         android:textColor="?attr/colorPrimary"
                         android:textSize="12sp"
                         android:visibility="gone" />
@@ -250,7 +250,7 @@
                             android:id="@+id/tv_tutorial_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📋 如何获取 API Key？"
+                            android:text="📋 How to get an API Key?"
                             android:textColor="?attr/colorTertiary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -269,7 +269,7 @@
                             style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="打开网页 →"
+                            android:text="Open webpage →"
                             android:textColor="?attr/colorTertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -280,7 +280,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="选择模型"
+                    android:text="Select Model"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -302,7 +302,7 @@
                         android:id="@+id/et_model_search"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="搜索模型..."
+                        android:hint="Search models..."
                         android:inputType="text"
                         android:textSize="14sp"
                         android:maxLines="1" />
@@ -330,7 +330,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="4dp"
-                        android:text="🔍 获取可用模型"
+                        android:text="🔍 Fetch Available Models"
                         android:textSize="12sp" />
 
                     <com.google.android.material.button.MaterialButton
@@ -340,7 +340,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="4dp"
-                        android:text="✏️ 手动添加"
+                        android:text="✏️ Add Manually"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -367,7 +367,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="高级选项"
+                            android:text="Advanced Options"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="13sp" />
 
@@ -377,7 +377,7 @@
                             android:layout_height="20dp"
                             android:rotation="0"
                             android:src="@drawable/ic_expand_more_24"
-                            android:contentDescription="展开" />
+                            android:contentDescription="Expand" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -411,7 +411,7 @@
                         android:id="@+id/til_api_type"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="API 类型"
+                        android:hint="API Type"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                         <AutoCompleteTextView
@@ -428,7 +428,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="模型 ID"
+                        android:hint="Model ID"
                         android:visibility="gone"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -462,7 +462,7 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🔗 测试连接"
+                android:text="🔗 Test Connection"
                 android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
@@ -471,7 +471,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:padding="12dp"
-                android:text="保存并使用"
+                android:text="Save &amp; Use"
                 android:textSize="16sp" />
         </LinearLayout>
 

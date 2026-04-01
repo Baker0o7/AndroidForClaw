@@ -134,16 +134,16 @@ class DeviceTool(private val context: Context) : Tool {
             proxy.dumpViewTree(useCache = false)
         } catch (e: IllegalStateException) {
             Log.e(TAG, "Accessibility service not available", e)
-            return ToolResult.error("无障碍服务未开启。请到 设置 → 无障碍 → AndroidForClaw 开启无障碍权限，才能获取屏幕元素。")
+            return ToolResult.error("Accessibility Service未On启。Please到 Settings → Accessibility → AndroidForClaw On启AccessibilityPermission，才能获取屏幕元素。")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to dump view tree", e)
-            return ToolResult.error("获取 UI 树失败: ${e.message}。请检查无障碍服务是否正常运行。")
+            return ToolResult.error("获取 UI 树Failed: ${e.message}。Please检查Accessibility ServiceYesNoNormal运Row。")
         }
 
         if (viewNodes.isEmpty()) {
             val accessibilityOn = try { proxy.isConnected.value == true && proxy.isServiceReady() } catch (_: Exception) { false }
-            val status = if (accessibilityOn) "无障碍服务: ✅ 已开启（但当前页面无可识别元素，可能页面正在加载，建议等 1-2 秒重试）" 
-                         else "无障碍服务: ❌ 未开启。请到 设置 → 无障碍 → AndroidForClaw 开启无障碍权限。"
+            val status = if (accessibilityOn) "Accessibility Service: ✅ 已On启（但Current Page面None可识别元素，可能Page正在Load，Recommend等 1-2 秒Retry）" 
+                         else "Accessibility Service: ❌ 未On启。Please到 Settings → Accessibility → AndroidForClaw On启AccessibilityPermission。"
             return ToolResult.error(status)
         }
 
@@ -257,7 +257,7 @@ class DeviceTool(private val context: Context) : Tool {
                 Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
                 delay(POST_ACTION_DELAY_MS)
             } else {
-                return ToolResult.error("输入失败：无障碍服务和 ClawIME 均未启用，无法聚焦输入框")
+                return ToolResult.error("InputFailed：Accessibility Service和 ClawIME 均未Enable，None法聚焦Input")
             }
         }
 
@@ -288,11 +288,11 @@ class DeviceTool(private val context: Context) : Tool {
 
             if (!typed) {
                 val hint = if (!accessibilityAvailable && !clawImeActive) {
-                    "请开启无障碍服务（推荐，支持剪切板粘贴），或切换到 ClawIME 输入法"
+                    "PleaseOn启Accessibility Service（Recommended，支持剪切板Paste），或切换到 ClawIME Input Method"
                 } else if (!accessibilityAvailable) {
-                    "剪切板粘贴需要无障碍服务。请在设置中开启无障碍权限以获得更好的输入体验"
+                    "剪切板PasteNeed toAccessibility Service。Please在SettingsMediumOn启AccessibilityPermission以获得更好的Input体验"
                 } else {
-                    "输入失败，请重试"
+                    "InputFailed，PleaseRetry"
                 }
                 return ToolResult.error("Type failed: $hint")
             }

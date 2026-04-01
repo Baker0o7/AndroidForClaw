@@ -41,29 +41,29 @@ class PhoneAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         Log.d(TAG, "onServiceConnected - Accessibility service ready")
 
-        // 设置 serviceInstance
+        // Set serviceInstance
         AccessibilityBinderService.serviceInstance = this
-        Log.d(TAG, "✅ serviceInstance 已设置")
+        Log.d(TAG, "✅ serviceInstance set")
 
-        // 启动 AccessibilityBinderService
+        // Start AccessibilityBinderService
         try {
             val binderIntent = Intent(this, AccessibilityBinderService::class.java)
             val componentName = startService(binderIntent)
             if (componentName != null) {
-                Log.i(TAG, "✅ AccessibilityBinderService 已启动")
+                Log.i(TAG, "✅ AccessibilityBinderService started")
             } else {
                 Log.e(TAG, "startService() returned null - service not started!")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "启动 AccessibilityBinderService 失败", e)
+            Log.e(TAG, "Failed to start AccessibilityBinderService", e)
         }
 
-        // 初始化 MediaProjectionHelper (使用工作空间)
+        // Initialize MediaProjectionHelper (using workspace)
         val workspace = java.io.File("/sdcard/.androidforclaw/workspace")
         val screenshotDir = java.io.File(workspace, "screenshots")
         MediaProjectionHelper.initialize(this, screenshotDir)
 
-        Log.i(TAG, "✅ 无障碍服务已连接 (前台服务将在录屏权限授予时自动启动)")
+        Log.i(TAG, "Accessibility service connected (foreground service will auto-start when screen recording permission is granted)")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -89,19 +89,19 @@ class PhoneAccessibilityService : AccessibilityService() {
         super.onDestroy()
         AccessibilityBinderService.serviceInstance = null
 
-        // 停止 AccessibilityBinderService
+        // Stop AccessibilityBinderService
         try {
             val binderIntent = Intent(this, AccessibilityBinderService::class.java)
             stopService(binderIntent)
-            Log.i(TAG, "✅ AccessibilityBinderService 已停止")
+            Log.i(TAG, "✅ AccessibilityBinderService stopped")
         } catch (e: Exception) {
-            Log.e(TAG, "停止 AccessibilityBinderService 失败", e)
+            Log.e(TAG, "Failed to stop AccessibilityBinderService", e)
         }
 
-        // ⚠️ 不要停止前台服务!
-        // 前台服务需要保持运行以维持 MediaProjection 录屏权限
-        // 只有当用户手动重置权限时才应该停止
-        Log.d(TAG, "onDestroy - Accessibility service destroyed (前台服务继续运行)")
+        // Do NOT stop the foreground service!
+        // The foreground service must keep running to maintain MediaProjection screen recording permission
+        // Only stop when user manually resets permissions
+        Log.d(TAG, "onDestroy - Accessibility service destroyed (foreground service continues running)")
     }
 
     fun dumpView(): List<ViewNode> {
@@ -262,14 +262,14 @@ class PhoneAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * 输入文本
-     * 通过 AccessibilityNodeInfo.ACTION_SET_TEXT 实现
+     * Input text
+     * Implemented via AccessibilityNodeInfo.ACTION_SET_TEXT
      */
     fun inputText(text: String): Boolean {
         try {
             val root = rootInActiveWindow ?: return false
 
-            // 查找当前焦点的可编辑节点
+            // Find currently focused editable node
             val focusedNode = root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT)
             if (focusedNode != null && focusedNode.isEditable) {
                 val args = android.os.Bundle()

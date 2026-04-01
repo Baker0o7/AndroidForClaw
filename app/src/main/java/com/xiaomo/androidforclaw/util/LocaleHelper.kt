@@ -109,7 +109,7 @@ object LocaleHelper {
      */
     fun getLanguageDisplayName(context: Context): String {
         return when (getLanguage(context)) {
-            LANGUAGE_CHINESE -> "中文"
+            LANGUAGE_CHINESE -> "Chinese"
             LANGUAGE_ENGLISH -> "English"
             LANGUAGE_SYSTEM -> "System / 系统"
             else -> "System / 系统"
@@ -123,7 +123,7 @@ object LocaleHelper {
         return listOf(
             LanguageOption(LANGUAGE_SYSTEM, "System / 系统"),
             LanguageOption(LANGUAGE_ENGLISH, "English"),
-            LanguageOption(LANGUAGE_CHINESE, "中文")
+            LanguageOption(LANGUAGE_CHINESE, "Chinese")
         )
     }
 

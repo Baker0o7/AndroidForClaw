@@ -43,7 +43,7 @@ class ClawHubClient(private val context: Context? = null) {
          */
         fun saveToken(context: Context, token: String) {
             SPHelper.getInstance(context).saveData(PREF_KEY_TOKEN, token)
-            Log.i(TAG, "ClawHub token 已保存")
+            Log.i(TAG, "ClawHub token 已Save")
         }
 
         /**
@@ -112,7 +112,7 @@ class ClawHubClient(private val context: Context? = null) {
             if (!response.isSuccessful || body == null) {
                 Log.e(TAG, "Search failed: ${response.code} - ${response.message}")
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API Request被限Stream (429)"))
                 }
                 return@withContext Result.failure(
                     Exception("Search failed: ${response.code} - ${response.message}")
@@ -168,7 +168,7 @@ class ClawHubClient(private val context: Context? = null) {
 
             if (!response.isSuccessful || body == null) {
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API Request被限Stream (429)"))
                 }
                 return@withContext Result.failure(
                     Exception("Get details failed: ${response.code} - ${response.message}")
@@ -228,7 +228,7 @@ class ClawHubClient(private val context: Context? = null) {
 
             if (!response.isSuccessful || body == null) {
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API Request被限Stream (429)"))
                 }
                 return@withContext Result.failure(
                     Exception("Get versions failed: ${response.code} - ${response.message}")
@@ -280,7 +280,7 @@ class ClawHubClient(private val context: Context? = null) {
 
             if (!response.isSuccessful) {
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API Request被限Stream (429)"))
                 }
                 return@withContext Result.failure(
                     Exception("Download failed: ${response.code} - ${response.message}")

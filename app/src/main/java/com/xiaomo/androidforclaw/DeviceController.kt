@@ -30,7 +30,7 @@ object DeviceController {
             try {
                 val uriString = AccessibilityProxy.captureScreen()
                 if (uriString.isEmpty()) {
-                    Log.w(TAG, "截图失败：URI 为空")
+                    Log.w(TAG, "ScreenshotFailed：URI 为Empty")
                     return@runBlocking null
                 }
 
@@ -55,11 +55,11 @@ object DeviceController {
                 if (bitmap != null) {
                     Pair(bitmap, uriString)
                 } else {
-                    Log.e(TAG, "无法解码截图: $uriString")
+                    Log.e(TAG, "None法DecodeScreenshot: $uriString")
                     null
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "截图失败", e)
+                Log.e(TAG, "ScreenshotFailed", e)
                 null
             }
         }
@@ -88,7 +88,7 @@ object DeviceController {
     fun isAdbKeyboardVisible(service: AccessibilityService, context: Context): Boolean {
         val focusedNode = findFocusedEditText(service)
         val isClawIme = isClawKeyboardActive(context)
-        Log.d("ADB键盘判断", "是否焦点在EditText: ${focusedNode != null}")
+        Log.d("ADBKeyboard判断", "YesNo焦点在EditText: ${focusedNode != null}")
         return focusedNode != null && isClawIme
     }
 
@@ -97,7 +97,7 @@ object DeviceController {
     fun detectIcons(context: Context): Pair<List<ViewNode>, List<ViewNode>>? {
         // 检查无障碍服务是否连接
         if (!AccessibilityProxy.isServiceReady()) {
-            Log.w(TAG, "无障碍服务未就绪")
+            Log.w(TAG, "Accessibility ServiceNot Ready")
             return null
         }
 
@@ -116,7 +116,7 @@ object DeviceController {
                 }
 
                 if (dumpView.isEmpty()) {
-                    Log.w(TAG, "无法获取 UI 树（已重试 $retryCount 次）")
+                    Log.w(TAG, "None法获取 UI 树（已Retry $retryCount 次）")
                     return@runBlocking null
                 }
 
@@ -128,7 +128,7 @@ object DeviceController {
 
                 Pair(originalNodes, processedNodes)
             } catch (e: Exception) {
-                Log.e(TAG, "获取 UI 树失败", e)
+                Log.e(TAG, "获取 UI 树Failed", e)
                 null
             }
         }

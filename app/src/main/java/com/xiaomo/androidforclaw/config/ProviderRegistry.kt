@@ -221,45 +221,45 @@ object ProviderRegistry {
             group = ProviderGroup.PRIMARY, order = 10, supportsDiscovery = true
         ),
         ProviderDefinition(
-            id = "anthropic", name = "Anthropic", description = "Claude 系列",
+            id = "anthropic", name = "Anthropic", description = "Claude 系Column",
             baseUrl = "https://api.anthropic.com", api = ModelApi.ANTHROPIC_MESSAGES,
             keyRequired = true, keyHint = "Anthropic API Key", envVarName = "ANTHROPIC_API_KEY",
             authHeader = false, group = ProviderGroup.PRIMARY, order = 20
         ),
         ProviderDefinition(
-            id = "openai", name = "OpenAI", description = "GPT 系列",
+            id = "openai", name = "OpenAI", description = "GPT 系Column",
             baseUrl = "https://api.openai.com/v1", api = ModelApi.OPENAI_COMPLETIONS,
             keyRequired = true, keyHint = "OpenAI API Key", envVarName = "OPENAI_API_KEY",
             group = ProviderGroup.PRIMARY, order = 30, supportsDiscovery = true
         ),
         ProviderDefinition(
-            id = "google", name = "Google (Gemini)", description = "Gemini 系列",
+            id = "google", name = "Google (Gemini)", description = "Gemini 系Column",
             baseUrl = "https://generativelanguage.googleapis.com/v1beta",
             api = ModelApi.GOOGLE_GENERATIVE_AI,
             keyRequired = true, keyHint = "Gemini API Key", envVarName = "GEMINI_API_KEY",
             group = ProviderGroup.PRIMARY, order = 40
         ),
         ProviderDefinition(
-            id = "ollama", name = "Ollama (本地)", description = "本地模型",
+            id = "ollama", name = "Ollama (本地)", description = "本地Model",
             baseUrl = "http://127.0.0.1:11434", api = ModelApi.OLLAMA,
-            keyRequired = false, keyHint = "可选", envVarName = "OLLAMA_API_KEY",
+            keyRequired = false, keyHint = "Optional", envVarName = "OLLAMA_API_KEY",
             group = ProviderGroup.PRIMARY, order = 70, supportsDiscovery = true,
             discoveryEndpoint = "/api/tags"
         ),
         ProviderDefinition(
-            id = "nvidia", name = "NVIDIA NIM", description = "NVIDIA 托管模型",
+            id = "nvidia", name = "NVIDIA NIM", description = "NVIDIA 托管Model",
             baseUrl = "https://integrate.api.nvidia.com/v1", api = ModelApi.OPENAI_COMPLETIONS,
             keyRequired = true, keyHint = "NVIDIA API Key", envVarName = "NVIDIA_API_KEY",
             group = ProviderGroup.PRIMARY, order = 60
         ),
         ProviderDefinition(
-            id = "minimax", name = "MiniMax", description = "MiniMax M2.7 系列",
+            id = "minimax", name = "MiniMax", description = "MiniMax M2.7 系Column",
             baseUrl = "https://api.minimax.io/anthropic", api = ModelApi.ANTHROPIC_MESSAGES,
             keyRequired = true, keyHint = "MiniMax API Key", envVarName = "MINIMAX_API_KEY",
             group = ProviderGroup.PRIMARY, order = 55
         ),
         ProviderDefinition(
-            id = "custom", name = "自定义 (OpenAI 兼容)", description = "自定义 API",
+            id = "custom", name = "Custom (OpenAI 兼容)", description = "Custom API",
             baseUrl = "", api = ModelApi.OPENAI_COMPLETIONS,
             keyRequired = false, keyHint = "API Key", envVarName = "",
             group = ProviderGroup.CUSTOM, order = 999, supportsDiscovery = true

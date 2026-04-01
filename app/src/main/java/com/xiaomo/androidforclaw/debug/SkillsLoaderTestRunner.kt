@@ -95,8 +95,8 @@ object SkillsLoaderTestRunner {
             val loader = SkillsLoader(context)
 
             // 测试不同的用户目标
-            val testGoal = loader.selectRelevantSkills("测试音乐播放器", excludeAlways = true)
-            val debugGoal = loader.selectRelevantSkills("调试登录功能", excludeAlways = true)
+            val testGoal = loader.selectRelevantSkills("Test音乐播放器", excludeAlways = true)
+            val debugGoal = loader.selectRelevantSkills("DebugLogin功能", excludeAlways = true)
 
             Log.d(TAG, "✅ testSelectRelevantSkills PASSED")
             Log.d(TAG, "   Test goal: ${testGoal.size} skills")
@@ -138,7 +138,7 @@ object SkillsLoaderTestRunner {
             testSkillFile.writeText("""
 ---
 name: mobile-operations
-description: Workspace 覆盖版本
+description: Workspace 覆盖Version
 metadata:
   {
     "openclaw": {
@@ -157,7 +157,7 @@ metadata:
             val skills = loader.loadSkills()
 
             val mobileOps = skills["mobile-operations"]
-            val isWorkspaceVersion = mobileOps?.description == "Workspace 覆盖版本"
+            val isWorkspaceVersion = mobileOps?.description == "Workspace 覆盖Version"
 
             // 清理测试文件
             testSkillFile.delete()
@@ -278,10 +278,10 @@ metadata:
 
             // 测试任务类型识别
             val testTasks = mapOf(
-                "测试音乐播放器的性能" to listOf("app-testing", "performance"),
-                "调试网络问题" to listOf("debugging", "network-testing"),
-                "验证界面显示" to listOf("ui-validation"),
-                "检查无障碍适配" to listOf("accessibility")
+                "Test音乐播放器的性能" to listOf("app-testing", "performance"),
+                "Debug网络Issue" to listOf("debugging", "network-testing"),
+                "Verify界面Show" to listOf("ui-validation"),
+                "检查Accessibility适配" to listOf("accessibility")
             )
 
             var allMatched = true

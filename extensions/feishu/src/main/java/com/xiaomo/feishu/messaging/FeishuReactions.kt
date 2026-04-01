@@ -117,7 +117,7 @@ enum class FeishuEmoji(val code: String) {
     OK("OK"),
     STAR("STAR"),
     EYES("EYES"),
-    THINKING("Typing"),  // 对齐 clawdbot-feishu: Typing 表情表示"正在输入"
+    THINKING("Typing"),  // 对齐 clawdbot-feishu: Typing 表情表示"正在Input"
     CRY("CRY"),
     CELEBRATE("CELEBRATE"),
     ROCKET("ROCKET"),

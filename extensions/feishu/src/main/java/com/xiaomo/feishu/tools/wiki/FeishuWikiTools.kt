@@ -40,10 +40,10 @@ class FeishuWikiSpaceTool(
     override val name = "feishu_wiki_space"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "飞书知识空间管理工具。当用户要求查看知识库列表、获取知识库信息、创建知识库时使用。" +
-            "Actions: list（列出知识空间）, get（获取知识空间信息）, create（创建知识空间）。" +
-            "【重要】space_id 可以从浏览器 URL 中获取，或通过 list 接口获取。" +
-            "【重要】知识空间（Space）是知识库的基本组成单位，包含多个具有层级关系的文档节点。"
+    override val description = "Feishu知识Empty间ManagedTool。当User要求ViewKnowledge BaseList、Get Knowledge BaseInfo、创建Knowledge Base时使用。" +
+            "Actions: list（Column出知识Empty间）, get（获取知识Empty间Info）, create（创建知识Empty间）。" +
+            "【Important】space_id Can从Browser URL Medium获取，或通过 list Interface获取。" +
+            "【Important】知识Empty间（Space）YesKnowledge Base的Basic组成单位，包含多个具Has层级Off系的DocumentationNode。"
 
     override fun isEnabled() = config.enableWikiTools
 
@@ -155,28 +155,28 @@ class FeishuWikiSpaceTool(
                 properties = mapOf(
                     "action" to PropertySchema(
                         type = "string",
-                        description = "操作类型",
+                        description = "操作Type",
                         enum = listOf("list", "get", "create")
                     ),
                     "space_id" to PropertySchema(
                         type = "string",
-                        description = "知识空间 ID（get 操作必填）"
+                        description = "知识Empty间 ID（get 操作Required）"
                     ),
                     "name" to PropertySchema(
                         type = "string",
-                        description = "知识空间名称（create 操作可选）"
+                        description = "知识Empty间Name（create 操作Optional）"
                     ),
                     "description" to PropertySchema(
                         type = "string",
-                        description = "知识空间描述（create 操作可选）"
+                        description = "知识Empty间Description（create 操作Optional）"
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "分页大小（默认 10，最大 50）"
+                        description = "Page Size（Default 10，Maximum 50）"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "分页标记。首次请求无需填写"
+                        description = "分页标记。首次RequestNone需填写"
                     )
                 ),
                 required = listOf("action")
@@ -203,9 +203,9 @@ class FeishuWikiSpaceNodeTool(
     override val name = "feishu_wiki_space_node"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "飞书知识库节点管理工具。操作：list（列表）、get（获取）、create（创建）、move（移动）、copy（复制）。" +
-            "节点是知识库中的文档，包括 doc、bitable(多维表表格)、sheet(电子表格) 等类型。" +
-            "node_token 是节点的唯一标识符，obj_token 是实际文档的 token。可通过 get 操作将 wiki 类型的 node_token 转换为实际文档的 obj_token。"
+    override val description = "Feishu WikiNode ManagerTool。操作：list（List）、get（获取）、create（创建）、move（移动）、copy（Copy）。" +
+            "NodeYesKnowledge BaseMedium的Documentation，包括 doc、bitable(多维表Table)、sheet(Spreadsheet) 等Type。" +
+            "node_token YesNode的Unique ID符，obj_token Yes实际Documentation的 token。可通过 get 操作将 wiki Type的 node_token Convert为实际Documentation的 obj_token。"
 
     override fun isEnabled() = config.enableWikiTools
 
@@ -401,58 +401,58 @@ class FeishuWikiSpaceNodeTool(
                 properties = mapOf(
                     "action" to PropertySchema(
                         type = "string",
-                        description = "操作类型",
+                        description = "操作Type",
                         enum = listOf("list", "get", "create", "move", "copy")
                     ),
                     "space_id" to PropertySchema(
                         type = "string",
-                        description = "知识空间 ID（list/create/move/copy 操作必填）"
+                        description = "知识Empty间 ID（list/create/move/copy 操作Required）"
                     ),
                     "token" to PropertySchema(
                         type = "string",
-                        description = "节点 token（get 操作必填，可以是 node_token 或 obj_token）"
+                        description = "Node token（get 操作Required，CanYes node_token 或 obj_token）"
                     ),
                     "obj_type" to PropertySchema(
                         type = "string",
-                        description = "文档类型（get 操作可选，默认 wiki；create 操作必填）",
+                        description = "DocumentationType（get 操作Optional，Default wiki；create 操作Required）",
                         enum = listOf("doc", "sheet", "mindnote", "bitable", "file", "docx", "slides", "wiki")
                     ),
                     "node_token" to PropertySchema(
                         type = "string",
-                        description = "节点 token（move/copy 操作必填）"
+                        description = "Node token（move/copy 操作Required）"
                     ),
                     "parent_node_token" to PropertySchema(
                         type = "string",
-                        description = "父节点 token（list 操作可选，不传则列出根节点；create 操作可选）"
+                        description = "父Node token（list 操作Optional，不传则Column出根Node；create 操作Optional）"
                     ),
                     "node_type" to PropertySchema(
                         type = "string",
-                        description = "节点类型（create 操作必填）",
+                        description = "NodeType（create 操作Required）",
                         enum = listOf("origin", "shortcut")
                     ),
                     "origin_node_token" to PropertySchema(
                         type = "string",
-                        description = "源节点 token（create 操作可选，node_type 为 shortcut 时使用）"
+                        description = "源Node token（create 操作Optional，node_type 为 shortcut 时使用）"
                     ),
                     "title" to PropertySchema(
                         type = "string",
-                        description = "节点标题（create/copy 操作可选）"
+                        description = "Node标题（create/copy 操作Optional）"
                     ),
                     "target_parent_token" to PropertySchema(
                         type = "string",
-                        description = "目标父节点 token（move/copy 操作可选）"
+                        description = "Target父Node token（move/copy 操作Optional）"
                     ),
                     "target_space_id" to PropertySchema(
                         type = "string",
-                        description = "目标知识空间 ID（copy 操作可选）"
+                        description = "Target知识Empty间 ID（copy 操作Optional）"
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "分页大小（list 操作可选）"
+                        description = "Page Size（list 操作Optional）"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "分页标记（list 操作可选）"
+                        description = "分页标记（list 操作Optional）"
                     )
                 ),
                 required = listOf("action")

@@ -60,11 +60,11 @@ private const val MAX_FILE_SIZE = 20L * 1024 * 1024 // 20MB
 class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_media"
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official description)
-    override val description = "【以用户身份】文档媒体管理工具。" +
+    override val description = "【以User身份】Documentation媒体ManagedTool。" +
         "支持两种操作：" +
-        "(1) insert - 在飞书文档末尾插入本地图片或文件（需要文档 ID + 本地文件路径）；" +
-        "(2) download - 下载文档素材或画板缩略图到本地（需要资源 token + 输出路径）。" +
-        "\n\n【重要】insert 仅支持本地文件路径。URL 图片请使用 create-doc/update-doc 的 <image url=\"...\"/> 语法。"
+        "(1) insert - 在FeishuDocumentation末尾插入本地Image或文件（Need toDocumentation ID + 本地File Path）；" +
+        "(2) download - 下载Documentation素材或画板缩略图到本地（Need to资源 token + Output路径）。" +
+        "\n\n【Important】insert 仅支持本地File Path。URL ImagePlease使用 create-doc/update-doc 的 <image url=\"...\"/> 语法。"
 
     override fun isEnabled() = config.enableDocTools
 
@@ -121,7 +121,7 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             blockType = 27
             blockData = mapOf("image" to emptyMap<String, Any?>())
             parentType = "docx_image"
-            label = "图片"
+            label = "Image"
         } else {
             blockType = 23
             blockData = mapOf("file" to mapOf("token" to ""))
@@ -321,17 +321,17 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action: insert or download",
                         enum = listOf("insert", "download")),
-                    "doc_id" to PropertySchema("string", "文档 ID 或文档 URL（insert 时必填）。支持从 URL 自动提取 document_id"),
-                    "file_path" to PropertySchema("string", "本地文件的绝对路径（insert 时必填）。图片支持 jpg/png/gif/webp 等，文件支持任意格式，最大 20MB"),
-                    "type" to PropertySchema("string", "媒体类型：\"image\"（图片，默认）或 \"file\"（文件附件）",
+                    "doc_id" to PropertySchema("string", "Documentation ID 或Documentation URL（insert 时Required）。支持从 URL Auto提取 document_id"),
+                    "file_path" to PropertySchema("string", "本地文件的绝对路径（insert 时Required）。Image支持 jpg/png/gif/webp 等，文件支持任意Format，Maximum 20MB"),
+                    "type" to PropertySchema("string", "媒体Type：\"image\"（Image，Default）或 \"file\"（文件Attachment）",
                         enum = listOf("image", "file")),
-                    "align" to PropertySchema("string", "对齐方式（仅图片生效）：\"center\"（默认居中）、\"left\"（居左）、\"right\"（居右）",
+                    "align" to PropertySchema("string", "对齐方式（仅Image生效）：\"center\"（Default居Medium）、\"left\"（居左）、\"right\"（居右）",
                         enum = listOf("left", "center", "right")),
-                    "caption" to PropertySchema("string", "图片描述/标题（可选，仅图片生效）"),
-                    "resource_token" to PropertySchema("string", "资源的唯一标识（file_token 用于文档素材，whiteboard_id 用于画板）"),
-                    "resource_type" to PropertySchema("string", "资源类型：media（文档素材：图片、视频、文件等）或 whiteboard（画板缩略图）",
+                    "caption" to PropertySchema("string", "ImageDescription/标题（Optional，仅Image生效）"),
+                    "resource_token" to PropertySchema("string", "资源的Unique ID（file_token 用于Documentation素材，whiteboard_id 用于画板）"),
+                    "resource_type" to PropertySchema("string", "资源Type：media（Documentation素材：Image、视频、文件等）或 whiteboard（画板缩略图）",
                         enum = listOf("media", "whiteboard")),
-                    "output_path" to PropertySchema("string", "保存文件的完整本地路径。可以包含扩展名（如 /tmp/image.png），也可以不带扩展名，系统会根据 Content-Type 自动添加")
+                    "output_path" to PropertySchema("string", "Save文件的完整本地路径。Can包含Extended名（如 /tmp/image.png），也Can不带Extended名，系统会根据 Content-Type Auto添加")
                 ),
                 required = listOf("action")
             )

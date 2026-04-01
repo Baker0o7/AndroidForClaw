@@ -56,8 +56,8 @@ class ContextManager(
     ): ContextRecoveryResult {
         val errorMessage = ContextErrors.extractErrorMessage(error)
 
-        Log.e(TAG, "检测到上下文超限: $errorMessage")
-        Log.d(TAG, "当前消息数: ${messages.size}")
+        Log.e(TAG, "检测到Context Exceeded: $errorMessage")
+        Log.d(TAG, "当前Message数: ${messages.size}")
         Log.d(TAG, "已尝试 compaction: $compactionAttempts 次")
         Log.d(TAG, "已尝试截断: $toolResultTruncationAttempted")
 
@@ -83,7 +83,7 @@ class ContextManager(
                 compactionAttempts++
                 val compacted = compactionResult.getOrNull()!!
 
-                Log.d(TAG, "Compaction 成功: ${legacyMessages.size} -> ${compacted.size} 条消息")
+                Log.d(TAG, "Compaction Success: ${legacyMessages.size} -> ${compacted.size} 条Message")
 
                 // 转换回 Message
                 val newMessages = convertFromLegacyMessages(compacted)
@@ -94,7 +94,7 @@ class ContextManager(
                     attempt = compactionAttempts
                 )
             } else {
-                Log.e(TAG, "Compaction 失败: ${compactionResult.exceptionOrNull()?.message}")
+                Log.e(TAG, "Compaction Failed: ${compactionResult.exceptionOrNull()?.message}")
 
                 // Compaction failed, check if it's due to compaction itself causing overflow
                 if (ContextErrors.isCompactionFailureError(errorMessage)) {
@@ -119,7 +119,7 @@ class ContextManager(
                 val truncated = ToolResultTruncator.truncateToolResults(legacyMessages)
                 val newMessages = convertFromLegacyMessages(truncated)
 
-                Log.d(TAG, "工具结果截断完成")
+                Log.d(TAG, "Tool Result截断Done")
 
                 return ContextRecoveryResult.Recovered(
                     messages = newMessages,
@@ -127,7 +127,7 @@ class ContextManager(
                     attempt = 1
                 )
             } else {
-                Log.d(TAG, "没有检测到超大工具结果")
+                Log.d(TAG, "没Has检测到超大Tool Result")
             }
         }
 
@@ -157,16 +157,16 @@ class ContextManager(
     suspend fun preemptivelyCompact(
         messages: List<Message>
     ): List<Message> {
-        Log.d(TAG, "预防性压缩...")
+        Log.d(TAG, "预防性Compress...")
 
         val legacyMessages = convertToLegacyMessages(messages)
         val result = compactor.compactMessages(legacyMessages, keepLastN = 5)
 
         return if (result.isSuccess) {
-            Log.d(TAG, "预防性压缩成功")
+            Log.d(TAG, "预防性CompressSuccess")
             convertFromLegacyMessages(result.getOrNull()!!)
         } else {
-            Log.w(TAG, "预防性压缩失败，使用原消息")
+            Log.w(TAG, "预防性CompressFailed，使用原Message")
             messages
         }
     }

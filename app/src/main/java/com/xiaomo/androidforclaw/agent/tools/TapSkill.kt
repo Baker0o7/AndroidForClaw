@@ -27,11 +27,11 @@ class TapSkill : Skill {
         get() {
             val isAccessibilityEnabled = AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isServiceReady()
             val statusNote = if (!isAccessibilityEnabled) {
-                "\n\n⚠️ **当前状态：不可用** - 无障碍服务未连接"
+                "\n\n⚠️ **当前Status：Unavailable** - Accessibility ServiceDisconnected"
             } else {
-                "\n✅ **当前状态：可用**"
+                "\n✅ **当前Status：Available**"
             }
-            return "点击屏幕上的坐标位置。用于点击按钮、输入框、列表项等可交互元素。**注意**: 操作屏幕前使用 get_view_tree() 获取 UI 元素信息即可，不需要再调用 screenshot()。$statusNote"
+            return "点击屏幕上的坐标位置。用于点击Button、Input、List项等可交互元素。**Attention**: 操作屏幕前使用 get_view_tree() 获取 UI 元素Info即可，No need to再调用 screenshot()。$statusNote"
         }
 
     override fun getToolDefinition(): ToolDefinition {

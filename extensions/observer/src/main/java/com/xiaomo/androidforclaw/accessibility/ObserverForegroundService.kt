@@ -20,22 +20,22 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 
 /**
- * 前台服务 (重构版)
+ * Foreground Service (Refactored)
  *
- * 用于维持 MediaProjection 录屏权限
+ * Used to maintain MediaProjection screen recording permission
  *
- * 主要改进:
- * 1. 简化启动流程 - 启动即进入前台模式
- * 2. 移除广播机制 - 降低复杂度
- * 3. 添加健康检查
- * 4. 改进通知内容
+ * Key improvements:
+ * 1. Simplified startup flow - enters foreground mode immediately on start
+ * 2. Removed broadcast mechanism - reduced complexity
+ * 3. Added health check
+ * 4. Improved notification content
  */
 class ObserverForegroundService : Service() {
     companion object {
         private const val TAG = "S4ClawForeground"
         private const val NOTIFICATION_ID = 10086
         private const val CHANNEL_ID = "s4claw_media_projection"
-        private const val CHANNEL_NAME = "S4Claw 录屏服务"
+        private const val CHANNEL_NAME = "S4Claw Screen Recording Service"
 
         @Volatile
         private var isRunning = false
@@ -53,7 +53,7 @@ class ObserverForegroundService : Service() {
         Log.i(TAG, "========== onStartCommand called ==========")
 
         try {
-            // 立即进入前台模式
+            // Enter foreground mode immediately
             startForegroundWithType()
             isRunning = true
 
@@ -63,22 +63,22 @@ class ObserverForegroundService : Service() {
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to start foreground service", e)
-            // 启动失败,停止服务
+            // Failed to start, stop service
             stopSelf()
             isRunning = false
         }
 
-        return START_STICKY  // 系统杀掉后会自动重启
+        return START_STICKY  // Auto-restart if killed by system
     }
 
     /**
-     * 使用正确的 foregroundServiceType 启动前台服务
+     * Start foreground service with correct foregroundServiceType
      */
     private fun startForegroundWithType() {
         val notification = createNotification()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Android 14+ 需要明确指定 foregroundServiceType
+            // Android 14+ requires explicit foregroundServiceType
             startForeground(
                 NOTIFICATION_ID,
                 notification,
@@ -97,7 +97,7 @@ class ObserverForegroundService : Service() {
     }
 
     /**
-     * 创建通知渠道
+     * Create notification channel
      */
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -106,7 +106,7 @@ class ObserverForegroundService : Service() {
                 CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "S4Claw 需要前台服务来维持录屏权限"
+                description = "S4Claw requires foreground service to maintain screen recording permission"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
@@ -120,10 +120,10 @@ class ObserverForegroundService : Service() {
     }
 
     /**
-     * 创建通知
+     * Create notification
      */
     private fun createNotification(): Notification {
-        // 点击通知打开权限管理页面
+        // Tap notification to open permission management page
         val notificationIntent = Intent(this, PermissionActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -142,13 +142,13 @@ class ObserverForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("S4Claw 录屏服务")
-            .setContentText("正在维持录屏权限 · 点击查看状态")
+            .setContentTitle("S4Claw Screen Recording Service")
+            .setContentText("Maintaining screen recording permission · Tap to view status")
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setShowWhen(true)
-            .setOngoing(true)  // 不可滑动删除
+            .setOngoing(true)  // Cannot be swiped away
             .setContentIntent(pendingIntent)
             .setAutoCancel(false)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
@@ -156,7 +156,7 @@ class ObserverForegroundService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return null  // 不支持绑定
+        return null  // Binding not supported
     }
 
     override fun onDestroy() {

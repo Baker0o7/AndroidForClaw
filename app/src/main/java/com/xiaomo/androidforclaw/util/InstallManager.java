@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw equivalent (Android platform specific)
  */
 package com.xiaomo.androidforclaw.util;
 
@@ -51,120 +51,120 @@ public class InstallManager {
     }
 
     public static void apkInstall(String apkAbsolutePath, PackageInstallObserver observer) {
-        Log.d(TAG, "开始APK安装流程，路径: " + apkAbsolutePath);
+        Log.d(TAG, "Starting APK installation, path: " + apkAbsolutePath);
 
         if (TextUtils.isEmpty(apkAbsolutePath)) {
-            Log.e(TAG, "APK路径为空！");
+            Log.e(TAG, "APK path is empty!");
             observer.onInstallFailure("", "APKABSOLUTEPATH_IS_NULL");
             return;
         }
 
         File apkFile = new File(apkAbsolutePath);
         if (!apkFile.exists()) {
-            Log.e(TAG, "APK文件不存在: " + apkAbsolutePath);
+            Log.e(TAG, "APK file does not exist: " + apkAbsolutePath);
             observer.onInstallFailure(apkAbsolutePath, "APK_FILE_NOT_EXISTS");
             return;
         }
 
-        Log.d(TAG, "APK文件存在，大小: " + apkFile.length() + " bytes");
+        Log.d(TAG, "APK file exists, size: " + apkFile.length() + " bytes");
         observer.onInstallStart(apkAbsolutePath);
 
-        // 检查安装权限
+        // Check install permission
         Context context = MyApplication.application.getApplicationContext();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             boolean hasInstallPermission = context.getPackageManager().canRequestPackageInstalls();
-            Log.d(TAG, "安装权限检查: " + hasInstallPermission);
+            Log.d(TAG, "Install permission check: " + hasInstallPermission);
             if (!hasInstallPermission) {
-                Log.w(TAG, "没有安装权限，静默安装可能失败");
+                Log.w(TAG, "No install permission, silent installation may fail");
                 observer.onInstallFailure(apkAbsolutePath, "NO_INSTALL_PERMISSION");
                 return;
             }
         }
 
-        // 检查存储权限
+        // Check storage permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             boolean hasStoragePermission = android.os.Environment.isExternalStorageManager();
-            Log.d(TAG, "存储管理权限检查: " + hasStoragePermission);
+            Log.d(TAG, "Storage manager permission check: " + hasStoragePermission);
             if (!hasStoragePermission) {
-                Log.w(TAG, "没有存储管理权限，可能无法访问外部存储");
+                Log.w(TAG, "No storage manager permission, may not access external storage");
             }
         }
 
-        Log.d(TAG, "开始解析APK文件: " + apkAbsolutePath);
-        Log.d(TAG, "APK文件可读性: " + apkFile.canRead());
-        Log.d(TAG, "APK文件权限: " + apkFile.getAbsolutePath());
+        Log.d(TAG, "Starting APK file parsing: " + apkAbsolutePath);
+        Log.d(TAG, "APK file readability: " + apkFile.canRead());
+        Log.d(TAG, "APK file permissions: " + apkFile.getAbsolutePath());
 
         ApkInfo apkInfo = new ApkInfo(Uri.fromFile(apkFile));
-        Log.d(TAG, "创建ApkInfo对象成功");
+        Log.d(TAG, "ApkInfo object created successfully");
 
         boolean prepareResult = apkInfo.prepare();
-        Log.d(TAG, "APK解析结果: " + prepareResult);
+        Log.d(TAG, "APK parse result: " + prepareResult);
 
         if (!prepareResult) {
-            Log.e(TAG, "APK文件解析失败，可能不是有效的APK文件");
-            Log.e(TAG, "APK文件路径: " + apkAbsolutePath);
-            Log.e(TAG, "APK文件大小: " + apkFile.length());
-            Log.e(TAG, "APK文件存在: " + apkFile.exists());
-            Log.e(TAG, "APK文件可读: " + apkFile.canRead());
+            Log.e(TAG, "APK file parsing failed, may not be a valid APK file");
+            Log.e(TAG, "APK file path: " + apkAbsolutePath);
+            Log.e(TAG, "APK file size: " + apkFile.length());
+            Log.e(TAG, "APK file exists: " + apkFile.exists());
+            Log.e(TAG, "APK file readable: " + apkFile.canRead());
             observer.onInstallFailure(apkAbsolutePath, "APK_UNAVAILABLE");
             return;
         }
 
-        Log.d(TAG, "APK信息解析成功，包名: " + apkInfo.getApkPackageName());
+        Log.d(TAG, "APK info parsed successfully, package name: " + apkInfo.getApkPackageName());
 
-        // 直接调用安装方法
+        // Directly call install method
         boolean installResult = installApkDirectly(apkInfo, observer);
         if (!installResult) {
-            Log.e(TAG, "APK安装失败");
+            Log.e(TAG, "APK installation failed");
             observer.onInstallFailure(apkAbsolutePath, "INSTALL_FAILED");
         }
     }
 
     private static boolean installApkDirectly(ApkInfo apkInfo, PackageInstallObserver observer) {
-        Log.d(TAG, "开始直接安装APK: " + apkInfo.getApkPackageName());
+        Log.d(TAG, "Starting direct APK installation: " + apkInfo.getApkPackageName());
 
         InputStream in = null;
         OutputStream out = null;
         PackageInstaller.Session session = null;
         String packageName = apkInfo.getApkPackageName();
 
-        // 设置超时处理
+        // Set up timeout handling
         Handler handler = new Handler(android.os.Looper.getMainLooper());
         Runnable timeoutRunnable = new Runnable() {
             @Override
             public void run() {
                 if (sObservers.containsKey(packageName)) {
-                    Log.e(TAG, "APK安装超时: " + packageName);
+                    Log.e(TAG, "APK installation timeout: " + packageName);
                     observer.onInstallFailure(apkInfo.getApkUri().getPath(), "INSTALL_TIMEOUT");
                     sObservers.remove(packageName);
                 }
             }
         };
 
-        // 创建安装结果监听器
+        // Create install result listener
         InstallResultListener resultListener = new InstallResultListener(packageName, observer);
         resultListener.setHandler(handler, timeoutRunnable);
         sObservers.put(packageName, resultListener);
 
-        handler.postDelayed(timeoutRunnable, 60000); // 60秒超时
+        handler.postDelayed(timeoutRunnable, 60000); // 60 second timeout
 
         try {
             Context context = MyApplication.application.getApplicationContext();
             PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
 
-            Log.d(TAG, "创建安装会话...");
+            Log.d(TAG, "Creating install session...");
             PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
                     PackageInstaller.SessionParams.MODE_FULL_INSTALL);
             params.setAppPackageName(packageName);
 
             int sessionId = packageInstaller.createSession(params);
-            Log.d(TAG, "安装会话创建成功，ID: " + sessionId);
+            Log.d(TAG, "Install session created, ID: " + sessionId);
 
             session = packageInstaller.openSession(sessionId);
             Uri uri = apkInfo.getApkUri();
             File apkFile = new File(uri.getPath());
 
-            Log.d(TAG, "开始写入APK数据...");
+            Log.d(TAG, "Writing APK data...");
             in = new FileInputStream(apkFile);
             String sessionName = String.valueOf(Math.abs(uri.getPath().hashCode()));
             out = session.openWrite(sessionName, 0, apkFile.length());
@@ -175,31 +175,31 @@ public class InstallManager {
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
                 totalBytes += read;
-                if (totalBytes % (1024 * 1024) == 0) { // 每1MB打印一次进度
-                    Log.d(TAG, "已写入: " + (totalBytes / 1024 / 1024) + "MB");
+                if (totalBytes % (1024 * 1024) == 0) { // Print progress every 1MB
+                    Log.d(TAG, "Written: " + (totalBytes / 1024 / 1024) + "MB");
                 }
             }
 
-            Log.d(TAG, "APK数据写入完成，总计: " + totalBytes + " bytes");
+            Log.d(TAG, "APK data written, total: " + totalBytes + " bytes");
             session.fsync(out);
             in.close();
             out.close();
 
-            Log.d(TAG, "提交安装会话...");
+            Log.d(TAG, "Committing install session...");
             IntentSender intentSender = getDefaultIntentSender(context, packageName);
-            Log.d(TAG, "IntentSender创建成功: " + intentSender);
+            Log.d(TAG, "IntentSender created: " + intentSender);
             session.commit(intentSender);
-            Log.d(TAG, "APK安装提交成功，开始检查安装状态...");
+            Log.d(TAG, "APK install committed, checking install status...");
 
-            // 使用延迟检查的方式，不依赖广播接收器
+            // Use delayed check approach, not relying on broadcast receiver
             checkInstallStatusDelayed(packageName, observer, handler, timeoutRunnable);
 
-            // 同时启动系统安装Intent作为备选方案
+            // Also start system install Intent as fallback
 //            startSystemInstallIntent(apkInfo, observer);
             return true;
 
         } catch (Exception e) {
-            Log.e(TAG, "APK安装过程中发生异常: " + e.getMessage(), e);
+            Log.e(TAG, "Exception during APK installation: " + e.getMessage(), e);
             observer.onInstallFailure(apkInfo.getApkUri().getPath(), "INSTALL_EXCEPTION: " + e.getMessage());
             sObservers.remove(packageName);
             handler.removeCallbacks(timeoutRunnable);
@@ -213,9 +213,9 @@ public class InstallManager {
 
     private static void checkInstallStatusDelayed(String packageName, PackageInstallObserver observer,
                                                   Handler handler, Runnable timeoutRunnable) {
-        Log.d(TAG, "开始延迟检查安装状态: " + packageName);
+        Log.d(TAG, "Starting delayed install status check: " + packageName);
 
-        // 每2秒检查一次安装状态，最多检查15次（30秒）
+        // Check install status every 2 seconds, max 15 checks (30 seconds)
         final int[] checkCount = {0};
         final int maxChecks = 15;
 
@@ -223,7 +223,7 @@ public class InstallManager {
             @Override
             public void run() {
                 checkCount[0]++;
-                Log.d(TAG, "第" + checkCount[0] + "次检查安装状态: " + packageName);
+                Log.d(TAG, "Install status check #" + checkCount[0] + ": " + packageName);
 
                 try {
                     Context context = MyApplication.application.getApplicationContext();
@@ -235,28 +235,28 @@ public class InstallManager {
                             long installTime = packageInfo.firstInstallTime;
                             long lastUpdateTime = packageInfo.lastUpdateTime;
                             long currentTime = System.currentTimeMillis();
-                            // 如果最近1分钟内有安装或更新，认为安装成功
+                            // If installed or updated within the last minute, consider it a success
                             if (currentTime - installTime < 60000 || currentTime - lastUpdateTime < 60000) {
                                 Intent launchIntent = pm.getLaunchIntentForPackage(packageName);
                                 if (launchIntent != null) {
-                                    Log.d(TAG, "APK安装成功: " + packageName);
+                                    Log.d(TAG, "APK installed successfully: " + packageName);
                                     handler.removeCallbacks(timeoutRunnable);
-                                    observer.onInstallSuccess("安装成功");
+                                    observer.onInstallSuccess("Installation successful");
                                     sObservers.remove(packageName);
                                 } else {
-                                    Log.d(TAG, "应用已安装但无启动Activity，继续等待...");
+                                    Log.d(TAG, "App installed but no launch Activity, continuing to wait...");
                                 }
                             } else {
-                                Log.d(TAG, "应用已存在但不是新安装的，继续等待...");
+                                Log.d(TAG, "App already exists but not newly installed, continuing to wait...");
                             }
                         } else {
-                            Log.d(TAG, "应用已安装但被禁用，继续等待...");
+                            Log.d(TAG, "App installed but disabled, continuing to wait...");
                         }
                     } catch (PackageManager.NameNotFoundException e) {
-                        Log.d(TAG, "应用尚未安装，继续等待...");
+                        Log.d(TAG, "App not yet installed, continuing to wait...");
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "检查安装状态时发生异常: " + e.getMessage(), e);
+                    Log.e(TAG, "Exception while checking install status: " + e.getMessage(), e);
                     handler.removeCallbacks(timeoutRunnable);
                     observer.onInstallFailure("", "INSTALL_CHECK_EXCEPTION: " + e.getMessage());
                     sObservers.remove(packageName);
@@ -264,34 +264,34 @@ public class InstallManager {
             }
         };
 
-        // 延迟2秒开始第一次检查
+        // Delay first check by 2 seconds
         handler.postDelayed(checkRunnable, 2000);
     }
 
     private static void startSystemInstallIntent(ApkInfo apkInfo, PackageInstallObserver observer) {
         try {
-            Log.d(TAG, "启动系统安装Intent作为备选方案");
+            Log.d(TAG, "Launching system install Intent as fallback");
             Context context = MyApplication.application.getApplicationContext();
 
-            // 检查安装权限
+            // Check install permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 boolean hasInstallPermission = context.getPackageManager().canRequestPackageInstalls();
                 if (!hasInstallPermission) {
-                    Log.w(TAG, "没有安装权限，无法使用系统安装Intent");
+                    Log.w(TAG, "No install permission, cannot use system install Intent");
                     return;
                 }
             }
 
-            // 使用FileProvider创建URI
+            // Create URI using FileProvider
             Uri apkUri = apkInfo.getApkUri();
-            Log.d(TAG, "原始APK URI: " + apkUri);
+            Log.d(TAG, "Original APK URI: " + apkUri);
 
-            // 如果是file:// URI，需要转换为FileProvider URI
+            // If it's a file:// URI, need to convert to FileProvider URI
             if (apkUri.getScheme().equals("file")) {
                 String filePath = apkUri.getPath();
-                Log.d(TAG, "APK文件路径: " + filePath);
+                Log.d(TAG, "APK file path: " + filePath);
 
-                // 使用FileProvider创建URI
+                // Create URI using FileProvider
                 String authority = context.getPackageName() + ".provider";
                 apkUri = androidx.core.content.FileProvider.getUriForFile(
                         context,
@@ -301,17 +301,17 @@ public class InstallManager {
                 Log.d(TAG, "FileProvider URI: " + apkUri);
             }
 
-            // 创建系统安装Intent
+            // Create system install Intent
             Intent installIntent = new Intent(Intent.ACTION_VIEW);
             installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-            Log.d(TAG, "启动系统安装Intent: " + installIntent);
+            Log.d(TAG, "Launching system install Intent: " + installIntent);
             context.startActivity(installIntent);
-            Log.d(TAG, "系统安装Intent已启动，请用户手动确认安装");
+            Log.d(TAG, "System install Intent launched, user must manually confirm installation");
 
         } catch (Exception e) {
-            Log.e(TAG, "启动系统安装Intent失败: " + e.getMessage(), e);
+            Log.e(TAG, "Failed to launch system install Intent: " + e.getMessage(), e);
         }
     }
 
@@ -337,27 +337,27 @@ public class InstallManager {
     }
 
     public static void notifyResult(final String pkgName, final int returnCode, Bundle extrac) {
-        Log.d(TAG, "notifyResult被调用，包名: " + pkgName + ", 返回码: " + returnCode);
-        Log.d(TAG, "当前观察者数量: " + sObservers.size());
-        Log.d(TAG, "观察者列表: " + sObservers.keySet());
+        Log.d(TAG, "notifyResult called, package: " + pkgName + ", return code: " + returnCode);
+        Log.d(TAG, "Current observer count: " + sObservers.size());
+        Log.d(TAG, "Observer list: " + sObservers.keySet());
 
         IPackageInstallObserver observer = sObservers.remove(pkgName);
         if (observer == null) {
-            Log.w(TAG, "没有找到对应的观察者: " + pkgName);
+            Log.w(TAG, "No matching observer found: " + pkgName);
             return;
         }
 
-        Log.d(TAG, "找到观察者，开始通知结果");
+        Log.d(TAG, "Observer found, notifying result");
         try {
             observer.packageInstalledResult(pkgName, returnCode, extrac);
-            Log.d(TAG, "观察者通知成功");
+            Log.d(TAG, "Observer notified successfully");
         } catch (Throwable e) {
-            Log.e(TAG, "观察者通知失败: " + e.getMessage(), e);
+            Log.e(TAG, "Observer notification failed: " + e.getMessage(), e);
             try {
                 observer.reNotifyResultOnError(pkgName, returnCode, extrac);
-                Log.d(TAG, "重试通知成功");
+                Log.d(TAG, "Retry notification succeeded");
             } catch (Throwable ex) {
-                Log.e(TAG, "重试通知也失败: " + ex.getMessage(), ex);
+                Log.e(TAG, "Retry notification also failed: " + ex.getMessage(), ex);
             }
         }
     }
@@ -410,7 +410,7 @@ public class InstallManager {
         }
 
         /**
-         * 某些手机上会出现java.lang.NoSuchMethodError,packageInstalledResult(Ljava/lang/String;ILandroid/os/Bundle;)调用失败,这时手动重新调用一下
+         * On some devices java.lang.NoSuchMethodError may occur, packageInstalledResult call fails, manually retry here
          */
         public void reNotifyResultOnError(String packageName, int returnCode, Bundle extras) {
             packageInstalledResult(packageName, returnCode, extras);
@@ -420,7 +420,7 @@ public class InstallManager {
 
     class InstallManagerInfo {
         public static final int INSTALL_SUCCEEDED = 1;
-        public static final int ERROR_NO_ENOUGH_SPACE_AFTER_INSTALL = 11;  //安装过程中发生的空间不足
+        public static final int ERROR_NO_ENOUGH_SPACE_AFTER_INSTALL = 11;  //Insufficient space during installation
         public static final int ERROR_INSTALL_COMMIT_FAIL = 17;
         /**
          * Installation return code: this is passed in the {PackageInstaller#EXTRA_LEGACY_STATUS}
@@ -460,58 +460,58 @@ public class InstallManager {
         private static final String TAG = "SessionInstallReceiver";
         private static final String EXTRA_LEGACY_STATUS = "android.content.pm.extra.LEGACY_STATUS";
         public static final String ACTION_INSTALL_RESULT = "com.xiaomo.androidforclaw.action.INSTALL_RESULT";
-        //legacyStatus没有通用错误码可用，此处使用未定义的错误码，以便在接下来的PackageInstallObserver中被转换为商店的错误码ERROR_INSTALL_DEFAULT_FAIL
+        // legacyStatus has no universal error code available; use undefined error code here so it can be converted to store error code ERROR_INSTALL_DEFAULT_FAIL in PackageInstallObserver
         private static final int STATUS_UNKNOWN = -10000;
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "广播接收器收到Intent: " + intent);
+            Log.d(TAG, "Broadcast receiver received Intent: " + intent);
             Log.d(TAG, "Intent Action: " + intent.getAction());
             Log.d(TAG, "Intent Data: " + intent.getDataString());
             Log.d(TAG, "Intent Extras: " + intent.getExtras());
 
             String action = intent.getAction();
-            Log.d(TAG, "检查Action是否匹配: " + action + " == " + ACTION_INSTALL_RESULT);
+            Log.d(TAG, "Checking Action match: " + action + " == " + ACTION_INSTALL_RESULT);
 
             if (ACTION_INSTALL_RESULT.equals(action)) {
-                Log.d(TAG, "Action匹配成功，开始处理安装结果");
+                Log.d(TAG, "Action matched, processing install result");
 
                 String packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME);
-                Log.d(TAG, "从EXTRA_PACKAGE_NAME获取包名: " + packageName);
+                Log.d(TAG, "Package name from EXTRA_PACKAGE_NAME: " + packageName);
 
                 if (TextUtils.isEmpty(packageName)) {
-                    packageName = intent.getStringExtra("packageName"); //被CustomOS拦截时存在一种不标准的参数写法，做兼容
-                    Log.d(TAG, "从packageName获取包名: " + packageName);
+                    packageName = intent.getStringExtra("packageName"); // Non-standard parameter format when intercepted by CustomOS, handle for compatibility
+                    Log.d(TAG, "Package name from packageName: " + packageName);
                 }
 
                 int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
                 String message = intent.getStringExtra(EXTRA_STATUS_MESSAGE);
 
-                Log.d(TAG, "安装状态: " + status);
-                Log.d(TAG, "状态消息: " + message);
-                Log.d(TAG, "包名: " + packageName);
+                Log.d(TAG, "Install status: " + status);
+                Log.d(TAG, "Status message: " + message);
+                Log.d(TAG, "Package name: " + packageName);
 
                 if (status != PackageInstaller.STATUS_SUCCESS) {
                     Log.e(TAG, String.format(Locale.getDefault(), "install %s failed with [status=%d,message=%s]", packageName, status, message));
                 } else {
-                    Log.d(TAG, "安装成功: " + packageName);
+                    Log.d(TAG, "Installation successful: " + packageName);
                 }
 
                 handleSessionInstallByNormal(context, intent, packageName, status);
             } else {
-                Log.w(TAG, "Action不匹配，忽略此广播: " + action);
+                Log.w(TAG, "Action mismatch, ignoring broadcast: " + action);
             }
         }
 
         private void handleSessionInstallByNormal(Context context, final Intent intent, final String packageName, final int status) {
-            Log.d(TAG, "开始处理安装结果，包名: " + packageName + ", 状态: " + status);
+            Log.d(TAG, "Processing install result, package: " + packageName + ", status: " + status);
 
             int legacyStatus;
             if (intent.hasExtra(EXTRA_LEGACY_STATUS)) {
                 legacyStatus = intent.getIntExtra(EXTRA_LEGACY_STATUS, STATUS_UNKNOWN);
-                Log.d(TAG, "从EXTRA_LEGACY_STATUS获取legacy状态: " + legacyStatus);
+                Log.d(TAG, "Legacy status from EXTRA_LEGACY_STATUS: " + legacyStatus);
             } else {
-                Log.d(TAG, "没有EXTRA_LEGACY_STATUS，根据status转换legacy状态");
+                Log.d(TAG, "No EXTRA_LEGACY_STATUS, converting legacy status from status");
                 switch (status) {
                     case PackageInstaller.STATUS_SUCCESS:
                         legacyStatus = InstallManagerInfo.INSTALL_SUCCEEDED;
@@ -539,25 +539,25 @@ public class InstallManager {
                     case PackageInstaller.STATUS_PENDING_USER_ACTION:
                     default:
                         legacyStatus = STATUS_UNKNOWN;
-                        Log.d(TAG, "其他状态 -> STATUS_UNKNOWN");
+                        Log.d(TAG, "Other status -> STATUS_UNKNOWN");
                         break;
                 }
             }
 
-            Log.d(TAG, "最终legacy状态: " + legacyStatus);
+            Log.d(TAG, "Final legacy status: " + legacyStatus);
 
             if (TextUtils.isEmpty(packageName)) {
-                Log.e(TAG, "包名为空，无法处理安装结果");
+                Log.e(TAG, "Package name is empty, cannot process install result");
                 return;
             }
 
             final int resultCode = legacyStatus;
-            Log.d(TAG, "通知安装结果，包名: " + packageName + ", 结果码: " + resultCode);
-            Log.d(TAG, "当前观察者数量: " + sObservers.size());
-            Log.d(TAG, "观察者列表: " + sObservers.keySet());
+            Log.d(TAG, "Notifying install result, package: " + packageName + ", result code: " + resultCode);
+            Log.d(TAG, "Current observer count: " + sObservers.size());
+            Log.d(TAG, "Observer list: " + sObservers.keySet());
 
             InstallManager.notifyResult(packageName, resultCode, intent.getExtras());
-            Log.d(TAG, "安装结果通知完成");
+            Log.d(TAG, "Install result notification complete");
         }
 
     }
@@ -572,7 +572,7 @@ public class InstallManager {
 
     }
 
-    // 安装结果监听器
+    // Install result listener
     private static class InstallResultListener implements IPackageInstallObserver {
         private final String packageName;
         private final PackageInstallObserver observer;
@@ -591,23 +591,23 @@ public class InstallManager {
 
         @Override
         public void packageInstalledResult(String packageName, int returnCode, Bundle extras) {
-            Log.d(TAG, "收到安装结果: " + packageName + ", 返回码: " + returnCode);
+            Log.d(TAG, "Install result received: " + packageName + ", return code: " + returnCode);
 
-            // 取消超时处理
+            // Cancel timeout handling
             if (handler != null && timeoutRunnable != null) {
                 handler.removeCallbacks(timeoutRunnable);
             }
 
             if (returnCode == InstallManagerInfo.INSTALL_SUCCEEDED) {
-                Log.d(TAG, "APK安装成功: " + packageName);
-                observer.onInstallSuccess("安装成功");
+                Log.d(TAG, "APK installed successfully: " + packageName);
+                observer.onInstallSuccess("Installation successful");
             } else {
-                Log.e(TAG, "APK安装失败: " + packageName + ", 返回码: " + returnCode);
-                String errorMsg = "安装失败，返回码: " + returnCode;
+                Log.e(TAG, "APK installation failed: " + packageName + ", return code: " + returnCode);
+                String errorMsg = "Installation failed, return code: " + returnCode;
                 observer.onInstallFailure("", errorMsg);
             }
 
-            // 清理观察者
+            // Clean up observer
             sObservers.remove(packageName);
         }
 

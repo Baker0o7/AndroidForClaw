@@ -29,7 +29,7 @@ class OpenAppSkill(private val context: Context) : Skill {
     }
 
     override val name = "open_app"
-    override val description = "打开指定的应用程序。需要提供应用的包名。"
+    override val description = "Open指定的应用程序。Need to提供应用的Package Name。"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -40,7 +40,7 @@ class OpenAppSkill(private val context: Context) : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "package_name" to PropertySchema("string", "应用的包名，例如 'com.android.settings'")
+                        "package_name" to PropertySchema("string", "应用的Package Name，例如 'com.android.settings'")
                     ),
                     required = listOf("package_name")
                 )

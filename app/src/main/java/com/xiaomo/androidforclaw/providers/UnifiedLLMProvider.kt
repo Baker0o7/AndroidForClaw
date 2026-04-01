@@ -436,11 +436,11 @@ class UnifiedLLMProvider(private val context: Context) {
             if (firstEntry != null) {
                 val firstModel = firstEntry.value.models.firstOrNull()
                 if (firstModel != null) {
-                    Log.w(TAG, "⚠️ 默认模型 '$defaultModel' 的 provider 不存在，fallback 到 '${firstEntry.key}/${firstModel.id}'")
+                    Log.w(TAG, "⚠️ Default Model '$defaultModel' 的 provider 不存在，fallback 到 '${firstEntry.key}/${firstModel.id}'")
                     return Pair(firstEntry.key, firstModel.id)
                 }
             }
-            throw IllegalArgumentException("没有可用的模型配置，请先配置模型")
+            throw IllegalArgumentException("没HasAvailable的Model Configuration，Please先ConfigureModel")
         }
 
         return tryParseModelRef(modelRef)

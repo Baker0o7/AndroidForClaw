@@ -152,7 +152,7 @@ class AppUpdater(private val context: Context) {
 
             val request = DownloadManager.Request(Uri.parse(downloadUrl)).apply {
                 setTitle("AndroidForClaw v$version")
-                setDescription("正在下载更新...")
+                setDescription("正在下载Update...")
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
                 setMimeType("application/vnd.android.package-archive")

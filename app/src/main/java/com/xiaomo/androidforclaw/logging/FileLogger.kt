@@ -56,7 +56,7 @@ class FileLogger(private val context: Context) {
             } catch (_: InterruptedException) {
                 break
             } catch (e: Exception) {
-                Log.e(TAG, "写入日志文件失败", e)
+                Log.e(TAG, "写入Log文件Failed", e)
             }
         }
     }, "FileLogger-Writer").apply {
@@ -160,10 +160,10 @@ class FileLogger(private val context: Context) {
                     outputFile.writeText(combined)
                 }
             }
-            Log.i(TAG, "日志已导出到: $outputPath")
+            Log.i(TAG, "Log已Export到: $outputPath")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "导出日志失败", e)
+            Log.e(TAG, "ExportLogFailed", e)
             false
         }
     }
@@ -183,7 +183,7 @@ class FileLogger(private val context: Context) {
         return try {
             file.readLines().takeLast(lineCount)
         } catch (e: Exception) {
-            Log.e(TAG, "读取日志失败", e)
+            Log.e(TAG, "读取LogFailed", e)
             emptyList()
         }
     }
@@ -210,7 +210,7 @@ class FileLogger(private val context: Context) {
 
             file.appendText(content)
         } catch (e: Exception) {
-            Log.e(TAG, "写入日志文件失败: $filePath", e)
+            Log.e(TAG, "写入Log文件Failed: $filePath", e)
         }
     }
 
@@ -225,11 +225,11 @@ class FileLogger(private val context: Context) {
 
             file.renameTo(archiveFile)
 
-            Log.i(TAG, "日志已轮转: $archiveName")
+            Log.i(TAG, "Log已轮转: $archiveName")
 
             cleanOldArchives(file.parentFile)
         } catch (e: Exception) {
-            Log.e(TAG, "日志轮转失败", e)
+            Log.e(TAG, "Log轮转Failed", e)
         }
     }
 
@@ -248,11 +248,11 @@ class FileLogger(private val context: Context) {
             if (archives.size > MAX_ARCHIVED_LOGS) {
                 archives.drop(MAX_ARCHIVED_LOGS).forEach { file ->
                     file.delete()
-                    Log.d(TAG, "删除旧日志: ${file.name}")
+                    Log.d(TAG, "Delete旧Log: ${file.name}")
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "清理旧归档失败", e)
+            Log.e(TAG, "清理旧归档Failed", e)
         }
     }
 

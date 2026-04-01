@@ -31,58 +31,58 @@ import java.io.FileOutputStream
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * MediaProjection 录屏权限管理器 (重构版)
+ * MediaProjection Screen Recording Permission Manager (Refactored)
  *
- * 主要改进:
- * 1. 正确的生命周期管理
- * 2. 自动启动前台服务
- * 3. 完善的回调处理
- * 4. 错误恢复机制
- * 5. 线程安全
+ * Key improvements:
+ * 1. Proper lifecycle management
+ * 2. Automatic foreground service startup
+ * 3. Comprehensive callback handling
+ * 4. Error recovery mechanism
+ * 5. Thread safety
  */
 object MediaProjectionHelper {
     private const val TAG = "MediaProjectionHelper"
     private const val REQUEST_CODE = 10086
 
-    // 状态常量
-    const val STATUS_NOT_INITIALIZED = "未初始化"
-    const val STATUS_WAITING_PERMISSION = "等待授权"
-    const val STATUS_AUTHORIZED = "已授权"
-    const val STATUS_ERROR = "出现错误"
+    // Status constants
+    const val STATUS_NOT_INITIALIZED = "Not initialized"
+    const val STATUS_WAITING_PERMISSION = "Waiting for authorization"
+    const val STATUS_AUTHORIZED = "Authorized"
+    const val STATUS_ERROR = "Error occurred"
 
-    // 状态管理
+    // State management
     private enum class State {
-        IDLE,           // 空闲
-        REQUESTING,     // 正在请求权限
-        AUTHORIZED,     // 已授权
-        ERROR           // 错误状态
+        IDLE,           // Idle
+        REQUESTING,     // Requesting permission
+        AUTHORIZED,     // Authorized
+        ERROR           // Error state
     }
 
     @Volatile
     private var currentState = State.IDLE
 
-    // MediaProjection 相关
+    // MediaProjection related
     private var mediaProjection: MediaProjection? = null
     private var imageReader: ImageReader? = null
     private var virtualDisplay: VirtualDisplay? = null
 
-    // 屏幕参数
+    // Screen parameters
     private var screenWidth = 0
     private var screenHeight = 0
     private var screenDensity = 0
 
-    // 上下文和配置
+    // Context and configuration
     private var appContext: Context? = null
     private var screenshotDir: File? = null
 
-    // 前台服务状态
+    // Foreground service status
     private val isForegroundServiceRunning = AtomicBoolean(false)
 
-    // 主线程 Handler
+    // Main thread Handler
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * 初始化 - 必须在使用前调用
+     * Initialize - must be called before use
      */
     fun initialize(context: Context, screenshotDirectory: File) {
         appContext = context.applicationContext
@@ -92,7 +92,7 @@ object MediaProjectionHelper {
             screenshotDirectory.mkdirs()
         }
 
-        // 设置目录权限
+        // Set directory permissions
         try {
             screenshotDirectory.setReadable(true, false)
             screenshotDirectory.setWritable(true, false)
@@ -101,7 +101,7 @@ object MediaProjectionHelper {
             Log.w(TAG, "Failed to set directory permissions", e)
         }
 
-        // 获取屏幕参数
+        // Get screen parameters
         updateScreenParameters(context)
 
         Log.i(TAG, "✅ MediaProjectionHelper initialized")
@@ -110,7 +110,7 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 更新屏幕参数
+     * Update screen parameters
      */
     private fun updateScreenParameters(context: Context) {
         try {
@@ -118,7 +118,7 @@ object MediaProjectionHelper {
             val displayMetrics = DisplayMetrics()
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // Service Context 没有 display,尝试获取,失败则使用默认 display
+                // Service Context has no display, try to get one, use default display if failed
                 val display = try {
                     context.display
                 } catch (e: UnsupportedOperationException) {
@@ -138,7 +138,7 @@ object MediaProjectionHelper {
             Log.d(TAG, "Screen parameters updated: ${screenWidth}x${screenHeight} @${screenDensity}dpi")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update screen parameters, using defaults", e)
-            // 使用常见的默认值
+            // Use common default values
             screenWidth = 1080
             screenHeight = 2400
             screenDensity = 480
@@ -146,27 +146,27 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 请求录屏权限
+     * Request screen recording permission
      *
-     * @return false 表示需要等待用户授权, true 表示已经授权
+     * @return false means waiting for user authorization, true means already authorized
      */
     fun requestPermission(activity: Activity): Boolean {
         Log.d(TAG, "requestPermission called, current state: $currentState")
 
-        // 如果已经授权,直接返回
+        // If already authorized, return directly
         if (currentState == State.AUTHORIZED && mediaProjection != null) {
             Log.d(TAG, "Already authorized")
             return true
         }
 
-        // 标记状态为正在请求
+        // Mark state as requesting
         currentState = State.REQUESTING
 
         try {
-            // 启动前台服务 (立即进入前台模式避免 ANR)
+            // Start foreground service (enter foreground mode immediately to avoid ANR)
             startForegroundService(activity)
 
-            // 请求 MediaProjection 权限
+            // Request MediaProjection permission
             val manager = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             val intent = manager.createScreenCaptureIntent()
             activity.startActivityForResult(intent, REQUEST_CODE)
@@ -183,8 +183,8 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 处理权限授予结果
-     * 必须在 Activity.onActivityResult 中调用
+     * Handle permission grant result
+     * Must be called in Activity.onActivityResult
      */
     fun handlePermissionResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode != REQUEST_CODE) {
@@ -237,7 +237,7 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 设置 MediaProjection 回调
+     * Set up MediaProjection callbacks
      */
     private fun setupMediaProjectionCallbacks() {
         mediaProjection?.registerCallback(object : MediaProjection.Callback() {
@@ -253,23 +253,23 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 初始化 ImageReader
+     * Initialize ImageReader
      */
     private fun initializeImageReader() {
         try {
-            // 关闭旧的 ImageReader
+            // Close old ImageReader
             imageReader?.close()
             virtualDisplay?.release()
 
-            // 创建新的 ImageReader
+            // Create new ImageReader
             imageReader = ImageReader.newInstance(
                 screenWidth,
                 screenHeight,
                 PixelFormat.RGBA_8888,
-                2  // 缓冲区数量
+                2  // Buffer count
             )
 
-            // 创建 VirtualDisplay
+            // Create VirtualDisplay
             virtualDisplay = mediaProjection?.createVirtualDisplay(
                 "ScreenCapture",
                 screenWidth,
@@ -290,9 +290,9 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 捕获屏幕截图
+     * Capture screen screenshot
      *
-     * @return Pair<Bitmap, String> 或 null (失败)
+     * @return Pair<Bitmap, String> or null (on failure)
      */
     fun captureScreen(): Pair<Bitmap, String>? {
         if (currentState != State.AUTHORIZED || mediaProjection == null || imageReader == null) {
@@ -301,7 +301,7 @@ object MediaProjectionHelper {
         }
 
         try {
-            // 获取最新的 Image
+            // Get latest Image
             val image = imageReader?.acquireLatestImage()
             if (image == null) {
                 Log.w(TAG, "Failed to acquire image")
@@ -309,7 +309,7 @@ object MediaProjectionHelper {
             }
 
             try {
-                // 从 Image 创建 Bitmap
+                // Create Bitmap from Image
                 val planes = image.planes
                 val buffer = planes[0].buffer
                 val pixelStride = planes[0].pixelStride
@@ -323,14 +323,14 @@ object MediaProjectionHelper {
                 )
                 bitmap.copyPixelsFromBuffer(buffer)
 
-                // 裁剪掉 padding
+                // Crop padding
                 val croppedBitmap = if (rowPadding > 0) {
                     Bitmap.createBitmap(bitmap, 0, 0, screenWidth, screenHeight)
                 } else {
                     bitmap
                 }
 
-                // 保存到文件
+                // Save to file
                 val timestamp = System.currentTimeMillis()
                 val file = File(screenshotDir, "screenshot_$timestamp.png")
                 FileOutputStream(file).use { out ->
@@ -351,14 +351,14 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 检查权限是否已授予
+     * Check if permission has been granted
      */
     fun isAuthorized(): Boolean {
         return currentState == State.AUTHORIZED && mediaProjection != null
     }
 
     /**
-     * 获取详细状态
+     * Get detailed status
      */
     fun getDetailedStatus(): String {
         return when (currentState) {
@@ -366,9 +366,9 @@ object MediaProjectionHelper {
             State.REQUESTING -> STATUS_WAITING_PERMISSION
             State.AUTHORIZED -> {
                 if (mediaProjection != null && imageReader != null) {
-                    "$STATUS_AUTHORIZED\n前台服务: ${if (isForegroundServiceRunning.get()) "运行中" else "已停止"}"
+                    "$STATUS_AUTHORIZED\nForeground service: ${if (isForegroundServiceRunning.get()) "Running" else "Stopped"}"
                 } else {
-                    "$STATUS_ERROR: 对象未初始化"
+                    "$STATUS_ERROR: Objects not initialized"
                 }
             }
             State.ERROR -> STATUS_ERROR
@@ -376,7 +376,7 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 重置权限 (释放资源但保留前台服务)
+     * Reset permission (release resources but keep foreground service)
      */
     fun reset() {
         Log.i(TAG, "Resetting MediaProjection...")
@@ -385,7 +385,7 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 完全释放 (包括停止前台服务)
+     * Release completely (including stopping foreground service)
      */
     fun releaseCompletely(context: Context) {
         Log.i(TAG, "Releasing MediaProjection completely...")
@@ -395,7 +395,7 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 清理资源
+     * Clean up resources
      */
     private fun cleanup() {
         try {
@@ -415,7 +415,7 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 启动前台服务
+     * Start foreground service
      */
     private fun startForegroundService(context: Context) {
         try {
@@ -432,7 +432,7 @@ object MediaProjectionHelper {
     }
 
     /**
-     * 停止前台服务
+     * Stop foreground service
      */
     private fun stopForegroundService(context: Context) {
         try {
@@ -445,7 +445,7 @@ object MediaProjectionHelper {
         }
     }
 
-    // ========== 向后兼容的旧 API (废弃) ==========
+    // ========== Legacy API for backward compatibility (deprecated) ==========
 
     @Deprecated("Use initialize() instead", ReplaceWith("initialize(context, screenshotDirectory)"))
     fun setContext(context: Context) {

@@ -261,20 +261,20 @@ h2 { font-size: 14px; color: #888; margin-bottom: 12px; font-weight: 500; }
 <body>
 <div class="container">
 <h1>📋 Web Clipboard</h1>
-<p class="subtitle">在电脑上输入，手机上自动复制到剪切板</p>
+<p class="subtitle">在电脑上Input，手机上AutoCopy到剪切板</p>
 
 <div class="input-area">
 <textarea id="text" placeholder="粘贴 API Key、配置内容或任意文本..." autofocus></textarea>
 </div>
 <div class="actions">
-<button class="btn-send" id="sendBtn" onclick="send()">发送到手机</button>
-<button class="btn-clear" onclick="clearInput()">清空</button>
+<button class="btn-send" id="sendBtn" onclick="send()">Send到手机</button>
+<button class="btn-clear" onclick="clearInput()">清Empty</button>
 </div>
 <div class="status" id="status"></div>
 
-<h2>历史记录（点击复制）</h2>
+<h2>历史Record（点击Copy）</h2>
 <ul class="history" id="history"></ul>
-<div class="empty" id="empty">暂无记录</div>
+<div class="empty" id="empty">暂NoneRecord</div>
 </div>
 
 <script>
@@ -289,7 +289,7 @@ async function send() {
   if (!text) return;
   sendBtn.disabled = true;
   statusEl.className = 'status';
-  statusEl.textContent = '发送中...';
+  statusEl.textContent = 'Sending......';
   try {
     const res = await fetch('/api/clipboard/send', {
       method: 'POST',
@@ -299,7 +299,7 @@ async function send() {
     const data = await res.json();
     if (data.ok) {
       statusEl.className = 'status ok';
-      statusEl.textContent = '✅ 已发送到手机剪切板 (' + data.length + ' 字符)';
+      statusEl.textContent = '✅ 已Send到手机剪切板 (' + data.length + ' 字符)';
       textarea.value = '';
       loadHistory();
     } else {
@@ -307,7 +307,7 @@ async function send() {
     }
   } catch (e) {
     statusEl.className = 'status error';
-    statusEl.textContent = '❌ 发送失败: ' + e.message;
+    statusEl.textContent = '❌ SendFailed: ' + e.message;
   }
   sendBtn.disabled = false;
   setTimeout(() => { statusEl.textContent = ''; }, 3000);
@@ -335,7 +335,7 @@ async function loadHistory() {
       return '<li class="history-item" onclick="copyItem(this, ' + i + ')" data-text="' + escapeAttr(item.text) + '">'
         + '<div class="history-text">' + escapeHtml(preview) + '</div>'
         + '<div class="history-time">' + t + '</div>'
-        + '<div class="history-copied">已复制</div></li>';
+        + '<div class="history-copied">已Copy</div></li>';
     }).join('');
   } catch (e) {}
 }

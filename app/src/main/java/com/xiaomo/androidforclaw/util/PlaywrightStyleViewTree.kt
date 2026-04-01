@@ -3,10 +3,10 @@
  * Playwright snapshot 的 role-based ref 树格式，供 MCP 外部 Agent 使用。
  *
  * 输出示例：
- * - button "登录" [ref=e1] center=(540,1200) bounds=[360,1160,720,1240]
- *   - text "登录" [ref=e2]
- * - textbox "用户名" [ref=e3] center=(540,800) bounds=[100,760,980,840]
- * - link "忘记密码" [ref=e4] center=(540,1300) bounds=[400,1280,680,1320]
+ * - button "Login" [ref=e1] center=(540,1200) bounds=[360,1160,720,1240]
+ *   - text "Login" [ref=e2]
+ * - textbox "User名" [ref=e3] center=(540,800) bounds=[100,760,980,840]
+ * - link "忘记Password" [ref=e4] center=(540,1300) bounds=[400,1280,680,1320]
  *
  * Agent 使用 ref=eN 配合 tap/long_press 等操作。
  */
@@ -344,8 +344,8 @@ object PlaywrightStyleViewTree {
     }
 
     private val SYSTEM_STATUS_KEYWORDS = listOf(
-        "android 系统通知", "系统通知", "通知", "wlan", "信号",
-        "充电", "sim 卡", "振铃器", "振动", "nfc"
+        "android System Notifications", "System Notifications", "Notification", "wlan", "信号",
+        "充电", "sim 卡", "振铃器", "Vibration", "nfc"
     )
 
     private fun isSystemStatusBar(node: ViewNode): Boolean {

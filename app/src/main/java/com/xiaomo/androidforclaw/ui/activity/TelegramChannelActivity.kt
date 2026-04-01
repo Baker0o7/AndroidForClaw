@@ -66,7 +66,7 @@ fun TelegramChannelScreen(
                 title = { Text(stringResource(R.string.telegram_channel_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Back")
                     }
                 },
                 actions = {
@@ -91,7 +91,7 @@ fun TelegramChannelScreen(
                                 showSaveSuccess = true
                             }
                         }
-                    ) { Text("保存") }
+                    ) { Text("Save") }
                 }
             )
         }
@@ -110,7 +110,7 @@ fun TelegramChannelScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("启用 Telegram", style = MaterialTheme.typography.titleMedium)
+                Text("Enable Telegram", style = MaterialTheme.typography.titleMedium)
                 Switch(checked = enabled, onCheckedChange = { enabled = it })
             }
 
@@ -121,7 +121,7 @@ fun TelegramChannelScreen(
                 value = botToken,
                 onValueChange = { botToken = it },
                 label = { Text("Bot Token") },
-                placeholder = { Text("从 @BotFather 获取，格式：123456:ABC-...") },
+                placeholder = { Text("Get from @BotFather, format: 123456:ABC-...") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -158,7 +158,7 @@ fun TelegramChannelScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("群聊需要 @提及")
+                Text("Require @mention in groups")
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
@@ -168,15 +168,15 @@ fun TelegramChannelScreen(
             OutlinedTextField(
                 value = historyLimitText,
                 onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
-                label = { Text("历史消息条数限制（可选）") },
-                placeholder = { Text("留空 = 不限制，如 50") },
+                label = { Text("History message limit (optional)") },
+                placeholder = { Text("Leave empty = unlimited, e.g. 50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             // ── Streaming ──
-            Text("流式回复模式", style = MaterialTheme.typography.titleSmall)
+            Text("Streaming reply mode", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("off", "partial", "block", "progress").forEach { value ->
                     FilterChip(
@@ -191,8 +191,8 @@ fun TelegramChannelScreen(
             OutlinedTextField(
                 value = webhookUrl,
                 onValueChange = { webhookUrl = it },
-                label = { Text("Webhook URL（可选）") },
-                placeholder = { Text("留空 = 使用长轮询（推荐）") },
+                label = { Text("Webhook URL (optional)") },
+                placeholder = { Text("Leave empty = use long polling (recommended)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -209,12 +209,12 @@ fun TelegramChannelScreen(
 
             if (showSaveSuccess) {
                 Spacer(Modifier.height(4.dp))
-                Text("✅ 配置已保存", color = MaterialTheme.colorScheme.primary)
+                Text("✅ Configuration saved", color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "配置保存后需要重启应用生效。\n获取 Bot Token：向 @BotFather 发送 /newbot。",
+                text = "Restart app after saving for changes to take effect.\nGet Bot Token: send /newbot to @BotFather.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

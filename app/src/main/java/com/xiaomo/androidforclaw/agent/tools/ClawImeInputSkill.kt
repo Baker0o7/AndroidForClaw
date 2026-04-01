@@ -35,9 +35,9 @@ class ClawImeInputSkill(private val context: Context) : Skill {
             val clipboardOk = ClipboardInputHelper.isPasteAvailable() && ClipboardInputHelper.isClipboardAvailable(context)
             val imeOk = ClawIMEManager.isClawImeEnabled(context) && ClawIMEManager.isConnected()
             val statusNote = when {
-                clipboardOk -> " ✅ 剪切板输入已就绪"
-                imeOk -> " ✅ ClawIME 键盘已就绪（剪切板不可用）"
-                else -> " ⚠️ **不可用** - 需要开启无障碍服务或 ClawIME 输入法"
+                clipboardOk -> " ✅ 剪切板Input已Ready"
+                imeOk -> " ✅ ClawIME Keyboard已Ready（剪切板Unavailable）"
+                else -> " ⚠️ **Unavailable** - Need toOn启Accessibility Service或 ClawIME Input Method"
             }
             return "Input text via clipboard paste (preferred) or ClawIME keyboard (fallback)$statusNote"
         }
@@ -51,10 +51,10 @@ class ClawImeInputSkill(private val context: Context) : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "text" to PropertySchema("string", "要输入的文本内容"),
+                        "text" to PropertySchema("string", "要Input的文本内容"),
                         "action" to PropertySchema(
                             "string",
-                            "操作类型: 'input'(输入文本,默认) | 'send'(输入后发送) | 'clear'(清空输入框)",
+                            "操作Type: 'input'(Input text,Default) | 'send'(Input后Send) | 'clear'(清EmptyInput)",
                             enum = listOf("input", "send", "clear")
                         )
                     ),
@@ -77,7 +77,7 @@ class ClawImeInputSkill(private val context: Context) : Skill {
 
         if (!clipboardOk && !imeOk) {
             return SkillResult.error(
-                "输入不可用。请开启无障碍服务（推荐，支持剪切板粘贴），或切换到 ClawIME 输入法"
+                "InputUnavailable。PleaseOn启Accessibility Service（Recommended，支持剪切板Paste），或切换到 ClawIME Input Method"
             )
         }
 
@@ -92,16 +92,16 @@ class ClawImeInputSkill(private val context: Context) : Skill {
                     }
                     if (success) {
                         kotlinx.coroutines.delay(100)
-                        SkillResult.success("已清空输入框")
+                        SkillResult.success("已清EmptyInput")
                     } else {
-                        SkillResult.error("清空输入框失败")
+                        SkillResult.error("清EmptyInputFailed")
                     }
                 }
                 "send" -> {
                     // 输入文本
                     val (inputSuccess, method) = inputTextWithFallback(text!!, clipboardOk, imeOk)
                     if (!inputSuccess) {
-                        return SkillResult.error("输入文本失败")
+                        return SkillResult.error("Input textFailed")
                     }
                     kotlinx.coroutines.delay(500)
 
@@ -113,12 +113,12 @@ class ClawImeInputSkill(private val context: Context) : Skill {
                         Runtime.getRuntime().exec(arrayOf("sh", "-c", "input keyevent 66")).waitFor() == 0
                     }
                     if (!sendSuccess) {
-                        return SkillResult.error("发送消息失败")
+                        return SkillResult.error("Send MessageFailed")
                     }
                     kotlinx.coroutines.delay(1000)
 
                     SkillResult.success(
-                        "已输入并发送: $text (${text.length} chars, via $method)",
+                        "已Input并Send: $text (${text.length} chars, via $method)",
                         mapOf(
                             "text" to text,
                             "length" to text.length,
@@ -130,14 +130,14 @@ class ClawImeInputSkill(private val context: Context) : Skill {
                 else -> {
                     val (success, method) = inputTextWithFallback(text!!, clipboardOk, imeOk)
                     if (!success) {
-                        return SkillResult.error("输入文本失败")
+                        return SkillResult.error("Input textFailed")
                     }
 
                     val waitTime = (100L + (text.length * 5L).coerceAtMost(300L)).coerceAtLeast(500L)
                     kotlinx.coroutines.delay(waitTime)
 
                     SkillResult.success(
-                        "已输入: $text (${text.length} chars, via $method)",
+                        "已Input: $text (${text.length} chars, via $method)",
                         mapOf(
                             "text" to text,
                             "length" to text.length,
@@ -149,7 +149,7 @@ class ClawImeInputSkill(private val context: Context) : Skill {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Input failed", e)
-            SkillResult.error("输入失败: ${e.message}")
+            SkillResult.error("InputFailed: ${e.message}")
         }
     }
 

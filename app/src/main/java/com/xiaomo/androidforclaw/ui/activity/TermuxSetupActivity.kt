@@ -97,7 +97,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
         val alreadyConnected = com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.isConnected
         if (!alreadyConnected && initStatus.keypairPresent && !initStatus.sshReachable && initStatus.termuxInstalled) {
             launchingSshd = true
-            sshdLaunchMessage = "正在自动启动 sshd..."
+            sshdLaunchMessage = "正在Auto启动 sshd..."
             try {
                 withContext(Dispatchers.IO) {
                     com.xiaomo.androidforclaw.core.TermuxSshdLauncher.ensureAndLaunch(context)
@@ -113,7 +113,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     val s = withContext(Dispatchers.IO) { bridge.getStatus() }
                     refreshStatus()
                     if (s.ready) {
-                        sshdLaunchMessage = "✅ sshd 已就绪"
+                        sshdLaunchMessage = "✅ sshd 已Ready"
                         com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(context)
                         break
                     }
@@ -122,12 +122,12 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                         if (pubKey != null) {
                             com.xiaomo.androidforclaw.core.TermuxSshdLauncher.injectPublicKey(context, pubKey)
                             keyInjected = true
-                            sshdLaunchMessage = "正在配置 SSH 密钥..."
+                            sshdLaunchMessage = "正在Configure SSH Secret Key..."
                         }
                     }
                 }
             } catch (e: Exception) {
-                sshdLaunchMessage = "自动启动失败: ${e.message}"
+                sshdLaunchMessage = "AutoStartup failed: ${e.message}"
             } finally {
                 launchingSshd = false
                 refreshStatus()

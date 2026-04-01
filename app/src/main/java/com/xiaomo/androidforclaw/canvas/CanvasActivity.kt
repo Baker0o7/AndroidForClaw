@@ -250,7 +250,7 @@ h1 { margin: 0 0 8px; font-size: 22px; }
 <div class="wrap">
   <div class="card">
     <h1>🦞 Claw Canvas</h1>
-    <div class="sub">等待 Agent 加载内容...</div>
+    <div class="sub">Wait Agent Load内容...</div>
   </div>
 </div>
 </body>

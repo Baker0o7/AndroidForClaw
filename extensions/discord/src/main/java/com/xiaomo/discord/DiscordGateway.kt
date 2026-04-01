@@ -69,12 +69,12 @@ class DiscordGateway(
     fun start() {
         scope.launch {
             try {
-                Log.i(TAG, "🚀 启动 Discord Gateway 连接...")
+                Log.i(TAG, "🚀 启动 Discord Gateway Connection...")
                 Log.i(TAG, "   Intents: $intents")
 
                 connect()
             } catch (e: Exception) {
-                Log.e(TAG, "❌ 启动 Gateway 失败", e)
+                Log.e(TAG, "❌ 启动 Gateway Failed", e)
                 eventFlow.emit(DiscordEvent.Error(e))
             }
         }
@@ -86,9 +86,9 @@ class DiscordGateway(
             heartbeatJob?.cancel()
             webSocket?.close(1000, "Normal closure")
             webSocket = null
-            Log.i(TAG, "Gateway 已停止")
+            Log.i(TAG, "Gateway 已Stop")
         } catch (e: Exception) {
-            Log.e(TAG, "停止 Gateway 时出错", e)
+            Log.e(TAG, "Stop Gateway 时出错", e)
         }
     }
 
@@ -99,7 +99,7 @@ class DiscordGateway(
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                Log.i(TAG, "✅ WebSocket 已连接")
+                Log.i(TAG, "✅ WebSocket Connected")
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -109,11 +109,11 @@ class DiscordGateway(
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                Log.w(TAG, "WebSocket 正在关闭: $code - $reason")
+                Log.w(TAG, "WebSocket 正在Close: $code - $reason")
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                Log.i(TAG, "WebSocket 已关闭: $code - $reason")
+                Log.i(TAG, "WebSocket 已Close: $code - $reason")
                 isConnected = false
                 heartbeatJob?.cancel()
 
@@ -121,14 +121,14 @@ class DiscordGateway(
                 if (code != 1000 && isConnected) {
                     scope.launch {
                         delay(5000)
-                        Log.i(TAG, "尝试重连...")
+                        Log.i(TAG, "尝试Reconnect...")
                         connect()
                     }
                 }
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                Log.e(TAG, "WebSocket 连接失败: ${response?.code}", t)
+                Log.e(TAG, "WebSocket Connection failed: ${response?.code}", t)
                 scope.launch {
                     eventFlow.emit(DiscordEvent.Error(t))
                 }
@@ -137,7 +137,7 @@ class DiscordGateway(
                 if (isConnected) {
                     scope.launch {
                         delay(5000)
-                        Log.i(TAG, "尝试重连...")
+                        Log.i(TAG, "尝试Reconnect...")
                         connect()
                     }
                 }
@@ -160,10 +160,10 @@ class DiscordGateway(
                 OP_HELLO -> handleHello(data)
                 OP_DISPATCH -> handleDispatch(eventName, data)
                 OP_HEARTBEAT_ACK -> Log.d(TAG, "💓 Heartbeat ACK")
-                else -> Log.d(TAG, "未知 opcode: $op")
+                else -> Log.d(TAG, "Unknown opcode: $op")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "处理消息失败", e)
+            Log.e(TAG, "处理MessageFailed", e)
         }
     }
 
@@ -178,7 +178,7 @@ class DiscordGateway(
             // 发送 IDENTIFY
             sendIdentify()
         } catch (e: Exception) {
-            Log.e(TAG, "处理 HELLO 失败", e)
+            Log.e(TAG, "处理 HELLO Failed", e)
         }
     }
 
@@ -204,9 +204,9 @@ class DiscordGateway(
             }
 
             webSocket?.send(gson.toJson(payload))
-            Log.d(TAG, "💓 发送心跳")
+            Log.d(TAG, "💓 Send心跳")
         } catch (e: Exception) {
-            Log.e(TAG, "发送心跳失败", e)
+            Log.e(TAG, "Send心跳Failed", e)
         }
     }
 
@@ -226,9 +226,9 @@ class DiscordGateway(
             }
 
             webSocket?.send(gson.toJson(payload))
-            Log.i(TAG, "🔐 发送 IDENTIFY")
+            Log.i(TAG, "🔐 Send IDENTIFY")
         } catch (e: Exception) {
-            Log.e(TAG, "发送 IDENTIFY 失败", e)
+            Log.e(TAG, "Send IDENTIFY Failed", e)
         }
     }
 
@@ -242,10 +242,10 @@ class DiscordGateway(
                 "MESSAGE_REACTION_ADD" -> handleReactionAdd(data)
                 "MESSAGE_REACTION_REMOVE" -> handleReactionRemove(data)
                 "TYPING_START" -> handleTypingStart(data)
-                else -> Log.d(TAG, "未处理的事件: $eventName")
+                else -> Log.d(TAG, "未处理的Event: $eventName")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "处理事件 $eventName 失败", e)
+            Log.e(TAG, "处理Event $eventName Failed", e)
         }
     }
 
@@ -255,13 +255,13 @@ class DiscordGateway(
             val user = data.get("user")?.asJsonObject
             val username = user?.get("username")?.asString
 
-            Log.i(TAG, "✅ READY - 已登录为: $username")
+            Log.i(TAG, "✅ READY - 已Login为: $username")
             Log.i(TAG, "   Session ID: $sessionId")
 
             isConnected = true
             eventFlow.emit(DiscordEvent.Connected)
         } catch (e: Exception) {
-            Log.e(TAG, "处理 READY 失败", e)
+            Log.e(TAG, "处理 READY Failed", e)
         }
     }
 
@@ -288,7 +288,7 @@ class DiscordGateway(
                 mentionId?.let { mentions.add(it) }
             }
 
-            Log.d(TAG, "📨 收到消息: $messageId from $authorName")
+            Log.d(TAG, "📨 收到Message: $messageId from $authorName")
             Log.d(TAG, "   内容: $content")
 
             eventFlow.emit(
@@ -304,7 +304,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "处理 MESSAGE_CREATE 失败", e)
+            Log.e(TAG, "处理 MESSAGE_CREATE Failed", e)
         }
     }
 
@@ -327,7 +327,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "处理 MESSAGE_REACTION_ADD 失败", e)
+            Log.e(TAG, "处理 MESSAGE_REACTION_ADD Failed", e)
         }
     }
 
@@ -339,7 +339,7 @@ class DiscordGateway(
             val emoji = data.get("emoji")?.asJsonObject
             val emojiName = emoji?.get("name")?.asString ?: return
 
-            Log.d(TAG, "👎 反应移除: $emojiName by $userId")
+            Log.d(TAG, "👎 反应Removed: $emojiName by $userId")
 
             eventFlow.emit(
                 DiscordEvent.ReactionRemove(
@@ -350,7 +350,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "处理 MESSAGE_REACTION_REMOVE 失败", e)
+            Log.e(TAG, "处理 MESSAGE_REACTION_REMOVE Failed", e)
         }
     }
 
@@ -368,7 +368,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "处理 TYPING_START 失败", e)
+            Log.e(TAG, "处理 TYPING_START Failed", e)
         }
     }
 }

@@ -151,7 +151,7 @@ class ToolRegistry(
         return buildString {
             appendLine("## Universal Tools")
             appendLine()
-            appendLine("跨平台通用工具，来自 Pi Coding Agent 和 OpenClaw：")
+            appendLine("跨平台通用Tool，来自 Pi Coding Agent 和 OpenClaw：")
             appendLine()
             tools.values
                 .filter { it.name !in excludeTools }

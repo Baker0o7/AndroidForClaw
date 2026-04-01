@@ -41,7 +41,7 @@ class FeishuWebSocketHandler(
     override fun start() {
         scope.launch {
             try {
-                Log.i(TAG, "🚀 启动 Feishu WebSocket 连接...")
+                Log.i(TAG, "🚀 启动 Feishu WebSocket Connection...")
                 Log.i(TAG, "   App ID: ${config.appId}")
                 Log.i(TAG, "   Domain: ${config.domain}")
 
@@ -58,7 +58,7 @@ class FeishuWebSocketHandler(
                                         handleMessageReceive(data.event)
                                     }
                                 } catch (e: Exception) {
-                                    Log.e(TAG, "处理消息事件失败", e)
+                                    Log.e(TAG, "处理MessageEventFailed", e)
                                 }
                             }
                         }
@@ -76,7 +76,7 @@ class FeishuWebSocketHandler(
                     .build()
 
                 // 启动 WebSocket
-                Log.i(TAG, "正在连接 WebSocket...")
+                Log.i(TAG, "正在Connection WebSocket...")
                 wsClient?.start()
 
                 // 注意：start() 方法会阻塞主线程，直到连接关闭
@@ -85,7 +85,7 @@ class FeishuWebSocketHandler(
                 eventFlow.emit(FeishuEvent.Connected)
 
             } catch (e: Exception) {
-                Log.e(TAG, "❌ 启动 WebSocket 失败", e)
+                Log.e(TAG, "❌ 启动 WebSocket Failed", e)
                 eventFlow.emit(FeishuEvent.Error(e))
             }
         }
@@ -96,9 +96,9 @@ class FeishuWebSocketHandler(
             // 注意：ws.Client 的 disconnect() 和 reconnect() 方法是 protected 的
             // 我们只能通过其他方式停止（比如中断线程）
             wsClient = null
-            Log.i(TAG, "WebSocket 已停止")
+            Log.i(TAG, "WebSocket 已Stop")
         } catch (e: Exception) {
-            Log.e(TAG, "停止 WebSocket 时出错", e)
+            Log.e(TAG, "Stop WebSocket 时出错", e)
         }
     }
 
@@ -162,12 +162,12 @@ class FeishuWebSocketHandler(
                 )
             )
 
-            Log.d(TAG, "📨 收到消息: $messageId from $senderId (type=$msgType)")
+            Log.d(TAG, "📨 收到Message: $messageId from $senderId (type=$msgType)")
             Log.d(TAG, "   内容: ${parseResult.text.take(200)}")
             if (rootId != null) Log.d(TAG, "   rootId: $rootId, threadId: $threadId")
 
         } catch (e: Exception) {
-            Log.e(TAG, "处理消息失败", e)
+            Log.e(TAG, "处理MessageFailed", e)
         }
     }
 }

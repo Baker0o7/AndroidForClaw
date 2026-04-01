@@ -634,7 +634,7 @@ class FeishuSender(
         val tableCount = countMarkdownTables(text)
         if (tableCount > 0) {
             if (tableCount > config.maxTablesPerCard) {
-                Log.w(TAG, "⚠️ 表格数量 ($tableCount) 超过飞书限制 (${config.maxTablesPerCard}),将使用纯文本")
+                Log.w(TAG, "⚠️ TableCount ($tableCount) 超过Feishu限制 (${config.maxTablesPerCard}),将使用纯文本")
                 return false
             }
             return true

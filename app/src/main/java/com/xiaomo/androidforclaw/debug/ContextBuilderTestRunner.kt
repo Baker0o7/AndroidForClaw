@@ -51,7 +51,7 @@ object ContextBuilderTestRunner {
             val builder = createContextBuilder(context)
 
             val systemPrompt = builder.buildSystemPrompt(
-                userGoal = "测试音乐播放器",
+                userGoal = "Test音乐播放器",
                 packageName = "com.example.music",
                 testMode = "exploration"
             )
@@ -76,7 +76,7 @@ object ContextBuilderTestRunner {
             val builder = createContextBuilder(context)
 
             val systemPrompt = builder.buildSystemPrompt(
-                userGoal = "打开微信",
+                userGoal = "OpenWeChat",
                 packageName = "com.tencent.mm",
                 testMode = "exploration"
             )
@@ -105,14 +105,14 @@ object ContextBuilderTestRunner {
 
             // 测试任务应该加载 app-testing
             val testPrompt = builder.buildSystemPrompt(
-                userGoal = "测试音乐播放器的所有功能",
+                userGoal = "Test音乐播放器的所Has功能",
                 packageName = "com.example.music",
                 testMode = "exploration"
             )
 
             // 调试任务应该加载 debugging
             val debugPrompt = builder.buildSystemPrompt(
-                userGoal = "调试登录功能的问题",
+                userGoal = "DebugLogin功能的Issue",
                 packageName = "com.example.app",
                 testMode = "exploration"
             )
@@ -136,14 +136,14 @@ object ContextBuilderTestRunner {
 
             // 简单任务（只有 Always Skills）
             val simplePrompt = builder.buildSystemPrompt(
-                userGoal = "打开微信",
+                userGoal = "OpenWeChat",
                 packageName = "com.tencent.mm",
                 testMode = "exploration"
             )
 
             // 复杂任务（Always + Relevant Skills）
             val complexPrompt = builder.buildSystemPrompt(
-                userGoal = "测试并调试音乐播放器",
+                userGoal = "Test并Debug音乐播放器",
                 packageName = "com.example.music",
                 testMode = "exploration"
             )
@@ -154,7 +154,7 @@ object ContextBuilderTestRunner {
             Log.d(TAG, "✅ testTokenReduction PASSED")
             Log.d(TAG, "   Simple task: ~$simpleTokens tokens")
             Log.d(TAG, "   Complex task: ~$complexTokens tokens")
-            Log.d(TAG, "   目标: < 1500 tokens (Block 3)")
+            Log.d(TAG, "   Target: < 1500 tokens (Block 3)")
 
             // 验证 Token 使用合理
             assert(simpleTokens < 2000) { "Simple task tokens should be < 2000" }
@@ -175,7 +175,7 @@ object ContextBuilderTestRunner {
             val builder = createContextBuilder(context)
 
             val systemPrompt = builder.buildSystemPrompt(
-                userGoal = "测试应用",
+                userGoal = "Test应用",
                 packageName = "com.example.app",
                 testMode = "exploration"
             )

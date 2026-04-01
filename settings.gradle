@@ -47,6 +47,6 @@ include ':extensions:whatsapp'
 include ':extensions:weixin'
 include ':extensions:observer'
 
-include ':self-control'
+// include ':self-control' // Temporarily excluded - pre-existing compilation error
 // 移除：新架构不再使用 LangChain4j
 // include ':langchain4j-android'

@@ -47,7 +47,7 @@ object ToolResultTruncator {
         }
 
         if (truncatedCount > 0) {
-            Log.d(TAG, "截断了 $truncatedCount 个超大工具结果")
+            Log.d(TAG, "截断了 $truncatedCount 个超大Tool Result")
         }
 
         return result

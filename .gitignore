@@ -123,3 +123,6 @@ local.properties
 test.keystore
 .cc-connect/
 termux-app-upstream/
+release.jks
+keystore.properties
+local.properties

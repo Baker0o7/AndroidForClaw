@@ -17,10 +17,10 @@ import com.xiaomo.androidforclaw.core.MyApplication
  * 用途：方便通过 ADB 直接发送消息到聊天界面进行测试
  *
  * 使用方法:
- * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "你的消息内容"
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "你的Message Content"
  *
  * 示例:
- * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "使用browser搜索openclaw"
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "使用browserSearchopenclaw"
  */
 class ChatBroadcastReceiver() : BroadcastReceiver() {
 
@@ -49,23 +49,23 @@ class ChatBroadcastReceiver() : BroadcastReceiver() {
         Log.d(TAG, "📨 onReceive 被调用 - action: ${intent?.action}")
         if (intent?.action == ACTION_SEND_MESSAGE) {
             val message = intent.getStringExtra(EXTRA_MESSAGE)
-            Log.d(TAG, "📨 消息内容: $message")
+            Log.d(TAG, "📨 Message Content: $message")
             if (message != null && message.isNotBlank()) {
-                Log.d(TAG, "✅ 收到 ADB 消息: $message")
+                Log.d(TAG, "✅ 收到 ADB Message: $message")
 
                 // 优先使用回调
                 if (onMessageReceived != null) {
                     onMessageReceived?.invoke(message)
                 } else {
                     // 通过全局方式发送消息
-                    Log.d(TAG, "⚙️ 通过 MyApplication 发送消息")
+                    Log.d(TAG, "⚙️ 通过 MyApplication Send Message")
                     MyApplication.handleChatBroadcast(message)
                 }
             } else {
-                Log.w(TAG, "⚠️ 收到空消息")
+                Log.w(TAG, "⚠️ 收到EmptyMessage")
             }
         } else {
-            Log.w(TAG, "⚠️ 未知 action: ${intent?.action}")
+            Log.w(TAG, "⚠️ Unknown action: ${intent?.action}")
         }
     }
 }

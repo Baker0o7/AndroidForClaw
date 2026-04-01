@@ -22,10 +22,10 @@ private const val TAG = "FeishuDocComments"
 class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_comments"
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official description)
-    override val description = "【以用户身份】管理云文档评论。支持: " +
-        "(1) list - 获取评论列表(含完整回复); " +
-        "(2) create - 添加全文评论(支持文本、@用户、超链接); " +
-        "(3) patch - 解决/恢复评论。" +
+    override val description = "【以User身份】Managed云Documentation评论。支持: " +
+        "(1) list - 获取评论List(含完整回复); " +
+        "(2) create - 添加全文评论(支持文本、@User、超Link); " +
+        "(3) patch - 解决/Restore评论。" +
         "支持 wiki token。"
 
     override fun isEnabled() = config.enableDocTools
@@ -76,7 +76,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                 "list" -> doList(args, actualFileToken, actualFileType, userIdType)
                 "create" -> doCreate(args, actualFileToken, actualFileType, userIdType)
                 "patch" -> doPatch(args, actualFileToken, actualFileType)
-                else -> ToolResult.error("未知的 action: $action")
+                else -> ToolResult.error("Unknown的 action: $action")
             }
         } catch (e: Exception) {
             Log.e(TAG, "feishu_doc_comments failed", e)
@@ -144,7 +144,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official validation)
         if (elements == null || elements.isEmpty()) {
-            return ToolResult.error("elements 参数必填且不能为空")
+            return ToolResult.error("elements ParameterRequired且不能为Empty")
         }
 
         Log.i(TAG, "doc_comments.create: file_token=\"$actualFileToken\", elements=${elements.size}")
@@ -188,12 +188,12 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official validation)
         if (commentId == null) {
-            return ToolResult.error("comment_id 参数必填")
+            return ToolResult.error("comment_id ParameterRequired")
         }
 
         val isSolvedValue = args["is_solved_value"] as? Boolean
         if (isSolvedValue == null) {
-            return ToolResult.error("is_solved_value 参数必填")
+            return ToolResult.error("is_solved_value ParameterRequired")
         }
 
         Log.i(TAG, "doc_comments.patch: comment_id=\"$commentId\", is_solved=$isSolvedValue")
@@ -320,17 +320,17 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action: list, create, or patch",
                         enum = listOf("list", "create", "patch")),
-                    "file_token" to PropertySchema("string", "云文档token或wiki节点token(可从文档URL获取)。如果是wiki token，会自动转换为实际文档的obj_token"),
-                    "file_type" to PropertySchema("string", "文档类型。wiki类型会自动解析为实际文档类型(docx/sheet/bitable等)",
+                    "file_token" to PropertySchema("string", "云Documentationtoken或wikiNodetoken(可从DocumentationURL获取)。如果Yeswiki token，会AutoConvert为实际Documentation的obj_token"),
+                    "file_type" to PropertySchema("string", "DocumentationType。wikiType会Auto解析为实际DocumentationType(docx/sheet/bitable等)",
                         enum = listOf("doc", "docx", "sheet", "file", "slides", "wiki")),
-                    "is_whole" to PropertySchema("boolean", "是否只获取全文评论(action=list时可选)"),
-                    "is_solved" to PropertySchema("boolean", "是否只获取已解决的评论(action=list时可选)"),
-                    "page_size" to PropertySchema("integer", "分页大小"),
+                    "is_whole" to PropertySchema("boolean", "YesNo只获取全文评论(action=list时Optional)"),
+                    "is_solved" to PropertySchema("boolean", "YesNo只获取已解决的评论(action=list时Optional)"),
+                    "page_size" to PropertySchema("integer", "Page Size"),
                     "page_token" to PropertySchema("string", "分页标记"),
-                    "elements" to PropertySchema("array", "评论内容元素数组(action=create时必填)。支持text(纯文本)、mention(@用户)、link(超链接)三种类型",
+                    "elements" to PropertySchema("array", "评论内容元素Array(action=create时Required)。支持text(纯文本)、mention(@User)、link(超Link)三种Type",
                         items = PropertySchema("object", "Comment element")),
-                    "comment_id" to PropertySchema("string", "评论ID(action=patch时必填)"),
-                    "is_solved_value" to PropertySchema("boolean", "解决状态:true=解决,false=恢复(action=patch时必填)"),
+                    "comment_id" to PropertySchema("string", "评论ID(action=patch时Required)"),
+                    "is_solved_value" to PropertySchema("boolean", "解决Status:true=解决,false=Restore(action=patch时Required)"),
                     "user_id_type" to PropertySchema("string", "User ID type: open_id, union_id, user_id",
                         enum = listOf("open_id", "union_id", "user_id"))
                 ),

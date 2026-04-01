@@ -63,7 +63,7 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
             val session = GatewaySession(sessionId!!, this)
             sessions[sessionId!!] = session
             
-            Log.i(TAG, "✅ WebSocket 连接建立: session=$sessionId")
+            Log.i(TAG, "✅ WebSocket Connection建立: session=$sessionId")
             
             // Send welcome message
             sendMessage(JsonObject().apply {
@@ -79,19 +79,19 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
             initiatedByRemote: Boolean
         ) {
             sessionId?.let { sessions.remove(it) }
-            Log.i(TAG, "❌ WebSocket 连接关闭: session=$sessionId, reason=$reason")
+            Log.i(TAG, "❌ WebSocket ConnectionClose: session=$sessionId, reason=$reason")
         }
 
         override fun onMessage(message: WebSocketFrame) {
             try {
                 val text = message.textPayload
-                Log.d(TAG, "📥 收到消息: $text")
+                Log.d(TAG, "📥 收到Message: $text")
 
                 val request: RpcRequest = gson.fromJson(text, RpcRequest::class.java)
                 handleRpcRequest(request)
                 
             } catch (e: Exception) {
-                Log.e(TAG, "处理消息失败", e)
+                Log.e(TAG, "处理MessageFailed", e)
                 sendError("Invalid request: ${e.message}")
             }
         }
@@ -101,7 +101,7 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
         }
 
         override fun onException(exception: IOException) {
-            Log.e(TAG, "WebSocket 异常", exception)
+            Log.e(TAG, "WebSocket Abnormal", exception)
         }
 
         /**
@@ -172,7 +172,7 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                                         add("data", gson.toJsonTree(progress))
                                     })
                                 } catch (e: Exception) {
-                                    Log.w(TAG, "发送进度失败: ${e.message}")
+                                    Log.w(TAG, "SendProgressFailed: ${e.message}")
                                 }
                             }.start()
                         },
@@ -186,7 +186,7 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                                 try {
                                     sendResponse(request.id, result)
                                 } catch (e: Exception) {
-                                    Log.w(TAG, "发送结果失败: ${e.message}")
+                                    Log.w(TAG, "Send结果Failed: ${e.message}")
                                 }
                             }.start()
                         }
@@ -300,10 +300,10 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                     "total" to sessionList.size
                 ))
 
-                Log.d(TAG, "📋 [Session List] 返回 ${sessionList.size} 个会话")
+                Log.d(TAG, "📋 [Session List] Back ${sessionList.size} 个Session")
 
             } catch (e: Exception) {
-                Log.e(TAG, "列出会话失败", e)
+                Log.e(TAG, "Column出SessionFailed", e)
                 sendError("Failed to list sessions: ${e.message}", request.id)
             }
         }
@@ -356,10 +356,10 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                     "total" to sessionList.size
                 ))
 
-                Log.d(TAG, "📋 [Session List] 返回 ${sessionList.size} 个会话")
+                Log.d(TAG, "📋 [Session List] Back ${sessionList.size} 个Session")
 
             } catch (e: Exception) {
-                Log.e(TAG, "列出会话失败", e)
+                Log.e(TAG, "Column出SessionFailed", e)
                 sendError("Failed to list sessions: ${e.message}", request.id)
             }
         }
@@ -393,7 +393,7 @@ class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
             try {
                 send(gson.toJson(json))
             } catch (e: IOException) {
-                Log.e(TAG, "发送消息失败", e)
+                Log.e(TAG, "Send MessageFailed", e)
             }
         }
     }

@@ -95,17 +95,17 @@ object TermuxSshdLauncher {
         val pm = context.packageManager
         val launchIntent = pm.getLaunchIntentForPackage(TERMUX_PACKAGE)
         if (launchIntent == null) {
-            Log.w(TAG, "Termux 未安装，无法拉起")
+            Log.w(TAG, "Termux Not Installed，None法拉起")
             return false
         }
         // FLAG_ACTIVITY_NO_HISTORY: Termux 不留在返回栈，用户按返回直接回 ForClaw
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
         try {
             context.startActivity(launchIntent)
-            Log.i(TAG, "✅ 已发送 Termux 启动 intent")
+            Log.i(TAG, "✅ 已Send Termux 启动 intent")
             return true
         } catch (e: Exception) {
-            Log.w(TAG, "启动 Termux 失败: ${e.message}")
+            Log.w(TAG, "启动 Termux Failed: ${e.message}")
             return false
         }
     }
@@ -118,12 +118,12 @@ object TermuxSshdLauncher {
         val intent = buildIntent()
         try {
             context.startService(intent)
-            Log.i(TAG, "✅ 已发送 RUN_COMMAND 启动 sshd (startService)")
+            Log.i(TAG, "✅ 已Send RUN_COMMAND 启动 sshd (startService)")
         } catch (e: SecurityException) {
             Log.w(TAG, "startService 被拒绝，尝试 PendingIntent 方式: ${e.message}")
             launchViaPendingIntent(context)
         } catch (e: Exception) {
-            Log.w(TAG, "startService 失败，尝试 PendingIntent 方式: ${e.message}")
+            Log.w(TAG, "startService Failed，尝试 PendingIntent 方式: ${e.message}")
             launchViaPendingIntent(context)
         }
     }
@@ -138,9 +138,9 @@ object TermuxSshdLauncher {
             val flags = PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
             val pi = PendingIntent.getService(context, 0, intent, flags)
             pi.send()
-            Log.i(TAG, "✅ 已发送 RUN_COMMAND 启动 sshd (PendingIntent)")
+            Log.i(TAG, "✅ 已Send RUN_COMMAND 启动 sshd (PendingIntent)")
         } catch (e: Exception) {
-            Log.w(TAG, "PendingIntent 方式也失败: ${e.message}")
+            Log.w(TAG, "PendingIntent 方式也Failed: ${e.message}")
             throw e
         }
     }
@@ -158,14 +158,14 @@ object TermuxSshdLauncher {
             context.startService(intent)
             Log.i(TAG, "✅ 已通过 RUN_COMMAND 注入公钥到 authorized_keys")
         } catch (e: Exception) {
-            Log.w(TAG, "startService 注入公钥失败，尝试 PendingIntent: ${e.message}")
+            Log.w(TAG, "startService 注入公钥Failed，尝试 PendingIntent: ${e.message}")
             try {
                 val flags = PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
                 val pi = PendingIntent.getService(context, 1, intent, flags)
                 pi.send()
                 Log.i(TAG, "✅ 已通过 PendingIntent 注入公钥到 authorized_keys")
             } catch (e2: Exception) {
-                Log.w(TAG, "PendingIntent 注入公钥也失败: ${e2.message}")
+                Log.w(TAG, "PendingIntent 注入公钥也Failed: ${e2.message}")
             }
         }
     }
@@ -182,7 +182,7 @@ object TermuxSshdLauncher {
                 Log.i(TAG, "✅ 已切回 ForClaw")
             }
         } catch (e: Exception) {
-            Log.w(TAG, "切回 ForClaw 失败: ${e.message}")
+            Log.w(TAG, "切回 ForClaw Failed: ${e.message}")
         }
     }
 
@@ -207,13 +207,13 @@ object TermuxSshdLauncher {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
-                Log.i(TAG, "✅ 已打开自启动设置: ${component.className}")
+                Log.i(TAG, "✅ 已Open自启动Settings: ${component.className}")
                 return true
             } catch (_: Exception) {
                 // 该路径不存在，尝试下一个
             }
         }
-        Log.w(TAG, "未找到 MIUI 自启动设置页面")
+        Log.w(TAG, "Not found MIUI 自启动SettingsPage")
         return false
     }
 
@@ -224,7 +224,7 @@ object TermuxSshdLauncher {
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(
                 context,
-                "⚠️ 小米系统拦截了 Termux 自启动，请在弹出的设置页中找到 Termux 并开启自启动权限",
+                "⚠️ 小米系统拦截了 Termux 自启动，Please在弹出的Settings页Medium找到 Termux 并On启自启动Permission",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -247,10 +247,10 @@ object TermuxSshdLauncher {
         for (attempt in 1..MAX_LAUNCH_RETRIES) {
             try {
                 launch(context)
-                Log.i(TAG, "RUN_COMMAND 发送成功（第 ${attempt} 次）")
+                Log.i(TAG, "RUN_COMMAND SendSuccess（第 ${attempt} 次）")
                 return
             } catch (e: Exception) {
-                Log.w(TAG, "RUN_COMMAND 第 ${attempt} 次失败: ${e.message}")
+                Log.w(TAG, "RUN_COMMAND 第 ${attempt} 次Failed: ${e.message}")
                 if (attempt < MAX_LAUNCH_RETRIES) {
                     kotlinx.coroutines.delay(RETRY_INTERVAL_MS)
                 } else {

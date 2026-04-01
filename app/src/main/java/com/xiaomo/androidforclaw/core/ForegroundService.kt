@@ -34,7 +34,7 @@ class ForegroundService : Service() {
         private const val TAG = "ForegroundService"
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "androidforclaw_service"
-        private const val CHANNEL_NAME = "AndroidForClaw 后台服务"
+        private const val CHANNEL_NAME = "AndroidForClaw Background Service"
         const val ACTION_START_ACTIVITY = "START_ACTIVITY"
         const val EXTRA_PACKAGE_NAME = "package_name"
         const val EXTRA_ACTIVITY_NAME = "activity_name"
@@ -82,9 +82,9 @@ class ForegroundService : Service() {
                     }
                     try {
                         startActivity(activityIntent)
-                        Log.i(TAG, "启动 Activity: $packageName/$activityName")
+                        Log.i(TAG, "Starting Activity: $packageName/$activityName")
                     } catch (e: Exception) {
-                        Log.e(TAG, "启动 Activity 失败", e)
+                        Log.e(TAG, "Failed to start Activity", e)
                     }
                 }
             }
@@ -111,9 +111,9 @@ class ForegroundService : Service() {
             } else {
                 applicationContext.startService(restartIntent)
             }
-            Log.i(TAG, "已触发服务重启")
+            Log.i(TAG, "Service restart triggered")
         } catch (e: Exception) {
-            Log.e(TAG, "服务重启失败", e)
+            Log.e(TAG, "Service restart failed", e)
         }
     }
 
@@ -127,7 +127,7 @@ class ForegroundService : Service() {
                 CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "保持 AndroidForClaw 后台运行"
+                description = "Keep AndroidForClaw running in background"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
@@ -135,7 +135,7 @@ class ForegroundService : Service() {
 
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
-            Log.d(TAG, "通知渠道已创建")
+            Log.d(TAG, "Notification channel created")
         }
     }
 
@@ -162,8 +162,8 @@ class ForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("AndroidForClaw 正在运行")
-            .setContentText("点击打开应用")
+            .setContentTitle("AndroidForClaw is running")
+            .setContentText("Tap to open app")
             .setSmallIcon(R.drawable.ic_baseline_adb_24)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setShowWhen(true)

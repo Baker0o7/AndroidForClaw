@@ -396,17 +396,17 @@ object MainEntryNew {
 
                 // 构建友好的错误消息
                 val errorMessage = buildString {
-                    append("❌ 执行出错:\n\n")
-                    append("**错误**: ${exception.message}\n\n")
+                    append("❌ Execution Error:\n\n")
+                    append("**Error**: ${exception.message}\n\n")
 
                     // 如果是 LLM 异常，添加更详细的信息
                     if (exception is com.xiaomo.androidforclaw.providers.LLMException) {
-                        append("**类型**: API 调用失败\n")
-                        append("**建议**: 请检查模型配置和 API key\n\n")
+                        append("**Type**: API call failed\n")
+                        append("**Suggestion**: Please check model configuration and API key\n\n")
                     }
 
                     // 添加堆栈跟踪 (前500字符)
-                    append("**堆栈跟踪**:\n```\n")
+                    append("**Stack Trace**:\n```\n")
                     append(exception.stackTraceToString().take(500))
                     append("\n```")
                 }
@@ -467,12 +467,12 @@ object MainEntryNew {
         val newTaskId = generateTaskId()
         taskDataManager.startNewTask(newTaskId, existingPackageName ?: "")
         currentTaskId = newTaskId
-        Log.d(TAG, "========== 新测试任务: $newTaskId ==========")
+        Log.d(TAG, "========== New test task: $newTaskId ==========")
 
         // Read mode from openclaw.json instead of MMKV
         val openClawConfig = configLoader.loadOpenClawConfig()
         val testMode = openClawConfig.agent.mode
-        Log.d(TAG, "测试模式: $testMode (from openclaw.json)")
+        Log.d(TAG, "Test mode: $testMode (from openclaw.json)")
 
         // Set new task as running
         val newTaskData = taskDataManager.getCurrentTaskData()
@@ -480,7 +480,7 @@ object MainEntryNew {
 
         // Acquire screen wake lock
         WakeLockManager.acquireScreenWakeLock()
-        Log.d(TAG, "已获取屏幕唤醒锁")
+        Log.d(TAG, "Screen wake lock acquired")
 
         // Cancel previous local task only
         val localSessionKey = "__local__"
@@ -553,11 +553,11 @@ object MainEntryNew {
                 _summaryFinished.value = true
                 onSummaryFinished?.invoke()
 
-                Log.d(TAG, "测试任务执行完成")
+                Log.d(TAG, "Test task completed")
 
             },
             { error ->
-                Log.e(TAG, "测试任务执行失败", error)
+                Log.e(TAG, "Test task execution failed", error)
                 LayoutExceptionLogger.log("MainEntryNew#run", error)
 
                 // Release resources
@@ -583,24 +583,24 @@ object MainEntryNew {
             is ProgressUpdate.Iteration -> {
                 Log.d(TAG, ">>> Iteration ${update.number}")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "迭代 ${update.number}",
-                    content = "正在思考..."
+                    title = "Iteration ${update.number}",
+                    content = "Thinking..."
                 )
             }
 
             is ProgressUpdate.Thinking -> {
-                Log.d(TAG, "💭 Thinking: 正在处理第 ${update.iteration} 步...")
+                Log.d(TAG, "💭 Thinking: Processing step ${update.iteration}...")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "正在思考",
-                    content = "正在处理第 ${update.iteration} 步..."
+                    title = "Thinking",
+                    content = "Processing step ${update.iteration}..."
                 )
-                emitProgressToUi("thinking", "正在思考", "正在处理第 ${update.iteration} 步...")
+                emitProgressToUi("thinking", "Thinking", "Processing step ${update.iteration}...")
             }
 
             is ProgressUpdate.Reasoning -> {
                 Log.d(TAG, "🧠 Reasoning (${update.content.length} chars, ${update.llmDuration}ms)")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "思考完成",
+                    title = "Thinking Complete",
                     content = update.content.take(100) + if (update.content.length > 100) "..." else ""
                 )
             }
@@ -609,7 +609,7 @@ object MainEntryNew {
                 Log.d(TAG, "🔧 Tool: ${update.name}")
 
                 val argsText = if (update.arguments.isEmpty()) {
-                    "无参数"
+                    "No parameters"
                 } else {
                     update.arguments.entries.joinToString("\n") { (key, value) ->
                         "  • $key: $value"
@@ -617,33 +617,33 @@ object MainEntryNew {
                 }
 
                 SessionFloatWindow.updateSessionInfo(
-                    title = "执行: ${update.name}",
+                    title = "Executing: ${update.name}",
                     content = argsText.take(100)
                 )
-                emitProgressToUi("tool_call", "执行: ${update.name}", argsText)
+                emitProgressToUi("tool_call", "Executing: ${update.name}", argsText)
             }
 
             is ProgressUpdate.ToolResult -> {
                 Log.d(TAG, "✅ Result: ${update.result.take(100)}, ${update.execDuration}ms")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "执行完成",
+                    title = "Execution Complete",
                     content = update.result.take(100) + if (update.result.length > 100) "..." else ""
                 )
-                emitProgressToUi("tool_result", "执行完成", update.result)
+                emitProgressToUi("tool_result", "Execution Complete", update.result)
             }
 
             is ProgressUpdate.IterationComplete -> {
                 Log.d(TAG, "🏁 Iteration ${update.number} complete: total=${update.iterationDuration}ms, llm=${update.llmDuration}ms, exec=${update.execDuration}ms")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "迭代 ${update.number} 完成",
-                    content = "耗时: ${update.iterationDuration}ms"
+                    title = "Iteration ${update.number} Complete",
+                    content = "Duration: ${update.iterationDuration}ms"
                 )
             }
 
             is ProgressUpdate.ContextOverflow -> {
                 Log.w(TAG, "🔄 Context overflow: ${update.message}")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "上下文超限",
+                    title = "Context Exceeded",
                     content = update.message
                 )
             }
@@ -651,8 +651,8 @@ object MainEntryNew {
             is ProgressUpdate.ContextRecovered -> {
                 Log.d(TAG, "✅ Context recovered: ${update.strategy} (attempt ${update.attempt})")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "上下文已恢复",
-                    content = "策略: ${update.strategy}"
+                    title = "Context Recovered",
+                    content = "Strategy: ${update.strategy}"
                 )
             }
 
@@ -660,27 +660,27 @@ object MainEntryNew {
                 val logLevel = if (update.critical) "🚨" else "⚠️"
                 Log.w(TAG, "$logLevel Loop detected: ${update.detector} (count: ${update.count})")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "${if (update.critical) "严重" else "警告"}: 循环检测",
-                    content = "${update.detector}: ${update.count} 次"
+                    title = "${if (update.critical) "Critical" else "Warning"}: Loop Detected",
+                    content = "${update.detector}: ${update.count} times"
                 )
             }
 
             is ProgressUpdate.Error -> {
                 Log.e(TAG, "❌ Error: ${update.message}")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "错误",
+                    title = "Error",
                     content = update.message.take(100)
                 )
-                emitProgressToUi("error", "错误", update.message)
+                emitProgressToUi("error", "Error", update.message)
             }
 
             is ProgressUpdate.BlockReply -> {
                 Log.d(TAG, "📤 Block reply: ${update.text.take(200)}")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "中间回复",
+                    title = "Intermediate Reply",
                     content = update.text.take(100) + if (update.text.length > 100) "..." else ""
                 )
-                emitProgressToUi("block_reply", "中间回复", update.text)
+                emitProgressToUi("block_reply", "Intermediate Reply", update.text)
                 // For Gateway WebUI sessions, broadcast intermediate text immediately
                 lastBlockReplyText = update.text
                 activeSessionId?.let { sessionId ->
@@ -693,7 +693,7 @@ object MainEntryNew {
             is ProgressUpdate.SteerMessageInjected -> {
                 Log.d(TAG, "🎯 Steer message injected: ${update.content.take(100)}")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "消息注入",
+                    title = "Message Injected",
                     content = update.content.take(100) + if (update.content.length > 100) "..." else ""
                 )
             }
@@ -701,28 +701,28 @@ object MainEntryNew {
             is ProgressUpdate.SubagentSpawned -> {
                 Log.i(TAG, "🚀 Subagent spawned: ${update.label} (${update.runId})")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "子代理已启动",
+                    title = "Sub-agent started",
                     content = update.label
                 )
-                emitProgressToUi("subagent_spawned", "子代理已启动", update.label)
+                emitProgressToUi("subagent_spawned", "Sub-agent started", update.label)
             }
 
             is ProgressUpdate.SubagentAnnounced -> {
                 Log.i(TAG, "📣 Subagent announced: ${update.label} status=${update.status} (${update.runId})")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "子代理完成",
+                    title = "Sub-agent Completed",
                     content = "${update.label}: ${update.status}"
                 )
-                emitProgressToUi("subagent_announced", "子代理完成", "${update.label}: ${update.status}")
+                emitProgressToUi("subagent_announced", "Sub-agent Completed", "${update.label}: ${update.status}")
             }
 
             is ProgressUpdate.Yielded -> {
                 Log.i(TAG, "⏸️ Agent loop yielded, waiting for subagent results")
                 SessionFloatWindow.updateSessionInfo(
-                    title = "等待子代理",
-                    content = "已暂停，等待子代理结果..."
+                    title = "Waiting for Sub-agent",
+                    content = "Paused, waiting for sub-agent results..."
                 )
-                emitProgressToUi("yielded", "等待子代理", "已暂停，等待子代理结果...")
+                emitProgressToUi("yielded", "Waiting for Sub-agent", "Paused, waiting for sub-agent results...")
             }
         }
     }

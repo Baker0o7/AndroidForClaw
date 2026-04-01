@@ -39,7 +39,7 @@
                 android:id="@+id/tvAutoLoad"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔄 自动"
+                android:text="🔄 Auto"
                 android:textSize="12sp"
                 android:textColor="@android:color/white"
                 android:background="?attr/colorPrimary"
@@ -54,7 +54,7 @@
                 android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_delete"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="删除"
+                android:contentDescription="Delete"
                 app:tint="@color/status_error"
                 android:visibility="gone" />
 
@@ -85,7 +85,7 @@
                 android:id="@+id/tvSource"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📦 内置"
+                android:text="📦 Built-in"
                 android:textSize="12sp"
                 android:textColor="@android:color/white"
                 android:background="?attr/colorPrimary"

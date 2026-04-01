@@ -97,13 +97,13 @@ class ModelConfigActivity : AppCompatActivity() {
             val config = configLoader.loadOpenClawConfig()
             val providers = config.resolveProviders()
             configuredProviderIds = providers.filter { (_, v) ->
-                !v.apiKey.isNullOrBlank() && !v.apiKey.startsWith("\${") && v.apiKey != "未配置"
+                !v.apiKey.isNullOrBlank() && !v.apiKey.startsWith("\${") && v.apiKey != "Not configured"
             }.keys
 
             // Resolve current model ref
             currentModelRef = config.agents?.defaults?.model?.primary
 
-            binding.tvCurrentModel.text = currentModelRef ?: "未配置"
+            binding.tvCurrentModel.text = currentModelRef ?: "Not configured"
             binding.cardCurrentModel.visibility =
                 if (currentModelRef != null) View.VISIBLE else View.GONE
 
@@ -132,7 +132,7 @@ class ModelConfigActivity : AppCompatActivity() {
     private fun showPage1() {
         binding.pageProviderList.visibility = View.VISIBLE
         binding.pageProviderDetail.visibility = View.GONE
-        binding.toolbar.title = "模型配置"
+        binding.toolbar.title = "Model Configuration"
     }
 
     private fun showPage2(provider: ProviderDefinition) {
@@ -240,7 +240,7 @@ class ModelConfigActivity : AppCompatActivity() {
         binding.tilApiKey.hint = provider.keyHint
         binding.etApiKey.setText("")
         if (!provider.keyRequired) {
-            binding.tilApiKey.helperText = "可选（有内置 Key）"
+            binding.tilApiKey.helperText = "Optional (built-in Key available)"
         } else {
             binding.tilApiKey.helperText = null
         }
@@ -402,7 +402,7 @@ class ModelConfigActivity : AppCompatActivity() {
 
         if (models.isEmpty() && allCurrentModels.isNotEmpty()) {
             val tv = TextView(this).apply {
-                text = "无匹配模型"
+                text = "No matching models"
                 setTextColor(getColor(android.R.color.darker_gray))
                 textSize = 13f
                 setPadding(0, 16, 0, 16)
@@ -424,7 +424,7 @@ class ModelConfigActivity : AppCompatActivity() {
 
             if (model.reasoning) {
                 tvBadge.visibility = View.VISIBLE
-                tvBadge.text = "推理"
+                tvBadge.text = "Reasoning"
                 tvBadge.setTextColor(getColor(android.R.color.holo_blue_dark))
             }
 
@@ -457,12 +457,12 @@ class ModelConfigActivity : AppCompatActivity() {
         val effectiveBaseUrl = baseUrl ?: provider.baseUrl
 
         if (effectiveBaseUrl.isBlank()) {
-            Toast.makeText(this, "请填写 Base URL", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please enter Base URL", Toast.LENGTH_SHORT).show()
             return
         }
 
         binding.btnDiscoverModels.isEnabled = false
-        binding.btnDiscoverModels.text = "获取中..."
+        binding.btnDiscoverModels.text = "Loading..."
 
         scope.launch {
             try {
@@ -480,19 +480,19 @@ class ModelConfigActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this@ModelConfigActivity,
-                    "发现 ${models.size} 个模型",
+                    "Discovered ${models.size} models",
                     Toast.LENGTH_SHORT
                 ).show()
             } catch (e: Exception) {
                 Log.e(TAG, "Model discovery failed", e)
                 Toast.makeText(
                     this@ModelConfigActivity,
-                    "获取失败: ${e.message}",
+                    "Fetch failed: ${e.message}",
                     Toast.LENGTH_SHORT
                 ).show()
             } finally {
                 binding.btnDiscoverModels.isEnabled = true
-                binding.btnDiscoverModels.text = "🔍 获取可用模型"
+                binding.btnDiscoverModels.text = "🔍 Fetch Available Models"
             }
         }
     }
@@ -502,14 +502,14 @@ class ModelConfigActivity : AppCompatActivity() {
     private fun testConnection(provider: ProviderDefinition) {
         val apiKey = binding.etApiKey.text?.toString()?.trim()
         if (provider.keyRequired && apiKey.isNullOrBlank()) {
-            Toast.makeText(this, "请先填写 API Key", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please enter API Key first", Toast.LENGTH_SHORT).show()
             return
         }
 
         // Determine model to test with
         val modelId = selectedModelId
         if (modelId.isNullOrBlank()) {
-            Toast.makeText(this, "请先选择一个模型", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please select a model first", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -519,7 +519,7 @@ class ModelConfigActivity : AppCompatActivity() {
         val effectiveBaseUrl = (baseUrl ?: provider.baseUrl).trimEnd('/')
 
         binding.btnTestConnection.isEnabled = false
-        binding.btnTestConnection.text = "测试中..."
+        binding.btnTestConnection.text = "Testing..."
 
         scope.launch {
             try {
@@ -530,31 +530,31 @@ class ModelConfigActivity : AppCompatActivity() {
                 }
                 if (!isFinishing) {
                     AlertDialog.Builder(this@ModelConfigActivity)
-                        .setTitle("✅ 连接成功")
+                        .setTitle("✅ Connection Successful")
                         .setMessage(result)
-                        .setPositiveButton("确定", null)
+                        .setPositiveButton("OK", null)
                         .show()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Connection test failed", e)
                 if (!isFinishing) {
                     val errorMsg = when (e) {
-                        is kotlinx.coroutines.TimeoutCancellationException -> "请求超时（25秒），请检查网络或代理设置"
-                        is java.net.SocketTimeoutException -> "连接超时，请检查网络或代理设置"
-                        is java.net.UnknownHostException -> "无法解析域名 ${e.message}，请检查网络"
-                        is java.net.ConnectException -> "无法连接服务器，请检查网络或代理"
-                        is javax.net.ssl.SSLException -> "SSL 错误: ${e.message}"
+                        is kotlinx.coroutines.TimeoutCancellationException -> "Request timed out (25s), please check network or proxy settings"
+                        is java.net.SocketTimeoutException -> "Connection timed out, please check network or proxy settings"
+                        is java.net.UnknownHostException -> "Cannot resolve domain ${e.message}, please check network"
+                        is java.net.ConnectException -> "Cannot connect to server, please check network or proxy"
+                        is javax.net.ssl.SSLException -> "SSL Error: ${e.message}"
                         else -> "${e.message}"
                     }
                     AlertDialog.Builder(this@ModelConfigActivity)
-                        .setTitle("❌ 连接失败")
+                        .setTitle("❌ Connection Failed")
                         .setMessage(errorMsg)
-                        .setPositiveButton("确定", null)
+                        .setPositiveButton("OK", null)
                         .show()
                 }
             } finally {
                 binding.btnTestConnection.isEnabled = true
-                binding.btnTestConnection.text = "🔗 测试连接"
+                binding.btnTestConnection.text = "🔗 Test Connection"
             }
         }
     }
@@ -688,9 +688,9 @@ class ModelConfigActivity : AppCompatActivity() {
         }
 
         return buildString {
-            appendLine("模型: $modelId")
+            appendLine("Model: $modelId")
             appendLine("API: ${provider.api}")
-            appendLine("响应: ${replyPreview.take(100)}")
+            appendLine("Response: ${replyPreview.take(100)}")
         }
     }
 
@@ -770,12 +770,12 @@ class ModelConfigActivity : AppCompatActivity() {
         etContextWindow.setText("200000")  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
 
         AlertDialog.Builder(this)
-            .setTitle("添加模型")
+            .setTitle("Add Model")
             .setView(dialogView)
-            .setPositiveButton("添加") { _, _ ->
+            .setPositiveButton("Add") { _, _ ->
                 val modelId = etModelId.text?.toString()?.trim() ?: ""
                 if (modelId.isBlank()) {
-                    Toast.makeText(this, "模型 ID 不能为空", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Model ID cannot be empty", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 val modelName = etModelName.text?.toString()?.trim()?.takeIf { it.isNotBlank() } ?: modelId
@@ -796,7 +796,7 @@ class ModelConfigActivity : AppCompatActivity() {
                 selectedModelId = modelId
                 buildModelRadioGroup(allModels)
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -807,7 +807,7 @@ class ModelConfigActivity : AppCompatActivity() {
 
         // Validate
         if (provider.keyRequired && apiKey.isNullOrBlank()) {
-            binding.tilApiKey.error = "请输入 API Key"
+            binding.tilApiKey.error = "Please enter API Key"
             return
         }
         binding.tilApiKey.error = null
@@ -821,7 +821,7 @@ class ModelConfigActivity : AppCompatActivity() {
         }
 
         if (modelId.isNullOrBlank()) {
-            Toast.makeText(this, "请选择或输入模型", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please select or enter a model", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -888,7 +888,7 @@ class ModelConfigActivity : AppCompatActivity() {
 
             configLoader.saveOpenClawConfig(updatedConfig)
 
-            Toast.makeText(this, "✅ 已保存: $modelRef", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "✅ Saved: $modelRef", Toast.LENGTH_SHORT).show()
             Log.i(TAG, "Saved provider=$providerKey model=$modelRef")
 
             // Return to list or finish
@@ -897,7 +897,7 @@ class ModelConfigActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save config", e)
-            Toast.makeText(this, "保存失败: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Save failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 

@@ -65,7 +65,7 @@ class LegalActivity : ComponentActivity() {
 @Composable
 private fun LegalScreen(type: String, onBack: () -> Unit) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val title = if (type == LegalActivity.TYPE_PRIVACY) "隐私政策" else "用户协议"
+    val title = if (type == LegalActivity.TYPE_PRIVACY) "Privacy Policy" else "Terms of Service"
     val content = if (type == LegalActivity.TYPE_PRIVACY) privacyPolicyText() else termsOfServiceText()
 
     Scaffold(
@@ -75,7 +75,7 @@ private fun LegalScreen(type: String, onBack: () -> Unit) {
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -115,103 +115,103 @@ private fun LegalScreen(type: String, onBack: () -> Unit) {
 private data class TextSection(val text: String, val isHeading: Boolean = false)
 
 private fun privacyPolicyText(): List<TextSection> = listOf(
-    TextSection("ForClaw 隐私政策", isHeading = true),
-    TextSection("最后更新日期：2025年3月22日"),
+    TextSection("ForClaw Privacy Policy", isHeading = true),
+    TextSection("Last updated: March 22, 2025"),
 
-    TextSection("一、概述", isHeading = true),
-    TextSection("ForClaw（以下简称\u201C本应用\u201D）是一款 AI Agent 运行时工具，运行在 Android 设备上。我们非常重视您的隐私保护。本隐私政策旨在帮助您了解我们如何收集、使用和保护您的信息。"),
+    TextSection("1. Overview", isHeading = true),
+    TextSection("ForClaw (hereinafter \"the App\") is an AI Agent runtime tool that runs on Android devices. We attach great importance to your privacy protection. This privacy policy aims to help you understand how we collect, use, and protect your information."),
 
-    TextSection("二、信息收集与使用", isHeading = true),
-    TextSection("""本应用在运行过程中可能涉及以下数据：
+    TextSection("2. Information Collection and Use", isHeading = true),
+    TextSection("""The following data may be involved during the App's operation:
 
-1. AI 对话数据：您与 AI 助手的对话内容仅存储在您的设备本地，不会上传至我们的服务器。对话内容会发送至您配置的第三方 AI 服务提供商（如 OpenAI、Anthropic 等）以获取 AI 回复。
+1. AI Conversation Data: Your conversations with the AI assistant are stored only on your device locally and are not uploaded to our servers. Conversation content is sent to your configured third-party AI service providers (such as OpenAI, Anthropic, etc.) to obtain AI responses.
 
-2. 设备信息：为提供无障碍辅助功能，本应用可能读取屏幕内容和应用信息。这些数据仅在设备本地处理，不会上传。
+2. Device Information: To provide accessibility features, the App may read screen content and application information. This data is processed only locally on your device and is not uploaded.
 
-3. 网络通信：本应用需要网络连接以调用 AI API 服务。网络请求仅包含您主动发送的对话内容和必要的 API 认证信息。
+3. Network Communication: The App requires network connectivity to call AI API services. Network requests contain only conversation content you actively send and necessary API authentication information.
 
-4. 文件访问：本应用可能读写设备存储中的配置文件和会话记录，所有文件均存储在应用专属目录或您授权的目录中。"""),
+4. File Access: The App may read and write configuration files and session records in device storage. All files are stored in the App's private directory or directories you have authorized."""),
 
-    TextSection("三、权限说明", isHeading = true),
-    TextSection("""本应用申请以下权限及其用途：
+    TextSection("3. Permissions", isHeading = true),
+    TextSection("""The App requests the following permissions and their purposes:
 
-• 无障碍服务：用于辅助操作手机界面，执行 AI Agent 的自动化任务。
-• 悬浮窗：用于显示 AI 会话悬浮窗口，方便您在使用其他应用时与 AI 交互。
-• 录屏/截图：用于获取屏幕内容，帮助 AI 理解当前界面状态。
-• 网络访问：用于调用 AI API 服务和消息渠道（飞书、Discord 等）。
-• 存储访问：用于读写配置文件、会话记录和工作空间文件。
-• 通知监听：用于读取和管理设备通知，支持通知相关的自动化任务。
-• 安装应用：用于应用内自动更新功能。"""),
+• Accessibility Service: Used to assist with phone interface operations and execute AI Agent automation tasks.
+• Overlay Window: Used to display AI session floating windows for convenient interaction with the AI while using other apps.
+• Screen Recording/Screenshot: Used to capture screen content to help the AI understand the current interface state.
+• Network Access: Used to call AI API services and messaging channels (Feishu, Discord, etc.).
+• Storage Access: Used to read and write configuration files, session records, and workspace files.
+• Notification Listener: Used to read and manage device notifications to support notification-related automation tasks.
+• Install Applications: Used for in-app automatic update functionality."""),
 
-    TextSection("四、第三方服务", isHeading = true),
-    TextSection("""本应用可能会将数据发送至以下第三方服务：
+    TextSection("4. Third-Party Services", isHeading = true),
+    TextSection("""The App may send data to the following third-party services:
 
-1. AI 服务提供商：包括但不限于 OpenAI、Anthropic、Google 等，用于处理您的 AI 对话请求。具体使用哪个服务取决于您的配置。
+1. AI Service Providers: Including but not limited to OpenAI, Anthropic, Google, etc., used to process your AI conversation requests. Which service is used depends on your configuration.
 
-2. 消息渠道：包括飞书、Discord、Telegram、Slack 等，仅在您主动启用并配置相关渠道后才会使用。
+2. Messaging Channels: Including Feishu, Discord, Telegram, Slack, etc., used only after you actively enable and configure the relevant channels.
 
-请注意，第三方服务的数据处理受其各自的隐私政策约束。"""),
+Please note that data processing by third-party services is subject to their respective privacy policies."""),
 
-    TextSection("五、数据存储与安全", isHeading = true),
-    TextSection("""• 所有用户数据均存储在您的设备本地。
-• API 密钥等敏感信息使用 Android EncryptedSharedPreferences 加密存储。
-• 本应用不设立独立服务器，不收集、不存储任何用户数据到云端。
-• 网络传输使用 HTTPS 加密（连接 AI API 时）。"""),
+    TextSection("5. Data Storage and Security", isHeading = true),
+    TextSection("""• All user data is stored locally on your device.
+• Sensitive information such as API keys is encrypted using Android EncryptedSharedPreferences.
+• The App does not maintain independent servers and does not collect or store any user data in the cloud.
+• Network transmission uses HTTPS encryption (when connecting to AI APIs)."""),
 
-    TextSection("六、用户权利", isHeading = true),
-    TextSection("""您可以随时：
-• 在应用设置中查看和修改您的配置信息。
-• 清除应用数据以删除所有本地存储的对话记录和配置。
-• 卸载应用以完全删除所有相关数据。
-• 在系统设置中撤销本应用的任何权限。"""),
+    TextSection("6. User Rights", isHeading = true),
+    TextSection("""You can at any time:
+• View and modify your configuration information in the App settings.
+• Clear App data to delete all locally stored conversation records and configuration.
+• Uninstall the App to completely delete all related data.
+• Revoke any of the App's permissions in system settings."""),
 
-    TextSection("七、儿童隐私", isHeading = true),
-    TextSection("本应用不面向 13 岁以下的儿童。我们不会有意收集 13 岁以下儿童的个人信息。"),
+    TextSection("7. Children's Privacy", isHeading = true),
+    TextSection("This App is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13."),
 
-    TextSection("八、隐私政策更新", isHeading = true),
-    TextSection("我们可能会不时更新本隐私政策。更新后的隐私政策将在应用内公布。继续使用本应用即表示您同意更新后的隐私政策。"),
+    TextSection("8. Privacy Policy Updates", isHeading = true),
+    TextSection("We may update this privacy policy from time to time. The updated privacy policy will be published within the App. Continued use of the App indicates your agreement to the updated privacy policy."),
 
-    TextSection("九、联系我们", isHeading = true),
-    TextSection("如果您对本隐私政策有任何疑问，请通过以下方式联系我们：\n\n邮箱：xiaomochn@gmail.com\nGitHub：https://github.com/SelectXn00b/AndroidForClaw"),
+    TextSection("9. Contact Us", isHeading = true),
+    TextSection("If you have any questions about this privacy policy, please contact us at:\n\nEmail: xiaomochn@gmail.com\nGitHub: https://github.com/SelectXn00b/AndroidForClaw"),
 )
 
 private fun termsOfServiceText(): List<TextSection> = listOf(
-    TextSection("ForClaw 用户协议", isHeading = true),
-    TextSection("最后更新日期：2025年3月22日"),
+    TextSection("ForClaw Terms of Service", isHeading = true),
+    TextSection("Last updated: March 22, 2025"),
 
-    TextSection("一、服务说明", isHeading = true),
-    TextSection("ForClaw 是一款运行在 Android 设备上的 AI Agent 运行时工具。本应用为您提供 AI 对话、自动化操作和多渠道消息接入等功能。使用本应用即表示您同意遵守本协议。"),
+    TextSection("1. Service Description", isHeading = true),
+    TextSection("ForClaw is an AI Agent runtime tool that runs on Android devices. This App provides you with features such as AI conversation, automation operations, and multi-channel messaging integration. By using this App, you agree to comply with this agreement."),
 
-    TextSection("二、使用条件", isHeading = true),
-    TextSection("""使用本应用，您需要：
+    TextSection("2. Conditions of Use", isHeading = true),
+    TextSection("""To use this App, you need to:
 
-1. 拥有合法的 AI 服务 API 密钥（如 OpenAI、Anthropic 等）。本应用本身不提供 AI 服务，仅作为客户端工具。
+1. Have a valid AI service API key (such as OpenAI, Anthropic, etc.). This App does not provide AI services itself and only serves as a client tool.
 
-2. 确保您使用 AI 服务的方式符合相应服务提供商的使用条款。
+2. Ensure that your use of AI services complies with the terms of service of the respective service providers.
 
-3. 对使用本应用产生的所有 AI 交互结果自行承担责任。"""),
+3. Take responsibility for all AI interaction results generated through the use of this App."""),
 
-    TextSection("三、用户责任", isHeading = true),
-    TextSection("""您同意：
+    TextSection("3. User Responsibilities", isHeading = true),
+    TextSection("""You agree to:
 
-• 不使用本应用进行任何违法违规活动。
-• 不利用本应用的自动化功能骚扰他人或破坏其他应用/服务。
-• 妥善保管您的 API 密钥和相关配置信息。
-• 对通过本应用执行的所有操作承担责任。"""),
+• Not use this App for any illegal activities.
+• Not use the App's automation features to harass others or disrupt other applications/services.
+• Safeguard your API keys and related configuration information.
+• Take responsibility for all operations performed through this App."""),
 
-    TextSection("四、免责声明", isHeading = true),
-    TextSection("""• 本应用按\u201C现状\u201D提供，不作任何明示或暗示的保证。
-• AI 生成的内容可能不准确或包含错误，请您自行甄别。
-• 本应用的自动化操作可能产生非预期结果，请在使用前充分了解相关功能。
-• 因第三方 AI 服务变更、中断或终止导致的功能不可用，我们不承担责任。
-• 因用户配置不当导致的数据丢失或安全问题，我们不承担责任。"""),
+    TextSection("4. Disclaimer", isHeading = true),
+    TextSection("""• This App is provided \"as is\" without any express or implied warranties.
+• AI-generated content may be inaccurate or contain errors; please verify it yourself.
+• The App's automation operations may produce unexpected results; please fully understand the relevant features before use.
+• We are not responsible for unavailability caused by changes, interruptions, or termination of third-party AI services.
+• We are not responsible for data loss or security issues caused by improper user configuration."""),
 
-    TextSection("五、知识产权", isHeading = true),
-    TextSection("本应用的代码基于开源项目开发，遵循相应的开源协议。应用内的 UI 设计、图标和其他原创内容的知识产权归开发者所有。"),
+    TextSection("5. Intellectual Property", isHeading = true),
+    TextSection("The App's code is developed based on open-source projects and follows the respective open-source licenses. The intellectual property of UI designs, icons, and other original content within the App belongs to the developers."),
 
-    TextSection("六、协议变更", isHeading = true),
-    TextSection("我们保留随时修改本协议的权利。修改后的协议将在应用内公布。继续使用本应用即表示您同意修改后的协议。"),
+    TextSection("6. Agreement Changes", isHeading = true),
+    TextSection("We reserve the right to modify this agreement at any time. The modified agreement will be published within the App. Continued use of the App indicates your agreement to the modified agreement."),
 
-    TextSection("七、联系方式", isHeading = true),
-    TextSection("如果您对本协议有任何疑问，请通过以下方式联系我们：\n\n邮箱：xiaomochn@gmail.com\nGitHub：https://github.com/SelectXn00b/AndroidForClaw"),
+    TextSection("7. Contact Us", isHeading = true),
+    TextSection("If you have any questions about this agreement, please contact us at:\n\nEmail: xiaomochn@gmail.com\nGitHub: https://github.com/SelectXn00b/AndroidForClaw"),
 )

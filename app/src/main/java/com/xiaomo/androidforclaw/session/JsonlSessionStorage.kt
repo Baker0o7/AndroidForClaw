@@ -63,7 +63,7 @@ class JsonlSessionStorage(private val context: Context) {
         )
         saveSessionsIndex(index)
 
-        Log.i(TAG, "创建新会话: $sessionId")
+        Log.i(TAG, "创建New Session: $sessionId")
         return sessionId
     }
 
@@ -73,7 +73,7 @@ class JsonlSessionStorage(private val context: Context) {
     fun appendMessage(sessionId: String, message: SessionMessage) {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         if (!sessionFile.exists()) {
-            Log.e(TAG, "会话文件不存在: $sessionId")
+            Log.e(TAG, "SessionFile not found: $sessionId")
             return
         }
 
@@ -89,7 +89,7 @@ class JsonlSessionStorage(private val context: Context) {
             )
         }
 
-        Log.d(TAG, "追加消息到会话 $sessionId: ${message.role}")
+        Log.d(TAG, "追加Message到Session $sessionId: ${message.role}")
     }
 
     /**
@@ -98,7 +98,7 @@ class JsonlSessionStorage(private val context: Context) {
     fun loadSession(sessionId: String): List<SessionMessage> {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         if (!sessionFile.exists()) {
-            Log.w(TAG, "会话文件不存在: $sessionId")
+            Log.w(TAG, "SessionFile not found: $sessionId")
             return emptyList()
         }
 
@@ -109,12 +109,12 @@ class JsonlSessionStorage(private val context: Context) {
                     try {
                         gson.fromJson(line, SessionMessage::class.java)
                     } catch (e: Exception) {
-                        Log.e(TAG, "解析消息失败: $line", e)
+                        Log.e(TAG, "解析MessageFailed: $line", e)
                         null
                     }
                 }
         } catch (e: Exception) {
-            Log.e(TAG, "加载会话失败: $sessionId", e)
+            Log.e(TAG, "LoadSessionFailed: $sessionId", e)
             emptyList()
         }
     }
@@ -154,7 +154,7 @@ class JsonlSessionStorage(private val context: Context) {
             val index = loadSessionsIndex().toMutableMap()
             index.remove(sessionId)
             saveSessionsIndex(index)
-            Log.i(TAG, "删除会话: $sessionId")
+            Log.i(TAG, "DeleteSession: $sessionId")
         }
 
         return deleted
@@ -173,7 +173,7 @@ class JsonlSessionStorage(private val context: Context) {
                     lastMessageAt = Instant.now().toString()
                 )
             }
-            Log.i(TAG, "清空会话: $sessionId")
+            Log.i(TAG, "清EmptySession: $sessionId")
         }
     }
 
@@ -186,10 +186,10 @@ class JsonlSessionStorage(private val context: Context) {
 
         return try {
             sessionFile.copyTo(outputFile, overwrite = true)
-            Log.i(TAG, "导出会话 $sessionId 到 $outputPath")
+            Log.i(TAG, "ExportSession $sessionId 到 $outputPath")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "导出会话失败", e)
+            Log.e(TAG, "ExportSessionFailed", e)
             false
         }
     }
@@ -200,7 +200,7 @@ class JsonlSessionStorage(private val context: Context) {
     fun importSession(inputPath: String, title: String? = null): String? {
         val inputFile = File(inputPath)
         if (!inputFile.exists()) {
-            Log.e(TAG, "导入文件不存在: $inputPath")
+            Log.e(TAG, "ImportFile not found: $inputPath")
             return null
         }
 
@@ -223,10 +223,10 @@ class JsonlSessionStorage(private val context: Context) {
             )
             saveSessionsIndex(index)
 
-            Log.i(TAG, "导入会话成功: $sessionId")
+            Log.i(TAG, "ImportSessionSuccess: $sessionId")
             sessionId
         } catch (e: Exception) {
-            Log.e(TAG, "导入会话失败", e)
+            Log.e(TAG, "ImportSessionFailed", e)
             null
         }
     }
@@ -280,7 +280,7 @@ class JsonlSessionStorage(private val context: Context) {
             val wrapper = gson.fromJson(json, SessionsIndexWrapper::class.java)
             wrapper.sessions
         } catch (e: Exception) {
-            Log.e(TAG, "加载 sessions.json 失败", e)
+            Log.e(TAG, "Load sessions.json Failed", e)
             emptyMap()
         }
     }
@@ -296,7 +296,7 @@ class JsonlSessionStorage(private val context: Context) {
             val json = gson.toJson(wrapper)
             indexFile.writeText(json)
         } catch (e: Exception) {
-            Log.e(TAG, "保存 sessions.json 失败", e)
+            Log.e(TAG, "Save sessions.json Failed", e)
         }
     }
 

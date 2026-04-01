@@ -206,13 +206,13 @@ object AppInfoScanner {
         val appInfoList = scanApps(context, includeSystemApps, filterKeywords)
 
         if (appInfoList.isEmpty()) {
-            Log.w(TAG, "未找到任何应用")
+            Log.w(TAG, "Not found任何应用")
             return
         }
 
         // 输出到 Logcat
         Log.d(TAG, "=".repeat(100))
-        Log.d(TAG, "开始输出应用信息（共 ${appInfoList.size} 个应用）")
+        Log.d(TAG, "StartOutputApp Info（共 ${appInfoList.size} 个应用）")
         Log.d(TAG, "=".repeat(100))
 
         // 按应用名排序
@@ -224,22 +224,22 @@ object AppInfoScanner {
         }
 
         Log.d(TAG, "=".repeat(100))
-        Log.d(TAG, "应用信息输出完成")
+        Log.d(TAG, "App InfoOutputDone")
         Log.d(TAG, "=".repeat(100))
 
         // 输出统计信息
-        Log.d(TAG, "\n统计信息：")
+        Log.d(TAG, "\nStatistics Info：")
         Log.d(TAG, "总应用数: ${appInfoList.size}")
         val launchableCount = appInfoList.count { it.mainActivity != null }
         val unlaunchableCount = appInfoList.count { it.mainActivity == null }
-        Log.d(TAG, "有主Activity的应用: $launchableCount")
-        Log.d(TAG, "无主Activity的应用: $unlaunchableCount")
+        Log.d(TAG, "Has主Activity的应用: $launchableCount")
+        Log.d(TAG, "None主Activity的应用: $unlaunchableCount")
         if (unlaunchableCount > 0) {
-            Log.d(TAG, "\n说明：无主Activity的应用通常是以下类型：")
-            Log.d(TAG, "1. 服务类应用（Service）- 如 com.vendor.aiasst.service")
-            Log.d(TAG, "2. 系统组件和库 - 如 com.vendor.analytics")
-            Log.d(TAG, "3. 后台服务 - 如 com.google.android.ext.services")
-            Log.d(TAG, "4. 这些应用无法通过普通方式启动，因此没有主Activity")
+            Log.d(TAG, "\nDescription：None主Activity的应用通常Yes以下Type：")
+            Log.d(TAG, "1. ServiceClass应用（Service）- 如 com.vendor.aiasst.service")
+            Log.d(TAG, "2. 系统Component和库 - 如 com.vendor.analytics")
+            Log.d(TAG, "3. Background Service - 如 com.google.android.ext.services")
+            Log.d(TAG, "4. 这些应用None法通过普通方式启动，因此没Has主Activity")
         }
     }
 
@@ -287,7 +287,7 @@ object AppInfoScanner {
                 appInfoList.add(AppInfo(packageName, appName, mainActivity))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "扫描应用失败: ${e.message}", e)
+            Log.e(TAG, "扫描应用Failed: ${e.message}", e)
             LayoutExceptionLogger.log("AppInfoScanner#scanApps", e)
         }
 
@@ -312,7 +312,7 @@ object AppInfoScanner {
                 return className
             }
         } catch (e: Exception) {
-            Log.d(TAG, "getLaunchIntentForPackage 失败 ($packageName): ${e.message}")
+            Log.d(TAG, "getLaunchIntentForPackage Failed ($packageName): ${e.message}")
         }
 
         // 方法2: 使用 queryIntentActivities 直接查找所有可启动的 Activity（更高效）
@@ -339,7 +339,7 @@ object AppInfoScanner {
                 }
             }
         } catch (e: Exception) {
-            Log.d(TAG, "queryIntentActivities 失败 ($packageName): ${e.message}")
+            Log.d(TAG, "queryIntentActivities Failed ($packageName): ${e.message}")
         }
 
         // 方法3: 解析 PackageInfo 查找 MAIN/LAUNCHER Activity（最后的备用方法）
@@ -364,7 +364,7 @@ object AppInfoScanner {
             // 如果应用没有任何 Activity，说明可能是服务类应用
             val activities = packageInfo.activities
             if (activities == null || activities.isEmpty()) {
-                Log.d(TAG, "应用 $packageName 没有 Activity（可能是服务类应用）")
+                Log.d(TAG, "应用 $packageName 没Has Activity（可能YesServiceClass应用）")
                 return null
             }
 
@@ -398,7 +398,7 @@ object AppInfoScanner {
             }
         } catch (e: Exception) {
             // 如果获取 PackageInfo 失败，可能是权限问题或应用不存在
-            Log.d(TAG, "解析 PackageInfo 失败 ($packageName): ${e.message}")
+            Log.d(TAG, "解析 PackageInfo Failed ($packageName): ${e.message}")
         }
 
 
@@ -448,7 +448,7 @@ object AppInfoScanner {
     //     appName = "$cleanAppName",
     //     appNameList = mutableListOf(${appNameList.joinToString(", ") { "\"$it\"" }}),
     //     packageName = "${appInfo.packageName}",
-    //     mainActivity = "未知"
+    //     mainActivity = "Unknown"
     // ),""".trimIndent()
         }
     }
@@ -462,9 +462,9 @@ object AppInfoScanner {
     }
 
     /**
-     * 扫描并导出为文本格式（便于复制）
+     * 扫描并Export为文本Format（便于Copy）
      * @param context Context
-     * @return 格式化的文本字符串
+     * @return Format化的文本字符串
      */
     fun exportAsText(context: Context): String {
         val appInfoList = scanApps(context, includeSystemApps = false, filterKeywords = emptyList())
@@ -479,7 +479,7 @@ object AppInfoScanner {
         sortedList.forEach { appInfo ->
             sb.appendLine("应用名: ${appInfo.appName}")
             sb.appendLine("包名: ${appInfo.packageName}")
-            sb.appendLine("主Activity: ${appInfo.mainActivity ?: "无"}")
+            sb.appendLine("主Activity: ${appInfo.mainActivity ?: "None"}")
             sb.appendLine("-".repeat(80))
         }
 
@@ -487,7 +487,7 @@ object AppInfoScanner {
     }
 
     /**
-     * 只获取有主Activity的应用（可启动的应用）
+     * 只获取Has主Activity的应用（可启动的应用）
      */
     fun scanLaunchableApps(context: Context): List<AppInfo> {
         return scanApps(context, includeSystemApps = false, filterKeywords = emptyList())
@@ -495,7 +495,7 @@ object AppInfoScanner {
     }
 
     /**
-     * 输出格式化的 AppIntentInfo 代码（仅包含有主Activity的应用）
+     * OutputFormat化的 AppIntentInfo 代码（仅包含Has主Activity的应用）
      */
     fun exportAppIntentInfoCode(context: Context): String {
         val launchableApps = scanLaunchableApps(context)

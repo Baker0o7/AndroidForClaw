@@ -50,7 +50,7 @@ class WebFetchTool(
                     type = "object",
                     properties = mapOf(
                         "url" to PropertySchema("string", "要获取的 URL"),
-                        "max_chars" to PropertySchema("integer", "最大返回字符数，默认 50000")
+                        "max_chars" to PropertySchema("integer", "MaximumBack字符数，Default 50000")
                     ),
                     required = listOf("url")
                 )

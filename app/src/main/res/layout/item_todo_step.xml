@@ -17,7 +17,7 @@
             android:id="@+id/stepIndex"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="步骤 1"
+            android:text="Step 1"
             android:textColor="@color/primary_color"
             android:textSize="12sp"
             android:textStyle="bold"
@@ -28,7 +28,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="待执行"
+            android:text="Pending"
             android:textSize="12sp"
             android:gravity="end" />
 
@@ -39,7 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="操作描述"
+        android:text="Action description"
         android:textColor="?attr/colorOnSurface"
         android:textSize="14sp" />
 

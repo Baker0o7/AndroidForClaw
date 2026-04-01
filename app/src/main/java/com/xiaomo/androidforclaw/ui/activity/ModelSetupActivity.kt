@@ -24,7 +24,7 @@ import com.xiaomo.androidforclaw.config.ProviderConfig
  * Model Setup Guide — simplified first-run wizard.
  *
  * Default flow: user only needs to paste an OpenRouter API Key.
- * Advanced: tap "使用其他服务商" to switch to Anthropic/OpenAI/Custom.
+ * Advanced: tap "使用其他Provider" to switch to Anthropic/OpenAI/Custom.
  */
 class ModelSetupActivity : AppCompatActivity() {
 
@@ -59,18 +59,18 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "OpenRouter",
                 baseUrl = "https://openrouter.ai/api/v1",
                 api = "openai-completions",
-                hint = "OpenRouter 聚合了 Claude、GPT、Gemini、MiMo 等多个模型，一个 Key 即可使用全部。",
+                hint = "OpenRouter aggregates Claude, GPT, Gemini, MiMo and more — one Key for all.",
                 models = listOf(
-                    ModelPreset("xiaomi/mimo-v2-pro", "MiMo V2 Pro (默认，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
-                    ModelPreset("xiaomi/mimo-v2-flash", "MiMo V2 Flash (快速)", contextWindow = 262144, maxTokens = 8192),
-                    ModelPreset("openrouter/hunter-alpha", "🏹 Hunter Alpha (免费，1M上下文)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("openrouter/free", "🆓 免费自动路由 (无需充值)"),
-                    ModelPreset("qwen/qwen3-coder:free", "🆓 Qwen3 Coder (免费，262K)", contextWindow = 262000),
-                    ModelPreset("deepseek/deepseek-r1:free", "🆓 DeepSeek R1 (免费，推理)", reasoning = true, contextWindow = 163840),
-                    ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (付费，推荐)", contextWindow = 200000, maxTokens = 16384),
-                    ModelPreset("anthropic/claude-opus-4", "Claude Opus 4 (付费)", contextWindow = 200000, maxTokens = 32768),
-                    ModelPreset("openai/gpt-4.1", "GPT-4.1 (付费)", contextWindow = 1048576, maxTokens = 32768),
-                    ModelPreset("google/gemini-2.5-pro", "Gemini 2.5 Pro (付费)", contextWindow = 1048576, maxTokens = 65536)
+                    ModelPreset("xiaomi/mimo-v2-pro", "MiMo V2 Pro (Default, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+                    ModelPreset("xiaomi/mimo-v2-flash", "MiMo V2 Flash (Fast)", contextWindow = 262144, maxTokens = 8192),
+                    ModelPreset("openrouter/hunter-alpha", "🏹 Hunter Alpha (Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    ModelPreset("openrouter/free", "🆓 Free Auto Router (No Top-up Required)"),
+                    ModelPreset("qwen/qwen3-coder:free", "🆓 Qwen3 Coder (Free, 262K)", contextWindow = 262000),
+                    ModelPreset("deepseek/deepseek-r1:free", "🆓 DeepSeek R1 (Free, Reasoning)", reasoning = true, contextWindow = 163840),
+                    ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (Paid, Recommended)", contextWindow = 200000, maxTokens = 16384),
+                    ModelPreset("anthropic/claude-opus-4", "Claude Opus 4 (Paid)", contextWindow = 200000, maxTokens = 32768),
+                    ModelPreset("openai/gpt-4.1", "GPT-4.1 (Paid)", contextWindow = 1048576, maxTokens = 32768),
+                    ModelPreset("google/gemini-2.5-pro", "Gemini 2.5 Pro (Paid)", contextWindow = 1048576, maxTokens = 65536)
                 ),
                 authHeader = true
             ),
@@ -78,10 +78,10 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "Google (Gemini)",
                 baseUrl = "https://generativelanguage.googleapis.com/v1beta",
                 api = "google-generative-ai",
-                hint = "Google Gemini API。注册: aistudio.google.com/apikey",
+                hint = "Google Gemini API. Register: aistudio.google.com/apikey",
                 models = listOf(
-                    ModelPreset("gemini-2.5-pro", "Gemini 2.5 Pro (推荐，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("gemini-2.5-flash", "Gemini 2.5 Flash (快速，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 65536)
+                    ModelPreset("gemini-2.5-pro", "Gemini 2.5 Pro (Recommended, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    ModelPreset("gemini-2.5-flash", "Gemini 2.5 Flash (Fast, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536)
                 ),
                 authHeader = true
             ),
@@ -89,22 +89,22 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "Anthropic",
                 baseUrl = "https://api.anthropic.com/v1",
                 api = "anthropic-messages",
-                hint = "Anthropic 官方 API，直连 Claude。注册: console.anthropic.com",
+                hint = "Anthropic official API, direct connection to Claude. Register: console.anthropic.com",
                 models = listOf(
-                    ModelPreset("claude-sonnet-4-20250514", "Claude Sonnet 4 (推荐)"),
+                    ModelPreset("claude-sonnet-4-20250514", "Claude Sonnet 4 (Recommended)"),
                     ModelPreset("claude-opus-4-20250514", "Claude Opus 4"),
-                    ModelPreset("claude-haiku-3-5-20241022", "Claude 3.5 Haiku (快速)")
+                    ModelPreset("claude-haiku-3-5-20241022", "Claude 3.5 Haiku (Fast)")
                 )
             ),
             "xiaomi" to ProviderPreset(
                 name = "小米 MiMo",
                 baseUrl = "https://api.xiaomimimo.com/v1",
                 api = "openai-completions",
-                hint = "小米 MiMo 大模型。注册: xiaomimimo.com",
+                hint = "Xiaomi MiMo LLM. Register: xiaomimimo.com",
                 models = listOf(
-                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (1M，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (1M, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
                     ModelPreset("mimo-v2-flash", "MiMo V2 Flash (262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
-                    ModelPreset("mimo-v2-omni", "MiMo V2 Omni (262K，推理+图片)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
+                    ModelPreset("mimo-v2-omni", "MiMo V2 Omni (262K, Reasoning+Vision)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
                 ),
                 authHeader = true
             ),
@@ -112,33 +112,33 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "OpenAI",
                 baseUrl = "https://api.openai.com/v1",
                 api = "openai-completions",
-                hint = "OpenAI 官方 API。注册: platform.openai.com",
+                hint = "OpenAI official API. Register: platform.openai.com",
                 models = listOf(
-                    ModelPreset("gpt-4.1", "GPT-4.1 (推荐)"),
-                    ModelPreset("gpt-4.1-mini", "GPT-4.1 Mini (快速)"),
-                    ModelPreset("o3", "o3 (推理)")
+                    ModelPreset("gpt-4.1", "GPT-4.1 (Recommended)"),
+                    ModelPreset("gpt-4.1-mini", "GPT-4.1 Mini (Fast)"),
+                    ModelPreset("o3", "o3 (Reasoning)")
                 )
             ),
             "nvidia" to ProviderPreset(
                 name = "NVIDIA NIM",
                 baseUrl = "https://integrate.api.nvidia.com/v1",
                 api = "openai-completions",
-                hint = "NVIDIA NIM 托管模型，免费试用。注册: build.nvidia.com",
+                hint = "NVIDIA NIM hosted models, free trial. Register: build.nvidia.com",
                 models = listOf(
-                    ModelPreset("moonshotai/kimi-k2.5", "Kimi K2.5 (免费，多模态)", contextWindow = 131072, maxTokens = 8192),
-                    ModelPreset("deepseek-ai/deepseek-r1", "DeepSeek R1 (免费，推理)", reasoning = true, contextWindow = 131072, maxTokens = 8192),
+                    ModelPreset("moonshotai/kimi-k2.5", "Kimi K2.5 (Free, Multimodal)", contextWindow = 131072, maxTokens = 8192),
+                    ModelPreset("deepseek-ai/deepseek-r1", "DeepSeek R1 (Free, Reasoning)", reasoning = true, contextWindow = 131072, maxTokens = 8192),
                     ModelPreset("meta/llama-4-maverick-17b-128e-instruct", "Llama 4 Maverick 17B", contextWindow = 131072, maxTokens = 8192),
-                    ModelPreset("", "手动输入模型 ID")
+                    ModelPreset("", "Enter Model ID Manually")
                 ),
                 authHeader = true
             ),
             "custom" to ProviderPreset(
-                name = "自定义",
+                name = "Custom",
                 baseUrl = "",
                 api = "openai-completions",
-                hint = "支持任何兼容 OpenAI API 的服务（vLLM、Ollama、OneAPI 等）。",
+                hint = "Supports any OpenAI API compatible service (vLLM, Ollama, OneAPI, etc.).",
                 models = listOf(
-                    ModelPreset("", "手动输入模型 ID")
+                    ModelPreset("", "Enter Model ID Manually")
                 )
             )
         )
@@ -156,7 +156,7 @@ class ModelSetupActivity : AppCompatActivity() {
 
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
-            title = "模型设置"
+            title = "Model Setup"
         }
 
         // Apply navigation bar insets to bottom button bar so it won't be obscured
@@ -197,12 +197,12 @@ class ModelSetupActivity : AppCompatActivity() {
         // 默认显示 OpenRouter 提示
         applyProviderPreset("openrouter")
 
-        // "打开 openrouter.com" link
+        // "Open openrouter.com" link
         binding.tvOpenOpenrouter.setOnClickListener {
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://openrouter.ai/keys")))
             } catch (e: Exception) {
-                Toast.makeText(this, "无法打开浏览器", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Unable to open browser", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -215,9 +215,9 @@ class ModelSetupActivity : AppCompatActivity() {
             advancedExpanded = !advancedExpanded
             binding.layoutAdvanced.visibility = if (advancedExpanded) View.VISIBLE else View.GONE
             binding.tvAdvanced.text = if (advancedExpanded) {
-                "⚙️ 收起高级选项"
+                "⚙️ Collapse Advanced Options"
             } else {
-                "⚙️ 使用其他服务商（小米 MiMo / Google / Anthropic / OpenAI / 自定义）"
+                "⚙️ Use Other Providers (Xiaomi MiMo / Google / Anthropic / OpenAI / Custom)"
             }
 
             // If collapsing, reset to OpenRouter
@@ -260,12 +260,12 @@ class ModelSetupActivity : AppCompatActivity() {
                 else -> "API Key"
             }
             (tilApiKey as? com.google.android.material.textfield.TextInputLayout)?.helperText = when (providerKey) {
-                "xiaomi" -> "注册: platform.xiaomimimo.com"
-                "openrouter" -> "以 sk-or- 开头"
-                "anthropic" -> "以 sk-ant- 开头"
-                "openai" -> "以 sk- 开头"
-                "google" -> "在 aistudio.google.com/apikey 获取"
-                "nvidia" -> "以 nvapi- 开头，在 build.nvidia.com 获取"
+                "xiaomi" -> "Register: platform.xiaomimimo.com"
+                "openrouter" -> "Starts with sk-or-"
+                "anthropic" -> "Starts with sk-ant-"
+                "openai" -> "Starts with sk-"
+                "google" -> "Get it at aistudio.google.com/apikey"
+                "nvidia" -> "Starts with nvapi-, get it at build.nvidia.com"
                 else -> null
             }
 
@@ -304,7 +304,7 @@ class ModelSetupActivity : AppCompatActivity() {
 
     private fun setupButtons() {
         binding.btnSkip.setOnClickListener {
-            Log.i(TAG, "用户跳过模型配置引导，使用默认配置")
+            Log.i(TAG, "User skipped model setup guide, using default config")
             saveDefaultAndFinish()
         }
 
@@ -329,7 +329,7 @@ class ModelSetupActivity : AppCompatActivity() {
         val apiKey = if (userInputKey.isNullOrEmpty()) {
             val builtInKey = com.xiaomo.androidforclaw.config.BuiltInKeyProvider.getKey()
             if (builtInKey.isNullOrEmpty()) {
-                binding.tilApiKey.error = "请输入 API Key"
+                binding.tilApiKey.error = "Please enter API Key"
                 return
             }
             builtInKey
@@ -346,7 +346,7 @@ class ModelSetupActivity : AppCompatActivity() {
         }
 
         if (selectedProvider == "custom" && apiBase.isNullOrEmpty()) {
-            binding.tilApiBase.error = "请输入 API Base URL"
+            binding.tilApiBase.error = "Please enter API Base URL"
             return
         }
 
@@ -365,7 +365,7 @@ class ModelSetupActivity : AppCompatActivity() {
         }
 
         if (selectedProvider == "custom" && modelId.isBlank()) {
-            binding.tilModel.error = "请输入模型 ID"
+            binding.tilModel.error = "Please enter Model ID"
             return
         }
         binding.tilModel.error = null
@@ -416,18 +416,18 @@ class ModelSetupActivity : AppCompatActivity() {
 
             val saved = configLoader.saveOpenClawConfig(updatedConfig)
             if (!saved) {
-                Toast.makeText(this, "保存失败：无法写入配置文件，请检查存储权限", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Save failed: Cannot write config file, please check storage permission", Toast.LENGTH_LONG).show()
                 return
             }
 
-            Log.i(TAG, "✅ 模型配置已保存: provider=$providerName, model=$modelId")
+            Log.i(TAG, "✅ Model configuration saved: provider=$providerName, model=$modelId")
             markSetupSeen()
-            Toast.makeText(this, "✅ 配置完成！", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "✅ Configuration complete!", Toast.LENGTH_SHORT).show()
             finish()
 
         } catch (e: Exception) {
-            Log.e(TAG, "保存配置失败", e)
-            Toast.makeText(this, "保存失败: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "Failed to save configuration", e)
+            Toast.makeText(this, "Save failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 

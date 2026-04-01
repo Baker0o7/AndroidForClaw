@@ -15,11 +15,11 @@ import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 
-private const val RATE_LIMIT_HINT = """ClawHub API 请求被限流 (HTTP 429)。
-当前为匿名请求模式，请让用户提供 ClawHub token 以解除限流。
-用户可在 clawhub.com 账户设置中获取 token。
-获取后请调用: clawhub_config(action="set", token="用户提供的token")
-然后重试之前的操作。"""
+private const val RATE_LIMIT_HINT = """ClawHub API Request被限Stream (HTTP 429)。
+当前为匿名Request模式，Please让User提供 ClawHub token 以解除限Stream。
+User可在 clawhub.com 账户SettingsMedium获取 token。
+获取后Please调用: clawhub_config(action="set", token="用户提供的token")
+然后Retry之前的操作。"""
 
 /**
  * skills_search — Search ClawHub for available skills
@@ -217,8 +217,8 @@ class ClawHubConfigTool(private val context: Context) : Tool {
                     return ToolResult.error("Missing required parameter: token")
                 }
                 ClawHubClient.saveToken(context, token)
-                Log.i(TAG, "ClawHub token 已配置")
-                ToolResult.success("✅ ClawHub token 已保存，后续请求将自动附带认证信息。")
+                Log.i(TAG, "ClawHub token Configured")
+                ToolResult.success("✅ ClawHub token 已Save，后续Request将Auto附带AuthInfo。")
             }
             "get" -> {
                 val existing = ClawHubClient.getToken(context)
@@ -229,15 +229,15 @@ class ClawHubConfigTool(private val context: Context) : Tool {
                     } else {
                         "***"
                     }
-                    ToolResult.success("ClawHub token 已配置: $masked")
+                    ToolResult.success("ClawHub token Configured: $masked")
                 } else {
-                    ToolResult.success("ClawHub token 未配置，请求为匿名模式（可能被限流）。")
+                    ToolResult.success("ClawHub token Not configured，Request为匿名模式（可能被限Stream）。")
                 }
             }
             "clear" -> {
                 ClawHubClient.clearToken(context)
                 Log.i(TAG, "ClawHub token 已清除")
-                ToolResult.success("✅ ClawHub token 已清除，后续请求将使用匿名模式。")
+                ToolResult.success("✅ ClawHub token 已清除，后续Request将使用匿名模式。")
             }
             else -> {
                 ToolResult.error("Unknown action: $action. Use 'set', 'get', or 'clear'.")

@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw equivalent (Android platform specific)
  */
 package com.xiaomo.androidforclaw.service;
 
@@ -39,7 +39,7 @@ public class ClawIME extends InputMethodService {
     @Override
     public void onCreate() {
         super.onCreate();
-        // 在 Service 创建时就注册实例，确保 Manager 尽早持有引用
+        // Register instance on Service creation to ensure Manager holds reference early
         ClawIMEManager.INSTANCE.registerInstance(this);
         Log.d(TAG, "onCreate: instance registered");
     }
@@ -48,7 +48,7 @@ public class ClawIME extends InputMethodService {
     public View onCreateInputView() {
         View mInputView = getLayoutInflater().inflate(R.layout.claw_keyboard, null);
 
-        // 确保注册（防御性）
+        // Ensure registration (defensive)
         ClawIMEManager.INSTANCE.registerInstance(this);
 
         if (mReceiver == null) {
@@ -61,7 +61,7 @@ public class ClawIME extends InputMethodService {
             filter.addAction(IME_SEND_MESSAGE);
             mReceiver = new AdbReceiver();
 
-            // 使用 RECEIVER_EXPORTED 让 ADB broadcast 和同进程广播都能到达
+            // Use RECEIVER_EXPORTED so both ADB broadcast and same-process broadcast can be received
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 registerReceiver(mReceiver, filter, Context.RECEIVER_EXPORTED);
             } else {
@@ -69,7 +69,7 @@ public class ClawIME extends InputMethodService {
             }
         }
 
-        // 绑定切换按钮点击事件
+        // Bind switch button click event
         Button switchBtn = mInputView.findViewById(R.id.btn_switch_normal_ime);
         if (switchBtn != null) {
             switchBtn.setOnClickListener(v -> switchToNormalIme());
@@ -81,7 +81,7 @@ public class ClawIME extends InputMethodService {
     @Override
     public void onStartInput(EditorInfo attribute, boolean restarting) {
         super.onStartInput(attribute, restarting);
-        // 每次进入编辑会话时刷新注册，确保 Manager 持有最新实例
+        // Refresh registration on each edit session to ensure Manager holds the latest instance
         ClawIMEManager.INSTANCE.registerInstance(this);
         Log.d(TAG, "onStartInput: restarting=" + restarting +
                 ", inputType=" + (attribute != null ? attribute.inputType : "null"));
@@ -90,7 +90,7 @@ public class ClawIME extends InputMethodService {
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
-        // 键盘显示时再次确认注册
+        // Confirm registration again when keyboard is shown
         ClawIMEManager.INSTANCE.registerInstance(this);
         Log.d(TAG, "onStartInputView: keyboard shown, restarting=" + restarting);
     }
@@ -105,12 +105,12 @@ public class ClawIME extends InputMethodService {
     }
 
     /**
-     * 切换到普通输入法
+     * Switch to normal input method
      */
     private void switchToNormalIme() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm == null) return;
-        // 显示输入法选择器，让用户手动选择
+        // Show input method picker for user to manually select
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             imm.showInputMethodPicker();
         }, 300);
@@ -168,7 +168,7 @@ public class ClawIME extends InputMethodService {
                                     );
                                 }
                                 ic.sendKeyEvent(ke);
-                                // 补发一个 ACTION_UP 事件，确保按键事件完整
+                                // Send a complementary ACTION_UP event to ensure key event is complete
                                 KeyEvent keUp = KeyEvent.changeAction(ke, KeyEvent.ACTION_UP);
                                 ic.sendKeyEvent(keUp);
                                 Log.d("SendClick", "onReceive: ");
@@ -212,7 +212,7 @@ public class ClawIME extends InputMethodService {
                     InputConnection ic = getCurrentInputConnection();
                     if (ic != null) {
                         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, code));
-                        // 补发一个 ACTION_UP 事件，确保按键事件完整
+                        // Send a complementary ACTION_UP event to ensure key event is complete
                         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, code));
                     }
                 }
@@ -238,22 +238,22 @@ public class ClawIME extends InputMethodService {
                 }
             }
 
-            // 处理发送消息的广播
+            // Handle send message broadcast
             if (intent.getAction().equals(IME_SEND_MESSAGE)) {
                 Log.d(TAG, "onReceive: IME_SEND_MESSAGE");
                 InputConnection ic = getCurrentInputConnection();
                 if (ic != null) {
-                    // 先尝试 IME_ACTION_SEND
+                    // Try IME_ACTION_SEND first
                     boolean sent = ic.performEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEND);
                     Log.d(TAG, "performEditorAction IME_ACTION_SEND: " + sent);
 
-                    // 如果失败，再尝试其他常见的发送动作
+                    // If failed, try other common send actions
                     if (!sent) {
                         sent = ic.performEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_GO);
                         Log.d(TAG, "performEditorAction IME_ACTION_GO: " + sent);
                     }
 
-                    // 如果还是失败，尝试发送回车键
+                    // If still failed, try sending Enter key
                     if (!sent) {
                         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER));

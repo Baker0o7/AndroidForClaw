@@ -292,8 +292,8 @@ private suspend fun resolveCalendarId(calendarId: String?, client: FeishuClient)
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarCalendarTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_calendar"
-    override val description = "【以用户身份】飞书日历管理工具。用于查询日历列表、获取日历信息、查询主日历。" +
-        "Actions: list（查询日历列表）, get（查询指定日历信息）, primary（查询主日历信息）。"
+    override val description = "【以User身份】FeishuCalendarManagedTool。用于查询CalendarList、获取CalendarInfo、查询主Calendar。" +
+        "Actions: list（查询CalendarList）, get（查询指定CalendarInfo）, primary（查询主CalendarInfo）。"
 
     override fun isEnabled() = config.enableCalendarTools
 
@@ -377,7 +377,7 @@ class FeishuCalendarCalendarTool(config: FeishuConfig, client: FeishuClient) : F
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "action" to PropertySchema("string", "操作类型", enum = listOf("list", "get", "primary")),
+                    "action" to PropertySchema("string", "操作Type", enum = listOf("list", "get", "primary")),
                     "calendar_id" to PropertySchema("string", "Calendar ID"),
                     "page_size" to PropertySchema("integer", "Number of calendars to return per page (default: 50, max: 1000)"),
                     "page_token" to PropertySchema("string", "Pagination token for next page")
@@ -393,13 +393,13 @@ class FeishuCalendarCalendarTool(config: FeishuConfig, client: FeishuClient) : F
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_event"
-    override val description = "【以用户身份】飞书日程管理工具。当用户要求查看日程、创建会议、约会议、修改日程、" +
-        "删除日程、搜索日程、回复日程邀请时使用。Actions: create（创建日历事件）, list（查询时间范围内的日程，自动展开重复日程）, " +
-        "get（获取日程详情）, patch（更新日程）, delete（删除日程）, search（搜索日程）, reply（回复日程邀请）, " +
-        "instances（获取重复日程的实例列表，仅对重复日程有效）, instance_view（查看展开后的日程列表）。" +
-        "【重要】create 时必须传 user_open_id 参数，值为消息上下文中的 SenderId（格式 ou_xxx），否则日程只在应用日历上，用户完全看不到。" +
-        "list 操作使用 instance_view 接口，会自动展开重复日程为多个实例，时间区间不能超过40天，返回实例数量上限1000。" +
-        "时间参数使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'。"
+    override val description = "【以User身份】Feishu日程ManagedTool。当User要求View日程、创建会议、约会议、Modified日程、" +
+        "Delete event、Search日程、回复日程邀Please时使用。Actions: create（创建CalendarEvent）, list（查询时间范围内的日程，AutoExpandRepeat日程）, " +
+        "get（Get Calendar EventsDetails）, patch（Update日程）, delete（Delete event）, search（Search日程）, reply（回复日程邀Please）, " +
+        "instances（获取Repeat日程的InstanceList，仅对Repeat日程Has效）, instance_view（ViewExpand后的日程List）。" +
+        "【Important】create 时Must传 user_open_id Parameter，Value为MessageContextMedium的 SenderId（Format ou_xxx），No则日程只在应用Calendar上，User完全看不到。" +
+        "list 操作使用 instance_view Interface，会AutoExpandRepeat日程为多个Instance，时间区间不能超过40天，BackInstanceCount上限1000。" +
+        "时间Parameter使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'。"
 
     override fun isEnabled() = config.enableCalendarTools
 
@@ -578,11 +578,11 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
         )
 
         if (attendeeError != null) {
-            response["warning"] = "日程已创建，但添加参会人失败：$attendeeError"
+            response["warning"] = "日程已创建，但添加参会人Failed：$attendeeError"
         } else if (allAttendees.isEmpty()) {
-            response["error"] = "日程已创建在应用日历上，但未添加任何参会人，用户看不到此日程。请重新调用时传入 user_open_id 参数。"
+            response["error"] = "日程已创建在应用Calendar上，但未添加任何参会人，User看不到此日程。Please重新调用时传入 user_open_id Parameter。"
         } else {
-            response["note"] = "已成功添加 ${allAttendees.size} 位参会人，日程应出现在参会人的飞书日历中。"
+            response["note"] = "已Success添加 ${allAttendees.size} 位参会人，日程应出现在参会人的FeishuCalendarMedium。"
         }
 
         return ToolResult.success(response)
@@ -657,12 +657,12 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
         // Handle time conversion if provided
         (args["start_time"] as? String)?.let { timeStr ->
             val startTs = parseTimeToTimestamp(timeStr)
-                ?: return ToolResult.error("start_time 格式错误！必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'")
+                ?: return ToolResult.error("start_time Format error！Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'")
             updateData["start_time"] = mapOf("timestamp" to startTs)
         }
         (args["end_time"] as? String)?.let { timeStr ->
             val endTs = parseTimeToTimestamp(timeStr)
-                ?: return ToolResult.error("end_time 格式错误！必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'")
+                ?: return ToolResult.error("end_time Format error！Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'")
             updateData["end_time"] = mapOf("timestamp" to endTs)
         }
 
@@ -840,30 +840,30 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "list", "get", "patch", "delete", "search", "reply", "instances", "instance_view")
                     ),
                     "calendar_id" to PropertySchema("string", "Calendar ID (optional; primary calendar used if omitted)"),
                     "event_id" to PropertySchema("string", "Event ID"),
-                    "summary" to PropertySchema("string", "日程标题（可选，但强烈建议提供）"),
-                    "description" to PropertySchema("string", "日程描述"),
-                    "start_time" to PropertySchema("string", "开始时间（必填）。ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'"),
-                    "end_time" to PropertySchema("string", "结束时间（必填）。格式同 start_time。如果用户未指定时长，默认为开始时间后1小时。"),
-                    "user_open_id" to PropertySchema("string", "当前请求用户的 open_id（可选，但强烈建议提供）。从消息上下文的 SenderId 字段获取，格式为 ou_xxx。"),
-                    "attendees" to PropertySchema("array", "参会人列表。type='user' 时 id 填 open_id，type='third_party' 时 id 填邮箱。",
+                    "summary" to PropertySchema("string", "日程标题（Optional，但强烈Recommend提供）"),
+                    "description" to PropertySchema("string", "日程Description"),
+                    "start_time" to PropertySchema("string", "Start Time（Required）。ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'"),
+                    "end_time" to PropertySchema("string", "End Time（Required）。Format同 start_time。如果User未指Scheduled长，Default为Start Time后1小时。"),
+                    "user_open_id" to PropertySchema("string", "当前RequestUser的 open_id（Optional，但强烈Recommend提供）。从MessageContext的 SenderId Field获取，Format为 ou_xxx。"),
+                    "attendees" to PropertySchema("array", "参会人List。type='user' 时 id 填 open_id，type='third_party' 时 id 填邮箱。",
                         items = PropertySchema("object", "参会人 {type, id}")),
-                    "vchat" to PropertySchema("object", "视频会议信息"),
-                    "visibility" to PropertySchema("string", "日程公开范围", enum = listOf("default", "public", "private")),
-                    "attendee_ability" to PropertySchema("string", "参与人权限（默认 can_modify_event）",
+                    "vchat" to PropertySchema("object", "视频会议Info"),
+                    "visibility" to PropertySchema("string", "日程Public范围", enum = listOf("default", "public", "private")),
+                    "attendee_ability" to PropertySchema("string", "参与人Permission（Default can_modify_event）",
                         enum = listOf("none", "can_see_others", "can_invite_others", "can_modify_event")),
-                    "free_busy_status" to PropertySchema("string", "忙闲状态", enum = listOf("busy", "free")),
-                    "location" to PropertySchema("object", "日程地点信息 {name, address, latitude, longitude}"),
-                    "reminders" to PropertySchema("array", "日程提醒列表"),
-                    "recurrence" to PropertySchema("string", "重复日程的重复性规则（RFC5545 RRULE 格式）"),
-                    "need_notification" to PropertySchema("boolean", "是否通知参会人（delete 时使用，默认 true）"),
-                    "query" to PropertySchema("string", "搜索关键词（search 时必填）"),
-                    "rsvp_status" to PropertySchema("string", "回复状态（reply 时必填）", enum = listOf("accept", "decline", "tentative")),
-                    "page_size" to PropertySchema("integer", "每页数量"),
+                    "free_busy_status" to PropertySchema("string", "忙闲Status", enum = listOf("busy", "free")),
+                    "location" to PropertySchema("object", "日程地点Info {name, address, latitude, longitude}"),
+                    "reminders" to PropertySchema("array", "日程提醒List"),
+                    "recurrence" to PropertySchema("string", "Repeat日程的Repeat性规则（RFC5545 RRULE Format）"),
+                    "need_notification" to PropertySchema("boolean", "YesNoNotification参会人（delete 时使用，Default true）"),
+                    "query" to PropertySchema("string", "SearchOff键词（search 时Required）"),
+                    "rsvp_status" to PropertySchema("string", "回复Status（reply 时Required）", enum = listOf("accept", "decline", "tentative")),
+                    "page_size" to PropertySchema("integer", "每页Count"),
                     "page_token" to PropertySchema("string", "分页标记")
                 ),
                 required = listOf("action")
@@ -877,8 +877,8 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarEventAttendeeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_event_attendee"
-    override val description = "飞书日程参会人管理工具。当用户要求邀请/添加参会人、查看参会人列表时使用。" +
-        "Actions: create（添加参会人）, list（查询参会人列表）。"
+    override val description = "Feishu日程参会人ManagedTool。当User要求邀Please/添加参会人、View参会人List时使用。" +
+        "Actions: create（添加参会人）, list（查询参会人List）。"
 
     override fun isEnabled() = config.enableCalendarTools
 
@@ -974,17 +974,17 @@ class FeishuCalendarEventAttendeeTool(config: FeishuConfig, client: FeishuClient
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "action" to PropertySchema("string", "操作类型", enum = listOf("create", "list")),
-                    "calendar_id" to PropertySchema("string", "日历 ID"),
+                    "action" to PropertySchema("string", "操作Type", enum = listOf("create", "list")),
+                    "calendar_id" to PropertySchema("string", "Calendar ID"),
                     "event_id" to PropertySchema("string", "日程 ID"),
-                    "attendees" to PropertySchema("array", "参会人列表（create 时必填）。type=user 时 attendee_id 为 open_id，type=chat 时为 chat_id，type=resource 时为会议室 ID，type=third_party 时为邮箱地址",
+                    "attendees" to PropertySchema("array", "参会人List（create 时Required）。type=user 时 attendee_id 为 open_id，type=chat 时为 chat_id，type=resource 时为会议室 ID，type=third_party 时为邮箱Address",
                         items = PropertySchema("object", "参会人 {type, attendee_id}")),
-                    "need_notification" to PropertySchema("boolean", "是否给参会人发送通知（默认 true）"),
-                    "attendee_ability" to PropertySchema("string", "参与人权限",
+                    "need_notification" to PropertySchema("boolean", "YesNo给参会人Send notification（Default true）"),
+                    "attendee_ability" to PropertySchema("string", "参与人Permission",
                         enum = listOf("none", "can_see_others", "can_invite_others", "can_modify_event")),
-                    "user_id_type" to PropertySchema("string", "用户 ID 类型（list 时使用，默认 open_id）",
+                    "user_id_type" to PropertySchema("string", "User ID Type（list 时使用，Default open_id）",
                         enum = listOf("open_id", "union_id", "user_id")),
-                    "page_size" to PropertySchema("integer", "每页数量（默认 50，最大 500）"),
+                    "page_size" to PropertySchema("integer", "每页Count（Default 50，Maximum 500）"),
                     "page_token" to PropertySchema("string", "分页标记")
                 ),
                 required = listOf("action", "calendar_id", "event_id")
@@ -998,8 +998,8 @@ class FeishuCalendarEventAttendeeTool(config: FeishuConfig, client: FeishuClient
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarFreebusyTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_freebusy"
-    override val description = "【以用户身份】飞书日历忙闲查询工具。当用户要求查询某时间段内某人是否空闲、" +
-        "查看忙闲状态时使用。支持批量查询 1-10 个用户的主日历忙闲信息，用于安排会议时间。"
+    override val description = "【以User身份】FeishuCalendar忙闲查询Tool。当User要求查询某时间段内某人YesNoIdle、" +
+        "View忙闲Status时使用。支持批量查询 1-10 个User的主Calendar忙闲Info，用于安排会议时间。"
 
     override fun isEnabled() = config.enableCalendarTools
 
@@ -1087,11 +1087,11 @@ class FeishuCalendarFreebusyTool(config: FeishuConfig, client: FeishuClient) : F
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "action" to PropertySchema("string", "操作类型", enum = listOf("list")),
-                    "time_min" to PropertySchema("string", "查询起始时间（ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'）"),
-                    "time_max" to PropertySchema("string", "查询结束时间（ISO 8601 / RFC 3339 格式）"),
-                    "user_ids" to PropertySchema("array", "要查询忙闲的用户 ID 列表（1-10 个用户）",
-                        items = PropertySchema("string", "用户 open_id"))
+                    "action" to PropertySchema("string", "操作Type", enum = listOf("list")),
+                    "time_min" to PropertySchema("string", "查询起始时间（ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'）"),
+                    "time_max" to PropertySchema("string", "查询End Time（ISO 8601 / RFC 3339 Format）"),
+                    "user_ids" to PropertySchema("array", "要查询忙闲的User ID List（1-10 个User）",
+                        items = PropertySchema("string", "User open_id"))
                 ),
                 required = listOf("action", "time_min", "time_max", "user_ids")
             )

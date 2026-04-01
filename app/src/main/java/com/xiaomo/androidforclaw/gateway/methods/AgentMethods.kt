@@ -221,7 +221,7 @@ Instructions:
                             broadcastEvent("agent.thinking", mapOf(
                                 "runId" to runId,
                                 "iteration" to progress.iteration,
-                                "message" to "正在处理第 ${progress.iteration} 步..."
+                                "message" to "Processing...第 ${progress.iteration} 步..."
                             ))
                         }
                         is ProgressUpdate.ToolCall -> {

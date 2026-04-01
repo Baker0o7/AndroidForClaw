@@ -407,7 +407,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     private suspend fun autoStartSshd(): TermuxStatus {
         // 连接池已连接则直接返回
         if (TermuxSSHPool.isConnected) {
-            Log.i(TAG, "SSH 连接池已连接，跳过按需启动")
+            Log.i(TAG, "SSH Connection PoolConnected，Skip按需启动")
             return getStatus()
         }
         Log.i(TAG, "🐧 按需启动 Termux sshd...")
@@ -425,14 +425,14 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             val s = getStatus()
             if (s.ready) {
                 TermuxSSHPool.warmUp(context)
-                Log.i(TAG, "✅ 按需启动 sshd 成功（等待 ${attempt}s）")
+                Log.i(TAG, "✅ 按需启动 sshd Success（Wait ${attempt}s）")
                 return s
             }
             // sshd 可达但认证失败 → 自动注入公钥
             if (s.sshReachable && !s.sshAuthOk && !keyInjected) {
                 val pubKey = getPublicKey()
                 if (pubKey != null) {
-                    Log.i(TAG, "🔑 sshd 可达但认证失败，自动注入公钥...")
+                    Log.i(TAG, "🔑 sshd 可达但AuthFailed，Auto注入公钥...")
                     launcher.injectPublicKey(context, pubKey)
                     keyInjected = true
                 }

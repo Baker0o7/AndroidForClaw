@@ -233,11 +233,11 @@ object FeishuContentParser {
             val json = gson.fromJson(content, JsonObject::class.java)
             val imageKey = json.get("image_key")?.asString
             ParseResult(
-                text = "[图片]",
+                text = "[Image]",
                 mediaKeys = imageKey?.let { MediaKeys(imageKey = it, mediaType = "image") }
             )
         } catch (e: Exception) {
-            ParseResult(text = "[图片]")
+            ParseResult(text = "[Image]")
         }
     }
 
@@ -245,7 +245,7 @@ object FeishuContentParser {
         return try {
             val json = gson.fromJson(content, JsonObject::class.java)
             val fileKey = json.get("file_key")?.asString
-            val fileName = json.get("file_name")?.asString ?: "未知文件"
+            val fileName = json.get("file_name")?.asString ?: "Unknown文件"
             ParseResult(
                 text = "[文件: $fileName]",
                 mediaKeys = fileKey?.let { MediaKeys(fileKey = it, fileName = fileName, mediaType = "file") }
@@ -305,10 +305,10 @@ object FeishuContentParser {
             val name = json.get("chat_name")?.asString
                 ?: json.get("name")?.asString
             val chatId = json.get("share_chat_id")?.asString ?: ""
-            val display = if (!name.isNullOrBlank()) "[分享群: $name]" else "[分享群: $chatId]"
+            val display = if (!name.isNullOrBlank()) "[Share群: $name]" else "[Share群: $chatId]"
             ParseResult(text = display)
         } catch (e: Exception) {
-            ParseResult(text = "[分享群]")
+            ParseResult(text = "[Share群]")
         }
     }
 
@@ -316,9 +316,9 @@ object FeishuContentParser {
         return try {
             val json = gson.fromJson(content, JsonObject::class.java)
             val userId = json.get("user_id")?.asString ?: ""
-            ParseResult(text = "[分享用户: $userId]")
+            ParseResult(text = "[ShareUser: $userId]")
         } catch (e: Exception) {
-            ParseResult(text = "[分享用户]")
+            ParseResult(text = "[ShareUser]")
         }
     }
 
@@ -336,12 +336,12 @@ object FeishuContentParser {
                 json is JsonArray -> json
                 json is JsonObject && json.has("messages") -> json.getAsJsonArray("messages")
                 json is JsonObject && json.has("combine") -> json.getAsJsonArray("combine")
-                else -> return "[合并转发消息]"
+                else -> return "[合并RelayMessage]"
             }
 
-            if (messages.size() == 0) return "[合并转发消息（空）]"
+            if (messages.size() == 0) return "[合并RelayMessage（Empty）]"
 
-            val sb = StringBuilder("[合并转发消息]\n")
+            val sb = StringBuilder("[合并RelayMessage]\n")
             val limit = minOf(messages.size(), 50)
 
             for (i in 0 until limit) {
@@ -362,7 +362,7 @@ object FeishuContentParser {
             sb.toString().trimEnd()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to parse merge forward", e)
-            "[合并转发消息]"
+            "[合并RelayMessage]"
         }
     }
 
@@ -380,14 +380,14 @@ object FeishuContentParser {
                     if (content.length > 100) content.take(100) + "..." else content
                 }
             }
-            "image" -> "[图片]"
+            "image" -> "[Image]"
             "file" -> "[文件]"
             "audio" -> "[语音]"
             "video" -> "[视频]"
             "sticker" -> "[表情]"
             "post" -> "[富文本]"
-            "share_chat" -> "[分享群]"
-            "share_user" -> "[分享用户]"
+            "share_chat" -> "[Share群]"
+            "share_user" -> "[ShareUser]"
             else -> "[$msgType]"
         }
     }

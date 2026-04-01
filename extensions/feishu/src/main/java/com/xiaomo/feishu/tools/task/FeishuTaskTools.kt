@@ -266,9 +266,9 @@ class FeishuTaskTaskTool(
     override val name = "feishu_task_task"
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     override val description =
-        "【以用户身份】飞书任务管理工具。用于创建、查询、更新任务。" +
-        "Actions: create（创建任务）, get（获取任务详情）, list（查询任务列表，仅返回我负责的任务）, patch（更新任务）。" +
-        "时间参数使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'。"
+        "【以User身份】Feishu TasksManagedTool。用于创建、查询、Update任务。" +
+        "Actions: create（Create Task）, get（Get TasksDetails）, list（查询任务List，仅Back我负责的任务）, patch（Update任务）。" +
+        "时间Parameter使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'。"
 
     override fun isEnabled() = config.enableTaskTools
 
@@ -301,7 +301,7 @@ class FeishuTaskTaskTool(
                         val dueObj = parseDueStartObject(args["due"])
                         if (dueObj == null) {
                             return@withContext ToolResult.success(mapOf(
-                                "error" to "due 时间格式错误！必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'，例如 '2026-02-25 18:00'。",
+                                "error" to "due 时间Format error！Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'，例如 '2026-02-25 18:00'。",
                                 "received" to args["due"]
                             ))
                         }
@@ -314,7 +314,7 @@ class FeishuTaskTaskTool(
                         val startObj = parseDueStartObject(args["start"])
                         if (startObj == null) {
                             return@withContext ToolResult.success(mapOf(
-                                "error" to "start 时间格式错误！必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'。",
+                                "error" to "start 时间Format error！Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'。",
                                 "received" to args["start"]
                             ))
                         }
@@ -419,7 +419,7 @@ class FeishuTaskTaskTool(
                         val dueObj = parseDueStartObject(args["due"])
                         if (dueObj == null) {
                             return@withContext ToolResult.success(mapOf(
-                                "error" to "due 时间格式错误！必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'。",
+                                "error" to "due 时间Format error！Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'。",
                                 "received" to args["due"]
                             ))
                         }
@@ -431,7 +431,7 @@ class FeishuTaskTaskTool(
                         val startObj = parseDueStartObject(args["start"])
                         if (startObj == null) {
                             return@withContext ToolResult.success(mapOf(
-                                "error" to "start 时间格式错误！必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'。",
+                                "error" to "start 时间Format error！Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'。",
                                 "received" to args["start"]
                             ))
                         }
@@ -455,7 +455,7 @@ class FeishuTaskTaskTool(
                                 val completedTs = parseTimeToTimestampMs(completedAt)
                                 if (completedTs == null) {
                                     return@withContext ToolResult.success(mapOf(
-                                        "error" to "completed_at 格式错误！支持：1) ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'；2) '0'（反完成）；3) 毫秒时间戳字符串。",
+                                        "error" to "completed_at Format error！支持：1) ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'；2) '0'（反Done）；3) 毫秒时间戳字符串。",
                                         "received" to completedAt
                                     ))
                                 }
@@ -504,40 +504,40 @@ class FeishuTaskTaskTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "get", "list", "patch")
                     ),
-                    "task_guid" to PropertySchema("string", "Task GUID（get/patch 必填）"),
-                    "summary" to PropertySchema("string", "任务标题（create 必填，patch 可选）"),
-                    "current_user_id" to PropertySchema("string", "当前用户的 open_id（强烈建议，从消息上下文的 SenderId 获取）。如果 members 中不包含此用户，工具会自动添加为 follower，确保创建者可以编辑任务。"),
-                    "description" to PropertySchema("string", "任务描述（可选）"),
+                    "task_guid" to PropertySchema("string", "Task GUID（get/patch Required）"),
+                    "summary" to PropertySchema("string", "任务标题（create Required，patch Optional）"),
+                    "current_user_id" to PropertySchema("string", "当前User的 open_id（强烈Recommend，从MessageContext的 SenderId 获取）。如果 members Medium不包含此User，Tool会Auto添加为 follower，Ensure创建者CanEdit任务。"),
+                    "description" to PropertySchema("string", "任务Description（Optional）"),
                     "due" to PropertySchema(
-                        "object", "截止时间对象",
+                        "object", "截止时间Object",
                         properties = mapOf(
-                            "timestamp" to PropertySchema("string", "截止时间（ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'）"),
-                            "is_all_day" to PropertySchema("boolean", "是否为全天任务")
+                            "timestamp" to PropertySchema("string", "截止时间（ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'）"),
+                            "is_all_day" to PropertySchema("boolean", "YesNo为全天任务")
                         )
                     ),
                     "start" to PropertySchema(
-                        "object", "开始时间对象",
+                        "object", "Start TimeObject",
                         properties = mapOf(
-                            "timestamp" to PropertySchema("string", "开始时间（ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'）"),
-                            "is_all_day" to PropertySchema("boolean", "是否为全天")
+                            "timestamp" to PropertySchema("string", "Start Time（ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'）"),
+                            "is_all_day" to PropertySchema("boolean", "YesNo为全天")
                         )
                     ),
-                    "completed_at" to PropertySchema("string", "完成时间。支持三种格式：1) ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'（设为已完成）；2) '0'（反完成，任务变为未完成）；3) 毫秒时间戳字符串。"),
-                    "completed" to PropertySchema("boolean", "是否筛选已完成任务（list 可选）"),
+                    "completed_at" to PropertySchema("string", "Done时间。支持三种Format：1) ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'（设为Completed）；2) '0'（反Done，任务变为未Done）；3) 毫秒时间戳字符串。"),
+                    "completed" to PropertySchema("boolean", "YesNoFilterCompleted任务（list Optional）"),
                     "members" to PropertySchema(
-                        "array", "任务成员列表（assignee=负责人，follower=关注人）",
-                        items = PropertySchema("object", "成员对象 {id: open_id, role?: 'assignee'|'follower'}")
+                        "array", "任务MemberList（assignee=负责人，follower=Off注人）",
+                        items = PropertySchema("object", "MemberObject {id: open_id, role?: 'assignee'|'follower'}")
                     ),
-                    "repeat_rule" to PropertySchema("string", "重复规则（RRULE 格式）"),
+                    "repeat_rule" to PropertySchema("string", "Repeat规则（RRULE Format）"),
                     "tasklists" to PropertySchema(
-                        "array", "任务所属清单列表",
-                        items = PropertySchema("object", "清单对象 {tasklist_guid, section_guid?}")
+                        "array", "任务所属清单List",
+                        items = PropertySchema("object", "清单Object {tasklist_guid, section_guid?}")
                     ),
-                    "user_id_type" to PropertySchema("string", "用户 ID 类型", enum = listOf("open_id", "union_id", "user_id")),
-                    "page_size" to PropertySchema("number", "每页数量（默认 50，最大 100）"),
+                    "user_id_type" to PropertySchema("string", "User ID Type", enum = listOf("open_id", "union_id", "user_id")),
+                    "page_size" to PropertySchema("number", "每页Count（Default 50，Maximum 100）"),
                     "page_token" to PropertySchema("string", "分页标记")
                 ),
                 required = listOf("action")
@@ -564,9 +564,9 @@ class FeishuTaskTasklistTool(
     override val name = "feishu_task_tasklist"
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     override val description =
-        "【以用户身份】飞书任务清单管理工具。当用户要求创建/查询/管理清单、查看清单内的任务时使用。" +
-        "Actions: create（创建清单）, get（获取清单详情）, list（列出所有可读取的清单，包括我创建的和他人共享给我的）, " +
-        "tasks（列出清单内的任务）, patch（更新清单）, add_members（添加成员）。"
+        "【以User身份】Feishu Tasks清单ManagedTool。当User要求创建/查询/Managed清单、View清单内的任务时使用。" +
+        "Actions: create（创建清单）, get（获取清单Details）, list（Column出所Has可读取的清单，包括我创建的和他人Shared给我的）, " +
+        "tasks（Column出清单内的任务）, patch（Update清单）, add_members（添加Member）。"
 
     override fun isEnabled() = config.enableTaskTools
 
@@ -787,17 +787,17 @@ class FeishuTaskTasklistTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "get", "list", "tasks", "patch", "add_members")
                     ),
-                    "tasklist_guid" to PropertySchema("string", "清单 GUID（get/tasks/patch/add_members 必填）"),
-                    "name" to PropertySchema("string", "清单名称（create 必填，patch 可选）"),
+                    "tasklist_guid" to PropertySchema("string", "清单 GUID（get/tasks/patch/add_members Required）"),
+                    "name" to PropertySchema("string", "清单Name（create Required，patch Optional）"),
                     "members" to PropertySchema(
-                        "array", "清单成员列表（editor=可编辑，viewer=可查看）。注意：创建人自动成为 owner",
-                        items = PropertySchema("object", "成员对象 {id: open_id, role?: 'editor'|'viewer'}")
+                        "array", "清单MemberList（editor=可Edit，viewer=可View）。Attention：创建人Auto成为 owner",
+                        items = PropertySchema("object", "MemberObject {id: open_id, role?: 'editor'|'viewer'}")
                     ),
-                    "completed" to PropertySchema("boolean", "是否只返回已完成的任务（tasks 可选，默认返回所有）"),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 100"),
+                    "completed" to PropertySchema("boolean", "YesNo只BackCompleted的任务（tasks Optional，DefaultBack所Has）"),
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 100"),
                     "page_token" to PropertySchema("string", "分页标记")
                 ),
                 required = listOf("action")
@@ -824,8 +824,8 @@ class FeishuTaskSubtaskTool(
     override val name = "feishu_task_subtask"
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     override val description =
-        "【以用户身份】飞书任务的子任务管理工具。当用户要求创建子任务、查询任务的子任务列表时使用。" +
-        "Actions: create（创建子任务）, list（列出任务的所有子任务）。"
+        "【以User身份】Feishu Tasks的子任务ManagedTool。当User要求创建子任务、查询任务的子任务List时使用。" +
+        "Actions: create（创建子任务）, list（Column出任务的所Has子任务）。"
 
     override fun isEnabled() = config.enableTaskTools
 
@@ -859,7 +859,7 @@ class FeishuTaskSubtaskTool(
                         val dueObj = parseDueStartObject(args["due"])
                         if (dueObj == null) {
                             return@withContext ToolResult.success(mapOf(
-                                "error" to "时间格式错误！due.timestamp 必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'，当前值：${(args["due"] as? Map<*, *>)?.get("timestamp")}"
+                                "error" to "时间Format error！due.timestamp Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'，当前Value：${(args["due"] as? Map<*, *>)?.get("timestamp")}"
                             ))
                         }
                         data["due"] = dueObj
@@ -870,7 +870,7 @@ class FeishuTaskSubtaskTool(
                         val startObj = parseDueStartObject(args["start"])
                         if (startObj == null) {
                             return@withContext ToolResult.success(mapOf(
-                                "error" to "时间格式错误！start.timestamp 必须使用ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'，当前值：${(args["start"] as? Map<*, *>)?.get("timestamp")}"
+                                "error" to "时间Format error！start.timestamp Must使用ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'，当前Value：${(args["start"] as? Map<*, *>)?.get("timestamp")}"
                             ))
                         }
                         data["start"] = startObj
@@ -947,31 +947,31 @@ class FeishuTaskSubtaskTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "list")
                     ),
                     "task_guid" to PropertySchema("string", "父任务 GUID"),
-                    "summary" to PropertySchema("string", "子任务标题（create 必填）"),
-                    "description" to PropertySchema("string", "子任务描述（create 可选）"),
+                    "summary" to PropertySchema("string", "子任务标题（create Required）"),
+                    "description" to PropertySchema("string", "子任务Description（create Optional）"),
                     "due" to PropertySchema(
-                        "object", "截止时间对象",
+                        "object", "截止时间Object",
                         properties = mapOf(
-                            "timestamp" to PropertySchema("string", "截止时间（ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'）"),
-                            "is_all_day" to PropertySchema("boolean", "是否为全天任务")
+                            "timestamp" to PropertySchema("string", "截止时间（ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'）"),
+                            "is_all_day" to PropertySchema("boolean", "YesNo为全天任务")
                         )
                     ),
                     "start" to PropertySchema(
-                        "object", "开始时间对象",
+                        "object", "Start TimeObject",
                         properties = mapOf(
-                            "timestamp" to PropertySchema("string", "开始时间（ISO 8601 / RFC 3339 格式（包含时区），例如 '2024-01-01T00:00:00+08:00'）"),
-                            "is_all_day" to PropertySchema("boolean", "是否为全天")
+                            "timestamp" to PropertySchema("string", "Start Time（ISO 8601 / RFC 3339 Format（包含Timezone），例如 '2024-01-01T00:00:00+08:00'）"),
+                            "is_all_day" to PropertySchema("boolean", "YesNo为全天")
                         )
                     ),
                     "members" to PropertySchema(
-                        "array", "子任务成员列表（assignee=负责人，follower=关注人）",
-                        items = PropertySchema("object", "成员对象 {id: open_id, role?: 'assignee'|'follower'}")
+                        "array", "子任务MemberList（assignee=负责人，follower=Off注人）",
+                        items = PropertySchema("object", "MemberObject {id: open_id, role?: 'assignee'|'follower'}")
                     ),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 100"),
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 100"),
                     "page_token" to PropertySchema("string", "分页标记")
                 ),
                 required = listOf("action", "task_guid")
@@ -998,8 +998,8 @@ class FeishuTaskCommentTool(
     override val name = "feishu_task_comment"
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     override val description =
-        "【以用户身份】飞书任务评论管理工具。当用户要求添加/查询任务评论、回复评论时使用。" +
-        "Actions: create（添加评论）, list（列出任务的所有评论）, get（获取单个评论详情）。"
+        "【以User身份】Feishu Tasks评论ManagedTool。当User要求添加/查询任务评论、回复评论时使用。" +
+        "Actions: create（添加评论）, list（Column出任务的所Has评论）, get（获取单个评论Details）。"
 
     override fun isEnabled() = config.enableTaskTools
 
@@ -1112,17 +1112,17 @@ class FeishuTaskCommentTool(
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema(
-                        "string", "操作类型",
+                        "string", "操作Type",
                         enum = listOf("create", "list", "get")
                     ),
-                    "task_guid" to PropertySchema("string", "任务 GUID（create 必填）"),
-                    "resource_id" to PropertySchema("string", "要获取评论的资源 ID（任务 GUID）（list 必填）"),
-                    "comment_id" to PropertySchema("string", "评论 ID（get 必填）"),
-                    "content" to PropertySchema("string", "评论内容（纯文本，最长 3000 字符）（create 必填）"),
-                    "reply_to_comment_id" to PropertySchema("string", "要回复的评论 ID（用于回复评论）（create 可选）"),
-                    "direction" to PropertySchema("string", "排序方式（asc=从旧到新，desc=从新到旧，默认 asc）",
+                    "task_guid" to PropertySchema("string", "任务 GUID（create Required）"),
+                    "resource_id" to PropertySchema("string", "要获取评论的资源 ID（任务 GUID）（list Required）"),
+                    "comment_id" to PropertySchema("string", "评论 ID（get Required）"),
+                    "content" to PropertySchema("string", "评论内容（纯文本，最长 3000 字符）（create Required）"),
+                    "reply_to_comment_id" to PropertySchema("string", "要回复的评论 ID（用于回复评论）（create Optional）"),
+                    "direction" to PropertySchema("string", "Sort方式（asc=从旧到新，desc=从新到旧，Default asc）",
                         enum = listOf("asc", "desc")),
-                    "page_size" to PropertySchema("number", "每页数量，默认 50，最大 100"),
+                    "page_size" to PropertySchema("number", "每页Count，Default 50，Maximum 100"),
                     "page_token" to PropertySchema("string", "分页标记")
                 ),
                 required = listOf("action")

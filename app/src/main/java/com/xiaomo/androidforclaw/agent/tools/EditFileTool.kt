@@ -39,7 +39,7 @@ class EditFileTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要编辑的文件路径"),
+                        "path" to PropertySchema("string", "要Edit的File Path"),
                         "old_text" to PropertySchema("string", "要查找并替换的精确文本"),
                         "new_text" to PropertySchema("string", "替换后的新文本")
                     ),

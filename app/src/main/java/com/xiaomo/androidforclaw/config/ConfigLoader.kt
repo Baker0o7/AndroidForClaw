@@ -68,7 +68,7 @@ class ConfigLoader private constructor() {
     private var reloadCallback: ((OpenClawConfig) -> Unit)? = null
 
     init {
-        Log.d(TAG, "配置目录: ${configDir.absolutePath}")
+        Log.d(TAG, "Config directory: ${configDir.absolutePath}")
     }
 
     /**
@@ -89,7 +89,7 @@ class ConfigLoader private constructor() {
             openclawConfigCacheValid = true
             return config
         } else {
-            Log.w(TAG, "使用默认配置")
+            Log.w(TAG, "Using default configuration")
             val defaultConfig = OpenClawConfig()
             cachedOpenClawConfig = defaultConfig
             openclawConfigCacheValid = true
@@ -101,7 +101,7 @@ class ConfigLoader private constructor() {
         ensureConfigDir()
 
         if (!openclawConfigFile.exists()) {
-            Log.i(TAG, "配置文件不存在，创建默认配置: ${openclawConfigFile.absolutePath}")
+            Log.i(TAG, "Config file not found, creating default config: ${openclawConfigFile.absolutePath}")
             createDefaultConfig()
         }
 
@@ -125,7 +125,7 @@ class ConfigLoader private constructor() {
         val migrated = migrateProviderIds(config)
         validateConfig(migrated)
 
-        Log.i(TAG, "✅ 配置加载成功")
+        Log.i(TAG, "✅ Config loaded successfully")
         return migrated
     }
 
@@ -147,7 +147,7 @@ class ConfigLoader private constructor() {
         val providers = config.models?.providers ?: return config
         if (!providers.containsKey("mimo")) return config
 
-        Log.i(TAG, "🔄 迁移 provider ID: mimo → xiaomi")
+        Log.i(TAG, "🔄 Migrating provider ID: mimo → xiaomi")
         val migrated = providers.toMutableMap()
         val mimoProvider = migrated.remove("mimo")!!
         migrated["xiaomi"] = mimoProvider
@@ -188,10 +188,10 @@ class ConfigLoader private constructor() {
                 }
 
                 writeJsonToFile(openclawConfigFile, root)
-                Log.i(TAG, "✅ provider ID 迁移已持久化")
+                Log.i(TAG, "✅ Provider ID migration persisted")
             }
         } catch (e: Exception) {
-            Log.w(TAG, "⚠️ provider ID 迁移持久化失败: ${e.message}")
+            Log.w(TAG, "⚠️ Provider ID migration persistence failed: ${e.message}")
         }
 
         return migratedConfig
@@ -890,11 +890,11 @@ class ConfigLoader private constructor() {
             mergeConfigToJson(existingJson, config)
 
             writeJsonToFile(openclawConfigFile, existingJson)
-            Log.i(TAG, "✅ 配置保存成功")
+            Log.i(TAG, "✅ Configuration saved successfully")
             openclawConfigCacheValid = false
             true
         } catch (e: Exception) {
-            Log.e(TAG, "❌ 配置保存失败: ${e.message}", e)
+            Log.e(TAG, "❌ Failed to save configuration: ${e.message}", e)
             false
         }
     }
@@ -1063,7 +1063,7 @@ class ConfigLoader private constructor() {
     }
 
     fun reloadOpenClawConfig(): OpenClawConfig {
-        Log.i(TAG, "重新加载配置...")
+        Log.i(TAG, "ReloadConfigure...")
         openclawConfigCacheValid = false
         return loadOpenClawConfig()
     }
@@ -1076,7 +1076,7 @@ class ConfigLoader private constructor() {
             fileObserver = object : FileObserver(configDir, MODIFY or CREATE or DELETE) {
                 override fun onEvent(event: Int, path: String?) {
                     if (path == OPENCLAW_CONFIG_FILE) {
-                        Log.i(TAG, "检测到配置文件变化")
+                        Log.i(TAG, "检测到Configure文件变化")
                         val newConfig = reloadOpenClawConfig()
                         reloadCallback?.invoke(newConfig)
                     }
@@ -1084,9 +1084,9 @@ class ConfigLoader private constructor() {
             }
             fileObserver?.startWatching()
             hotReloadEnabled = true
-            Log.i(TAG, "✅ 配置热重载已启用")
+            Log.i(TAG, "✅ Configure热重载Enabled")
         } catch (e: Exception) {
-            Log.e(TAG, "启用热重载失败", e)
+            Log.e(TAG, "Enable热重载Failed", e)
         }
     }
 
@@ -1122,9 +1122,9 @@ class ConfigLoader private constructor() {
             val defaultConfig = context.assets.open("openclaw.json.default.txt")
                 .bufferedReader().use { it.readText() }
             openclawConfigFile.writeText(defaultConfig, Charsets.UTF_8)
-            Log.i(TAG, "✅ 创建默认配置: ${openclawConfigFile.absolutePath}")
+            Log.i(TAG, "✅ 创建DefaultConfigure: ${openclawConfigFile.absolutePath}")
         } catch (e: Exception) {
-            Log.e(TAG, "创建默认配置失败", e)
+            Log.e(TAG, "创建DefaultConfigureFailed", e)
             throw e
         }
     }
@@ -1171,15 +1171,15 @@ class ConfigLoader private constructor() {
                 }
                 if (builtInValue != null) {
                     result = result.replace("\${$varName}", builtInValue)
-                    Log.i(TAG, "🔑 使用内置 Key 替换: \${$varName}")
+                    Log.i(TAG, "🔑 使用Built-in Key 替换: \${$varName}")
                 } else {
                     val providerId = ENV_VAR_TO_PROVIDER[varName]
                     if (providerId != null) {
                         unresolvedKnown.add(varName)
-                        Log.w(TAG, "⚠️ 环境变量 \${$varName} (provider: $providerId) 未设置。" +
-                            "请在配置中直接填入 API Key。")
+                        Log.w(TAG, "⚠️ 环境变量 \${$varName} (provider: $providerId) 未Settings。" +
+                            "Please在ConfigureMedium直接填入 API Key。")
                     } else {
-                        Log.w(TAG, "⚠️ 未知环境变量: \${$varName}")
+                        Log.w(TAG, "⚠️ Unknown环境变量: \${$varName}")
                     }
                 }
             }
@@ -1213,10 +1213,10 @@ class ConfigLoader private constructor() {
         val feishu = config.channels.feishu
         if (feishu.enabled) {
             require(feishu.appId.isNotBlank() && !feishu.appId.startsWith("\${")) {
-                "Feishu 已启用但 appId 未配置"
+                "Feishu Enabled但 appId Not configured"
             }
             require(feishu.appSecret.isNotBlank() && !feishu.appSecret.startsWith("\${")) {
-                "Feishu 已启用但 appSecret 未配置"
+                "Feishu Enabled但 appSecret Not configured"
             }
         }
 
@@ -1227,11 +1227,11 @@ class ConfigLoader private constructor() {
             }
             val def = ProviderRegistry.findById(name)
             if (def?.keyRequired == true && provider.apiKey.isNullOrBlank()) {
-                Log.w(TAG, "⚠️ Provider '${def.name}' 需要 API Key 但未配置。" +
-                    "请在设置中填入 API Key，否则请求会返回 401。")
+                Log.w(TAG, "⚠️ Provider '${def.name}' Need to API Key 但Not configured。" +
+                    "Please在SettingsMedium填入 API Key，No则Request会Back 401。")
             }
         }
 
-        Log.i(TAG, "✅ 配置验证通过")
+        Log.i(TAG, "✅ ConfigureVerify通过")
     }
 }

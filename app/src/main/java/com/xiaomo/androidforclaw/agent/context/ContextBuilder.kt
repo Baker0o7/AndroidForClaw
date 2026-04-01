@@ -261,7 +261,7 @@ class ContextBuilder(
         // Aligned with OpenClaw: sections joined by "\n" (no "---" separators)
         val finalPrompt = parts.filter { it.isNotBlank() }.joinToString("\n")
 
-        Log.d(TAG, "✅ System prompt 构建完成:")
+        Log.d(TAG, "✅ System prompt 构建Done:")
         Log.d(TAG, "  - 模式: $promptMode")
         Log.d(TAG, "  - 总长度: ${finalPrompt.length} chars")
         Log.d(TAG, "  - 预估 Tokens: ~${finalPrompt.length / 4}")
@@ -958,7 +958,7 @@ If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the aler
             val stats = skillsLoader.getStatistics()
             return stats.getReport()
         } catch (e: Exception) {
-            Log.e(TAG, "获取 Skills 统计失败", e)
+            Log.e(TAG, "获取 Skills 统计Failed", e)
             return ""
         }
     }

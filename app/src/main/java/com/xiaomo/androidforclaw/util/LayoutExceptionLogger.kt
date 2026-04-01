@@ -37,7 +37,7 @@ object LayoutExceptionLogger {
     fun log(moduleName: String, throwable: Throwable) {
         // 防止递归调用：如果当前线程正在记录异常，则跳过
         if (isLogging.get() == true) {
-            Log.w(TAG, "检测到递归调用，跳过异常记录以避免无限循环。模块: $moduleName")
+            Log.w(TAG, "检测到Recursive调用，SkipAbnormalRecord以避免UnlimitedLoop。Module: $moduleName")
             return
         }
 
@@ -48,7 +48,7 @@ object LayoutExceptionLogger {
             // 记录到日志
             Log.e(
                 TAG,
-                "模块[$moduleName]执行失败，异常信息: ${throwable.message}",
+                "Module[$moduleName]执RowFailed，AbnormalInfo: ${throwable.message}",
                 throwable
             )
 
@@ -56,7 +56,7 @@ object LayoutExceptionLogger {
             val stackTrace = throwable.stackTraceToString()
             val exceptionInfo = ExceptionInfo(
                 moduleName = moduleName,
-                message = throwable.message ?: "未知异常",
+                message = throwable.message ?: "UnknownAbnormal",
                 stackTrace = stackTrace,
                 timestamp = System.currentTimeMillis()
             )

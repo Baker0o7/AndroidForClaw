@@ -113,7 +113,7 @@ class CameraPermissionActivity : Activity() {
                 Log.d(TAG, "CAMERA permission permanently denied, opening settings")
                 Toast.makeText(
                     this,
-                    "请在设置中手动开启相机权限",
+                    "Please在SettingsMediumManualOn启Camera Permission",
                     Toast.LENGTH_LONG
                 ).show()
                 openAppSettings()

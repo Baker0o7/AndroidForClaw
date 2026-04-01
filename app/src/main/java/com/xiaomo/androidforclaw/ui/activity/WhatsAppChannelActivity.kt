@@ -64,7 +64,7 @@ fun WhatsAppChannelScreen(
                 title = { Text(stringResource(R.string.whatsapp_channel_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Back")
                     }
                 },
                 actions = {
@@ -87,7 +87,7 @@ fun WhatsAppChannelScreen(
                                 showSaveSuccess = true
                             }
                         }
-                    ) { Text("保存") }
+                    ) { Text("Save") }
                 }
             )
         }
@@ -106,7 +106,7 @@ fun WhatsAppChannelScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("启用 WhatsApp", style = MaterialTheme.typography.titleMedium)
+                Text("Enable WhatsApp", style = MaterialTheme.typography.titleMedium)
                 Switch(checked = enabled, onCheckedChange = { enabled = it })
             }
 
@@ -116,7 +116,7 @@ fun WhatsAppChannelScreen(
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("手机号 (E.164 格式)") },
+                label = { Text("手机号 (E.164 Format)") },
                 placeholder = { Text("+8613800138000") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -155,7 +155,7 @@ fun WhatsAppChannelScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("群聊需要 @提及")
+                Text("群聊Need to @提及")
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
@@ -165,8 +165,8 @@ fun WhatsAppChannelScreen(
             OutlinedTextField(
                 value = historyLimitText,
                 onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
-                label = { Text("历史消息条数限制（可选）") },
-                placeholder = { Text("留空 = 不限制，如 50") },
+                label = { Text("History条数限制（Optional）") },
+                placeholder = { Text("留Empty = 不限制，如 50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -184,12 +184,12 @@ fun WhatsAppChannelScreen(
 
             if (showSaveSuccess) {
                 Spacer(Modifier.height(4.dp))
-                Text("✅ 配置已保存", color = MaterialTheme.colorScheme.primary)
+                Text("✅ Configure已Save", color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "配置保存后需要重启应用生效。\nWhatsApp 接入需要配合 WhatsApp Business API 使用。",
+                text = "ConfigureSave后Need to重启应用生效。\nWhatsApp 接入Need to配合 WhatsApp Business API 使用。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

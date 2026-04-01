@@ -26,8 +26,8 @@ class SwipeSkill : Skill {
     override val description: String
         get() {
             val isAccessibilityEnabled = AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isServiceReady()
-            val statusNote = if (!isAccessibilityEnabled) " ⚠️ **不可用**-无障碍服务未连接" else " ✅"
-            return "在屏幕上滑动。用于滚动页面、切换标签页等场景。支持上下左右滑动。**注意**: 操作屏幕前使用 get_view_tree() 获取 UI 元素信息即可，不需要再调用 screenshot()。$statusNote"
+            val statusNote = if (!isAccessibilityEnabled) " ⚠️ **Unavailable**-Accessibility ServiceDisconnected" else " ✅"
+            return "在屏幕上Swipe。用于ScrollPage、切换Tab等场景。支持上下左右Swipe。**Attention**: 操作屏幕前使用 get_view_tree() 获取 UI 元素Info即可，No need to再调用 screenshot()。$statusNote"
         }
 
     override fun getToolDefinition(): ToolDefinition {
@@ -43,7 +43,7 @@ class SwipeSkill : Skill {
                         "start_y" to PropertySchema("integer", "起始 Y 坐标"),
                         "end_x" to PropertySchema("integer", "结束 X 坐标"),
                         "end_y" to PropertySchema("integer", "结束 Y 坐标"),
-                        "duration" to PropertySchema("integer", "滑动持续时间（毫秒），默认 300")
+                        "duration" to PropertySchema("integer", "SwipeDuration（毫秒），Default 300")
                     ),
                     required = listOf("start_x", "start_y", "end_x", "end_y")
                 )

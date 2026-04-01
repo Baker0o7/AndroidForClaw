@@ -145,7 +145,7 @@ description: Simple skill
             assert(skill.name == "mobile-operations") { "Name should be mobile-operations" }
             assert(skill.metadata.always) { "Should be always loaded" }
             assert(skill.metadata.emoji == "📱") { "Emoji should be 📱" }
-            assert(skill.content.contains("观察 → 思考 → 行动 → 验证")) { "Should contain core loop" }
+            assert(skill.content.contains("观察 → 思考 → Row动 → Verify")) { "Should contain core loop" }
 
             Log.d(TAG, "✅ testMobileOperationsSkill PASSED")
             Log.d(TAG, "  - Skill name: ${skill.name}")

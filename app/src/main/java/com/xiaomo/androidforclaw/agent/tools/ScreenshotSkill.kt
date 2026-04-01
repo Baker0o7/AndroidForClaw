@@ -64,7 +64,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
             val (originalNodes, processedNodes) = run {
                 val result = DeviceController.detectIcons(context)
                 if (result == null) {
-                    Log.w(TAG, "无法获取 UI 树（无障碍服务未启用或失败），继续截图")
+                    Log.w(TAG, "None法获取 UI 树（Accessibility Service未Enable或Failed），ContinueScreenshot")
                     Pair(emptyList(), emptyList())
                 } else {
                     result
@@ -121,10 +121,10 @@ class ScreenshotSkill(private val context: Context) : Skill {
 
             // 5. Combine output
             val output = buildString {
-                appendLine("【截图信息】")
+                appendLine("【ScreenshotInfo】")
                 appendLine("分辨率: ${bitmap.width}x${bitmap.height}")
                 appendLine("路径: $path")
-                appendLine("（截图已内嵌，请直接描述你看到的内容）")
+                appendLine("（Screenshot已内嵌，Please直接Description你看到的内容）")
                 appendLine()
 
                 appendLine("【屏幕 UI 元素】（共 ${processedNodes.size} 个）")
@@ -133,7 +133,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
                 processedNodes.forEachIndexed { index, node ->
                     val text = node.text?.takeIf { it.isNotBlank() }
                         ?: node.contentDesc?.takeIf { it.isNotBlank() }
-                        ?: "[无文本]"
+                        ?: "[None文本]"
 
                     append("[$index] \"$text\" (${node.point.x}, ${node.point.y})")
 
@@ -145,7 +145,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
                 }
 
                 appendLine()
-                appendLine("提示：使用坐标 (x,y) 进行 tap 操作")
+                appendLine("Tip：使用坐标 (x,y) 进Row tap 操作")
             }
 
             SkillResult.success(

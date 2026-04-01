@@ -85,7 +85,7 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         ),
         McpTool(
             name = "screenshot",
-            description = "截取当前屏幕，返回 base64 编码的 PNG 图片",
+            description = "Capture current screen，Back base64 Encode的 PNG Image",
             inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
         McpTool(
@@ -114,7 +114,7 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         ),
         McpTool(
             name = "swipe",
-            description = "在屏幕上执行滑动手势",
+            description = "在屏幕上执RowSwipeGesture",
             inputSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -122,35 +122,35 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
                     "start_y" to mapOf("type" to "integer", "description" to "起始 Y"),
                     "end_x" to mapOf("type" to "integer", "description" to "结束 X"),
                     "end_y" to mapOf("type" to "integer", "description" to "结束 Y"),
-                    "duration_ms" to mapOf("type" to "integer", "description" to "滑动时长(ms)，默认 300")
+                    "duration_ms" to mapOf("type" to "integer", "description" to "Swipe时长(ms)，Default 300")
                 ),
                 "required" to listOf("start_x", "start_y", "end_x", "end_y")
             )
         ),
         McpTool(
             name = "input_text",
-            description = "向当前焦点输入框输入文字",
+            description = "向当前焦点InputType text",
             inputSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "text" to mapOf("type" to "string", "description" to "要输入的文字")
+                    "text" to mapOf("type" to "string", "description" to "要Input的文字")
                 ),
                 "required" to listOf("text")
             )
         ),
         McpTool(
             name = "press_home",
-            description = "按 Home 键，返回主屏幕",
+            description = "按 Home 键，Back主屏幕",
             inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
         McpTool(
             name = "press_back",
-            description = "按返回键",
+            description = "按Back键",
             inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
         McpTool(
             name = "get_current_app",
-            description = "获取当前前台应用的包名",
+            description = "Get currentForeground App的Package Name",
             inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
     )

@@ -167,11 +167,11 @@ private fun normalizeSearchResultTimeFields(value: JsonElement?, counter: IntArr
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_search_doc_wiki"
-    override val description = "【以用户身份】飞书文档与 Wiki 统一搜索工具。同时搜索云空间文档和知识库 Wiki。Actions: search。" +
-        "【重要】query 参数是搜索关键词（可选），filter 参数可选。" +
-        "【重要】filter 不传时，搜索所有文档和 Wiki；传了则同时对文档和 Wiki 应用相同的过滤条件。" +
-        "【重要】支持按文档类型、创建者、创建时间、打开时间等多维度筛选。" +
-        "【重要】返回结果包含标题和摘要高亮（<h>标签包裹匹配关键词）。"
+    override val description = "【以User身份】FeishuDocumentation与 Wiki 统一SearchTool。同时Search云Empty间Documentation和Knowledge Base Wiki。Actions: search。" +
+        "【Important】query ParameterYesSearchOff键词（Optional），filter ParameterOptional。" +
+        "【Important】filter 不传时，Search所HasDocumentation和 Wiki；传了则同时对Documentation和 Wiki 应用相同的过滤条件。" +
+        "【Important】支持按DocumentationType、创建者、Created At、Open时间等多维度Filter。" +
+        "【Important】Back结果包含标题和SummaryHigh亮（<h>Label包裹匹配Off键词）。"
 
     override fun isEnabled() = config.enableSearchTools
 
@@ -262,22 +262,22 @@ class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : Feis
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "action" to PropertySchema("string", "操作类型（目前仅支持 search）", enum = listOf("search")),
-                    "query" to PropertySchema("string", "搜索关键词（可选，最多 50 字符）。不传或传空字符串表示空搜，也可以支持排序规则与筛选，默认根据最近浏览时间返回结果"),
-                    "filter" to PropertySchema("object", "搜索过滤条件（可选）。不传则搜索所有文档和 Wiki；传了则同时对文档和 Wiki 应用相同的过滤条件。", properties = mapOf(
-                        "creator_ids" to PropertySchema("array", "创建者 OpenID 列表（最多 20 个）",
+                    "action" to PropertySchema("string", "操作Type（目前仅支持 search）", enum = listOf("search")),
+                    "query" to PropertySchema("string", "SearchOff键词（Optional，最多 50 字符）。不传或传Empty字符串表示Empty搜，也Can支持Sort规则与Filter，Default根据最近浏览时间Back结果"),
+                    "filter" to PropertySchema("object", "Search过滤条件（Optional）。不传则Search所HasDocumentation和 Wiki；传了则同时对Documentation和 Wiki 应用相同的过滤条件。", properties = mapOf(
+                        "creator_ids" to PropertySchema("array", "创建者 OpenID List（最多 20 个）",
                             items = PropertySchema("string", "创建者 open_id")),
-                        "doc_types" to PropertySchema("array", "文档类型列表：DOC（文档）、SHEET（表格）、BITABLE（多维表格）、MINDNOTE（思维导图）、FILE（文件）、WIKI（维基）、DOCX（新版文档）、FOLDER（space文件夹）、CATALOG（wiki2.0文件夹）、SLIDES（新版幻灯片）、SHORTCUT（快捷方式）",
-                            items = PropertySchema("string", "文档类型",
+                        "doc_types" to PropertySchema("array", "DocumentationTypeList：DOC（Documentation）、SHEET（Table）、BITABLE（Bitable）、MINDNOTE（思维导图）、FILE（文件）、WIKI（维基）、DOCX（新版Documentation）、FOLDER（space文件夹）、CATALOG（wiki2.0文件夹）、SLIDES（新版幻灯片）、SHORTCUT（快捷方式）",
+                            items = PropertySchema("string", "DocumentationType",
                                 enum = listOf("DOC", "SHEET", "BITABLE", "MINDNOTE", "FILE", "WIKI", "DOCX", "FOLDER", "CATALOG", "SLIDES", "SHORTCUT"))),
-                        "only_title" to PropertySchema("boolean", "仅搜索标题（默认 false，搜索标题和正文）"),
-                        "sort_type" to PropertySchema("string", "排序方式。EDIT_TIME=编辑时间降序（最新文档在前，推荐），EDIT_TIME_ASC=编辑时间升序，CREATE_TIME=按文档创建时间排序，OPEN_TIME=打开时间，DEFAULT_TYPE=默认排序",
+                        "only_title" to PropertySchema("boolean", "仅Search标题（Default false，Search标题和正文）"),
+                        "sort_type" to PropertySchema("string", "Sort方式。EDIT_TIME=Edit时间Descending（LatestDocumentation在前，Recommended），EDIT_TIME_ASC=Edit时间Ascending，CREATE_TIME=按DocumentationCreated AtSort，OPEN_TIME=Open时间，DEFAULT_TYPE=DefaultSort",
                             enum = listOf("DEFAULT_TYPE", "OPEN_TIME", "EDIT_TIME", "EDIT_TIME_ASC", "CREATE_TIME")),
-                        "open_time" to PropertySchema("object", "打开时间范围 {start, end}（ISO 8601 格式）"),
-                        "create_time" to PropertySchema("object", "创建时间范围 {start, end}（ISO 8601 格式）")
+                        "open_time" to PropertySchema("object", "Open时间范围 {start, end}（ISO 8601 Format）"),
+                        "create_time" to PropertySchema("object", "Created At范围 {start, end}（ISO 8601 Format）")
                     )),
-                    "page_token" to PropertySchema("string", "分页标记。首次请求不填；当返回结果中 has_more 为 true 时，可传入返回的 page_token 继续请求下一页"),
-                    "page_size" to PropertySchema("integer", "分页大小（默认 15，最大 20）")
+                    "page_token" to PropertySchema("string", "分页标记。首次Request不填；当Back结果Medium has_more 为 true 时，可传入Back的 page_token ContinueRequest下一页"),
+                    "page_size" to PropertySchema("integer", "Page Size（Default 15，Maximum 20）")
                 ),
                 required = emptyList()
             )

@@ -14,35 +14,35 @@ import android.util.Log
 /**
  * Internal Self-Control Skill
  *
- * 让 PhoneForClaw 的 AI Agent 能够调用自己的 Self-Control 功能。
+ * Allows PhoneForClaw's AI Agent to call its own Self-Control functions.
  *
- * 这是一个元级别（meta-level）的 Skill：
- * - Agent 通过这个 Skill 调用其他 Self-Control Skills
- * - 实现 "AI 控制 AI" 的自我管理能力
- * - 支持链式调用和批量操作
+ * This is a meta-level Skill:
+ * - Agent calls other Self-Control Skills through this Skill
+ * - Enables "AI controlling AI" self-management capability
+ * - Supports chained calls and batch operations
  *
- * 使用场景：
- * 1. **自我诊断**
- *    Agent 检测到问题 → 调用 query_logs → 分析错误 → 调用 manage_config 调整参数
+ * Use cases:
+ * 1. **Self-diagnosis**
+ *    Agent detects issues -> calls query_logs -> analyzes errors -> calls manage_config to adjust parameters
  *
- * 2. **自我调优**
- *    Agent 发现性能问题 → 调用 manage_config 读取当前配置 → 计算最优参数 → 调用 manage_config 更新
+ * 2. **Self-optimization**
+ *    Agent finds performance issues -> calls manage_config to read current config -> calculates optimal params -> calls manage_config to update
  *
- * 3. **自我开发**
- *    Agent 需要修改配置 → 调用 navigate_app 打开配置页面 → 等待用户确认
+ * 3. **Self-development**
+ *    Agent needs to modify config -> calls navigate_app to open config page -> waits for user confirmation
  *
- * 4. **任务执行优化**
- *    截图前 → 调用 control_service 隐藏悬浮窗 → 执行截图 → 调用 control_service 显示悬浮窗
+ * 4. **Task execution optimization**
+ *    Before screenshot -> calls control_service to hide floating window -> takes screenshot -> calls control_service to show floating window
  *
- * 示例：
+ * Examples:
  * ```json
- * // 单个调用
+ * // Single call
  * {
  *   "skill": "navigate_app",
  *   "args": {"page": "config"}
  * }
  *
- * // 链式调用（按顺序执行）
+ * // Chained calls (execute in order)
  * {
  *   "skills": [
  *     {"skill": "control_service", "args": {"operation": "hide_float"}},
@@ -52,7 +52,7 @@ import android.util.Log
  *   ]
  * }
  *
- * // 条件调用（根据结果决定）
+ * // Conditional calls (decide based on result)
  * {
  *   "skill": "query_logs",
  *   "args": {"level": "E", "lines": 50},
@@ -67,34 +67,34 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
         private const val TAG = "InternalSelfControl"
     }
 
-    // 内部 Registry 实例（延迟初始化）
+    // Internal Registry instance (lazy initialization)
     private val registry by lazy { SelfControlRegistry(context) }
 
     override val name = "self_control"
 
     override val description = """
-        让 AI Agent 能够调用自己的 Self-Control 功能。
+        Allows AI Agent to call its own Self-Control functions.
 
-        这是一个元级别的 Skill，允许 Agent 控制和管理自己：
-        - 调用其他 Self-Control Skills
-        - 支持单个调用和链式调用
-        - 支持批量操作
+        This is a meta-level Skill, allowing Agent to control and manage itself:
+        - Call other Self-Control Skills
+        - Support single call and chained calls
+        - Support batch operations
 
-        可用的 Skills：
-        - navigate_app: 页面导航
-        - manage_config: 配置管理（get/set/list/delete）
-        - control_service: 服务控制（hide/show/check_status）
-        - query_logs: 日志查询
+        Available Skills:
+        - navigate_app: Page navigation
+        - manage_config: Configuration management (get/set/list/delete)
+        - control_service: Service control (hide/show/check_status)
+        - query_logs: Log query
 
-        使用方式：
+        Usage:
 
-        1. 单个调用
+        1. Single call
         {
           "skill": "navigate_app",
           "args": {"page": "config"}
         }
 
-        2. 链式调用（按顺序执行多个 Skills）
+        2. Chained calls (execute Skills in order)
         {
           "skills": [
             {"skill": "control_service", "args": {"operation": "hide_float"}},
@@ -103,7 +103,7 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
           ]
         }
 
-        3. 批量调用（并行执行）
+        3. Batch calls (parallel execution)
         {
           "parallel": true,
           "skills": [
@@ -112,9 +112,9 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
           ]
         }
 
-        典型场景：
+        Typical scenarios:
 
-        **场景 1: 截图前后处理**
+        **Scenario 1: Pre/post screenshot processing**
         ```
         {
           "skills": [
@@ -124,7 +124,7 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
         }
         ```
 
-        **场景 2: 自我诊断**
+        **Scenario 2: Self-diagnosis**
         ```
         {
           "skills": [
@@ -135,7 +135,7 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
         }
         ```
 
-        **场景 3: 配置调优**
+        **Scenario 3: Configuration tuning**
         ```
         {
           "skills": [
@@ -146,10 +146,10 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
         }
         ```
 
-        注意：
-        - 链式调用会按顺序执行
-        - 如果某个 Skill 失败，可以选择继续或停止
-        - 支持嵌套调用（谨慎使用，避免无限递归）
+        Notes:
+        - Chained calls execute in order
+        - If a Skill fails, you can choose to continue or stop
+        - Nested calls are supported (use with caution to avoid infinite recursion)
     """.trimIndent()
 
     override fun getToolDefinition(): ToolDefinition {
@@ -163,23 +163,23 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
                     properties = mapOf(
                         "skill" to PropertySchema(
                             type = "string",
-                            description = "单个 Skill 名称"
+                            description = "Single Skill name"
                         ),
                         "args" to PropertySchema(
                             type = "object",
-                            description = "Skill 参数"
+                            description = "Skill arguments"
                         ),
                         "skills" to PropertySchema(
                             type = "array",
-                            description = "多个 Skills（链式或并行调用）"
+                            description = "Multiple Skills (chained or parallel)")
                         ),
                         "parallel" to PropertySchema(
                             type = "string",
-                            description = "是否并行执行（仅用于 skills）"
+                            description = "Whether to execute in parallel (for skills only)")
                         ),
                         "continue_on_error" to PropertySchema(
                             type = "string",
-                            description = "出错时是否继续（仅用于 skills）"
+                            description = "Whether to continue on error (for skills only)")
                         )
                     ),
                     required = emptyList()
@@ -212,7 +212,7 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
     }
 
     /**
-     * 执行单个 Skill
+     * Execute a single Skill
      */
     private suspend fun executeSingleSkill(args: Map<String, Any?>): SkillResult {
         val skillName = args["skill"] as? String
@@ -223,7 +223,7 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
 
         Log.d(TAG, "Executing single skill: $skillName with args: $skillArgs")
 
-        // 防止递归调用自己
+        // Prevent recursive self-call
         if (skillName == name) {
             return SkillResult.error("Cannot recursively call self_control skill")
         }
@@ -235,7 +235,7 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
         return if (result.success) {
             SkillResult.success(
                 buildString {
-                    appendLine("【Self-Control】成功执行 $skillName")
+                    appendLine("[Self-Control] Successfully executed $skillName")
                     appendLine()
                     appendLine(result.content)
                 },
@@ -250,7 +250,7 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
     }
 
     /**
-     * 执行多个 Skills（链式或并行）
+     * Execute multiple Skills (chained or parallel)
      */
     private suspend fun executeMultipleSkills(args: Map<String, Any?>): SkillResult {
         val skillsList = args["skills"] as? List<*>
@@ -295,17 +295,17 @@ class InternalSelfControlSkill(private val context: Context) : Skill {
             }
         }
 
-        // 汇总结果
+            // Summarize results
         val successCount = results.count { it.second?.success == true }
         val failedCount = results.count { it.second?.success == false }
 
         val summary = buildString {
-            appendLine("【Self-Control】执行了 ${results.size} 个 Skills")
+            appendLine("[Self-Control] Executed ${results.size} Skills")
             appendLine()
-            appendLine("成功: $successCount")
-            appendLine("失败: $failedCount")
+            appendLine("Succeeded: $successCount")
+            appendLine("Failed: $failedCount")
             appendLine()
-            appendLine("详细结果:")
+            appendLine("Details:")
             appendLine()
 
             results.forEachIndexed { index, (skillName, result) ->

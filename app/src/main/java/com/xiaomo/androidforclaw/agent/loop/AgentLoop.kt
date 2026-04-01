@@ -320,18 +320,18 @@ class AgentLoop(
         return try {
             runInternal(systemPrompt, userMessage, contextHistory, reasoningEnabled, images)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ AgentLoop 未捕获的错误", e)
+            Log.e(TAG, "❌ AgentLoop 未捕获的Error", e)
             LayoutExceptionLogger.log("AgentLoop#run", e)
 
             // 返回友好的错误信息给用户
             val errorMessage = buildString {
-                append("❌ Agent 执行失败\n\n")
-                append("**错误信息**: ${e.message ?: "未知错误"}\n\n")
-                append("**错误类型**: ${e.javaClass.simpleName}\n\n")
-                append("**建议**: \n")
-                append("- 请检查网络连接\n")
-                append("- 如果问题持续,请使用 /new 重新开始对话\n")
-                append("- 查看日志获取更多详细信息")
+                append("❌ Agent 执RowFailed\n\n")
+                append("**Error Info**: ${e.message ?: "未知错误"}\n\n")
+                append("**ErrorType**: ${e.javaClass.simpleName}\n\n")
+                append("**Recommend**: \n")
+                append("- Please检查网络Connection\n")
+                append("- 如果Issue持续,Please使用 /new 重新StartConversation\n")
+                append("- ViewLog获取更多VerboseInfo")
             }
 
             AgentResult(
@@ -367,7 +367,7 @@ class AgentLoop(
         // Reset context manager
         contextManager?.reset()
 
-        writeLog("========== Agent Loop 开始 ==========")
+        writeLog("========== Agent Loop Start ==========")
         writeLog("Model: ${modelRef ?: "default"}")
         writeLog("Reasoning: ${if (reasoningEnabled) "enabled" else "disabled"}")
         writeLog("🔧 Universal tools: ${toolRegistry.getToolCount()}")
@@ -415,7 +415,7 @@ class AgentLoop(
             }
         }
 
-        writeLog("📤 准备发送第一次 LLM 请求...")
+        writeLog("📤 准备Send第一次 LLM Request...")
 
         var iteration = 0
         var finalContent: String? = null
@@ -432,9 +432,9 @@ class AgentLoop(
 
             try {
                 // 4.1 Call LLM
-                writeLog("📢 发送迭代进度更新...")
+                writeLog("📢 SendIterativeProgressUpdate...")
                 _progressFlow.emit(ProgressUpdate.Iteration(iteration))
-                writeLog("✅ 迭代进度已发送")
+                writeLog("✅ IterativeProgress已Send")
 
                 // ===== Context Management (aligned with OpenClaw) =====
                 val contextWindowTokens = resolveContextWindowTokens()
@@ -490,7 +490,7 @@ class AgentLoop(
                         )
                     }
                 } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                    val errorMsg = "LLM 调用超时 (${LLM_TIMEOUT_MS / 1000}s)"
+                    val errorMsg = "LLM 调用Timeout (${LLM_TIMEOUT_MS / 1000}s)"
                     writeLog("⏰ $errorMsg")
                     Log.w(TAG, errorMsg)
 
@@ -532,17 +532,17 @@ class AgentLoop(
                     // No compaction possible — surface timeout to user
                     // (aligned with OpenClaw: surface error when compaction exhausted)
                     writeLog("❌ LLM timeout after $timeoutCompactionAttempts compaction attempts, surfacing error")
-                    finalContent = "⏰ LLM 调用超时。请简化问题或使用 /new 开始新对话。"
+                    finalContent = "⏰ LLM 调用Timeout。Please简化Issue或使用 /new Start新Conversation。"
                     break
                 }
 
                 val llmDuration = System.currentTimeMillis() - llmStartTime
 
-                writeLog("✅ LLM 响应已收到 [耗时: ${llmDuration}ms]")
+                writeLog("✅ LLM Response已收到 [耗时: ${llmDuration}ms]")
 
                 // ⚠️ Log warning if response time is too long
                 if (llmDuration > 30_000) {
-                    writeLog("⚠️ LLM 响应耗时较长: ${llmDuration}ms")
+                    writeLog("⚠️ LLM Response耗时较长: ${llmDuration}ms")
                 }
 
                 // 4.2 Display reasoning thinking process
@@ -695,13 +695,13 @@ class AgentLoop(
                         totalExecDuration += execDuration
 
                         writeLog("   Result: ${result.success}, ${result.content.take(200)}")
-                        writeLog("   ⏱️ 执行耗时: ${execDuration}ms")
+                        writeLog("   ⏱️ 执Row耗时: ${execDuration}ms")
 
                         // Log tool execution errors (aligned with OpenClaw: no consecutive error abort)
                         // OpenClaw lets the LLM see tool errors and decide how to proceed.
                         // ToolLoopDetection handles runaway loops separately.
                         if (!result.success) {
-                            writeLog("   ⚠️ 工具执行失败: ${result.content.take(200)}")
+                            writeLog("   ⚠️ Tool执RowFailed: ${result.content.take(200)}")
                         }
 
                         // Record tool call result (for loop detection)
@@ -770,7 +770,7 @@ class AgentLoop(
                     }
 
                     val iterationDuration = System.currentTimeMillis() - iterationStartTime
-                    writeLog("⏱️ 本轮迭代总耗时: ${iterationDuration}ms (LLM: ${llmDuration}ms, 执行: ${totalExecDuration}ms)")
+                    writeLog("⏱️ 本轮Iterative总耗时: ${iterationDuration}ms (LLM: ${llmDuration}ms, 执Row: ${totalExecDuration}ms)")
 
                     // 单次 iteration 耗时告警（仅 warn，不中断）
                     if (iterationDuration > ITERATION_WARN_THRESHOLD_MS) {
@@ -804,8 +804,8 @@ class AgentLoop(
                 val isContextOverflow = ContextErrors.isLikelyContextOverflowError(errorMessage)
 
                 if (isContextOverflow && contextManager != null) {
-                    writeLog("🔄 检测到上下文超限，尝试恢复...")
-                    Log.w(TAG, "🔄 检测到上下文超限，尝试恢复...")
+                    writeLog("🔄 检测到Context Exceeded，尝试Restore...")
+                    Log.w(TAG, "🔄 检测到Context Exceeded，尝试Restore...")
                     _progressFlow.emit(ProgressUpdate.ContextOverflow("Context overflow detected, attempting recovery..."))
 
                     // Attempt recovery
@@ -816,8 +816,8 @@ class AgentLoop(
 
                     when (recoveryResult) {
                         is ContextRecoveryResult.Recovered -> {
-                            writeLog("✅ 上下文恢复成功: ${recoveryResult.strategy} (attempt ${recoveryResult.attempt})")
-                            Log.d(TAG, "✅ 上下文恢复成功: ${recoveryResult.strategy} (attempt ${recoveryResult.attempt})")
+                            writeLog("✅ ContextRestoreSuccess: ${recoveryResult.strategy} (attempt ${recoveryResult.attempt})")
+                            Log.d(TAG, "✅ ContextRestoreSuccess: ${recoveryResult.strategy} (attempt ${recoveryResult.attempt})")
                             _progressFlow.emit(ProgressUpdate.ContextRecovered(
                                 strategy = recoveryResult.strategy,
                                 attempt = recoveryResult.attempt
@@ -831,14 +831,14 @@ class AgentLoop(
                             continue
                         }
                         is ContextRecoveryResult.CannotRecover -> {
-                            writeLog("❌ 上下文恢复失败: ${recoveryResult.reason}")
-                            Log.e(TAG, "❌ 上下文恢复失败: ${recoveryResult.reason}")
+                            writeLog("❌ ContextRestoreFailed: ${recoveryResult.reason}")
+                            Log.e(TAG, "❌ ContextRestoreFailed: ${recoveryResult.reason}")
                             _progressFlow.emit(ProgressUpdate.Error("Context overflow: ${recoveryResult.reason}"))
 
                             finalContent = buildString {
-                                append("❌ 上下文溢出\n\n")
-                                append("**错误**: ${recoveryResult.reason}\n\n")
-                                append("**建议**: 对话历史过长，请使用 /new 或 /reset 开始新对话")
+                                append("❌ Context溢出\n\n")
+                                append("**Error**: ${recoveryResult.reason}\n\n")
+                                append("**Recommend**: Chat History过长，Please使用 /new 或 /reset Start新Conversation")
                             }
                             break
                         }
@@ -896,21 +896,21 @@ class AgentLoop(
                         if (isBilling) {
                             append("⚠️ Billing error — please check your account balance or API key quota.")
                         } else {
-                            append("❌ 执行出错\n\n")
+                            append("❌ Execution Error\n\n")
 
                             when (e) {
                                 is com.xiaomo.androidforclaw.providers.LLMException -> {
-                                    append("**错误类型**: API 调用失败\n")
-                                    append("**错误信息**: ${e.message}\n\n")
-                                    append("**建议**: 请检查模型配置和 API Key 是否正确\n")
-                                    append("**配置文件**: ${StoragePaths.openclawConfig.absolutePath}\n")
+                                    append("**ErrorType**: API 调用Failed\n")
+                                    append("**Error Info**: ${e.message}\n\n")
+                                    append("**Recommend**: Please检查Model Configuration和 API Key YesNo正确\n")
+                                    append("**Configure文件**: ${StoragePaths.openclawConfig.absolutePath}\n")
                                 }
                                 else -> {
-                                    append("**错误信息**: ${e.message}\n")
+                                    append("**Error Info**: ${e.message}\n")
                                 }
                             }
 
-                            append("\n**调试信息**:\n```\n")
+                            append("\n**Debug Info**:\n```\n")
                             append(e.stackTraceToString().take(800))
                             append("\n```")
                         }
@@ -933,8 +933,8 @@ class AgentLoop(
         // Add final content as assistant message if not empty
         val effectiveFinalContent = when {
             finalContent != null -> finalContent
-            shouldStop -> "✅ 任务已停止"
-            else -> "无响应"
+            shouldStop -> "✅ 任务已Stop"
+            else -> "NoneResponse"
         }
         if (effectiveFinalContent.isNotEmpty()) {
             messages.add(com.xiaomo.androidforclaw.providers.llm.Message(

@@ -88,7 +88,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.mcp_server_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Back")
                     }
                 }
             )
@@ -109,7 +109,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 tonalElevation = 0.dp
             ) {
                 Text(
-                    text = "此服务用于外部 Agent（Claude Desktop、Cursor 等）远程操控本手机，与 AndroidForClaw 自身功能无关。",
+                    text = "This service allows external agents (Claude Desktop, Cursor, etc.) to remotely control this phone. It is unrelated to AndroidForClaw's own features.",
                     modifier = Modifier.padding(14.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -127,9 +127,9 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("服务状态", style = MaterialTheme.typography.titleSmall)
+                            Text("Service Status", style = MaterialTheme.typography.titleSmall)
                             Text(
-                                text = if (serverRunning) "运行中 · 端口 $port" else "已停止",
+                                text = if (serverRunning) "Running · Port $port" else "Stopped",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (serverRunning)
                                     MaterialTheme.colorScheme.primary
@@ -146,7 +146,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                                         server.start()
                                         serverRunning = true
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "启动失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Failed to start: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
                                     ObserverMcpServer.stopServer()
@@ -178,7 +178,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            "MCP 配置",
+                            "MCP Configuration",
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.weight(1f)
                         )
@@ -186,19 +186,19 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                             onClick = {
                                 val cb = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 cb.setPrimaryClip(ClipData.newPlainText("mcp-config", mcpConfig))
-                                Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
                             }
                         ) {
                             Icon(Icons.Default.ContentCopy, null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("复制")
+                            Text("Copy")
                         }
                     }
 
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = "将以下配置粘贴到 Claude Desktop / Cursor 的 MCP 设置中：",
+                        text = "Paste the following configuration into Claude Desktop / Cursor MCP settings:",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -231,19 +231,19 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 tonalElevation = 1.dp
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("可用工具", style = MaterialTheme.typography.titleSmall)
+                    Text("Available Tools", style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(8.dp))
 
                     val tools = listOf(
-                        "get_view_tree" to "获取 UI 树",
-                        "screenshot" to "截屏 (base64 PNG)",
-                        "tap" to "点击坐标 (x, y)",
-                        "long_press" to "长按坐标 (x, y)",
-                        "swipe" to "滑动手势",
-                        "input_text" to "输入文字",
-                        "press_home" to "按 Home 键",
-                        "press_back" to "按返回键",
-                        "get_current_app" to "获取前台应用包名",
+                        "get_view_tree" to "Get UI tree",
+                        "screenshot" to "Screenshot (base64 PNG)",
+                        "tap" to "Tap at coordinates (x, y)",
+                        "long_press" to "Long press at coordinates (x, y)",
+                        "swipe" to "Swipe gesture",
+                        "input_text" to "Input text",
+                        "press_home" to "Press Home",
+                        "press_back" to "Press Back",
+                        "get_current_app" to "Get foreground app package name",
                     )
 
                     tools.forEach { (name, desc) ->

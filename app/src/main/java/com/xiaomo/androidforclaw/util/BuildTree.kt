@@ -111,15 +111,15 @@ object BuildTree {
     }
 
     private val SYSTEM_STATUS_KEYWORDS = listOf(
-        "android 系统通知",
-        "系统通知",
-        "通知",
+        "android System Notifications",
+        "System Notifications",
+        "Notification",
         "wlan",
         "信号",
         "充电",
         "sim 卡",
         "振铃器",
-        "振动",
+        "Vibration",
         "nfc"
     )
 
@@ -130,7 +130,7 @@ object BuildTree {
         //过滤掉系统状态栏
         val filteredNodes = nodes.filter { !isSystemStatusBar(it) }
         if (filteredNodes.isEmpty()) {
-            return "(无可用数据)\n"
+            return "(NoneAvailable数据)\n"
         }
         /**
          * nodeOrder：记录节点在原列表中的顺序索引
@@ -181,7 +181,7 @@ object BuildTree {
          * 结果返回
          */
         if (builder.isEmpty()) {
-            builder.append("(无可用数据)\n")
+            builder.append("(NoneAvailable数据)\n")
         }
         return builder.toString()
     }

@@ -40,9 +40,9 @@ object ContextErrors {
         if (msg.contains("exceed context limit")) return true
 
         // Chinese error messages
-        if (msg.contains("上下文过长")) return true
-        if (msg.contains("上下文超出")) return true
-        if (msg.contains("请压缩上下文")) return true
+        if (msg.contains("Context过长")) return true
+        if (msg.contains("Context超出")) return true
+        if (msg.contains("PleaseCompressContext")) return true
 
         // Token quantity related
         if (msg.contains("tokens") && (

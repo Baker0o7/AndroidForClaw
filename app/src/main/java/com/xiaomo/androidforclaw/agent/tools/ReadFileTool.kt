@@ -39,7 +39,7 @@ class ReadFileTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要读取的文件路径")
+                        "path" to PropertySchema("string", "要读取的File Path")
                     ),
                     required = listOf("path")
                 )

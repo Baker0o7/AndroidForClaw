@@ -112,7 +112,7 @@
 
     <!-- 通知相关 -->
     <string name="notification_channel_created">Notification Channel Created</string>
-    <string name="foreground_service_title">Claw 服务</string>
+    <string name="foreground_service_title">Claw Service</string>
     <string name="foreground_service_content">Service is running</string>
 
     <!-- 截图相关 -->
@@ -192,12 +192,12 @@
     <string name="days_ago">%d days ago</string>
 
     <!-- 无障碍服务 -->
-    <string name="accessibility_service_description">Claw 无障碍服务，用于控制设备界面</string>
-    <string name="accessibility_service_name">Claw 无障碍服务</string>
+    <string name="accessibility_service_description">Claw Accessibility Service for controlling device interface</string>
+    <string name="accessibility_service_name">Claw Accessibility Service</string>
 
     <!-- 语言设置 -->
-    <string name="language_setting">Language / 语言</string>
-    <string name="language_system">System / 系统</string>
+    <string name="language_setting">Language</string>
+    <string name="language_system">System</string>
     <string name="language_english">English</string>
     <string name="language_chinese">中文</string>
     <string name="language_change_restart">Language changed. Please restart the app for changes to take effect.</string>

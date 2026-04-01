@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
  * 飞书打字指示器
  * 对齐 OpenClaw typing.ts
  *
- * 通过添加/移除 Typing 表情来显示"正在输入"状态
+ * 通过添加/移除 Typing 表情来显示"正在Input"状态
  */
 object FeishuTyping {
     private const val TAG = "FeishuTyping"

@@ -287,18 +287,18 @@ class MainActivityCompose : ComponentActivity() {
 
                     val sizeStr = if (info.fileSize > 0) "%.1f MB".format(info.fileSize / 1024.0 / 1024.0) else ""
                     val message = buildString {
-                        append("发现新版本 v${info.latestVersion}\n")
-                        append("当前版本 v${info.currentVersion}\n")
-                        if (sizeStr.isNotEmpty()) append("大小: $sizeStr\n")
+                        append("New version found v${info.latestVersion}\n")
+                        append("Current version v${info.currentVersion}\n")
+                        if (sizeStr.isNotEmpty()) append("Size: $sizeStr\n")
                         if (!info.releaseNotes.isNullOrEmpty()) {
                             append("\n${info.releaseNotes.take(200)}")
                         }
                     }
 
                     androidx.appcompat.app.AlertDialog.Builder(this@MainActivityCompose)
-                        .setTitle("发现新版本")
+                        .setTitle("New Version Found")
                         .setMessage(message)
-                        .setPositiveButton("立即更新") { _, _ ->
+                        .setPositiveButton("Update Now") { _, _ ->
                             lifecycleScope.launch {
                                 val success = updater.downloadAndInstall(info.downloadUrl, info.latestVersion)
                                 if (!success) {
@@ -311,7 +311,7 @@ class MainActivityCompose : ComponentActivity() {
                                 }
                             }
                         }
-                        .setNegativeButton("稍后再说") { _, _ ->
+                        .setNegativeButton("Later") { _, _ ->
                             prefs.edit().putBoolean(key, true).apply()
                         }
                         .setOnCancelListener {
@@ -402,21 +402,21 @@ class MainActivityCompose : ComponentActivity() {
 
         // 先弹说明对话框，再申请权限
         android.app.AlertDialog.Builder(this)
-            .setTitle("Termux 命令执行权限")
+            .setTitle("Termux Command Execution Permission")
             .setMessage(
-                "ForClaw 需要「Termux 命令执行」权限来实现以下功能：\n\n" +
-                "• 让 AI 在手机终端中执行命令（如安装软件、运行脚本）\n" +
-                "• 自动启动 Termux SSH 服务，无需手动操作\n" +
-                "• 当 SSH 密钥丢失时自动修复连接\n\n" +
-                "此权限仅用于与 Termux 通信，不会访问您的其他数据。\n\n" +
-                "点击「同意」后，系统会弹出权限请求，请选择「允许」。"
+                "ForClaw requires the 'Termux Command Execution' permission for the following features:\n\n" +
+                "• Allow AI to execute commands in the phone terminal (e.g., install software, run scripts)\n" +
+                "• Automatically start Termux SSH service without manual intervention\n" +
+                "• Automatically fix connections when SSH keys are lost\n\n" +
+                "This permission is only used to communicate with Termux and will not access your other data.\n\n" +
+                "After clicking 'Agree', the system will show a permission request. Please select 'Allow'."
             )
             .setCancelable(true)
-            .setPositiveButton("同意") { _, _ ->
+            .setPositiveButton("Agree") { _, _ ->
                 Log.i(TAG, "Requesting Termux RUN_COMMAND permission...")
                 requestPermissions(arrayOf(termuxPermission), 1002)
             }
-            .setNegativeButton("暂不") { dialog, _ ->
+            .setNegativeButton("Not Now") { dialog, _ ->
                 dialog.dismiss()
             }
             .show()
@@ -428,7 +428,7 @@ class MainActivityCompose : ComponentActivity() {
      */
     private fun launchModelSetupIfNeeded() {
         if (ModelSetupActivity.isNeeded(this)) {
-            Log.i(TAG, "🔧 首次启动，打开模型配置引导...")
+            Log.i(TAG, "🔧 First launch, opening model setup guide...")
             startActivity(Intent(this, ModelSetupActivity::class.java))
         }
     }
@@ -476,7 +476,7 @@ class MainActivityCompose : ComponentActivity() {
                 startActivityForResult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
             } catch (e2: Exception) {
                 Log.e(TAG, "Cannot open file management permission settings", e2)
-                Toast.makeText(this, "无法打开权限设置，请手动授权", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Unable to open permission settings, please grant manually", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -523,13 +523,13 @@ private fun LegalConsentDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "服务条款和隐私政策",
+                    text = "Terms of Service and Privacy Policy",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Text(
-                    text = "欢迎使用 ForClaw！在开始之前，请阅读并同意我们的服务条款和隐私政策。",
+                    text = "Welcome to ForClaw! Before you start, please read and agree to our Terms of Service and Privacy Policy.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -537,15 +537,15 @@ private fun LegalConsentDialog(
                 // Clickable links
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = onOpenPrivacy) {
-                        Text("查看隐私政策 →", fontSize = 14.sp)
+                        Text("View Privacy Policy →", fontSize = 14.sp)
                     }
                     TextButton(onClick = onOpenTerms) {
-                        Text("查看用户协议 →", fontSize = 14.sp)
+                        Text("View Terms of Service →", fontSize = 14.sp)
                     }
                 }
 
                 Text(
-                    text = "点击「同意」即表示您已阅读并同意以上条款。",
+                    text = "By tapping \"Agree\", you acknowledge that you have read and agree to the above terms.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -555,10 +555,10 @@ private fun LegalConsentDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
                 ) {
                     TextButton(onClick = onDecline) {
-                        Text("不同意")
+                        Text("Disagree")
                     }
                     Button(onClick = onAccept) {
-                        Text("同意")
+                        Text("Agree")
                     }
                 }
             }

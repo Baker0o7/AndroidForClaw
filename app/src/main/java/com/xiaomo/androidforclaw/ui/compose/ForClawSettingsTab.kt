@@ -82,7 +82,7 @@ fun ForClawSettingsTab() {
                     providerName = entry.first
                     modelId = resolvedModel
                     val key = entry.second.apiKey
-                    apiKeyOk = !key.isNullOrBlank() && !key.startsWith("\${") && key != "未配置"
+                    apiKeyOk = !key.isNullOrBlank() && !key.startsWith("\${") && key != "Not configured"
                 } else {
                     providerName = context.getString(R.string.connect_api_not_configured)
                     apiKeyOk = false
@@ -143,23 +143,23 @@ fun ForClawSettingsTab() {
                 java.net.NetworkInterface.getNetworkInterfaces()?.toList()
                     ?.flatMap { it.inetAddresses.toList() }
                     ?.firstOrNull { !it.isLoopbackAddress && it is java.net.Inet4Address }
-                    ?.hostAddress ?: "未连接 WiFi"
-            } catch (_: Exception) { "获取失败" }
+                    ?.hostAddress ?: "Disconnected WiFi"
+            } catch (_: Exception) { "Failed to get" }
         }
         val clipboardUrl = if (localIp.contains(".")) "http://$localIp:19789/clipboard" else localIp
         StatusCard(
             title = "Web Clipboard",
             icon = Icons.Default.ContentPaste,
             rows = listOf(
-                StatusRow("地址", clipboardUrl),
-                StatusRow("用途", "电脑输入 → 手机剪切板"),
+                StatusRow("Address", clipboardUrl),
+                StatusRow("用途", "电脑Input → 手机剪切板"),
             ),
             onClick = {
                 if (clipboardUrl.startsWith("http")) {
                     context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(clipboardUrl)))
                 }
             },
-            clickLabel = "打开",
+            clickLabel = "Open",
         )
 
         // Channels

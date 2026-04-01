@@ -60,7 +60,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.channels_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Back")
                     }
                 }
             )
@@ -74,7 +74,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "配置多渠道接入",
+                text = "Configure multi-channel access",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -83,8 +83,8 @@ fun ChannelListScreen(onBack: () -> Unit) {
 
             // Feishu Channel card
             ChannelCard(
-                name = "Feishu (飞书)",
-                description = "飞书群聊和私聊接入",
+                name = "Feishu (Lark)",
+                description = "Feishu group chat and direct message access",
                 enabled = feishuEnabled,
                 onClick = {
                     // Navigate to Feishu configuration page
@@ -96,7 +96,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // Discord Channel card
             ChannelCard(
                 name = "Discord",
-                description = "Discord 服务器和私聊接入",
+                description = "Discord server and direct message access",
                 enabled = discordEnabled,
                 onClick = {
                     val intent = Intent(context, DiscordChannelActivity::class.java)
@@ -107,7 +107,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // Telegram Channel card
             ChannelCard(
                 name = "Telegram",
-                description = "Telegram Bot 接入",
+                description = "Telegram Bot access",
                 enabled = false,
                 onClick = {
                     val intent = Intent(context, TelegramChannelActivity::class.java)
@@ -118,7 +118,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // Slack Channel card
             ChannelCard(
                 name = "Slack",
-                description = "Slack 工作区接入",
+                description = "Slack workspace access",
                 enabled = false,
                 onClick = {
                     val intent = Intent(context, SlackChannelActivity::class.java)
@@ -129,7 +129,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // Signal Channel card
             ChannelCard(
                 name = "Signal",
-                description = "Signal 消息接入",
+                description = "Signal messaging access",
                 enabled = false,
                 onClick = {
                     val intent = Intent(context, SignalChannelActivity::class.java)
@@ -140,7 +140,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // WhatsApp Channel card
             ChannelCard(
                 name = "WhatsApp",
-                description = "WhatsApp 消息接入",
+                description = "WhatsApp messaging access",
                 enabled = false,
                 onClick = {
                     val intent = Intent(context, WhatsAppChannelActivity::class.java)
@@ -150,8 +150,8 @@ fun ChannelListScreen(onBack: () -> Unit) {
 
             // Weixin Channel card
             ChannelCard(
-                name = "微信 (Weixin)",
-                description = "微信 ClawBot 扫码接入",
+                name = "WeChat (Weixin)",
+                description = "WeChat ClawBot QR code access",
                 enabled = config.channels.weixin?.enabled ?: false,
                 onClick = {
                     val intent = Intent(context, WeixinChannelActivity::class.java)
@@ -199,7 +199,7 @@ fun ChannelCard(
             if (enabled) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "已启用",
+                    contentDescription = "Enabled",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }

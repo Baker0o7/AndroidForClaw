@@ -62,33 +62,33 @@ class EyeSkill(
                     properties = mapOf(
                         "action" to PropertySchema(
                             type = "string",
-                            description = "操作类型: list(列出可用的眼睛), look(看一眼并理解，图片直接嵌入给你看), snap(纯拍照，只返回文件路径), watch(持续观察，录制短视频)",
+                            description = "操作Type: list(Column出Available的Eye), look(看一眼并理解，Image直接嵌入给你看), snap(纯拍照，只BackFile Path), watch(持续观察，录制短视频)",
                             enum = listOf("list", "look", "snap", "watch")
                         ),
                         "facing" to PropertySchema(
                             type = "string",
-                            description = "使用哪只眼睛: front(前眼，面向用户) 或 back(后眼，面向外部环境)，默认 back",
+                            description = "使用哪只Eye: front(前眼，面向User) 或 back(后眼，面向外部环境)，Default back",
                             enum = listOf("front", "back")
                         ),
                         "quality" to PropertySchema(
                             type = "number",
-                            description = "图像质量 0.1-1.0，默认 0.95（仅 look）"
+                            description = "图像质量 0.1-1.0，Default 0.95（仅 look）"
                         ),
                         "max_width" to PropertySchema(
                             type = "number",
-                            description = "最大图像宽度（像素），默认 1600（仅 look）"
+                            description = "Maximum图像宽度（像素），Default 1600（仅 look）"
                         ),
                         "duration_ms" to PropertySchema(
                             type = "number",
-                            description = "观察时长（毫秒），默认 3000，最大 60000（仅 watch）"
+                            description = "观察时长（毫秒），Default 3000，Maximum 60000（仅 watch）"
                         ),
                         "include_audio" to PropertySchema(
                             type = "boolean",
-                            description = "是否同时聆听声音，默认 true（仅 watch）"
+                            description = "YesNo同时聆听Sound，Default true（仅 watch）"
                         ),
                         "device_id" to PropertySchema(
                             type = "string",
-                            description = "指定摄像头 ID（从 list 获取，可选）"
+                            description = "指定摄像头 ID（从 list 获取，Optional）"
                         ),
                     ),
                     required = listOf("action")
@@ -148,7 +148,7 @@ class EyeSkill(
             null // 权限已授予
         } else {
             Log.w(TAG, "CAMERA permission denied by user")
-            SkillResult.error("需要相机权限才能使用眼睛。请在系统设置中授予相机权限后重试。")
+            SkillResult.error("Need toCamera Permission才能使用Eye。Please在System SettingsMediumGrantCamera Permission后Retry。")
         }
     }
 
@@ -159,13 +159,13 @@ class EyeSkill(
         return try {
             val devices = cameraManager.listDevices()
             if (devices.isEmpty()) {
-                return SkillResult.success("没有检测到可用的眼睛（摄像头）")
+                return SkillResult.success("没Has检测到Available的Eye（摄像头）")
             }
             val output = buildString {
-                appendLine("可用的眼睛 (${devices.size} 个):")
+                appendLine("Available的Eye (${devices.size} 个):")
                 devices.forEach { d ->
                     val eyeName = when (d.position) {
-                        "front" -> "前眼（面向用户）"
+                        "front" -> "前眼（面向User）"
                         "back" -> "后眼（面向环境）"
                         else -> d.position
                     }
@@ -175,7 +175,7 @@ class EyeSkill(
             SkillResult.success(output, mapOf("device_count" to devices.size))
         } catch (e: Exception) {
             Log.e(TAG, "eye.list failed", e)
-            SkillResult.error("列出可用眼睛失败: ${e.message}")
+            SkillResult.error("Column出AvailableEyeFailed: ${e.message}")
         }
     }
 
@@ -203,7 +203,7 @@ class EyeSkill(
             // 压缩图片（对齐 OpenClaw image-sanitization 策略）
             val sanitized = withContext(Dispatchers.IO) {
                 ImageSanitizer.sanitize(result.base64, "image/jpeg")
-            } ?: return SkillResult.error("图片压缩失败")
+            } ?: return SkillResult.error("ImageCompressFailed")
 
             // 保存到工作空间
             val photoDir = File(StoragePaths.workspace, "eye").apply { mkdirs() }
@@ -215,12 +215,12 @@ class EyeSkill(
 
             val output = buildString {
                 if (embedImage) {
-                    appendLine("👁️ 通过${eyeName}观察完成")
+                    appendLine("👁️ 通过${eyeName}观察Done")
                     appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
                     appendLine("文件: ${photoFile.absolutePath}")
-                    appendLine("（图片已内嵌，请直接描述你看到的内容）")
+                    appendLine("（Image已内嵌，Please直接Description你看到的内容）")
                 } else {
-                    appendLine("📸 通过${eyeName}拍照完成")
+                    appendLine("📸 通过${eyeName}拍照Done")
                     appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
                     appendLine("文件: ${photoFile.absolutePath}")
                 }
@@ -238,7 +238,7 @@ class EyeSkill(
             )
         } catch (e: Exception) {
             Log.e(TAG, "eye.look failed", e)
-            SkillResult.error("观察失败: ${e.message}")
+            SkillResult.error("观察Failed: ${e.message}")
         }
     }
 
@@ -271,9 +271,9 @@ class EyeSkill(
             }
 
             val output = buildString {
-                appendLine("👁️ 通过${eyeName}持续观察完成")
+                appendLine("👁️ 通过${eyeName}持续观察Done")
                 appendLine("时长: ${result.durationMs}ms")
-                appendLine("声音: ${if (result.hasAudio) "有" else "无"}")
+                appendLine("Sound: ${if (result.hasAudio) "有" else "无"}")
                 appendLine("文件: ${videoFile.absolutePath}")
             }
 
@@ -288,7 +288,7 @@ class EyeSkill(
             )
         } catch (e: Exception) {
             Log.e(TAG, "eye.watch failed", e)
-            SkillResult.error("持续观察失败: ${e.message}")
+            SkillResult.error("持续观察Failed: ${e.message}")
         }
     }
 }

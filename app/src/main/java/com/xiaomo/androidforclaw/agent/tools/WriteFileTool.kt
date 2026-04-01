@@ -39,7 +39,7 @@ class WriteFileTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要写入的文件路径"),
+                        "path" to PropertySchema("string", "要写入的File Path"),
                         "content" to PropertySchema("string", "要写入的内容")
                     ),
                     required = listOf("path", "content")

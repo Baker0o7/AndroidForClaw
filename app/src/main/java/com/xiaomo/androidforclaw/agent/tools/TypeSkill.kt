@@ -28,7 +28,7 @@ class TypeSkill(private val context: Context) : Skill {
         get() {
             val isAccessibilityEnabled = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value == true &&
                                         com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isServiceReady()
-            val statusNote = if (!isAccessibilityEnabled) " ⚠️ **不可用**-无障碍服务未连接" else " ✅"
+            val statusNote = if (!isAccessibilityEnabled) " ⚠️ **Unavailable**-Accessibility ServiceDisconnected" else " ✅"
             return "Type text into focused input field (must tap input first)$statusNote"
         }
 
@@ -41,7 +41,7 @@ class TypeSkill(private val context: Context) : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "text" to PropertySchema("string", "要输入的文本内容")
+                        "text" to PropertySchema("string", "要Input的文本内容")
                     ),
                     required = listOf("text")
                 )

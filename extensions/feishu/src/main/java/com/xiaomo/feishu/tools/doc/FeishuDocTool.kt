@@ -34,7 +34,7 @@ fun extractDocId(input: String): String {
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_fetch_doc"
-    override val description = "获取飞书云文档内容，返回文档标题和 Markdown 格式内容。支持分页获取大文档。"
+    override val description = "获取Feishu云Documentation内容，BackDocumentation标题和 Markdown Format内容。支持分页获取大Documentation。"
 
     override fun isEnabled() = config.enableDocTools
 
@@ -98,9 +98,9 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "doc_id" to PropertySchema("string", "文档 ID 或 URL（支持自动解析）"),
-                    "offset" to PropertySchema("integer", "字符偏移量（可选，默认0）。用于大文档分页获取。"),
-                    "limit" to PropertySchema("integer", "返回的最大字符数（可选）。仅在用户明确要求分页时使用。")
+                    "doc_id" to PropertySchema("string", "Documentation ID 或 URL（支持Auto解析）"),
+                    "offset" to PropertySchema("integer", "字符偏移量（Optional，Default0）。用于大Documentation分页获取。"),
+                    "limit" to PropertySchema("integer", "Back的Maximum字符数（Optional）。仅在User明确要求分页时使用。")
                 ),
                 required = listOf("doc_id")
             )
@@ -113,7 +113,7 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_create_doc"
-    override val description = "从 Markdown 创建云文档（支持异步 task_id 查询）"
+    override val description = "从 Markdown 创建云Documentation（支持Async task_id 查询）"
 
     override fun isEnabled() = config.enableDocTools
 
@@ -122,9 +122,9 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
         val taskId = args["task_id"] as? String
         if (taskId != null) return null // task_id provided, skip other validation
 
-        // Matching official: "未提供 task_id 时，至少需要提供 markdown 和 title"
+        // Matching official: "未提供 task_id 时，至少Need to提供 markdown 和 title"
         if (args["markdown"] == null || args["title"] == null) {
-            return "create-doc：未提供 task_id 时，至少需要提供 markdown 和 title"
+            return "create-doc：未提供 task_id 时，至少Need to提供 markdown 和 title"
         }
 
         // Matching official: folder_token / wiki_node / wiki_space are mutually exclusive
@@ -134,7 +134,7 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             args["wiki_space"]
         )
         if (flags.size > 1) {
-            return "create-doc：folder_token / wiki_node / wiki_space 三者互斥，请只提供一个"
+            return "create-doc：folder_token / wiki_node / wiki_space 三者互斥，Please只提供一个"
         }
 
         return null
@@ -186,11 +186,11 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             parameters = ParametersSchema(
                 properties = mapOf(
                     "markdown" to PropertySchema("string", "Markdown 内容"),
-                    "title" to PropertySchema("string", "文档标题"),
-                    "folder_token" to PropertySchema("string", "父文件夹 token（可选）"),
-                    "wiki_node" to PropertySchema("string", "知识库节点 token 或 URL（可选，传入则在该节点下创建文档）"),
-                    "wiki_space" to PropertySchema("string", "知识空间 ID（可选，特殊值 my_library）"),
-                    "task_id" to PropertySchema("string", "异步任务 ID。提供此参数将查询任务状态而非创建新文档")
+                    "title" to PropertySchema("string", "Documentation标题"),
+                    "folder_token" to PropertySchema("string", "父文件夹 token（Optional）"),
+                    "wiki_node" to PropertySchema("string", "Knowledge BaseNode token 或 URL（Optional，传入则在该Node下创建Documentation）"),
+                    "wiki_space" to PropertySchema("string", "知识Empty间 ID（Optional，特殊Value my_library）"),
+                    "task_id" to PropertySchema("string", "Async任务 ID。提供此Parameter将查询任务Status而非创建新Documentation")
                 ),
                 required = listOf()
             )
@@ -248,7 +248,7 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_update_doc"
-    override val description = "更新云文档（overwrite/append/replace_range/replace_all/insert_before/insert_after/delete_range，支持异步 task_id 查询）"
+    override val description = "Update云Documentation（overwrite/append/replace_range/replace_all/insert_before/insert_after/delete_range，支持Async task_id 查询）"
 
     override fun isEnabled() = config.enableDocTools
 
@@ -257,9 +257,9 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
         val taskId = args["task_id"] as? String
         if (taskId != null) return null // task_id provided, skip other validation
 
-        // Matching official: "未提供 task_id 时必须提供 doc_id"
+        // Matching official: "未提供 task_id 时Must提供 doc_id"
         if (args["doc_id"] == null) {
-            return "update-doc：未提供 task_id 时必须提供 doc_id"
+            return "update-doc：未提供 task_id 时Must提供 doc_id"
         }
 
         val mode = args["mode"] as? String
@@ -270,16 +270,16 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             val hasEllipsis = args["selection_with_ellipsis"] != null
             val hasTitle = args["selection_by_title"] != null
 
-            // Matching official: "selection_with_ellipsis 与 selection_by_title 必须二选一"
+            // Matching official: "selection_with_ellipsis 与 selection_by_title Must二选一"
             if ((hasEllipsis && hasTitle) || (!hasEllipsis && !hasTitle)) {
-                return "update-doc：mode 为 replace_range/insert_before/insert_after/delete_range 时，selection_with_ellipsis 与 selection_by_title 必须二选一"
+                return "update-doc：mode 为 replace_range/insert_before/insert_after/delete_range 时，selection_with_ellipsis 与 selection_by_title Must二选一"
             }
         }
 
         // Matching official: modes that need markdown
         val needMarkdown = mode != "delete_range"
         if (needMarkdown && args["markdown"] == null) {
-            return "update-doc：mode=$mode 时必须提供 markdown"
+            return "update-doc：mode=$mode 时Must提供 markdown"
         }
 
         return null
@@ -332,14 +332,14 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "doc_id" to PropertySchema("string", "文档 ID 或 URL"),
+                    "doc_id" to PropertySchema("string", "Documentation ID 或 URL"),
                     "markdown" to PropertySchema("string", "Markdown 内容"),
-                    "mode" to PropertySchema("string", "更新模式（必填）",
+                    "mode" to PropertySchema("string", "Update模式（Required）",
                         enum = listOf("overwrite", "append", "replace_range", "replace_all", "insert_before", "insert_after", "delete_range")),
-                    "selection_with_ellipsis" to PropertySchema("string", "定位表达式：开头内容...结尾内容（与 selection_by_title 二选一）"),
-                    "selection_by_title" to PropertySchema("string", "标题定位：例如 ## 章节标题（与 selection_with_ellipsis 二选一）"),
-                    "new_title" to PropertySchema("string", "新的文档标题（可选）"),
-                    "task_id" to PropertySchema("string", "异步任务 ID，用于查询任务状态")
+                    "selection_with_ellipsis" to PropertySchema("string", "定位表达式：On头内容...结尾内容（与 selection_by_title 二选一）"),
+                    "selection_by_title" to PropertySchema("string", "标题定位：例如 ## Section标题（与 selection_with_ellipsis 二选一）"),
+                    "new_title" to PropertySchema("string", "新的Documentation标题（Optional）"),
+                    "task_id" to PropertySchema("string", "Async任务 ID，用于查询任务Status")
                 ),
                 required = listOf("mode")
             )

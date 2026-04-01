@@ -38,7 +38,7 @@ class FeishuPermTools(config: FeishuConfig, client: FeishuClient) {
  */
 class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_check"
-    override val description = "检查飞书文档权限"
+    override val description = "检查FeishuDocumentationPermission"
 
     override fun isEnabled() = config.enablePermTools
 
@@ -77,8 +77,8 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "文档token"),
-                    "type" to PropertySchema("string", "文档类型（doc/sheet/bitable等，默认doc）")
+                    "token" to PropertySchema("string", "Documentationtoken"),
+                    "type" to PropertySchema("string", "DocumentationType（doc/sheet/bitable等，Defaultdoc）")
                 ),
                 required = listOf("token")
             )
@@ -91,7 +91,7 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
  */
 class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_grant"
-    override val description = "授予飞书文档权限"
+    override val description = "GrantFeishuDocumentationPermission"
 
     override fun isEnabled() = config.enablePermTools
 
@@ -135,11 +135,11 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "文档token"),
-                    "type" to PropertySchema("string", "文档类型（doc/sheet/bitable等，默认doc）"),
-                    "member_type" to PropertySchema("string", "成员类型（user/chat等，默认user）"),
-                    "member_id" to PropertySchema("string", "成员ID"),
-                    "perm" to PropertySchema("string", "权限级别（view/edit/full_access，默认view）")
+                    "token" to PropertySchema("string", "Documentationtoken"),
+                    "type" to PropertySchema("string", "DocumentationType（doc/sheet/bitable等，Defaultdoc）"),
+                    "member_type" to PropertySchema("string", "MemberType（user/chat等，Defaultuser）"),
+                    "member_id" to PropertySchema("string", "MemberID"),
+                    "perm" to PropertySchema("string", "Permission级别（view/edit/full_access，Defaultview）")
                 ),
                 required = listOf("token", "member_id")
             )
@@ -152,7 +152,7 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
  */
 class PermRevokeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_revoke"
-    override val description = "撤销飞书文档权限"
+    override val description = "撤销FeishuDocumentationPermission"
 
     override fun isEnabled() = config.enablePermTools
 
@@ -188,10 +188,10 @@ class PermRevokeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "文档token"),
-                    "type" to PropertySchema("string", "文档类型（doc/sheet/bitable等，默认doc）"),
-                    "member_type" to PropertySchema("string", "成员类型（user/chat等，默认user）"),
-                    "member_id" to PropertySchema("string", "成员ID")
+                    "token" to PropertySchema("string", "Documentationtoken"),
+                    "type" to PropertySchema("string", "DocumentationType（doc/sheet/bitable等，Defaultdoc）"),
+                    "member_type" to PropertySchema("string", "MemberType（user/chat等，Defaultuser）"),
+                    "member_id" to PropertySchema("string", "MemberID")
                 ),
                 required = listOf("token", "member_id")
             )

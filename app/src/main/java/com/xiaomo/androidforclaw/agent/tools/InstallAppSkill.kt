@@ -47,7 +47,7 @@ class InstallAppSkill(private val context: Context) : Skill {
     }
 
     override val name = "install_app"
-    override val description = "安装 APK 文件到设备。支持本地文件路径或 content:// URI。可用于安装新应用或升级已有应用。"
+    override val description = "Install APK 文件到设备。支持本地File Path或 content:// URI。Available于Install新应用或Upgrade已Has应用。"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -64,7 +64,7 @@ class InstallAppSkill(private val context: Context) : Skill {
                         ),
                         "allow_downgrade" to PropertySchema(
                             "boolean",
-                            "是否允许降级安装（版本号比已安装版本低）。默认 false"
+                            "YesNo允许DowngradeInstall（Version Number比InstalledVersionLow）。Default false"
                         )
                     ),
                     required = listOf("apk_path")

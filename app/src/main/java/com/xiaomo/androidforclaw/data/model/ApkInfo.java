@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw equivalent (Android platform specific)
  */
 package com.xiaomo.androidforclaw.data.model;
 
@@ -29,17 +29,17 @@ public class ApkInfo {
     }
 
     public boolean prepare() {
-        Log.d(TAG, "开始准备APK信息，URI: " + mApkUri);
+        Log.d(TAG, "Preparing APK info, URI: " + mApkUri);
         
         mApk = getApkFile(mApkUri);
-        Log.d(TAG, "APK文件路径: " + mApk.getAbsolutePath());
-        Log.d(TAG, "APK文件存在: " + mApk.exists());
-        Log.d(TAG, "APK文件可读: " + mApk.canRead());
-        Log.d(TAG, "APK文件大小: " + mApk.length());
+        Log.d(TAG, "APK file path: " + mApk.getAbsolutePath());
+        Log.d(TAG, "APK file exists: " + mApk.exists());
+        Log.d(TAG, "APK file readable: " + mApk.canRead());
+        Log.d(TAG, "APK file size: " + mApk.length());
         
-        // 即使文件不可读，也尝试解析APK信息
+        // Even if the file is not readable, still try to parse APK info
         if (mApk.exists() && mApk.length() > 0) {
-            Log.d(TAG, "开始解析APK包信息");
+            Log.d(TAG, "Starting APK package info parsing");
             try {
                 PackageInfo packageInfo = MyApplication.application
                         .getApplicationContext()
@@ -48,22 +48,22 @@ public class ApkInfo {
                                 mApk.getAbsolutePath(),
                                 PackageManager.GET_SIGNATURES);
  
-                Log.d(TAG, "PackageInfo解析结果: " + (packageInfo != null));
+                Log.d(TAG, "PackageInfo parse result: " + (packageInfo != null));
  
                 if (packageInfo != null) {
                     mApkPackageName = packageInfo.packageName;
-                    Log.d(TAG, "APK包名: " + mApkPackageName);
-                    Log.d(TAG, "APK版本: " + packageInfo.versionName);
-                    Log.d(TAG, "APK版本码: " + packageInfo.versionCode);
+                    Log.d(TAG, "APK package name: " + mApkPackageName);
+                    Log.d(TAG, "APK version: " + packageInfo.versionName);
+                    Log.d(TAG, "APK version code: " + packageInfo.versionCode);
                     return true;
                 } else {
-                    Log.e(TAG, "PackageInfo为null，APK文件可能损坏或不是有效的APK");
+                    Log.e(TAG, "PackageInfo is null, APK file may be corrupted or invalid");
                 }
             } catch (Exception e) {
-                Log.e(TAG, "解析APK时发生异常: " + e.getMessage(), e);
+                Log.e(TAG, "Exception while parsing APK: " + e.getMessage(), e);
             }
         } else {
-            Log.e(TAG, "APK文件不存在或大小为0");
+            Log.e(TAG, "APK file does not exist or size is 0");
         }
         return false;
     }
