@@ -1,6 +1,6 @@
-# 📱 AndroidForClaw
+# AndroidForClaw
 
-[![Release](https://img.shields.io/badge/Release-v1.3.0-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v1.3.1-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://www.android.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -8,13 +8,13 @@
 
 底层架构对齐 [OpenClaw](https://github.com/openclaw/openclaw)（280k+ Star），在手机上实现完整的 AI Agent 能力——看屏幕、点 App、跑代码、连平台。
 
-**[📖 详细文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** · **[🚀 快速开始](#-快速开始)** · **[💬 加入社区](#-社区)**
+**[详细文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** | **[快速开始](#-快速开始)** | **[加入社区](#-社区)**
 
 ---
 
-## 🔥 AI 能帮你做什么
+## AI 能帮你做什么
 
-### 📱 操控任何 App
+### 操控任何 App
 
 微信、支付宝、抖音、淘宝、高德……**凡是你能手动操作的，AI 都能操作。**
 
@@ -23,14 +23,14 @@
 AI：→ 打开微信 → 搜索张三 → 输入消息 → 发送 ✅
 ```
 
-### 🔗 跨应用联动
+### 跨应用联动
 
 ```
 你：微信收到一个地址，帮我导航过去
 AI：→ 微信复制地址 → 打开高德 → 搜索 → 开始导航
 ```
 
-### 🐧 执行代码
+### 执行代码
 
 通过 Termux SSH 执行命令（Shell 直接可用，Python/Node.js 需在 Termux 中安装）：
 
@@ -39,29 +39,28 @@ AI：→ 微信复制地址 → 打开高德 → 搜索 → 开始导航
 AI：→ exec("python3 analyze.py") → 返回分析结果
 ```
 
-### 🌐 搜索 & 抓取网页
+### 搜索 & 抓取网页
 
 ```
 你：搜一下今天的科技新闻
 AI：→ web_search("科技新闻") → 返回标题+链接+摘要
 ```
 
-### 💬 多平台消息
+### 多平台消息
 
-通过飞书、Discord、Telegram、Slack 等远程控制你的手机 AI：
+通过飞书、Discord 等远程控制你的手机 AI：
 
 | 渠道 | 状态 |
 |------|------|
-| 飞书 | ✅ 可用 |
-| Discord | ✅ 可用 |
-| Telegram | 🔧 框架就绪（配置对齐 OpenClaw） |
-| Slack | 🔧 框架就绪（Socket/HTTP 双模式） |
-| Signal | 🔧 框架就绪（signal-cli 接入） |
-| WhatsApp | 🔧 框架就绪 |
+| 飞书 | ✅ 可用（WebSocket 实时连接，私聊/群聊，39 个飞书工具） |
+| Discord | ✅ 可用（Gateway v10，私聊/群聊，权限策略） |
+| 设备内对话 | ✅ 可用 |
+| Telegram | 🚧 开发中 |
+| Slack | 🚧 开发中 |
 
 每个渠道支持**独立模型覆盖**——从已配置的 Provider 中选择该渠道专用的模型。
 
-### 🤖 MCP Server（给外部 Agent 用）
+### MCP Server（给外部 Agent 用）
 
 内置 MCP Server（端口 8399），将手机的无障碍和截屏能力通过标准 MCP 协议暴露给外部 Agent：
 
@@ -71,7 +70,7 @@ AI：→ web_search("科技新闻") → 返回标题+链接+摘要
 
 > 这不是 AndroidForClaw 自身使用的——是给 Claude Desktop、Cursor 等外部 Agent 调用的。
 
-### 🧩 技能扩展
+### 技能扩展
 
 从 [ClawHub](https://clawhub.com) 搜索安装新能力，或自己创建 Skill：
 
@@ -82,7 +81,7 @@ AI：→ skills_search("") → 展示可用技能列表
 
 ---
 
-## ⚡ 快速开始
+## 快速开始
 
 ### 下载安装
 
@@ -101,13 +100,13 @@ AI：→ skills_search("") → 展示可用技能列表
 2. **配置** — 打开 App，输入 API Key（或跳过使用内置 Key），开启无障碍 + 录屏权限
 3. **开聊** — 直接对话，或通过飞书/Discord 发消息
 
-> 💡 首次打开自动弹出引导页，默认 OpenRouter + MiMo V2 Pro，支持一键跳过
+> 首次打开自动弹出引导页，默认 OpenRouter + MiMo V2 Pro，支持一键跳过
 
 ### Termux 配置（可选）
 
 装了 Termux，AI 就能跑 Shell 命令（Python/Node.js 需额外安装）。
 
-**设置 → Termux 配置**，按向导 7 步完成：
+**设置 → Termux 配置**，按向导完成：
 
 1. 安装 Termux（F-Droid 版）
 2. 生成 SSH 密钥（App 内一键生成）
@@ -119,20 +118,19 @@ AI：→ skills_search("") → 展示可用技能列表
 
 ---
 
-## 🏗️ 技术架构
+## 技术架构
 
 ```
-324 源文件 · 62,000+ 行代码 · 10 个模块
+846 Kotlin 源文件 · 167,000+ 行代码 · 10 个模块
 ```
 
 ```
 ┌──────────────────────────────────────────┐
 │  Channels                                 │
-│  飞书 · Discord · Telegram · Slack ·      │
-│  Signal · WhatsApp · 设备内对话            │
+│  飞书 · Discord · 设备内对话               │
 ├──────────────────────────────────────────┤
 │  Agent Runtime                            │
-│  AgentLoop · 20 Tools · 20 Skills ·       │
+│  AgentLoop · 65 Tools · 27 Skills ·       │
 │  Context 管理 (4层防护) · Memory           │
 ├──────────────────────────────────────────┤
 │  Providers                                │
@@ -150,72 +148,97 @@ AI：→ skills_search("") → 展示可用技能列表
 | 特性 | 说明 |
 |------|------|
 | **Playwright 模式** | 屏幕操作对齐 Playwright —— `snapshot` 获取 UI 树 + ref → `act` 操作元素 |
-| **统一 exec** | 自动路由 Termux（SSH 连接池，3 次重试）或内置 Shell，对模型透明 |
+| **统一 exec** | 自动路由 Termux SSH（连接池 + 活动超时 + 断线重连）或内置 Shell |
 | **Context 管理** | 4 层防护对齐 OpenClaw：limitHistoryTurns + 工具结果裁剪 + budget guard |
-| **Model 智能路由** | Model ID 标准化 + Fallback Chain（多候选降级）+ API Key 轮换 + Allowlist/Blocklist |
-| **Session 维护** | 30 天自动清理、500 条上限、10MB 轮转、磁盘预算自动回收 |
-| **Skill 体系** | 20 个内置 Skill 可在设备上自由编辑，支持 ClawHub 在线安装 |
+| **Model 智能路由** | Model ID 标准化 + Fallback Chain + API Key 轮换 + Allowlist/Blocklist |
+| **Session 隔离** | 每个会话独立 AgentLoop，多 session 并行互不干扰；30 天自动清理 |
+| **Skill 体系** | 27 个内置 Skill，设备上可自由编辑，支持 ClawHub 在线安装 |
 | **多模型** | MiMo V2 Pro · DeepSeek R1 · Claude Sonnet 4 · Gemini 2.5 · GPT-4.1 |
 | **MCP Server** | 将无障碍/截屏能力暴露给外部 Agent（端口 8399，Streamable HTTP） |
-| **渠道模型覆盖** | 每个消息渠道可独立选择模型，字段对齐 OpenClaw types |
+| **渠道模型覆盖** | 每个消息渠道可独立选择模型 |
 | **Steer 注入** | 运行中通过 Channel 向 Agent Loop 注入消息（mid-run steering） |
+| **Termux SSH** | 连接池复用 + IGNORE 探活 + 活动超时（有输出就不超时）+ 自动重连 |
 
 ---
 
-## 📋 完整能力表
+## 完整能力表
 
-### 🔧 20 个 Tools
+### 通用 Tools（16 个）
 
-| Tool | 功能 | 对齐 |
-|------|------|------|
-| `device` | 屏幕操作：snapshot/tap/type/scroll/press/open | Playwright |
-| `read_file` | 读取文件内容 | OpenClaw |
-| `write_file` | 创建或覆盖文件 | OpenClaw |
-| `edit_file` | 精确编辑文件 | OpenClaw |
-| `list_dir` | 列出目录内容 | OpenClaw |
-| `exec` | 执行命令（Termux SSH / 内置 Shell） | OpenClaw |
-| `web_search` | Brave 搜索引擎 | OpenClaw |
-| `web_fetch` | 抓取网页内容 | OpenClaw |
-| `javascript` | 执行 JavaScript（QuickJS） | OpenClaw |
-| `tts` | 文本转语音（设备 TTS 引擎） | OpenClaw |
-| `skills_search` | 搜索 ClawHub 技能 | OpenClaw |
-| `skills_install` | 从 ClawHub 安装技能 | OpenClaw |
-| `memory_search` | 语义搜索记忆 | OpenClaw |
-| `memory_get` | 读取记忆片段 | OpenClaw |
-| `config_get` | 读取配置项 | OpenClaw |
-| `config_set` | 写入配置项 | OpenClaw |
-| `list_installed_apps` | 列出已安装应用 | Android 特有 |
-| `install_app` | 安装 APK | Android 特有 |
-| `start_activity` | 启动 Activity | Android 特有 |
-| `stop` | 停止 Agent | Android 特有 |
+| Tool | 功能 |
+|------|------|
+| `device` | 屏幕操作：snapshot / tap / type / scroll / press / open（Playwright 模式） |
+| `read_file` | 读取文件内容 |
+| `write_file` | 创建或覆盖文件 |
+| `edit_file` | 精确编辑文件（diff 模式） |
+| `list_dir` | 列出目录内容 |
+| `exec` | 执行命令（Termux SSH / 内置 Shell） |
+| `web_search` | Brave 搜索引擎 |
+| `web_fetch` | 抓取网页内容 |
+| `javascript` | 执行 JavaScript（QuickJS） |
+| `tts` | 文本转语音 |
+| `skills_search` | 搜索 ClawHub 技能 |
+| `skills_install` | 从 ClawHub 安装技能 |
+| `config_get` | 读取配置项 |
+| `config_set` | 写入配置项 |
+| `memory_search` | 语义搜索记忆 |
+| `memory_get` | 读取记忆片段 |
 
-### 🧩 20 个 Skills
+### Android 专属 Tools（10 个）
+
+| Tool | 功能 |
+|------|------|
+| `device` | 统一设备操作（截屏、点击、滑动、输入、Home、返回等） |
+| `list_installed_apps` | 列出已安装应用 |
+| `install_app` | 安装 APK |
+| `start_activity` | 启动 Activity |
+| `feishu_send_image` | 通过飞书发送图片 |
+| `eye` | 摄像头拍照 |
+| `log` | 查看系统日志 |
+| `stop` | 停止 Agent |
+
+### 飞书 Tools（39 个）
+
+| 类别 | Tools |
+|------|-------|
+| 文档 | 获取 / 创建 / 更新 / 媒体 / 评论 |
+| Wiki | 空间 / 节点 |
+| 云盘 | 文件操作 |
+| 多维表格 | 应用 / 表 / 字段 / 记录 / 视图 |
+| 任务 | 任务 / 任务列表 / 子任务 / 评论 |
+| 群聊 | 群管理 / 成员管理 |
+| 权限 | 检查 / 授予 / 撤销 |
+| 加急 | 发送加急 / 应用加急 |
+| 日历 | 日历 / 事件 / 参与者 / 忙闲查询 |
+| 消息 | 发消息 / 获取消息 / 话题消息 / 搜索消息 / 资源 / 机器人图片 |
+| 搜索 | 搜索文档/Wiki |
+| 通用 | 获取用户 / 搜索用户 |
+| 多媒体 | 图片上传 |
+| 表格 | 电子表格操作 |
+
+### 27 个 Skills
 
 | 类别 | Skills |
 |------|--------|
-| 飞书全家桶 | `feishu` · `feishu-doc` · `feishu-wiki` · `feishu-drive` · `feishu-bitable` · `feishu-chat` · `feishu-task` · `feishu-perm` · `feishu-urgent` |
-| 搜索 & 网页 | `browser` · `weather` |
+| 飞书全家桶 | `feishu` · `feishu-doc` · `feishu-wiki` · `feishu-drive` · `feishu-bitable` · `feishu-chat` · `feishu-task` · `feishu-perm` · `feishu-urgent` · `feishu-calendar` · `feishu-common` · `feishu-im` · `feishu-search` · `feishu-sheets` |
+| 搜索 & 网页 | `browser` · `weather` · `lark-cli` |
 | 技能管理 | `clawhub` · `skill-creator` |
-| 开发调试 | `debugging` · `data-processing` · `session-logs` |
+| 开发调试 | `debugging` · `data-processing` · `session-logs` · `context-security` |
 | 配置管理 | `model-config` · `channel-config` · `install-app` · `model-usage` |
 
 > Skills 存储在 `/sdcard/.androidforclaw/skills/`，可自由编辑、添加、删除。
 
-### 💬 消息渠道
+### 消息渠道
 
 | 渠道 | 状态 | 功能 |
 |------|------|------|
-| **飞书** | ✅ 可用 | WebSocket 实时连接，群聊/私聊，32 个飞书工具 |
-| **Discord** | ✅ 可用 | Gateway 连接，群聊/私聊 |
-| **Telegram** | 🔧 框架就绪 | Bot API polling/webhook，模型覆盖，流式回复 |
-| **Slack** | 🔧 框架就绪 | Socket Mode / HTTP Mode，模型覆盖，流式回复 |
-| **Signal** | 🔧 框架就绪 | signal-cli daemon 接入，模型覆盖 |
-| **WhatsApp** | 🔧 框架就绪 | WhatsApp Business API，模型覆盖 |
-| **设备内对话** | ✅ 可用 | 内置聊天界面 |
+| **飞书** | ✅ 可用 | WebSocket 实时连接，群聊/私聊，39 个飞书工具，流式卡片回复，图片/文件上传 |
+| **Discord** | ✅ 可用 | Gateway v10，群聊/私聊，DM 策略管理，Embed/Button 组件 |
+| **设备内对话** | ✅ 可用 | 内置聊天界面，多 session 管理 |
+| **Telegram** | 🚧 开发中 | — |
+| **Slack** | 🚧 开发中 | — |
 
-> 所有渠道配置字段均对齐 OpenClaw TypeScript 类型定义（`types.slack.ts`、`types.telegram.ts` 等）。
-
-### 🤖 支持的模型
+### 支持的模型
 
 | Provider | 模型 | 说明 |
 |----------|------|------|
@@ -229,6 +252,8 @@ AI：→ skills_search("") → 展示可用技能列表
 > **默认配置**：OpenRouter + MiMo V2 Pro（1M 上下文 + 推理），跳过引导页自动使用内置 Key。
 
 ---
+
+## 配置参考
 
 `/sdcard/.androidforclaw/openclaw.json`
 
@@ -250,40 +275,32 @@ AI：→ skills_search("") → 展示可用技能列表
   },
   "channels": {
     "feishu": { "enabled": true, "appId": "cli_xxx", "appSecret": "xxx" },
-    "slack": {
+    "discord": {
       "enabled": true,
-      "botToken": "xoxb-...",
-      "appToken": "xapp-...",
-      "mode": "socket",
-      "streaming": "partial",
+      "botToken": "your-discord-bot-token",
       "model": "openrouter/xiaomi/mimo-v2-pro"
-    },
-    "telegram": {
-      "enabled": true,
-      "botToken": "123456:ABC-...",
-      "streaming": "partial"
     }
   }
 }
 ```
 
-详细配置参考 **[📖 飞书文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)**
+详细配置参考 **[飞书文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)**
 
 ---
 
-## 🔨 从源码构建
+## 从源码构建
 
 ```bash
 git clone https://github.com/SelectXn00b/AndroidForClaw.git
 cd AndroidForClaw
 export JAVA_HOME=/path/to/jdk17
 ./gradlew assembleRelease
-adb install releases/AndroidForClaw-v1.3.0-release.apk
+adb install releases/AndroidForClaw-v*.apk
 ```
 
 ---
 
-## 🔗 Related Projects
+## Related Projects
 
 | 项目 | 说明 |
 |------|------|
@@ -293,7 +310,7 @@ adb install releases/AndroidForClaw-v1.3.0-release.apk
 
 ---
 
-## 📞 社区
+## 社区
 
 <div align="center">
 
@@ -323,7 +340,7 @@ adb install releases/AndroidForClaw-v1.3.0-release.apk
 
 ---
 
-## 🔗 相关链接
+## 相关链接
 
 - [OpenClaw](https://github.com/openclaw/openclaw) — 架构参照
 - [ClawHub](https://clawhub.com) — 技能市场
@@ -332,11 +349,11 @@ adb install releases/AndroidForClaw-v1.3.0-release.apk
 
 ---
 
-## 📄 License
+## License
 
 MIT — [LICENSE](LICENSE)
 
-## 🙏 致谢
+## 致谢
 
 - **[OpenClaw](https://github.com/openclaw/openclaw)** — 架构灵感
 - **[Claude](https://www.anthropic.com/claude)** — AI 推理能力
@@ -345,6 +362,6 @@ MIT — [LICENSE](LICENSE)
 
 <div align="center">
 
-⭐ **如果这个项目对你有帮助，请给个 Star 支持开源！** ⭐
+**如果这个项目对你有帮助，请给个 Star 支持开源！**
 
 </div>
