@@ -1,10 +1,13 @@
 package ai.openclaw.app.ui
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
@@ -17,7 +20,14 @@ import androidx.core.view.WindowCompat
 fun OpenClawTheme(content: @Composable () -> Unit) {
   val context = LocalContext.current
   val isDark = isSystemInDarkTheme()
-  val colorScheme = if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+  val colorScheme = when {
+    // Dynamic colors require Android 12+ (API 31)
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+      if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    }
+    isDark -> darkColorScheme()
+    else -> lightColorScheme()
+  }
   val mobileColors = if (isDark) darkMobileColors() else lightMobileColors()
 
   val view = LocalView.current
