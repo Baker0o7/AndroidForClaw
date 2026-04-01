@@ -93,7 +93,7 @@ fun PostOnboardingTabs(
     modifier = modifier,
     containerColor = Color.Transparent,
     contentWindowInsets = WindowInsets(0, 0, 0, 0),
-    topBar = { if (activeTab != HomeTab.Screen && !(activeTab == HomeTab.Skills && skillDetailActive)) TopStatusBar() },
+    // topBar removed — brand header was not functional
     bottomBar = {
       if (!hideBottomTabBar) {
         BottomTabBar(
@@ -109,6 +109,7 @@ fun PostOnboardingTabs(
           .fillMaxSize()
           .padding(innerPadding)
           .consumeWindowInsets(innerPadding)
+          .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
           .background(mobileBackgroundGradient),
     ) {
       if (chatTabStarted) {
@@ -174,27 +175,6 @@ private fun ScreenTabScreen(viewModel: MainViewModel, visible: Boolean, modifier
   }
 }
 
-@Composable
-private fun TopStatusBar() {
-  val safeInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
-
-  Surface(
-    modifier = Modifier.fillMaxWidth().windowInsetsPadding(safeInsets),
-    color = Color.Transparent,
-    shadowElevation = 0.dp,
-  ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-        text = stringResource(R.string.brand_name),
-        style = mobileTitle2,
-        color = mobileText,
-      )
-    }
-  }
-}
 
 @Composable
 private fun BottomTabBar(
