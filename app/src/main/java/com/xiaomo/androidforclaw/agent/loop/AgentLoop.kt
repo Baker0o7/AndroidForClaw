@@ -399,7 +399,9 @@ class AgentLoop(
         }
 
         // 3b. Detect image references in user message text (aligned with OpenClaw detectAndLoadPromptImages)
-        val imageRefs = com.xiaomo.androidforclaw.agent.tools.ImageLoader.detectImageReferences(userMessage)
+        // Pass workspaceDir so relative paths like "inbox/photo.png" resolve correctly (OpenClaw image-tool fix)
+        val workspaceDir = StoragePaths.workspace.absolutePath
+        val imageRefs = com.xiaomo.androidforclaw.agent.tools.ImageLoader.detectImageReferences(userMessage, workspaceDir)
         if (imageRefs.isNotEmpty()) {
             writeLog("🖼️ Detected ${imageRefs.size} image reference(s) in user message")
             val loadedImages = imageRefs.mapNotNull { ref ->

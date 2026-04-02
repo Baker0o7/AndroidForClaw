@@ -9,9 +9,10 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 
 /**
- * Aligned with OpenClaw run/images.ts:
+ * Aligned with OpenClaw run/images.ts + src/agents/tools/image-tool.ts:
  * - detectImageReferences(): scan prompt for image file path references
  * - loadImageFromPath(): load image file → base64 ImageBlock
+ * - resolveImagePath(): resolve relative paths against workspaceDir
  * - detectAndLoadPromptImages(): detect + load images for LLM
  */
 object ImageLoader {
@@ -21,6 +22,23 @@ object ImageLoader {
     private val IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "gif", "webp", "bmp", "tiff", "tif", "heic", "heif")
 
     /**
+     * Resolve an image path against workspaceDir if it's relative.
+     * Aligned with OpenClaw image-tool.ts: resolve relative paths against workspaceDir
+     * so agents can reference workspace-relative paths (e.g. "inbox/photo.png").
+     */
+    fun resolveImagePath(filePath: String, workspaceDir: String?): String {
+        if (workspaceDir == null) return filePath
+        val trimmed = filePath.trim()
+        // Skip data URLs, HTTP URLs, and absolute paths
+        if (trimmed.startsWith("data:") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed
+        if (trimmed.startsWith("/") || trimmed.startsWith("~")) return trimmed
+        // Skip ./ and ../ (already relative, resolve against CWD is intentional)
+        if (trimmed.startsWith("./") || trimmed.startsWith("../")) return trimmed
+        // Bare relative path → resolve against workspaceDir
+        return File(workspaceDir, trimmed).absolutePath
+    }
+
+    /**
      * Detect image file path references in a prompt string.
      * Aligned with OpenClaw detectImageReferences():
      * - [Image: source: /path/to/image.jpg]
@@ -28,17 +46,22 @@ object ImageLoader {
      * - /absolute/path/to/image.png
      * - ./relative/image.jpg
      * - ~/home/image.jpg
+     * - bare relative paths (e.g. inbox/photo.png) — resolved via resolveImagePath
+     *
+     * @param workspaceDir workspace root for resolving bare relative paths
      */
-    fun detectImageReferences(prompt: String): List<String> {
+    fun detectImageReferences(prompt: String, workspaceDir: String? = null): List<String> {
         val refs = mutableListOf<String>()
         val seen = mutableSetOf<String>()
 
         fun addRef(path: String) {
             val trimmed = path.trim()
             if (trimmed.isEmpty() || seen.contains(trimmed)) return
-            if (!isImageFile(trimmed)) return
-            seen.add(trimmed)
-            refs.add(trimmed)
+            // Try resolving against workspaceDir for relative paths
+            val resolved = resolveImagePath(trimmed, workspaceDir)
+            if (!isImageFile(resolved)) return
+            seen.add(resolved)
+            refs.add(resolved)
         }
 
         // Pattern: [Image: source: /path/to/image.ext]
@@ -49,10 +72,21 @@ object ImageLoader {
         val mediaAttachedPattern = Regex("""\[media attached[^]]*?:\s*([^\]]+\.(?:${IMAGE_EXTENSIONS.joinToString("|")}))""", RegexOption.IGNORE_CASE)
         mediaAttachedPattern.findAll(prompt).forEach { addRef(it.groupValues[1]) }
 
-        // Pattern: absolute/relative/home paths
+        // Pattern: absolute/relative/home paths (./  ../  ~/  /)
         val pathPattern = Regex("""(?:^|\s|["'`(])((?:\.\.?/|~/|/)[^\s"'`()\[\]]*\.(?:${IMAGE_EXTENSIONS.joinToString("|")}))""", RegexOption.IGNORE_CASE)
         pathPattern.findAll(prompt).forEach {
             if (it.groupValues.size > 1) addRef(it.groupValues[1])
+        }
+
+        // Pattern: bare workspace-relative paths (e.g. inbox/photo.png, screenshots/test.jpg)
+        // Match: word starting with a filename-like segment, containing /, ending with image extension
+        val relativePattern = Regex("""(?:^|\s|["'`(])([a-zA-Z0-9_][\w./-]*\.(?:${IMAGE_EXTENSIONS.joinToString("|")}))""", RegexOption.IGNORE_CASE)
+        relativePattern.findAll(prompt).forEach {
+            if (it.groupValues.size > 1) {
+                val candidate = it.groupValues[1]
+                // Must contain a / to be a path (not just a filename in text)
+                if (candidate.contains("/")) addRef(candidate)
+            }
         }
 
         return refs
