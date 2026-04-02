@@ -298,7 +298,7 @@ class WeixinApi(
 
     suspend fun pollQRStatus(qrcode: String): QRStatusResponse {
         val url = "${ensureTrailingSlash(baseUrl)}ilink/bot/get_qrcode_status?qrcode=${java.net.URLEncoder.encode(qrcode, "UTF-8")}"
-        Log.d(TAG, "Polling QR status...")
+        Log.i(TAG, "Polling QR status: qrcode=${qrcode.take(30)}..., url=${url.take(80)}...")
 
         return suspendCancellableCoroutine { cont ->
             val requestBuilder = Request.Builder()
