@@ -2068,11 +2068,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             if (isNotEmpty()) append("\n\n")
                             when (msg.mediaType) {
                                 com.xiaomo.weixin.api.MessageItemType.IMAGE -> {
-                                    append("[用户发送了一张图片: ${downloadedMediaFile.absolutePath}")
-                                    if (msg.imageWidth != null && msg.imageHeight != null) {
-                                        append(", ${msg.imageWidth}x${msg.imageHeight}")
-                                    }
-                                    append("]")
+                                    append("[Image: source: ${downloadedMediaFile.absolutePath}]")
                                 }
                                 com.xiaomo.weixin.api.MessageItemType.VOICE -> {
                                     append("[用户发送了一条语音")
