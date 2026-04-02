@@ -45,9 +45,8 @@ class AppUpdater(private val context: Context) {
         const val UPDATE_BASE_URL = "https://claw.devset.top/files"
         const val VERSION_JSON_URL = "$UPDATE_BASE_URL/version.json"
 
-        // APK name pattern
-        const val APK_NAME_PREFIX = "AndroidForClaw"
-        const val APK_NAME_SUFFIX = "-release.apk"
+        // APK file name — fixed name, server overwrites on each release
+        const val APK_FILE_NAME = "AndroidForClaw.apk"
 
         private const val TIMEOUT_SECONDS = 15L
     }
@@ -131,7 +130,7 @@ class AppUpdater(private val context: Context) {
      */
     suspend fun downloadAndInstall(downloadUrl: String, version: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            val fileName = "${APK_NAME_PREFIX}-v${version}${APK_NAME_SUFFIX}"
+            val fileName = APK_FILE_NAME
             Log.d(TAG, "Downloading: $downloadUrl → $fileName")
 
             val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
