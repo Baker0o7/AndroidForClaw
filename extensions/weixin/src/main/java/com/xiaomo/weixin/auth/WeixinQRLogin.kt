@@ -70,7 +70,7 @@ class WeixinQRLogin(
         qrcode: String,
         timeoutMs: Long = DEFAULT_TIMEOUT_MS,
         onStatusUpdate: ((String) -> Unit)? = null,
-        onQRRefreshed: ((String) -> Unit)? = null,
+        onQRRefreshed: ((String, String) -> Unit)? = null,
     ): QRLoginResult {
         var currentQrcode = qrcode
         var qrRefreshCount = 1
@@ -117,7 +117,7 @@ class WeixinQRLogin(
                         }
                         currentQrcode = newQR.second
                         scannedNotified = false
-                        onQRRefreshed?.invoke(newQR.first)
+                        onQRRefreshed?.invoke(newQR.first, newQR.second)
                     }
 
                     "confirmed" -> {

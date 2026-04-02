@@ -218,10 +218,9 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
 
                                 val (qrcodeUrl, qrcode) = qrResult
 
-                                // Generate QR image locally
-                                // qrcodeUrl is a web page link, not an image — use it as QR content
+                                // Generate QR image locally from raw qrcode data
                                 statusText = "正在生成二维码..."
-                                val bitmap = QRCodeGenerator.generate(qrcodeUrl, 512)
+                                val bitmap = QRCodeGenerator.generate(qrcode, 512)
                                 if (bitmap != null) {
                                     qrBitmap = bitmap
                                     statusText = "请使用微信扫描二维码"
@@ -243,8 +242,8 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                                             else -> status
                                         }
                                     },
-                                    onQRRefreshed = { newUrl ->
-                                        val newBitmap = QRCodeGenerator.generate(newUrl, 512)
+                                    onQRRefreshed = { newUrl, newQrcode ->
+                                        val newBitmap = QRCodeGenerator.generate(newQrcode, 512)
                                         if (newBitmap != null) {
                                             qrBitmap = newBitmap
                                         }
