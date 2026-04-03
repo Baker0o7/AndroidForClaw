@@ -250,7 +250,7 @@ internal fun SessionHeader(
             imageVector = Icons.Default.Add,
             contentDescription = "New Session",
             tint = mobileTextSecondary,
-            modifier = Modifier.padding(6.dp).size(18.dp),
+            modifier = Modifier.size(18.dp),
           )
         }
       }
