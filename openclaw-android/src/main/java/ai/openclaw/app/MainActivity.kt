@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
     }
 
     setContent {
-      OpenClawTheme {
+      OpenClawTheme() {
         Surface(modifier = Modifier) {
           RootScreen(viewModel = viewModel)
         }
