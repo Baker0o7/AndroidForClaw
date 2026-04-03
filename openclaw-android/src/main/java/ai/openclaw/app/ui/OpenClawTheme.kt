@@ -11,26 +11,15 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import ai.openclaw.app.NodeApp
 
 @Composable
-fun OpenClawTheme(
-  content: @Composable () -> Unit,
-  forceDarkMode: Boolean? = null,
-) {
+fun OpenClawTheme(content: @Composable () -> Unit) {
   val context = LocalContext.current
-  val isDark = forceDarkMode ?: run {
-    val app = context.applicationContext as? NodeApp
-    val darkModePref = app?.prefs?.darkMode?.collectAsState()?.value
-    darkModePref ?: isSystemInDarkTheme()
-  }
-  
+  val isDark = isSystemInDarkTheme()
   val colorScheme = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
       if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
