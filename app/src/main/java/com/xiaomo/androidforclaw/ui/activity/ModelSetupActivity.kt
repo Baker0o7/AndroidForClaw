@@ -66,7 +66,7 @@ class ModelSetupActivity : AppCompatActivity() {
                     ModelPreset("openrouter/hunter-alpha", "🏹 Hunter Alpha (Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
                     ModelPreset("openrouter/free", "🆓 Free Auto Router (No Top-up Required)"),
                     ModelPreset("qwen/qwen3-coder:free", "🆓 Qwen3 Coder (Free, 262K)", contextWindow = 262000),
-                    ModelPreset("deepseek/deepseek-r1:free", "🆓 DeepSeek R1 (Free, Reasoning)", reasoning = true, contextWindow = 163840),
+                    ModelPreset("openrouter/free", "🆓 Free Auto Router (No Top-up Required)", contextWindow = 200000),
                     ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (Paid, Recommended)", contextWindow = 200000, maxTokens = 16384),
                     ModelPreset("anthropic/claude-opus-4", "Claude Opus 4 (Paid)", contextWindow = 200000, maxTokens = 32768),
                     ModelPreset("openai/gpt-4.1", "GPT-4.1 (Paid)", contextWindow = 1048576, maxTokens = 32768),

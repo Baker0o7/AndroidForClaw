@@ -58,13 +58,14 @@
           "maxTokens": 65536
         },
         {
-          "id": "deepseek/deepseek-r1:free",
-          "name": "DeepSeek R1 (Free)",
-          "reasoning": true,
+          "id": "openrouter/free",
+          "name": "Free Auto Router",
+          "reasoning": false,
           "input": [
-            "text"
+            "text",
+            "image"
           ],
-          "contextWindow": 163840,
+          "contextWindow": 200000,
           "maxTokens": 8192,
           "free": true
         },
