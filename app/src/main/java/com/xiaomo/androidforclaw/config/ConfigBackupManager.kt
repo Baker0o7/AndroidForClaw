@@ -28,10 +28,9 @@ class ConfigBackupManager(private val context: Context) {
     companion object {
         private const val TAG = "ConfigBackup"
 
-        private val CONFIG_DIR = StoragePaths.config.absolutePath
-        private val CONFIG_FILE = "$CONFIG_DIR/openclaw.json"
-        private val LAST_KNOWN_GOOD_FILE = "$CONFIG_DIR/openclaw.last-known-good.json"
+        private val CONFIG_FILE = StoragePaths.openclawConfig.absolutePath
         private val BACKUPS_DIR = StoragePaths.configBackups.absolutePath
+        private val LAST_KNOWN_GOOD_FILE = "$BACKUPS_DIR/openclaw.last-known-good.json"
 
         private const val MAX_BACKUPS = 10 // Keep maximum 10 historical backups
     }
@@ -237,7 +236,7 @@ class ConfigBackupManager(private val context: Context) {
     // ==================== Private Methods ====================
 
     private fun ensureDirectoriesExist() {
-        File(CONFIG_DIR).mkdirs()
+        File(CONFIG_FILE).parentFile?.mkdirs()
         File(BACKUPS_DIR).mkdirs()
     }
 
