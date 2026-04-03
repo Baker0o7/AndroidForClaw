@@ -6,10 +6,10 @@
                 "apiKey": "${OPENROUTER_API_KEY}",
                 "models": [
                     {
-                        "id": "xiaomi/mimo-v2-pro",
-                        "name": "MiMo V2 Pro",
+                        "id": "qwen/qwen3.6-plus-preview:free",
+                        "name": "Qwen 3.6 Plus Preview",
                         "reasoning": true,
-                        "contextWindow": 1048576,
+                        "contextWindow": 131072,
                         "maxTokens": 32000
                     }
                 ]
@@ -19,7 +19,7 @@
     "agents": {
         "defaults": {
             "model": {
-                "primary": "openrouter/xiaomi/mimo-v2-pro"
+                "primary": "openrouter/qwen/qwen3.6-plus-preview:free"
             }
         }
     },

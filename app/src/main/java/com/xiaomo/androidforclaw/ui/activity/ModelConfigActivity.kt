@@ -648,6 +648,12 @@ class ModelConfigActivity : AppCompatActivity() {
             requestBuilder.addHeader("anthropic-version", "2023-06-01")
         }
 
+        // OpenRouter app attribution headers (aligned with ApiAdapter.buildHeaders)
+        if (baseUrl.contains("openrouter.ai", ignoreCase = true)) {
+            requestBuilder.addHeader("HTTP-Referer", "https://openclaw.ai")
+            requestBuilder.addHeader("X-Title", "OpenClaw")
+        }
+
         // Custom headers from provider
         provider.headers?.forEach { (key, value) ->
             requestBuilder.addHeader(key, value)

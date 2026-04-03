@@ -1177,7 +1177,7 @@ object ApiAdapter {
                 }
                 "message_delta" -> {
                     val delta = json.getJSONObject("delta")
-                    val stopReason = delta.optString("stop_reason", null)
+                    val stopReason = delta.optString("stop_reason", null)?.takeIf { it != "null" && it.isNotEmpty() }
                     val usage = json.optJSONObject("usage")?.let {
                         Usage(
                             promptTokens = 0,
@@ -1248,15 +1248,16 @@ object ApiAdapter {
             val delta = choice.optJSONObject("delta") ?: return null
 
             // Reasoning content (o1/o3 models)
+            // Note: Android org.json optString returns "null" string for JSON null values
             val reasoning = delta.optString("reasoning_content", null)
-                ?.takeIf { it.isNotEmpty() }
+                ?.takeIf { it.isNotEmpty() && it != "null" }
             if (reasoning != null) {
                 return StreamChunk(type = ChunkType.THINKING_DELTA, text = reasoning)
             }
 
             // Text content
             val content = delta.optString("content", null)
-                ?.takeIf { it.isNotEmpty() }
+                ?.takeIf { it.isNotEmpty() && it != "null" }
             if (content != null) {
                 return StreamChunk(type = ChunkType.TEXT_DELTA, text = content)
             }
@@ -1269,9 +1270,9 @@ object ApiAdapter {
                 return StreamChunk(
                     type = ChunkType.TOOL_CALL_DELTA,
                     toolCallIndex = tc.optInt("index", 0),
-                    toolCallId = tc.optString("id", null)?.takeIf { it.isNotEmpty() },
-                    toolCallName = fn?.optString("name", null)?.takeIf { it.isNotEmpty() },
-                    toolCallArgs = fn?.optString("arguments", null)?.takeIf { it.isNotEmpty() }
+                    toolCallId = tc.optString("id", null)?.takeIf { it.isNotEmpty() && it != "null" },
+                    toolCallName = fn?.optString("name", null)?.takeIf { it.isNotEmpty() && it != "null" },
+                    toolCallArgs = fn?.optString("arguments", null)?.takeIf { it.isNotEmpty() && it != "null" }
                 )
             }
 
