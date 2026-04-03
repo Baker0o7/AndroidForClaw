@@ -68,6 +68,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import ai.openclaw.app.BuildConfig
 import ai.openclaw.app.LocationMode
 import ai.openclaw.app.MainViewModel
+import ai.openclaw.app.avatar.FloatingAvatarService
 import ai.openclaw.app.node.DeviceNotificationListenerService
 
 @Composable
@@ -262,10 +263,15 @@ fun SettingsSheet(viewModel: MainViewModel) {
       viewModel.refreshGatewayConnection()
     }
 
+  var avatarRunning by remember { mutableStateOf(FloatingAvatarService.isRunning) }
+  var overlayPermissionGranted by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
+
   DisposableEffect(lifecycleOwner, context) {
     val observer =
       LifecycleEventObserver { _, event ->
         if (event == Lifecycle.Event.ON_RESUME) {
+          avatarRunning = FloatingAvatarService.isRunning
+          overlayPermissionGranted = Settings.canDrawOverlays(context)
           micPermissionGranted =
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
               PackageManager.PERMISSION_GRANTED
@@ -746,6 +752,31 @@ fun SettingsSheet(viewModel: MainViewModel) {
       }
       item {
         Column(modifier = Modifier.settingsRowModifier()) {
+          ListItem(
+            modifier = Modifier.fillMaxWidth(),
+            colors = listItemColors,
+            headlineContent = { Text("化身", style = mobileHeadline) },
+            supportingContent = { Text("Agent 虚拟化身悬浮窗。", style = mobileCallout) },
+            trailingContent = {
+              Switch(
+                checked = avatarRunning,
+                onCheckedChange = { checked ->
+                  if (checked && !overlayPermissionGranted) {
+                    context.startActivity(
+                      Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:${context.packageName}"),
+                      ),
+                    )
+                    return@Switch
+                  }
+                  if (checked) FloatingAvatarService.start(context) else FloatingAvatarService.stop(context)
+                  avatarRunning = FloatingAvatarService.isRunning
+                },
+              )
+            },
+          )
+          HorizontalDivider(color = mobileBorder)
           ListItem(
             modifier = Modifier.fillMaxWidth(),
             colors = listItemColors,

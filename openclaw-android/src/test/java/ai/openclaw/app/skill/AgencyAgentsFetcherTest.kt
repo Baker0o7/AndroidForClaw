@@ -180,12 +180,12 @@ class AgencyAgentsFetcherTest {
     }
 
     @Test
-    fun `OnlineSkill serialization roundtrip preserves empty content`() {
+    fun `OnlineSkill serialization roundtrip`() {
         val json = Json { ignoreUnknownKeys = true }
         val skill = OnlineSkill("X", "🔍", "test", "design", "design-x.md")
         val encoded = json.encodeToString(skill)
         val decoded = json.decodeFromString<OnlineSkill>(encoded)
-        assertEquals("", decoded.content)
+        assertEquals(skill, decoded)
     }
 
     @Test

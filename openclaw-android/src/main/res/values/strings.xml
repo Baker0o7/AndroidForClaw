@@ -7,6 +7,7 @@
     <string name="tab_screen">Screen</string>
     <string name="tab_settings">Settings</string>
     <string name="tab_skills">Skills</string>
+    <string name="tab_avatar">Avatar</string>
 
     <!-- Brand / status -->
     <string name="brand_name">OpenClaw</string>

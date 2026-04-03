@@ -111,6 +111,10 @@ dependencies {
 
     // Coil for Compose image loading (URL images in chat)
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    // Live2D Cubism SDK for avatar rendering
+    implementation(project(":live2d-core"))
+    implementation(project(":live2d-framework"))
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
     implementation("org.commonmark:commonmark:0.27.1")
     implementation("org.commonmark:commonmark-ext-autolink:0.27.1")

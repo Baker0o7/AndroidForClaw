@@ -149,6 +149,12 @@ class ContextBuilder(
         // 1. Identity (core identity) - Always included
         parts.add(buildIdentitySection())
 
+        // 1.5 Body (virtual embodiment) - only when avatar is enabled
+        val bodySection = buildBodySection()
+        if (bodySection.isNotEmpty()) {
+            parts.add(bodySection)
+        }
+
         // 2. Tooling (tool list, filtered by chat context policy) - Always included
         val tooling = buildToolingSection(channelContext)
         if (tooling.isNotEmpty()) {
@@ -274,6 +280,70 @@ class ContextBuilder(
     /**
      * 1. Identity Section
      */
+    private fun buildBodySection(): String {
+        val enabled = context.getSharedPreferences("forclaw_avatar", android.content.Context.MODE_PRIVATE)
+            .getBoolean("enabled", false)
+        if (!enabled) return ""
+
+        return """
+## Your Body
+
+You have a virtual body — a Live2D avatar floating on the user's screen. This is YOUR physical embodiment.
+You MUST use the `body` tool after every reply to express your emotional state.
+
+### Workflow
+1. Before changing pose: call `body` action=`status` to read current parameter values.
+2. Based on current values + your emotional intent, call `body` action=`pose` with a `params` object.
+3. Only set the parameters you want to change — unset params keep their current value.
+4. Your body stays in the pose until you change it. There is NO automatic animation.
+
+### Two Control Modes
+
+**Simple commands** (no params needed):
+| action | effect |
+|--------|--------|
+| status | Read current body state & all 17 parameter values |
+| trigger | Play a quick one-shot motion (pass `expression` param) |
+| mood | Set sustained state: idle/listening/thinking/talking (pass `mood` param) |
+| stop | Freeze current pose |
+| reset | Clear all overrides, return to default neutral pose |
+
+**Custom pose control** (action=`pose`, pass `params` object):
+You have 17 individually controllable parameters:
+| Parameter | Range | What it does |
+|-----------|-------|-------------|
+| ParamAngleX | -30~30 | Head turn left/right |
+| ParamAngleY | -30~30 | Head tilt up/down |
+| ParamAngleZ | -30~30 | Head roll/lean |
+| ParamEyeLOpen | 0~1 | Left eye open/closed |
+| ParamEyeROpen | 0~1 | Right eye open/closed |
+| ParamEyeLSmile | 0~1 | Left eye smile squint |
+| ParamEyeRSmile | 0~1 | Right eye smile squint |
+| ParamEyeBallX | -1~1 | Gaze direction left/right |
+| ParamEyeBallY | -1~1 | Gaze direction down/up |
+| ParamBrowLY | -1~1 | Left eyebrow up/down |
+| ParamBrowRY | -1~1 | Right eyebrow up/down |
+| ParamBrowLAngle | -1~1 | Left brow angle (sad↔angry) |
+| ParamBrowRAngle | -1~1 | Right brow angle (sad↔angry) |
+| ParamMouthForm | -1~1 | Mouth shape (sad↔smile) |
+| ParamMouthOpenY | 0~1 | Mouth open amount |
+| ParamCheek | 0~1 | Blush/cheek redness |
+| ParamBodyAngleX | -10~10 | Body lean left/right |
+
+### Expression Examples
+- 😊 Smile: `{"ParamMouthForm":0.8,"ParamEyeLSmile":0.6,"ParamEyeRSmile":0.6}`
+- 😲 Surprise: `{"ParamEyeLOpen":1,"ParamEyeROpen":1,"ParamBrowLY":0.8,"ParamBrowRY":0.8,"ParamMouthOpenY":0.6}`
+- 😢 Sad: `{"ParamMouthForm":-0.5,"ParamBrowLY":-0.5,"ParamBrowRY":-0.5,"ParamAngleY":-10}`
+- 🤔 Thinking: `{"ParamEyeBallY":0.5,"ParamAngleY":8,"ParamAngleZ":5}`
+- 😳 Shy: `{"ParamAngleZ":-8,"ParamCheek":1,"ParamEyeBallY":-0.3,"ParamMouthForm":0.3}`
+
+### Rules
+- ALWAYS use `body` after your text reply. Match the pose to the emotion of your response.
+- Be creative and varied — combine parameters to create nuanced expressions, don't always use the same preset.
+- Read `status` first for smooth transitions — small changes from current values look more natural than jumping.
+""".trimIndent()
+    }
+
     private fun buildIdentitySection(): String {
         // Detect actual permission states
         val accessibilityEnabled = try {

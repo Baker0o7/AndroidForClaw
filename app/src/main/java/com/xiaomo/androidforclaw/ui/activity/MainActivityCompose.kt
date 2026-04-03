@@ -175,6 +175,15 @@ class MainActivityCompose : ComponentActivity() {
         // Termux RUN_COMMAND permission: dangerous level, must request at runtime
         requestTermuxPermissionIfNeeded()
 
+        // Restore floating avatar if it was previously enabled
+        if (android.provider.Settings.canDrawOverlays(this)) {
+            val avatarEnabled = getSharedPreferences("forclaw_avatar", MODE_PRIVATE)
+                .getBoolean("enabled", false)
+            if (avatarEnabled && !ai.openclaw.app.avatar.FloatingAvatarService.isRunning) {
+                ai.openclaw.app.avatar.FloatingAvatarService.start(this)
+            }
+        }
+
         // Auto-prune old sessions (>30 days) on startup
         lifecycleScope.launch {
             try {

@@ -93,6 +93,14 @@ class ToolRegistry(
         // === TTS tool (OpenClaw tts-tool.ts) ===
         register(TtsTool(context))
 
+        // === Body tool (agent's virtual body) — only when enabled ===
+        val bodyEnabled = context.getSharedPreferences("forclaw_avatar", android.content.Context.MODE_PRIVATE)
+            .getBoolean("enabled", false)
+        if (bodyEnabled) {
+            AvatarTool.appContext = context.applicationContext
+            register(AvatarTool())
+        }
+
         // === ClawHub skill hub tools ===
         // Aligned with OpenClaw gateway RPC: skills.search / skills.install
         register(SkillsSearchTool(context))

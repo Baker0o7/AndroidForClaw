@@ -5,6 +5,7 @@
 package com.xiaomo.androidforclaw.ui.compose
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
@@ -33,6 +34,7 @@ import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.ui.activity.*
 import com.xiaomo.androidforclaw.ui.activity.LegalActivity
 import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
+import ai.openclaw.app.avatar.FloatingAvatarService
 import com.xiaomo.androidforclaw.updater.AppUpdater
 import com.xiaomo.androidforclaw.util.MMKVKeys
 import com.tencent.mmkv.MMKV
@@ -324,6 +326,7 @@ fun ForClawSettingsTab() {
 
         // ── 界面 ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_ui)) {
+            AvatarToggleItem()
             FloatWindowToggleItem()
         }
 
@@ -496,6 +499,58 @@ private fun StatusCard(
 }
 
 // ─── Specific items ───────────────────────────────────────────────────────────
+
+@Composable
+private fun AvatarToggleItem() {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("forclaw_avatar", Context.MODE_PRIVATE)
+    var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Face,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text("化身", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Agent 虚拟化身悬浮窗",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = { v ->
+                    if (v && !android.provider.Settings.canDrawOverlays(context)) {
+                        context.startActivity(
+                            Intent(
+                                android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                Uri.parse("package:${context.packageName}"),
+                            ),
+                        )
+                        return@Switch
+                    }
+                    if (v) FloatingAvatarService.start(context) else FloatingAvatarService.stop(context)
+                    enabled = FloatingAvatarService.isRunning
+                    prefs.edit().putBoolean("enabled", enabled).apply()
+                },
+            )
+        }
+    }
+}
 
 @Composable
 private fun FloatWindowToggleItem() {
