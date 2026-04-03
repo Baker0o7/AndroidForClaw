@@ -78,7 +78,7 @@ fun ChatComposer(
   val canSend = pendingRunCount == 0 && (input.trim().isNotEmpty() || attachments.isNotEmpty()) && healthOk
   val sendBusy = pendingRunCount > 0
 
-  Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
     if (attachments.isNotEmpty()) {
       AttachmentsStrip(attachments = attachments, onRemoveAttachment = onRemoveAttachment)
     }
@@ -88,7 +88,7 @@ fun ChatComposer(
       onValueChange = { input = it },
       modifier = Modifier.fillMaxWidth(),
       placeholder = { Text("输入消息…", style = mobileBodyStyle(), color = mobileTextTertiary) },
-      minLines = 2,
+      minLines = 1,
       maxLines = 5,
       textStyle = mobileBodyStyle().copy(color = mobileText),
       shape = RoundedCornerShape(14.dp),

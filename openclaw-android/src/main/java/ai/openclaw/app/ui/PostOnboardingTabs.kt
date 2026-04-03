@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -42,7 +41,6 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -84,10 +82,7 @@ fun PostOnboardingTabs(
     if (activeTab == HomeTab.Screen) screenTabStarted = true
   }
 
-  val density = LocalDensity.current
-  val imeVisible = WindowInsets.ime.getBottom(density) > 0
-  val hideBottomTabBar = (activeTab == HomeTab.Chat && imeVisible) ||
-      (activeTab == HomeTab.Skills && skillDetailActive)
+  val hideBottomTabBar = (activeTab == HomeTab.Skills && skillDetailActive)
 
   Scaffold(
     modifier = modifier,

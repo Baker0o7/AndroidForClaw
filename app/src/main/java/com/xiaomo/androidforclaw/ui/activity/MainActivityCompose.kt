@@ -154,6 +154,7 @@ class MainActivityCompose : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
 
         // Storage permission: request after legal consent is accepted.
         // For returning users who already accepted, check immediately.
