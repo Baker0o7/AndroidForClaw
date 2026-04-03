@@ -5,11 +5,6 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version tag (e.g., v1.3.2)'
-        required: true
-        type: string
 
 jobs:
   build:
@@ -37,11 +32,6 @@ jobs:
 
       - name: Grant execute permission
         run: chmod +x gradlew
-
-      - name: Find Java
-        run: |
-          echo "JAVA_HOME=$(dirname $(dirname $(which java)))" >> $GITHUB_ENV
-          echo "PATH=$(dirname $(which java)):$PATH" >> $GITHUB_ENV
 
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon 2>&1
