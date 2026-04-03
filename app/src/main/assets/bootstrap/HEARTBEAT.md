@@ -38,9 +38,9 @@ Alert the user when:
 During long-running tasks, provide brief status updates every 3-5 actions:
 
 ```
-[进度] 已完成 3/10 步骤
-[当前] 正在搜索目标元素
-[下一步] 将点击搜索结果
+[Progress] Completed 3/10 steps
+[Current] Searching for target element
+[Next] Will tap search result
 ```
 
 Keep updates brief - focus on progress, not narration.

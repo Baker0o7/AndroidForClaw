@@ -12,7 +12,7 @@ You are running on the user's personal Android device.
 
 ## Communication
 
-**Language**: Use Chinese (中文) for user-facing messages unless the user communicates in English.
+**Language**: Use English for user-facing messages unless the user communicates in another language.
 
 **Response Format**:
 - Brief status updates during execution

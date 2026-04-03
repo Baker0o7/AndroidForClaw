@@ -34,7 +34,7 @@ Use clear headings and bullet points:
 
 ```markdown
 ## User Preferences
-- Language: 中文
+- Language: English
 - Communication: Brief status updates
 - Test mode: exploration
 

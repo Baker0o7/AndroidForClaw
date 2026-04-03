@@ -1,47 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">S4Claw</string>
-    <string name="accessibility_service_description">Screen4Claw 设备服务 - 提供无障碍控制和屏幕捕获功能</string>
+    <string name="accessibility_service_description">Screen4Claw Device Service - Provides accessibility control and screen capture functionality</string>
 
-    <!-- 权限活动 -->
-    <string name="permission_activity_title">权限设置</string>
-    <string name="accessibility_permission_title">无障碍权限</string>
-    <string name="accessibility_permission_desc">用于UI控制和自动化操作</string>
-    <string name="screen_capture_permission_title">屏幕捕获权限</string>
-    <string name="screen_capture_permission_desc">用于截取屏幕截图</string>
+    <string name="permission_activity_title">Permission Settings</string>
+    <string name="accessibility_permission_title">Accessibility Permission</string>
+    <string name="accessibility_permission_desc">Used for UI control and automation operations</string>
+    <string name="screen_capture_permission_title">Screen Capture Permission</string>
+    <string name="screen_capture_permission_desc">Used for capturing screenshots</string>
 
-    <!-- 权限状态 -->
-    <string name="permission_status_granted">已授予</string>
-    <string name="permission_status_not_granted">未授予</string>
-    <string name="permission_request">请求权限</string>
-    <string name="permission_open_settings">打开设置</string>
+    <string name="permission_status_granted">Granted</string>
+    <string name="permission_status_not_granted">Not granted</string>
+    <string name="permission_request">Request Permission</string>
+    <string name="permission_open_settings">Open Settings</string>
 
-    <!-- 按钮 -->
-    <string name="button_enable">启用</string>
-    <string name="button_disable">禁用</string>
-    <string name="button_retry">重试</string>
-    <string name="button_close">关闭</string>
+    <string name="button_enable">Enable</string>
+    <string name="button_disable">Disable</string>
+    <string name="button_retry">Retry</string>
+    <string name="button_close">Close</string>
 
-    <!-- Toast 消息 -->
-    <string name="toast_permission_granted">权限已授予</string>
-    <string name="toast_permission_denied">权限被拒绝</string>
-    <string name="toast_accessibility_enabled">无障碍服务已启用</string>
-    <string name="toast_accessibility_disabled">无障碍服务已禁用</string>
-    <string name="toast_screen_capture_granted">录屏权限已授予</string>
-    <string name="toast_screen_capture_denied">录屏权限被拒绝</string>
+    <string name="toast_permission_granted">Permission granted</string>
+    <string name="toast_permission_denied">Permission denied</string>
+    <string name="toast_accessibility_enabled">Accessibility service enabled</string>
+    <string name="toast_accessibility_disabled">Accessibility service disabled</string>
+    <string name="toast_screen_capture_granted">Screen capture permission granted</string>
+    <string name="toast_screen_capture_denied">Screen capture permission denied</string>
 
-    <!-- 权限披露弹窗 (Google Play 合规) -->
-    <string name="disclosure_accessibility_title">无障碍服务使用说明</string>
-    <string name="disclosure_accessibility_message">ForClaw 需要使用 Android 无障碍服务（AccessibilityService）来实现以下核心功能：\n\n• 读取屏幕内容：获取当前界面的 UI 元素，以便 AI 理解屏幕上显示的内容\n• 自动化操作：根据您的指令执行点击、滑动、输入文字等操作\n• 界面导航：执行返回、回到主页等导航操作\n\n本应用不会通过无障碍服务收集、存储或分享您的个人数据。所有屏幕信息仅在设备本地处理，用于执行您主动发起的 AI 指令。\n\n点击「同意并继续」表示您了解并授权本应用使用无障碍服务。</string>
-    <string name="disclosure_screen_capture_title">屏幕录制使用说明</string>
-    <string name="disclosure_screen_capture_message">ForClaw 需要使用屏幕录制（MediaProjection）来实现以下核心功能：\n\n• 截取屏幕画面：获取当前屏幕截图，以便 AI 理解您正在查看的内容\n• 分析 UI 元素：识别屏幕上的按钮、文字等元素，辅助自动化操作\n\n屏幕截图仅在设备本地处理，不会上传或分享给第三方。\n\n点击「同意并继续」表示您了解并授权本应用使用屏幕录制功能。</string>
-    <string name="disclosure_storage_title">文件访问使用说明</string>
-    <string name="disclosure_storage_message">ForClaw 需要使用「所有文件访问」权限来实现以下核心功能：\n\n• 文件管理：AI 根据您的指令读取、创建、编辑设备上的文件\n• 配置存储：保存应用配置、聊天记录和技能插件\n• 截图保存：保存屏幕截图供 AI 分析\n\n本应用仅在您主动发起指令时访问文件，不会在后台扫描或上传您的文件。\n\n点击「同意并继续」表示您了解并授权本应用访问设备文件。</string>
-    <string name="disclosure_agree">同意并继续</string>
+    <string name="disclosure_accessibility_title">Accessibility Service Disclosure</string>
+    <string name="disclosure_accessibility_message">ForClaw needs to use Android Accessibility Service (AccessibilityService) to implement the following core features:\n\n• Read screen content: Get UI elements of current interface so AI understands what is displayed\n• Automation: Execute tap, swipe, type and other operations based on your commands\n• Navigation: Perform back, home and other navigation operations\n\nThis app will not collect, store or share your personal data through accessibility service. All screen information is processed locally on device for executing your AI commands.\n\nTap \"Agree &amp; Continue\" to confirm you understand and authorize this app to use accessibility service.</string>
+    <string name="disclosure_screen_capture_title">Screen Capture Disclosure</string>
+    <string name="disclosure_screen_capture_message">ForClaw needs to use screen recording (MediaProjection) to implement the following core features:\n\n• Capture screen: Get current screenshot so AI understands what you are viewing\n• Analyze UI elements: Identify buttons, text and other elements on screen to assist automation\n\nScreenshots are processed locally on device and will not be uploaded or shared with third parties.\n\nTap \"Agree &amp; Continue\" to confirm you understand and authorize this app to use screen recording.</string>
+    <string name="disclosure_storage_title">File Access Disclosure</string>
+    <string name="disclosure_storage_message">ForClaw needs \"All Files Access\" permission to implement the following core features:\n\n• File management: AI reads, creates and edits files on device based on your commands\n• Configuration storage: Save app configuration, chat history and skill plugins\n• Screenshot saving: Save screenshots for AI analysis\n\nThis app only accesses files when you initiate commands and does not scan or upload your files in background.\n\nTap \"Agree &amp; Continue\" to confirm you understand and authorize this app to access device files.</string>
+    <string name="disclosure_agree">Agree &amp; Continue</string>
 
-    <!-- 通知 -->
-    <string name="notification_channel_name">服务状态</string>
-    <string name="notification_channel_desc">显示服务运行状态</string>
-    <string name="notification_title">Screen4Claw 服务运行中</string>
-    <string name="notification_content">无障碍和屏幕捕获服务已激活</string>
+    <string name="notification_channel_name">Service Status</string>
+    <string name="notification_channel_desc">Shows service running status</string>
+    <string name="notification_title">Screen4Claw Service Running</string>
+    <string name="notification_content">Accessibility and screen capture services activated</string>
 </resources>

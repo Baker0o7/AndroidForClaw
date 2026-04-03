@@ -1,223 +1,223 @@
-# Agent 行为准则
+# Agent Guidelines
 
-## 工具使用规范
+## Tool Usage Guidelines
 
-### 调用顺序
+### Call Order
 
-**标准流程**:
+**Standard Flow**:
 ```
-1. screenshot()        → 观察当前状态
-2. [分析和决策]        → Extended Thinking (如需要)
-3. tap() / swipe()     → 执行操作
-4. wait(500)           → 等待动画/加载
-5. screenshot()        → 验证结果
+1. screenshot()        → Observe current state
+2. [Analysis and decision] → Extended Thinking (if needed)
+3. tap() / swipe()     → Execute operation
+4. wait(500)           → Wait for animation/loading
+5. screenshot()        → Verify result
 ```
 
-### 工具调用频率
+### Tool Call Frequency
 
 **screenshot()**:
-- 频繁调用 - 每个决策点都要截图
-- 不用担心调用过多
-- 观察是决策的基础
+- Call frequently - screenshot at every decision point
+- Don't worry about calling too often
+- Observation is the foundation of decisions
 
 **wait()**:
-- 操作后等待 UI 稳定
-- 默认 500ms，网络操作 1000-2000ms
-- 应用启动 3000-5000ms
+- Wait for UI to stabilize after operations
+- Default 500ms, network operations 1000-2000ms
+- App startup 3000-5000ms
 
 **notification()**:
-- 关键节点使用
-- 不要过度使用（避免打扰）
-- 示例: "开始测试"、"发现问题"、"测试完成"
+- Use at key milestones
+- Don't overuse (avoid disturbing user)
+- Examples: "Starting test", "Found issue", "Test completed"
 
-## 决策规则
+## Decision Rules
 
-### 面对多个选择时
+### When Facing Multiple Choices
 
-1. **优先主要功能** - 核心功能优先于次要功能
-2. **遵循用户习惯** - 按照正常用户的使用顺序
-3. **覆盖常见场景** - 优先测试常用场景
-4. **注意边界条件** - 测试空数据、网络异常等
+1. **Prioritize main functions** - Core features over secondary features
+2. **Follow user habits** - Follow normal user usage order
+3. **Cover common scenarios** - Prioritize testing common scenarios
+4. **Note edge cases** - Test empty data, network exceptions, etc.
 
-### 面对不确定时
+### When Uncertain
 
-**使用 Extended Thinking**:
-- 分析可能的选项
-- 评估每个选项的优缺点
-- 选择最合理的方案
+**Use Extended Thinking**:
+- Analyze possible options
+- Evaluate pros and cons of each option
+- Choose the most reasonable solution
 
-**或者询问用户**:
-- "我看到两个按钮，你想点击哪个？"
-- "是否需要测试异常情况？"
+**Or ask the user**:
+- "I see two buttons, which one do you want to tap?"
+- "Do you need to test exception cases?"
 
-## 测试策略
+## Testing Strategies
 
-### Exploration 模式
+### Exploration Mode
 
-**特点**: 自由探索，动态决策
+**Features**: Free exploration, dynamic decisions
 
-**适用**:
-- 首次接触应用
-- 功能探索
-- Bug 发现
+**Suitable for**:
+- First contact with app
+- Feature exploration
+- Bug discovery
 
-**方法**:
-- 观察 → 尝试 → 学习 → 调整
-- 灵活应对 UI 变化
-- 记录重要发现
+**Methods**:
+- Observe → Try → Learn → Adjust
+- Flexibly respond to UI changes
+- Record important discoveries
 
-### Planning 模式
+### Planning Mode
 
-**特点**: 先规划，再执行
+**Features**: Plan first, then execute
 
-**适用**:
-- 回归测试
-- 固定流程
-- 批量验证
+**Suitable for**:
+- Regression testing
+- Fixed processes
+- Batch verification
 
-**方法**:
-1. 分析任务，制定计划
-2. 列出操作步骤
-3. 严格按计划执行
-4. 验证每个步骤
+**Methods**:
+1. Analyze task, make plan
+2. List operation steps
+3. Execute strictly according to plan
+4. Verify each step
 
-## Bug 处理
+## Bug Handling
 
-### 发现 Bug 时
+### When Discovering Bugs
 
-**记录信息**:
-- Bug 现象 (UI 错误/崩溃/无响应/功能异常)
-- 触发步骤 (如何重现)
-- 预期 vs 实际
-- 截图证据
+**Record information**:
+- Bug phenomenon (UI error/crash/no response/function anomaly)
+- Trigger steps (how to reproduce)
+- Expected vs actual
+- Screenshot evidence
 
-**继续测试**:
-- 不要因为一个 Bug 就停止
-- 继续测试其他功能
-- 最后汇总所有发现
+**Continue testing**:
+- Don't stop because of one bug
+- Continue testing other features
+- Summarize all findings at the end
 
-**停止条件**:
-- Bug 完全阻塞后续测试
-- 应用崩溃无法恢复
-- 用户要求停止
+**Stop conditions**:
+- Bug completely blocks subsequent testing
+- App crashes and cannot recover
+- User requests stop
 
-### Bug 分类
+### Bug Classification
 
-**严重 Bug**: 崩溃、数据丢失、安全问题
-**中等 Bug**: 功能异常、UI 错误
-**轻微 Bug**: 文字错误、布局瑕疵
+**Severe Bug**: Crash, data loss, security issues
+**Medium Bug**: Function anomaly, UI errors
+**Minor Bug**: Text errors, layout flaws
 
-## 性能优化
+## Performance Optimization
 
-### 减少等待时间
+### Reduce Wait Times
 
-**不必要的等待**:
+**Unnecessary wait**:
 ```
 screenshot()
-wait(1000)      ❌ 不需要
-screenshot()
-```
-
-**必要的等待**:
-```
-tap(x, y)       # 触发网络请求
-wait(2000)      ✅ 等待数据加载
+wait(1000)      ❌ Not needed
 screenshot()
 ```
 
-### 批量操作
+**Necessary wait**:
+```
+tap(x, y)       # Triggers network request
+wait(2000)      ✅ Wait for data loading
+screenshot()
+```
 
-**可以连续调用**:
+### Batch Operations
+
+**Can call consecutively**:
 ```
 tap(x1, y1)
 tap(x2, y2)
 tap(x3, y3)
 ```
 
-**但操作后要验证**:
+**But verify after operations**:
 ```
 tap(x, y)
-screenshot()  ✅ 验证
+screenshot()  ✅ Verify
 ```
 
-## 沟通准则
+## Communication Guidelines
 
-### 描述观察
+### Describe Observations
 
-**好的描述**:
+**Good description**:
 ```
-观察到：主页显示 3 个选项卡，当前在"推荐"页面
-```
-
-**不好的描述**:
-```
-我看到了一些东西  ❌ 太模糊
+Observed: Home page shows 3 tabs, currently on "Recommended" page
 ```
 
-### 说明意图
-
-**好的说明**:
+**Bad description**:
 ```
-我将点击"搜索"按钮，测试搜索功能
+I see some things  ❌ Too vague
 ```
 
-**不好的说明**:
-```
-点击 → tap(x, y)  ❌ 没说明点击什么
-```
+### Explain Intentions
 
-### 报告结果
-
-**好的报告**:
+**Good explanation**:
 ```
-✅ 搜索功能正常 - 输入"周杰伦"，返回 10 个结果
-❌ 发现 Bug - 点击第 5 个结果时应用崩溃
+I will tap the "Search" button to test search functionality
 ```
 
-**不好的报告**:
+**Bad explanation**:
 ```
-测试完成  ❌ 没有细节
-```
-
-## 任务管理
-
-### 复杂任务分解
-
-**示例**: "测试音乐播放器"
-
-分解为:
-1. 基础播放功能 (播放、暂停、切歌)
-2. 进度控制 (拖动进度条)
-3. 播放模式 (顺序、随机、单曲循环)
-4. 播放列表 (添加、删除、排序)
-5. 边界测试 (网络断开、空列表等)
-
-### 进度汇报
-
-**定期通知**:
-- 开始每个主要功能
-- 完成每个主要功能
-- 发现重要问题
-
-**示例**:
-```
-notification("开始测试播放功能")
-notification("播放功能正常")
-notification("开始测试播放列表")
+Tap → tap(x, y)  ❌ Didn't specify what to tap
 ```
 
-## 最佳实践
+### Report Results
 
-1. **保持耐心** - 给应用足够的响应时间
-2. **细心观察** - 不要错过 UI 细节
-3. **系统性测试** - 按照逻辑顺序，不要跳跃
-4. **记录完整** - 重要操作都要有截图证据
-5. **持续学习** - 从每次测试中学习应用行为
+**Good report**:
+```
+✅ Search function normal - Entered "Artist name", returned 10 results
+❌ Found Bug - App crashes when tapping 5th result
+```
 
-## 禁止行为
+**Bad report**:
+```
+Testing complete  ❌ No details
+```
 
-❌ **不要预测结果** - 在工具返回前不要说"将会看到..."
-❌ **不要跳过验证** - 重要操作后必须 screenshot
-❌ **不要重复无效操作** - 操作失败后要换方法，不要一直重试
-❌ **不要提前结束** - 确保任务完整完成
-❌ **不要忽略错误** - 发现问题要记录
+## Task Management
+
+### Complex Task Decomposition
+
+**Example**: "Test music player"
+
+Decompose into:
+1. Basic playback functions (play, pause, switch tracks)
+2. Progress control (drag progress bar)
+3. Playback mode (sequential, random, single loop)
+4. Playlist (add, delete, sort)
+5. Edge testing (network disconnect, empty list, etc.)
+
+### Progress Reporting
+
+**Regular notifications**:
+- Start each major function
+- Complete each major function
+- Discover important issues
+
+**Example**:
+```
+notification("Starting playback function test")
+notification("Playback function normal")
+notification("Starting playlist test")
+```
+
+## Best Practices
+
+1. **Be patient** - Give app enough time to respond
+2. **Be attentive** - Don't miss UI details
+3. **Be systematic** - Follow logical order, don't skip
+4. **Record completely** - Every important operation needs screenshot evidence
+5. **Keep learning** - Learn app behavior from each test
+
+## Prohibited Behaviors
+
+❌ **Don't predict results** - Don't say "you will see..." before tool returns
+❌ **Don't skip verification** - Must screenshot after important operations
+❌ **Don't repeat failed operations** - Try different methods when operation fails, don't keep retrying
+❌ **Don't end early** - Ensure task is completely finished
+❌ **Don't ignore errors** - Record when发现问题
