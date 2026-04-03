@@ -61,12 +61,10 @@ class ModelSetupActivity : AppCompatActivity() {
                 api = "openai-completions",
                 hint = "OpenRouter aggregates Claude, GPT, Gemini, MiMo and more — one Key for all.",
                 models = listOf(
-                    ModelPreset("openrouter/hunter-alpha", "Hunter Alpha (Default, Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("xiaomi/mimo-v2-flash", "MiMo V2 Flash (Fast)", contextWindow = 262144, maxTokens = 8192),
-                    ModelPreset("openrouter/hunter-alpha", "🏹 Hunter Alpha (Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("openrouter/free", "🆓 Free Auto Router (No Top-up Required)"),
-                    ModelPreset("qwen/qwen3-coder:free", "🆓 Qwen3 Coder (Free, 262K)", contextWindow = 262000),
-                    ModelPreset("openrouter/free", "🆓 Free Auto Router (No Top-up Required)", contextWindow = 200000),
+                    ModelPreset("qwen/qwen3.6-plus:free", "🆓 Qwen3.6 Plus (Default, Free, 1M Context, Best Coding)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    ModelPreset("openrouter/hunter-alpha", "Hunter Alpha (Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    ModelPreset("openrouter/free", "Free Auto Router (No Top-up Required)", contextWindow = 200000),
+                    ModelPreset("stepfun/step-3.5-flash:free", "Step 3.5 Flash (Free, Coding)", contextWindow = 262144, maxTokens = 8192),
                     ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (Paid, Recommended)", contextWindow = 200000, maxTokens = 16384),
                     ModelPreset("anthropic/claude-opus-4", "Claude Opus 4 (Paid)", contextWindow = 200000, maxTokens = 32768),
                     ModelPreset("openai/gpt-4.1", "GPT-4.1 (Paid)", contextWindow = 1048576, maxTokens = 32768),
@@ -97,7 +95,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 )
             ),
             "xiaomi" to ProviderPreset(
-                name = "小米 MiMo",
+                name = "Xiaomi MiMo",
                 baseUrl = "https://api.xiaomimimo.com/v1",
                 api = "openai-completions",
                 hint = "Xiaomi MiMo LLM. Register: xiaomimimo.com",

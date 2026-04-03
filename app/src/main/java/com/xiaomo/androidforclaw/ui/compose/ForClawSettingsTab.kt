@@ -495,6 +495,8 @@ private fun FloatWindowToggleItem() {
 
 @Composable
 private fun CheckUpdateItem() {
+    return
+    
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val updater = remember { AppUpdater(context) }

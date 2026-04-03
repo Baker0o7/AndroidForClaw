@@ -58,6 +58,29 @@
           "maxTokens": 65536
         },
         {
+          "id": "qwen/qwen3.6-plus:free",
+          "name": "Qwen 3.6 Plus (Free, Best Coding)",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "free": true
+        },
+        {
+          "id": "stepfun/step-3.5-flash:free",
+          "name": "Step 3.5 Flash (Free, Coding)",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 262144,
+          "maxTokens": 65536,
+          "free": true
+        },
+        {
           "id": "openrouter/free",
           "name": "Free Auto Router",
           "reasoning": false,
