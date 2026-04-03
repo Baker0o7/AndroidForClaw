@@ -61,7 +61,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 api = "openai-completions",
                 hint = "OpenRouter aggregates Claude, GPT, Gemini, MiMo and more — one Key for all.",
                 models = listOf(
-                    ModelPreset("xiaomi/mimo-v2-pro", "MiMo V2 Pro (Default, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+                    ModelPreset("openrouter/hunter-alpha", "Hunter Alpha (Default, Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
                     ModelPreset("xiaomi/mimo-v2-flash", "MiMo V2 Flash (Fast)", contextWindow = 262144, maxTokens = 8192),
                     ModelPreset("openrouter/hunter-alpha", "🏹 Hunter Alpha (Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
                     ModelPreset("openrouter/free", "🆓 Free Auto Router (No Top-up Required)"),
