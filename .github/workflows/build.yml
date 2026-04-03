@@ -28,13 +28,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
-      - name: Create debug keystore
-        run: |
-          if [ ! -f "debug.jks" ]; then
-            keytool -genkey -v -keystore debug.jks -alias android -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
-          fi
-
       - name: Create keystore.properties
         run: |
           echo "storeFile=debug.jks" > keystore.properties
@@ -47,20 +40,10 @@ jobs:
 
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon 2>&1
+        env:
+          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.9*/x64
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: apk
-          path: releases/*.apk
-
-      - name: Download APK
-        if: github.event_name == 'workflow_dispatch'
-        uses: actions/download-artifact@v4
-        with:
-          name: apk
-
-      - name: Create Release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
@@ -69,11 +52,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload to Release
+      - name: Upload Artifact
         if: github.event_name == 'workflow_dispatch'
-        run: |
-          curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/octet-stream" \
-            "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.inputs.release_id }}/assets?name=$(ls releases/*.apk | xargs basename)" \
-            --data-binary "@releases/*.apk"
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidforclaw-apk
+          path: releases/*.apk

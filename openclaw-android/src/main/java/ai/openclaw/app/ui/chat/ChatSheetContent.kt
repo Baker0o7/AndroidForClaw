@@ -13,10 +13,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -53,6 +60,7 @@ import ai.openclaw.app.ui.mobileDanger
 import ai.openclaw.app.ui.mobileDangerSoft
 import ai.openclaw.app.ui.mobileText
 import ai.openclaw.app.ui.mobileTextSecondary
+import ai.openclaw.app.ui.mobileTextTertiary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -106,12 +114,13 @@ fun ChatSheetContent(viewModel: MainViewModel) {
         .padding(horizontal = 20.dp, vertical = 12.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    ChatThreadSelector(
+    SessionHeader(
       sessionKey = sessionKey,
       sessions = sessions,
       mainSessionKey = mainSessionKey,
       onSelectSession = { key -> viewModel.switchChatSession(key) },
       onDeleteSession = { key -> viewModel.deleteChatSession(key) },
+      onNewSession = { viewModel.refreshChatSessions(limit = 200) },
     )
 
     if (!errorText.isNullOrBlank()) {
@@ -161,12 +170,13 @@ fun ChatSheetContent(viewModel: MainViewModel) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun ChatThreadSelector(
+internal fun SessionHeader(
   sessionKey: String,
   sessions: List<ChatSessionEntry>,
   mainSessionKey: String,
   onSelectSession: (String) -> Unit,
   onDeleteSession: ((String) -> Unit)? = null,
+  onNewSession: (() -> Unit)? = null,
 ) {
   val sessionOptions =
     remember(sessionKey, sessions, mainSessionKey) {
@@ -178,6 +188,7 @@ internal fun ChatThreadSelector(
   Row(
     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
     for (entry in sessionOptions) {
       val active = entry.key == sessionKey
@@ -190,20 +201,58 @@ internal fun ChatThreadSelector(
         modifier = Modifier.combinedClickable(
           onClick = { onSelectSession(entry.key) },
           onLongClick = {
-            if (onDeleteSession != null) {
+            if (onDeleteSession != null && entry.key != mainSessionKey) {
               deleteConfirmKey = entry.key
             }
           },
         ),
       ) {
-        Text(
-          text = friendlySessionName(entry.displayName ?: entry.key),
-          style = mobileCaption1.copy(fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold),
-          color = if (active) Color.White else mobileText,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-        )
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
+          modifier = Modifier.padding(start = 12.dp, end = if (active && entry.key != mainSessionKey) 4.dp else 12.dp, top = 8.dp, bottom = 8.dp),
+        ) {
+          Text(
+            text = friendlySessionName(entry.displayName ?: entry.key),
+            style = mobileCaption1.copy(fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold),
+            color = if (active) Color.White else mobileText,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+          if (active && entry.key != mainSessionKey) {
+            IconButton(
+              onClick = { deleteConfirmKey = entry.key },
+              modifier = Modifier.size(24.dp),
+            ) {
+              Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.delete_session),
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(14.dp),
+              )
+            }
+          }
+        }
+      }
+    }
+    
+    if (onNewSession != null) {
+      IconButton(
+        onClick = onNewSession,
+        modifier = Modifier.size(36.dp),
+      ) {
+        Surface(
+          shape = RoundedCornerShape(14.dp),
+          color = mobileCardSurface,
+          border = BorderStroke(1.dp, mobileBorderStrong),
+        ) {
+          Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = "New Session",
+            tint = mobileTextSecondary,
+            modifier = Modifier.padding(6.dp).size(18.dp),
+          )
+        }
       }
     }
   }

@@ -278,6 +278,7 @@ fun ForClawSettingsTab() {
 
         // ── 界面 ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_ui)) {
+            DarkModeToggleItem()
             FloatWindowToggleItem()
         }
 
@@ -487,6 +488,47 @@ private fun FloatWindowToggleItem() {
                 onCheckedChange = { v ->
                     enabled = v
                     SessionFloatWindow.setEnabled(context, v)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DarkModeToggleItem() {
+    val mmkv = remember { MMKV.defaultMMKV() }
+    var isDark by remember { mutableStateOf(mmkv.decodeBool(MMKVKeys.DARK_MODE_ENABLED.key, false)) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Icon(
+                imageVector = if (isDark) Icons.Default.NightsStay else Icons.Default.WbSunny,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Dark Mode", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    if (isDark) "Currently using dark theme" else "Currently using light theme",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = isDark,
+                onCheckedChange = { v ->
+                    isDark = v
+                    mmkv.encode(MMKVKeys.DARK_MODE_ENABLED.key, v)
                 }
             )
         }

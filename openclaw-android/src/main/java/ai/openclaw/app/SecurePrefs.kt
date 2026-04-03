@@ -96,6 +96,9 @@ class SecurePrefs(
     MutableStateFlow(plainPrefs.getBoolean("canvas.debugStatusEnabled", false))
   val canvasDebugStatusEnabled: StateFlow<Boolean> = _canvasDebugStatusEnabled
 
+  private val _darkMode = MutableStateFlow(plainPrefs.getBoolean("theme.darkMode", false))
+  val darkMode: StateFlow<Boolean> = _darkMode
+
   private val _wakeWords = MutableStateFlow(loadWakeWords())
   val wakeWords: StateFlow<List<String>> = _wakeWords
 
@@ -183,6 +186,11 @@ class SecurePrefs(
   fun setCanvasDebugStatusEnabled(value: Boolean) {
     plainPrefs.edit { putBoolean("canvas.debugStatusEnabled", value) }
     _canvasDebugStatusEnabled.value = value
+  }
+
+  fun setDarkMode(value: Boolean) {
+    plainPrefs.edit { putBoolean("theme.darkMode", value) }
+    _darkMode.value = value
   }
 
   fun loadGatewayToken(): String? {

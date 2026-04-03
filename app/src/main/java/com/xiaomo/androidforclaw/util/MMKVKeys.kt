@@ -16,5 +16,8 @@ enum class MMKVKeys(val key: String) {
     FLOAT_WINDOW_ENABLED("float_window_enabled"),
 
     // Exploration mode switch (false: Planning mode, true: Exploration mode)
-    EXPLORATION_MODE("exploration_mode")
+    EXPLORATION_MODE("exploration_mode"),
+
+    // Dark mode toggle
+    DARK_MODE_ENABLED("dark_mode_enabled")
 }
