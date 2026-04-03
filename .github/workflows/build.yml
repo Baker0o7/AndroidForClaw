@@ -38,10 +38,13 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
+      - name: Find Java
+        run: |
+          echo "JAVA_HOME=$(dirname $(dirname $(which java)))" >> $GITHUB_ENV
+          echo "PATH=$(dirname $(which java)):$PATH" >> $GITHUB_ENV
+
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon 2>&1
-        env:
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.9*/x64
 
       - name: Upload APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
