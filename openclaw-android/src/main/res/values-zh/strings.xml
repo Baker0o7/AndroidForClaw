@@ -1,86 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Bottom tabs -->
-    <string name="tab_chat">对话</string>
-    <string name="tab_voice">语音</string>
-    <string name="tab_screen">屏幕</string>
-    <string name="tab_settings">设置</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_voice">Voice</string>
+    <string name="tab_screen">Screen</string>
+    <string name="tab_settings">Settings</string>
 
-    <!-- Brand / status -->
-    <string name="brand_name">小龙虾</string>
-    <string name="status_offline">离线</string>
+    <string name="brand_name">Claw</string>
+    <string name="status_offline">Offline</string>
 
-    <!-- Chat sender labels -->
-    <string name="sender_you">你</string>
-    <string name="sender_ai">小龙虾</string>
-    <string name="sender_system">系统</string>
-    <string name="sender_live_suffix">· 实时</string>
+    <string name="sender_you">You</string>
+    <string name="sender_ai">Claw</string>
+    <string name="sender_system">System</string>
+    <string name="sender_live_suffix">· Live</string>
 
-    <!-- Chat delete dialog -->
-    <string name="delete_session">删除会话</string>
-    <string name="delete_session_confirm">确定要删除「%s」吗？删除后不可恢复。</string>
-    <string name="action_delete">删除</string>
-    <string name="action_cancel">取消</string>
+    <string name="delete_session">Delete Session</string>
+    <string name="delete_session_confirm">Delete \"%s\"? Cannot be undone.</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
 
-    <!-- Chat misc -->
-    <string name="chat_error_label">对话错误</string>
-    <string name="chat_thinking">思考中…</string>
-    <string name="chat_thinking_full">小龙虾正在思考…</string>
-    <string name="tools_label">工具</string>
-    <string name="tools_running">运行工具中…</string>
-    <string name="tools_completed">工具已完成</string>
-    <string name="unsupported_attachment">不支持的附件</string>
+    <string name="chat_error_label">Chat Error</string>
+    <string name="chat_thinking">Thinking…</string>
+    <string name="chat_thinking_full">Claw is thinking…</string>
+    <string name="tools_label">Tools</string>
+    <string name="tools_running">Running tool…</string>
+    <string name="tools_completed">Tool completed</string>
+    <string name="unsupported_attachment">Unsupported attachment</string>
 
-    <!-- Voice tab -->
-    <string name="voice_tap_mic">点击麦克风开始</string>
-    <string name="voice_auto_send">每次停顿会自动发送一轮。</string>
-    <string name="voice_listening_response">等待回复…</string>
-    <string name="voice_speaker">扬声器</string>
-    <string name="voice_muted">已静音</string>
-    <string name="voice_mute_speaker">静音扬声器</string>
-    <string name="voice_unmute_speaker">取消静音</string>
-    <string name="voice_mic_on">开启麦克风</string>
-    <string name="voice_mic_off">关闭麦克风</string>
-    <string name="voice_queued">%d 条待发送</string>
-    <string name="voice_sending">发送中</string>
-    <string name="voice_cooldown">冷却中</string>
-    <string name="voice_listening">聆听中</string>
-    <string name="voice_mic_off_label">麦克风关闭</string>
-    <string name="voice_mic_permission_rationale">语音模式需要麦克风权限。</string>
-    <string name="voice_mic_permission_blocked">麦克风被阻止，请在应用设置中启用。</string>
-    <string name="voice_open_settings">打开设置</string>
+    <string name="voice_tap_mic">Tap microphone to start</string>
+    <string name="voice_auto_send">Auto-sends after each pause.</string>
+    <string name="voice_listening_response">Waiting for response…</string>
+    <string name="voice_speaker">Speaker</string>
+    <string name="voice_muted">Muted</string>
+    <string name="voice_mute_speaker">Mute speaker</string>
+    <string name="voice_unmute_speaker">Unmute speaker</string>
+    <string name="voice_mic_on">Turn on microphone</string>
+    <string name="voice_mic_off">Turn off microphone</string>
+    <string name="voice_queued">%d queued</string>
+    <string name="voice_sending">Sending</string>
+    <string name="voice_cooldown">Cooldown</string>
+    <string name="voice_listening">Listening</string>
+    <string name="voice_mic_off_label">Microphone off</string>
+    <string name="voice_mic_permission_rationale">Voice mode requires microphone permission.</string>
+    <string name="voice_mic_permission_blocked">Microphone blocked. Please enable in app settings.</string>
+    <string name="voice_open_settings">Open Settings</string>
 
-    <!-- Connect tab -->
-    <string name="connect_title">Gateway 连接</string>
-    <string name="connect_active">Gateway 已连接并就绪。</string>
-    <string name="connect_get_started">连接 Gateway 以开始使用。</string>
-    <string name="connect_endpoint">端点</string>
-    <string name="connect_status">状态</string>
-    <string name="connect_not_set">未设置</string>
-    <string name="connect_disconnect">断开连接</string>
-    <string name="connect_gateway">连接 Gateway</string>
-    <string name="connect_last_error">上次 Gateway 错误</string>
-    <string name="connect_copy_report">复制诊断报告</string>
-    <string name="connect_advanced">高级选项</string>
-    <string name="connect_advanced_desc">Setup Code、端点、TLS、Token、密码、引导。</string>
-    <string name="connect_method">连接方式</string>
+    <string name="connect_title">Gateway Connection</string>
+    <string name="connect_active">Gateway connected and ready.</string>
+    <string name="connect_get_started">Connect to Gateway to start.</string>
+    <string name="connect_endpoint">Endpoint</string>
+    <string name="connect_status">Status</string>
+    <string name="connect_not_set">Not set</string>
+    <string name="connect_disconnect">Disconnect</string>
+    <string name="connect_gateway">Connect Gateway</string>
+    <string name="connect_last_error">Last Gateway error</string>
+    <string name="connect_copy_report">Copy diagnostic report</string>
+    <string name="connect_advanced">Advanced Options</string>
+    <string name="connect_advanced_desc">Setup Code, endpoint, TLS, token, password, onboarding.</string>
+    <string name="connect_method">Connection method</string>
     <string name="connect_setup_code">Setup Code</string>
-    <string name="connect_manual">手动</string>
-    <string name="connect_run_on_host">在 Gateway 主机上运行：</string>
-    <string name="connect_paste_setup">粘贴 Setup Code</string>
-    <string name="connect_resolved_endpoint">解析后的端点</string>
-    <string name="connect_emulator">安卓模拟器</string>
-    <string name="connect_localhost">本机</string>
-    <string name="connect_host">主机</string>
-    <string name="connect_port">端口</string>
-    <string name="connect_use_tls">使用 TLS</string>
-    <string name="connect_use_tls_desc">切换到安全 WebSocket（wss）。</string>
-    <string name="connect_token_optional">Token（可选）</string>
-    <string name="connect_password_optional">密码（可选）</string>
-    <string name="connect_run_onboarding">重新运行引导</string>
-    <string name="connect_trust_title">信任此 Gateway？</string>
-    <string name="connect_trust_text">首次 TLS 连接。\n\n请在信任前验证此 SHA-256 指纹：\n%s</string>
-    <string name="connect_trust_confirm">信任并继续</string>
-    <string name="connect_validation_setup">请粘贴有效的 Setup Code。</string>
-    <string name="connect_validation_manual">请输入有效的主机和端口。</string>
+    <string name="connect_manual">Manual</string>
+    <string name="connect_run_on_host">Run on Gateway host:</string>
+    <string name="connect_paste_setup">Paste Setup Code</string>
+    <string name="connect_resolved_endpoint">Resolved endpoint</string>
+    <string name="connect_emulator">Android Emulator</string>
+    <string name="connect_localhost">Local</string>
+    <string name="connect_host">Host</string>
+    <string name="connect_port">Port</string>
+    <string name="connect_use_tls">Use TLS</string>
+    <string name="connect_use_tls_desc">Switch to secure WebSocket (wss).</string>
+    <string name="connect_token_optional">Token (optional)</string>
+    <string name="connect_password_optional">Password (optional)</string>
+    <string name="connect_run_onboarding">Run onboarding again</string>
+    <string name="connect_trust_title">Trust this Gateway?</string>
+    <string name="connect_trust_text">First TLS connection.\n\nPlease verify this SHA-256 fingerprint before trusting:\n%s</string>
+    <string name="connect_trust_confirm">Trust and continue</string>
+    <string name="connect_validation_setup">Please paste a valid Setup Code.</string>
+    <string name="connect_validation_manual">Please enter valid host and port.</string>
 </resources>

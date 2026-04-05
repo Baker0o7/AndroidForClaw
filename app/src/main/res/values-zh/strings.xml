@@ -1,314 +1,283 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App基本信息 -->
-    <string name="app_name">小龙虾</string>
+    <string name="app_name">Claw</string>
 
-    <!-- Shell命令相关 -->
-    <string name="command_hint">Shell 命令</string>
-    <string name="command_hint_waiting">等待连接…</string>
+    <string name="command_hint">Shell Command</string>
+    <string name="command_hint_waiting">Waiting for connection…</string>
 
-    <!-- 通用操作 -->
-    <string name="bookmarks">书签</string>
-    <string name="last_command">上次命令</string>
-    <string name="help">帮助</string>
-    <string name="more">更多</string>
-    <string name="share">分享</string>
-    <string name="clear">清空屏幕</string>
-    <string name="add">添加</string>
-    <string name="delete">删除</string>
-    <string name="edit">编辑</string>
-    <string name="cancel">取消</string>
-    <string name="action_cancel">取消</string>
-    <string name="done">完成</string>
-    <string name="pair">配对</string>
-    <string name="skip">跳过</string>
-    <string name="dismiss">关闭</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="last_command">Last Command</string>
+    <string name="help">Help</string>
+    <string name="more">More</string>
+    <string name="share">Share</string>
+    <string name="clear">Clear Screen</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="cancel">Cancel</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="done">Done</string>
+    <string name="pair">Pair</string>
+    <string name="skip">Skip</string>
+    <string name="dismiss">Close</string>
 
-    <string name="delete_confirm">确定要删除吗？</string>
+    <string name="delete_confirm">Are you sure you want to delete this?</string>
 
-    <string name="snackbar_intent_failed">Intent 启动失败</string>
+    <string name="snackbar_intent_failed">Intent launch failed</string>
 
-    <!-- URL（不翻译） -->
     <string name="developer_url">https://github.com/openclaw/openclaw</string>
     <string name="source_url">https://github.com/openclaw/openclaw</string>
     <string name="contact_url">mailto:support@example.com</string>
     <string name="tutorial_url">https://www.xda-developers.com/debloat-your-phone-run-adb-shell-commands-no-root-no-pc</string>
 
-    <!-- 配对相关 -->
-    <string name="paired_key">已配对</string>
-    <string name="port_hint">端口</string>
-    <string name="code_hint">配对码</string>
+    <string name="paired_key">Paired</string>
+    <string name="port_hint">Port</string>
+    <string name="code_hint">Pairing Code</string>
 
-    <string name="pair_title">配对信息</string>
-    <string name="pair_message">您必须使用开发者设置中「无线调试」页面的配对码将此设备连接到小龙虾。如果您之前没有做过此操作，请点击「帮助」查看教程。</string>
+    <string name="pair_title">Pairing Information</string>
+    <string name="pair_message">You must use the pairing code from the \"Wireless debugging\" page in Developer Settings to connect this device to Claw. If you have not done this before, click \"Help\" to view the tutorial.</string>
 
-    <!-- 设置相关 -->
-    <string name="settings">设置</string>
-    <string name="troubleshooting">故障排除</string>
-    <string name="about">关于</string>
+    <string name="settings">Settings</string>
+    <string name="troubleshooting">Troubleshooting</string>
+    <string name="about">About</string>
 
-    <string name="unpair_title">取消配对</string>
-    <string name="unpair_summary">清除所有现有的配对信息</string>
-    <string name="unpair_key">取消配对</string>
+    <string name="unpair_title">Unpair</string>
+    <string name="unpair_summary">Clear all existing pairing information</string>
+    <string name="unpair_key">Unpair</string>
 
-    <string name="restart_title">重启</string>
-    <string name="restart_summary">重启 ADB 服务器以应用更改的设置</string>
-    <string name="restart_key">重启</string>
+    <string name="restart_title">Restart</string>
+    <string name="restart_summary">Restart ADB server to apply changed settings</string>
+    <string name="restart_key">Restart</string>
 
-    <string name="auto_shell_title">配对并启动 Shell</string>
-    <string name="auto_shell_summary">自动进入 ADB shell；禁用后可进入普通的非 ADB shell 而无需配对</string>
+    <string name="auto_shell_title">Pair and Start Shell</string>
+    <string name="auto_shell_summary">Automatically enter ADB shell; disabling allows regular non-ADB shell without pairing</string>
     <string name="auto_shell_key">auto_shell</string>
 
-    <string name="buffer_size_title">缓冲区大小</string>
-    <string name="buffer_size_summary">屏幕输出缓冲区的大小。增加此值将一次显示更多输出，但会影响性能。（默认：16384）</string>
+    <string name="buffer_size_title">Buffer Size</string>
+    <string name="buffer_size_summary">The size of the screen output buffer. Increasing this value will show more output at once, but will affect performance. (Default: 16384)</string>
     <string name="buffer_size_key">buffer_size</string>
 
-    <string name="startup_command_title">启动命令</string>
-    <string name="startup_command_summary">Shell 启动后要运行的命令</string>
+    <string name="startup_command_title">Startup Command</string>
+    <string name="startup_command_summary">Command to run after shell starts</string>
     <string name="startup_command_key">startup_command</string>
 
-    <string name="tutorial_title">教程</string>
-    <string name="tutorial_summary">查看 XDA Developers 页面的教程</string>
-    <string name="tutorial_key">教程</string>
+    <string name="tutorial_title">Tutorial</string>
+    <string name="tutorial_summary">View XDA Developers page tutorial</string>
+    <string name="tutorial_key">Tutorial</string>
 
-    <!-- 错误信息 -->
-    <string name="error_waiting_title">卡在「等待」状态</string>
-    <string name="error_waiting_summary">您可能输入了错误的配对信息，或者您的设备未被检测到。首先，确保无线调试确实已启用。如果仍然无法正常工作，请尝试 小龙虾中的「恢复出厂设置」来重新配对。</string>
+    <string name="error_waiting_title">Stuck on \"Waiting\" State</string>
+    <string name="error_waiting_summary">You may have entered incorrect pairing information, or your device is not detected. First, make sure wireless debugging is enabled. If it still does not work, try \"Factory Reset\" in Claw to re-pair.</string>
 
-    <string name="error_no_wireless_debugging_title">没有「无线调试」选项</string>
-    <string name="error_no_wireless_debugging_summary">您的设备本身不支持无线调试，这是 小龙虾所必需的。或者，您可以使用 PC 启用此功能，即使在不支持的设备上也可以。这将持续到下次重启。将设备连接到 PC 并输入：adb tcpip 5555</string>
+    <string name="error_no_wireless_debugging_title">No \"Wireless Debugging\" Option</string>
+    <string name="error_no_wireless_debugging_summary">Your device does not natively support wireless debugging, which Claw requires. Alternatively, you can enable this with a PC, even on unsupported devices. This will persist until the next restart. Connect your device to PC and enter: adb tcpip 5555</string>
 
-    <!-- 关于页面 -->
-    <string name="developer_title">开发者</string>
-    <string name="developer_summary">Claw 团队</string>
-    <string name="developer_key">开发者</string>
+    <string name="developer_title">Developer</string>
+    <string name="developer_summary">Claw Team</string>
+    <string name="developer_key">Developer</string>
 
-    <string name="source_title">源代码</string>
-    <string name="source_summary">在 GitHub 上查看源代码</string>
-    <string name="source_key">源代码</string>
+    <string name="source_title">Source Code</string>
+    <string name="source_summary">View source code on GitHub</string>
+    <string name="source_key">Source Code</string>
 
-    <string name="contact_title">联系</string>
-    <string name="contact_summary">通过电子邮件联系我们</string>
-    <string name="contact_key">联系</string>
+    <string name="contact_title">Contact</string>
+    <string name="contact_summary">Contact us via email</string>
+    <string name="contact_key">Contact</string>
 
-    <string name="licenses_title">许可证</string>
-    <string name="licenses_summary">查看开源许可证</string>
-    <string name="licenses_key">许可证</string>
+    <string name="licenses_title">Licenses</string>
+    <string name="licenses_summary">View open source licenses</string>
+    <string name="licenses_key">Licenses</string>
 
-    <!-- 权限披露弹窗 (Google Play 合规) -->
-    <string name="disclosure_storage_title">文件访问使用说明</string>
-    <string name="disclosure_storage_message">ForClaw 需要使用「所有文件访问」权限来实现以下核心功能：\n\n• 文件管理：AI 根据您的指令读取、创建、编辑设备上的文件\n• 配置存储：保存应用配置、聊天记录和技能插件\n• 截图保存：保存屏幕截图供 AI 分析\n\n本应用仅在您主动发起指令时访问文件，不会在后台扫描或上传您的文件。\n\n点击「同意并继续」将跳转到系统设置页面开启此权限。</string>
-    <string name="disclosure_agree">同意并继续</string>
-    <string name="disclosure_exit">退出</string>
+    <string name="disclosure_storage_title">File Access Disclosure</string>
+    <string name="disclosure_storage_message">ForClaw needs \"All Files Access\" permission to provide the following core features:\n\n• File management: AI reads, creates, and edits files on your device based on your commands\n• Configuration storage: Save app settings, chat history, and skill plugins\n• Screenshot saving: Save screenshots for AI analysis\n\nThis app only accesses files when you initiate a command. It does not scan or upload your files in the background.\n\nTap \"Agree &amp; Continue\" to go to system settings to enable this permission.</string>
+    <string name="disclosure_agree">Agree &amp; Continue</string>
+    <string name="disclosure_exit">Exit</string>
 
-    <!-- 键盘相关 -->
-    <string name="keyboard_on">ClawIME 键盘 {开启}</string>
-    <string name="switch_to_normal_keyboard">切换回普通键盘</string>
+    <string name="keyboard_on">ClawIME Keyboard {ON}</string>
+    <string name="switch_to_normal_keyboard">Switch to normal keyboard</string>
 
-    <!-- Agent相关 -->
-    <string name="agent_running">Agent 运行中</string>
-    <string name="agent_stopped">Agent 已停止</string>
-    <string name="agent_error">Agent 错误</string>
+    <string name="agent_running">Agent Running</string>
+    <string name="agent_stopped">Agent Stopped</string>
+    <string name="agent_error">Agent Error</string>
 
-    <!-- 权限相关 -->
-    <string name="permission_granted">权限已授予</string>
-    <string name="permission_denied">权限被拒绝</string>
-    <string name="accessibility_enabled">无障碍服务已启用</string>
-    <string name="accessibility_disabled">无障碍服务未启用</string>
-    <string name="screen_capture_granted">录屏权限已授予</string>
-    <string name="screen_capture_denied">录屏权限被拒绝</string>
+    <string name="permission_granted">Permission Granted</string>
+    <string name="permission_denied">Permission Denied</string>
+    <string name="accessibility_enabled">Accessibility Service Enabled</string>
+    <string name="accessibility_disabled">Accessibility Service Disabled</string>
+    <string name="screen_capture_granted">Screen Capture Permission Granted</string>
+    <string name="screen_capture_denied">Screen Capture Permission Denied</string>
 
-    <!-- 通知相关 -->
-    <string name="notification_channel_created">通知渠道已创建</string>
-    <string name="foreground_service_title">小龙虾服务</string>
-    <string name="foreground_service_content">服务正在运行</string>
+    <string name="notification_channel_created">Notification Channel Created</string>
+    <string name="foreground_service_title">Claw Service</string>
+    <string name="foreground_service_content">Service is running</string>
 
-    <!-- 截图相关 -->
-    <string name="screenshot_failed">截图失败</string>
-    <string name="screenshot_dir_not_set">截图目录未设置</string>
-    <string name="screenshot_save_failed">保存截图失败</string>
-    <string name="screenshot_success">截图已保存</string>
+    <string name="screenshot_failed">Screenshot Failed</string>
+    <string name="screenshot_dir_not_set">Screenshot Directory Not Set</string>
+    <string name="screenshot_save_failed">Failed to Save Screenshot</string>
+    <string name="screenshot_success">Screenshot Saved</string>
 
-    <!-- Gateway相关 -->
-    <string name="gateway_starting">Gateway 启动中</string>
-    <string name="gateway_started">Gateway 已启动</string>
-    <string name="gateway_stopped">Gateway 已停止</string>
-    <string name="gateway_error">Gateway 错误</string>
+    <string name="gateway_starting">Gateway Starting</string>
+    <string name="gateway_started">Gateway Started</string>
+    <string name="gateway_stopped">Gateway Stopped</string>
+    <string name="gateway_error">Gateway Error</string>
 
-    <!-- WebSocket相关 -->
-    <string name="websocket_connecting">正在连接 WebSocket...</string>
-    <string name="websocket_connected">WebSocket 已连接</string>
-    <string name="websocket_disconnected">WebSocket 已断开</string>
-    <string name="websocket_error">WebSocket 错误</string>
-    <string name="websocket_reconnecting">尝试重连...</string>
+    <string name="websocket_connecting">Connecting to WebSocket...</string>
+    <string name="websocket_connected">WebSocket Connected</string>
+    <string name="websocket_disconnected">WebSocket Disconnected</string>
+    <string name="websocket_error">WebSocket Error</string>
+    <string name="websocket_reconnecting">Attempting to reconnect...</string>
 
-    <!-- 消息处理 -->
-    <string name="message_processing">处理消息中</string>
-    <string name="message_process_failed">处理消息失败</string>
-    <string name="unknown_opcode">未知 opcode: %s</string>
-    <string name="unhandled_event">未处理的事件: %s</string>
+    <string name="message_processing">Processing Message</string>
+    <string name="message_process_failed">Message Processing Failed</string>
+    <string name="unknown_opcode">Unknown opcode: %s</string>
+    <string name="unhandled_event">Unhandled event: %s</string>
 
-    <!-- 会话相关 -->
-    <string name="session_created">会话已创建</string>
-    <string name="session_loaded">会话已加载</string>
-    <string name="session_saved">会话已保存</string>
-    <string name="session_deleted">会话已删除</string>
-    <string name="session_error">会话错误</string>
+    <string name="session_created">Session Created</string>
+    <string name="session_loaded">Session Loaded</string>
+    <string name="session_saved">Session Saved</string>
+    <string name="session_deleted">Session Deleted</string>
+    <string name="session_error">Session Error</string>
 
-    <!-- 技能相关 -->
-    <string name="skill_loaded">技能已加载</string>
-    <string name="skill_load_failed">技能加载失败</string>
-    <string name="skill_executing">执行技能中</string>
-    <string name="skill_execution_failed">技能执行失败</string>
+    <string name="skill_loaded">Skill Loaded</string>
+    <string name="skill_load_failed">Skill Load Failed</string>
+    <string name="skill_executing">Executing Skill</string>
+    <string name="skill_execution_failed">Skill Execution Failed</string>
 
-    <!-- 工具相关 -->
-    <string name="tool_executing">执行工具中</string>
-    <string name="tool_execution_success">工具执行成功</string>
-    <string name="tool_execution_failed">工具执行失败</string>
+    <string name="tool_executing">Executing Tool</string>
+    <string name="tool_execution_success">Tool Execution Success</string>
+    <string name="tool_execution_failed">Tool Execution Failed</string>
 
-    <!-- 模型相关 -->
-    <string name="model_loading">模型加载中</string>
-    <string name="model_loaded">模型已加载</string>
-    <string name="model_error">模型错误</string>
-    <string name="api_call_failed">API 调用失败</string>
-    <string name="api_call_success">API 调用成功</string>
+    <string name="model_loading">Model Loading</string>
+    <string name="model_loaded">Model Loaded</string>
+    <string name="model_error">Model Error</string>
+    <string name="api_call_failed">API Call Failed</string>
+    <string name="api_call_success">API Call Success</string>
 
-    <!-- 配置相关 -->
-    <string name="config_loading">配置加载中</string>
-    <string name="config_loaded">配置已加载</string>
-    <string name="config_save_failed">配置保存失败</string>
-    <string name="config_invalid">配置无效</string>
+    <string name="config_loading">Configuration Loading</string>
+    <string name="config_loaded">Configuration Loaded</string>
+    <string name="config_save_failed">Configuration Save Failed</string>
+    <string name="config_invalid">Invalid Configuration</string>
 
-    <!-- 通用状态 -->
-    <string name="loading">加载中...</string>
-    <string name="processing">处理中...</string>
-    <string name="success">成功</string>
-    <string name="failed">失败</string>
-    <string name="error">错误</string>
-    <string name="warning">警告</string>
-    <string name="info">信息</string>
+    <string name="loading">Loading...</string>
+    <string name="processing">Processing...</string>
+    <string name="success">Success</string>
+    <string name="failed">Failed</string>
+    <string name="error">Error</string>
+    <string name="warning">Warning</string>
+    <string name="info">Info</string>
 
-    <!-- 操作提示 -->
-    <string name="tap_to_continue">点击继续</string>
-    <string name="swipe_to_dismiss">滑动关闭</string>
-    <string name="long_press_for_options">长按显示选项</string>
+    <string name="tap_to_continue">Tap to Continue</string>
+    <string name="swipe_to_dismiss">Swipe to Dismiss</string>
+    <string name="long_press_for_options">Long Press for Options</string>
 
-    <!-- 时间相关 -->
-    <string name="just_now">刚刚</string>
-    <string name="minutes_ago">%d 分钟前</string>
-    <string name="hours_ago">%d 小时前</string>
-    <string name="days_ago">%d 天前</string>
+    <string name="just_now">Just Now</string>
+    <string name="minutes_ago">%d minutes ago</string>
+    <string name="hours_ago">%d hours ago</string>
+    <string name="days_ago">%d days ago</string>
 
-    <!-- 无障碍服务 -->
-    <string name="accessibility_service_description">小龙虾无障碍服务，用于控制设备界面</string>
-    <string name="accessibility_service_name">小龙虾无障碍服务</string>
+    <string name="accessibility_service_description">Claw Accessibility Service for controlling device interface</string>
+    <string name="accessibility_service_name">Claw Accessibility Service</string>
 
-    <!-- 语言设置 -->
-    <string name="language_setting">语言 / Language</string>
-    <string name="language_system">系统 / System</string>
+    <string name="language_setting">Language / Language</string>
+    <string name="language_system">System / System</string>
     <string name="language_english">English</string>
     <string name="language_chinese">中文</string>
-    <string name="language_change_restart">语言已更改。请重启应用以使更改生效。</string>
+    <string name="language_change_restart">Language changed. Please restart the app for changes to take effect.</string>
 
-    <!-- Settings tab sections -->
-    <string name="settings_section_config">配置</string>
-    <string name="settings_model_config">模型配置</string>
-    <string name="settings_model_config_desc">API Key 和模型参数</string>
+    <string name="settings_section_config">Configuration</string>
+    <string name="settings_model_config">Model Configuration</string>
+    <string name="settings_model_config_desc">API Key and model parameters</string>
     <string name="settings_channels">Channels</string>
-    <string name="settings_channels_desc">飞书、Discord 等多渠道接入</string>
-    <string name="settings_skills">技能</string>
-    <string name="settings_skills_desc">管理 Agent Skills</string>
-    <string name="settings_termux">Termux 配置</string>
-    <string name="settings_termux_desc">配置 Termux SSH 连接</string>
-    <string name="settings_section_files">文件</string>
-    <string name="settings_select_editor">选择文本编辑器</string>
-    <string name="settings_cannot_open">无法打开: %s</string>
-    <string name="settings_file_not_found">文件不存在</string>
-    <string name="settings_section_ui">界面</string>
-    <string name="settings_float_window">会话悬浮窗</string>
-    <string name="settings_float_window_desc">在后台显示会话信息</string>
-    <string name="settings_section_app">应用</string>
-    <string name="settings_check_update">检查更新</string>
-    <string name="settings_current_version">当前版本 v%s</string>
-    <string name="settings_checking_update">正在检查更新…</string>
-    <string name="settings_up_to_date">已是最新版本 v%s</string>
-    <string name="settings_check_failed">检查失败: %s</string>
-    <string name="settings_restart_app">重启应用</string>
-    <string name="settings_restart_desc">重新加载配置和所有服务</string>
-    <string name="settings_restart_title">重启应用</string>
-    <string name="settings_restart_message">将关闭并重新启动应用，重新加载所有配置和服务。\n\n确定要重启吗？</string>
-    <string name="settings_restart_confirm">重启</string>
-    <string name="settings_section_legal">法律</string>
-    <string name="settings_privacy_policy">隐私政策</string>
-    <string name="settings_privacy_desc">查看隐私政策</string>
-    <string name="settings_terms">用户协议</string>
-    <string name="settings_terms_desc">查看用户协议</string>
-    <string name="settings_section_about">关于</string>
-    <string name="settings_version">版本</string>
-    <string name="settings_email">邮箱</string>
-    <string name="settings_wechat">微信</string>
-    <string name="settings_feishu_group">飞书体验群</string>
-    <string name="settings_feishu_join">点击加入</string>
-    <string name="settings_github">GitHub 仓库</string>
-    <string name="settings_github_desc">查看源码 / 提交 Issue</string>
-    <string name="settings_copyright">© 2024–2025 小龙虾</string>
-    <string name="settings_inspired">灵感来自 OpenClaw</string>
-    <string name="settings_copied">已复制</string>
-    <string name="settings_cannot_open_link">无法打开链接</string>
+    <string name="settings_channels_desc">Feishu, Discord and other channels</string>
+    <string name="settings_skills">Skills</string>
+    <string name="settings_skills_desc">Manage Agent Skills</string>
+    <string name="settings_termux">Termux Setup</string>
+    <string name="settings_termux_desc">Configure Termux SSH connection</string>
+    <string name="settings_section_files">Files</string>
+    <string name="settings_select_editor">Select text editor</string>
+    <string name="settings_cannot_open">Cannot open: %s</string>
+    <string name="settings_file_not_found">File not found</string>
+    <string name="settings_section_ui">Interface</string>
+    <string name="settings_float_window">Session Floating Window</string>
+    <string name="settings_float_window_desc">Show session info in background</string>
+    <string name="settings_section_app">Application</string>
+    <string name="settings_check_update">Check for Updates</string>
+    <string name="settings_current_version">Current version v%s</string>
+    <string name="settings_checking_update">Checking for updates…</string>
+    <string name="settings_up_to_date">Already up to date v%s</string>
+    <string name="settings_check_failed">Check failed: %s</string>
+    <string name="settings_restart_app">Restart App</string>
+    <string name="settings_restart_desc">Reload configuration and all services</string>
+    <string name="settings_restart_title">Restart App</string>
+    <string name="settings_restart_message">This will close and restart the app, reloading all configuration and services.\n\nAre you sure?</string>
+    <string name="settings_restart_confirm">Restart</string>
+    <string name="settings_section_legal">Legal</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_privacy_desc">View privacy policy</string>
+    <string name="settings_terms">Terms of Service</string>
+    <string name="settings_terms_desc">View terms of service</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_email">Email</string>
+    <string name="settings_wechat">WeChat</string>
+    <string name="settings_feishu_group">Feishu Group</string>
+    <string name="settings_feishu_join">Click to join</string>
+    <string name="settings_github">GitHub Repository</string>
+    <string name="settings_github_desc">View source / Submit Issue</string>
+    <string name="settings_copyright">© 2024–2025 Claw</string>
+    <string name="settings_inspired">Inspired by OpenClaw</string>
+    <string name="settings_copied">Copied</string>
+    <string name="settings_cannot_open_link">Cannot open link</string>
 
-    <!-- Connect tab (Claw) -->
     <string name="connect_llm_api">LLM API</string>
-    <string name="connect_provider">服务商</string>
-    <string name="connect_default_model">默认模型</string>
+    <string name="connect_provider">Provider</string>
+    <string name="connect_default_model">Default Model</string>
     <string name="connect_api_key">API Key</string>
-    <string name="connect_api_configured">已配置</string>
-    <string name="connect_api_not_configured">未配置</string>
-    <string name="connect_loading">加载中…</string>
-    <string name="connect_read_failed">读取失败</string>
-    <string name="connect_modify_config">修改配置</string>
-    <string name="connect_local_gateway">本地 Gateway</string>
-    <string name="connect_port_label">端口</string>
-    <string name="connect_status_label">状态</string>
-    <string name="connect_running">运行中</string>
-    <string name="connect_not_running">未运行</string>
+    <string name="connect_api_configured">Configured</string>
+    <string name="connect_api_not_configured">Not configured</string>
+    <string name="connect_loading">Loading…</string>
+    <string name="connect_read_failed">Read failed</string>
+    <string name="connect_modify_config">Modify Configuration</string>
+    <string name="connect_local_gateway">Local Gateway</string>
+    <string name="connect_port_label">Port</string>
+    <string name="connect_status_label">Status</string>
+    <string name="connect_running">Running</string>
+    <string name="connect_not_running">Not running</string>
     <string name="connect_channels">Channels</string>
-    <string name="connect_feishu">飞书</string>
-    <string name="connect_weixin">微信</string>
-    <string name="connect_enabled">已启用</string>
-    <string name="connect_manage">管理</string>
-    <string name="connect_skills">技能</string>
-    <string name="connect_skills_loaded">%d 个</string>
+    <string name="connect_feishu">Feishu</string>
+    <string name="connect_weixin">WeChat</string>
+    <string name="connect_enabled">Enabled</string>
+    <string name="connect_manage">Manage</string>
+    <string name="connect_skills">Skills</string>
+    <string name="connect_skills_loaded">%d loaded</string>
     <string name="connect_mcp_server">MCP Server</string>
-    <string name="connect_mcp_stopped">已停止</string>
-    <string name="connect_mcp_config">配置</string>
-    <string name="connect_permissions">权限</string>
-    <string name="connect_accessibility">无障碍</string>
-    <string name="connect_overlay">悬浮窗</string>
-    <string name="connect_screen_capture">录屏</string>
-    <string name="connect_granted">已授权</string>
-    <string name="connect_not_granted">未授权</string>
-    <string name="connect_go_grant">去授权</string>
-    <string name="connect_view">查看</string>
+    <string name="connect_mcp_stopped">Stopped</string>
+    <string name="connect_mcp_config">Configure</string>
+    <string name="connect_permissions">Permissions</string>
+    <string name="connect_accessibility">Accessibility</string>
+    <string name="connect_overlay">Overlay</string>
+    <string name="connect_screen_capture">Screen Capture</string>
+    <string name="connect_granted">Granted</string>
+    <string name="connect_not_granted">Not granted</string>
+    <string name="connect_go_grant">Grant</string>
+    <string name="connect_view">View</string>
 
-    <!-- Channel model picker -->
-    <string name="picker_model_override">模型（可选覆盖）</string>
-    <string name="picker_model_label">模型</string>
-    <string name="picker_use_global">使用全局默认模型</string>
-    <string name="picker_no_provider">⚠ 未配置任何 Provider，请先在「模型配置」页添加</string>
+    <string name="picker_model_override">Model (optional override)</string>
+    <string name="picker_model_label">Model</string>
+    <string name="picker_use_global">Use global default model</string>
+    <string name="picker_no_provider">No providers configured, please add in \"Model Configuration\" first</string>
 
-    <!-- Channel titles -->
-    <string name="signal_channel_title">Signal 频道</string>
-    <string name="whatsapp_channel_title">WhatsApp 频道</string>
-    <string name="slack_channel_title">Slack 频道</string>
-    <string name="telegram_channel_title">Telegram 频道</string>
-    <string name="feishu_channel_title">飞书频道</string>
-    <string name="discord_channel_title">Discord 频道</string>
-    <string name="channels_title">渠道列表</string>
-    <string name="dm_policy">私聊策略</string>
-    <string name="group_policy">群聊策略</string>
-    <string name="mcp_server_title">MCP 服务</string>
-    <string name="skills_management">技能管理</string>
-    <string name="skill_detail">技能详情</string>
-    <string name="web_clipboard">网页剪切板</string>
-    <string name="unknown">未知</string>
+    <string name="signal_channel_title">Signal Channel</string>
+    <string name="whatsapp_channel_title">WhatsApp Channel</string>
+    <string name="slack_channel_title">Slack Channel</string>
+    <string name="telegram_channel_title">Telegram Channel</string>
+    <string name="feishu_channel_title">Feishu Channel</string>
+    <string name="discord_channel_title">Discord Channel</string>
+    <string name="channels_title">Channel List</string>
+    <string name="dm_policy">DM Policy</string>
+    <string name="group_policy">Group Policy</string>
+    <string name="mcp_server_title">MCP Service</string>
+    <string name="skills_management">Skills Management</string>
+    <string name="skill_detail">Skill Detail</string>
+    <string name="web_clipboard">Web Clipboard</string>
+    <string name="unknown">Unknown</string>
 </resources>

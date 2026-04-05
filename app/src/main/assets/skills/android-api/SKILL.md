@@ -1,90 +1,90 @@
 ---
 name: android-api
-description: Android 系统 API 直调工具。当用户要求设置闹钟、定时器、剪贴板、手电筒、音量、亮度、电池查询、启动 App、系统设置等操作时触发。替代 UI 自动化，直接调用系统 API 完成操作。
+description: Android system API tool. Triggered when user asks to set alarm, timer, clipboard, flashlight, volume, brightness, battery query, start app, system settings, etc. Replaces UI automation with direct system API calls.
 ---
 
 # Android API Skill
 
-直接调用 Android 系统 API 操作设备功能，比 UI 自动化更可靠、更高效。
+Directly call Android system APIs to operate device functions, more reliable and efficient than UI automation.
 
-## 用法
+## Usage
 
-单一工具 `android_api`，通过 `action` 参数路由到不同操作。
+Single tool `android_api`, routing to different operations via `action` parameter.
 
-## 支持的操作
+## Supported Operations
 
-### 闹钟/定时器
-- `set_alarm` — 设置闹钟。参数: `hour`(0-23), `minute`(0-59), `message`(标签，可选)
-- `set_timer` — 设置倒计时。参数: `seconds`, `message`(标签，可选)
+### Alarm/Timer
+- `set_alarm` — Set alarm. Parameters: `hour`(0-23), `minute`(0-59), `message`(label, optional)
+- `set_timer` — Set countdown. Parameters: `seconds`, `message`(label, optional)
 
 ```
-android_api(action="set_alarm", hour=7, minute=30, message="起床")
-android_api(action="set_timer", seconds=1800, message="煮饭")
+android_api(action="set_alarm", hour=7, minute=30, message="Wake up")
+android_api(action="set_timer", seconds=1800, message="Cooking")
 ```
 
-### 剪贴板
-- `get_clipboard` — 读取当前剪贴板内容
-- `set_clipboard` — 写入剪贴板。参数: `text`
+### Clipboard
+- `get_clipboard` — Read current clipboard content
+- `set_clipboard` — Write to clipboard. Parameters: `text`
 
 ```
 android_api(action="get_clipboard")
 android_api(action="set_clipboard", text="Hello World")
 ```
 
-### 电池/存储
-- `get_battery` — 获取电池电量和充电状态
-- `get_storage` — 获取内外部存储空间
+### Battery/Storage
+- `get_battery` — Get battery level and charging status
+- `get_storage` — Get internal and external storage space
 
 ```
 android_api(action="get_battery")
 android_api(action="get_storage")
 ```
 
-### 手电筒
-- `flashlight` — 开关手电筒。参数: `on`(true/false)
+### Flashlight
+- `flashlight` — Toggle flashlight. Parameters: `on`(true/false)
 
 ```
 android_api(action="flashlight", on=true)
 ```
 
-### 音量
-- `get_volume` — 获取所有音轨音量
-- `set_volume` — 设置音量。参数: `stream`(music/call/ring/notification/alarm/system), `level`(0-100)
+### Volume
+- `get_volume` — Get all audio track volumes
+- `set_volume` — Set volume. Parameters: `stream`(music/call/ring/notification/alarm/system), `level`(0-100)
 
 ```
 android_api(action="set_volume", stream="music", level=50)
 ```
 
-### 亮度
-- `set_brightness` — 设置屏幕亮度。参数: `level`(0-255) 或 `auto`(true)
+### Brightness
+- `set_brightness` — Set screen brightness. Parameters: `level`(0-255) or `auto`(true)
 
 ```
 android_api(action="set_brightness", level=128)
 android_api(action="set_brightness", auto=true)
 ```
 
-### 启动 App/Activity
-- `start_app` — 启动应用。参数: `package`(包名)
-- `start_activity` — 启动 Activity。参数: `action`(Intent action), `data?`(URI), `package?`
+### Start App/Activity
+- `start_app` — Start app. Parameters: `package`(package name)
+- `start_activity` — Start Activity. Parameters: `action`(Intent action), `data?`(URI), `package?`
 
 ```
 android_api(action="start_app", package="com.android.settings")
 android_api(action="start_activity", action="android.intent.action.VIEW", data="https://example.com")
 ```
 
-### 广播/设置
-- `send_broadcast` — 发送广播。参数: `action`, `package?`
-- `set_screen_timeout` — 设置屏幕超时。参数: `seconds`
-- `open_settings` — 打开系统设置页。参数: `page`(wifi/bluetooth/battery/display/sound/storage/app/all)
+### Broadcast/Settings
+- `send_broadcast` — Send broadcast. Parameters: `action`, `package?`
+- `set_screen_timeout` — Set screen timeout. Parameters: `seconds`
+- `open_settings` — Open system settings page. Parameters: `page`(wifi/bluetooth/battery/display/sound/storage/app/all)
 
 ```
 android_api(action="open_settings", page="wifi")
 android_api(action="set_screen_timeout", seconds=300)
 ```
 
-## 最佳实践
+## Best Practices
 
-1. **优先用 API，不走 UI 自动化**：设置闹钟、调音量、查电池等系统操作，直接 API 调用比截图+点按可靠 10 倍
-2. **注意权限**：亮度调节需要 WRITE_SETTINGS 权限，首次使用会跳转授权页
-3. **Intent fallback**：闹钟/定时器通过 Intent 调起系统时钟，实际交互由系统完成
-4. **结合 device 工具**：API 搞不定的操作（如在某个 App 内点击），用 device(action="act") 互补
+1. **Prefer API over UI automation**: System operations like setting alarm, adjusting volume, checking battery are 10x more reliable with direct API calls than screenshot + tap
+2. **Note permissions**: Brightness adjustment requires WRITE_SETTINGS permission, will redirect to authorization page on first use
+3. **Intent fallback**: Alarm/timer uses Intent to invoke system clock, actual interaction done by system
+4. **Combine with device tool**: For operations API can't handle (like clicking inside an app), complement with device(action="act")
