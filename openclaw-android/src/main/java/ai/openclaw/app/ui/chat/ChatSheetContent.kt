@@ -247,7 +247,7 @@ private fun ChatErrorRail(errorText: String) {
   ) {
     Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
       Text(
-        text = "对话错误",
+        text = "Chat error",
         style = mobileCaption2.copy(letterSpacing = 0.6.sp),
         color = mobileDanger,
       )

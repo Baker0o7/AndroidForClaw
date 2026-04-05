@@ -242,7 +242,7 @@ class MicCaptureManager(
         completePendingTurn()
       }
       "aborted" -> {
-        upsertPendingAssistant(text = "已中止回复", isStreaming = false)
+        upsertPendingAssistant(text = "Reply aborted", isStreaming = false)
         completePendingTurn()
       }
     }

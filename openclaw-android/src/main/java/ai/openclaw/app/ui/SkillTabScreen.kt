@@ -48,9 +48,9 @@ private const val FILTER_ALL = "all"
 private const val FILTER_INSTALLED = "installed"
 
 private val categoryLabels = linkedMapOf(
-    FILTER_ALL to "全部",
-    FILTER_INSTALLED to "已安装",
-    "bundled" to "预置",
+    FILTER_ALL to "All",
+    FILTER_INSTALLED to "Installed",
+    "bundled" to "Built-in",
     "engineering" to "Engineering",
     "design" to "Design",
     "marketing" to "Marketing",
@@ -96,7 +96,7 @@ fun SkillTabScreen(
         try {
             skills = withContext(Dispatchers.IO) { AgencyAgentsFetcher.loadAllSkills(context) }
         } catch (e: Exception) {
-            loadError = e.message ?: "加载失败"
+            loadError = e.message ?: "Failed to load"
         }
         withContext(Dispatchers.IO) { refreshInstalled() }
         isLoading = false
@@ -120,7 +120,7 @@ fun SkillTabScreen(
                         try {
                             skills = withContext(Dispatchers.IO) { AgencyAgentsFetcher.forceRefresh(context) }
                         } catch (e: Exception) {
-                            loadError = e.message ?: "刷新失败"
+                            loadError = e.message ?: "Refresh failed"
                         }
                         withContext(Dispatchers.IO) { refreshInstalled() }
                         isLoading = false
@@ -209,12 +209,12 @@ private fun SkillListPage(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("搜索 Skills...", color = mobileTextTertiary) },
+            placeholder = { Text("Search Skills...", color = mobileTextTertiary) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = mobileTextTertiary) },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { searchQuery = "" }) {
-                        Icon(Icons.Default.Close, contentDescription = "清除", tint = mobileTextTertiary)
+                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = mobileTextTertiary)
                     }
                 }
             },
@@ -273,14 +273,14 @@ private fun SkillListPage(
             loadError != null && skills.isEmpty() -> {
                 Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("加载失败", style = mobileTitle2, color = mobileText)
+                        Text("Failed to load", style = mobileTitle2, color = mobileText)
                         Text(loadError, style = mobileBody, color = mobileTextSecondary)
                         Button(
                             onClick = onRefresh,
                             colors = ButtonDefaults.buttonColors(containerColor = mobileAccent),
                             shape = RoundedCornerShape(12.dp),
                         ) {
-                            Text("重试", color = mobileText)
+                            Text("Retry", color = mobileText)
                         }
                     }
                 }
@@ -290,13 +290,13 @@ private fun SkillListPage(
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("🔍", fontSize = 48.sp)
                         if (activeFilter == FILTER_INSTALLED) {
-                            Text("还没有已安装的 Skills", style = mobileHeadline, color = mobileText)
-                            Text("浏览全部 Skills 并安装你感兴趣的", style = mobileBody, color = mobileTextSecondary)
+                            Text("No installed Skills yet", style = mobileHeadline, color = mobileText)
+                            Text("Browse all Skills and install the ones you're interested in", style = mobileBody, color = mobileTextSecondary)
                             TextButton(onClick = { activeFilter = FILTER_ALL }) {
-                                Text("浏览全部", color = mobileAccent)
+                                Text("Browse all", color = mobileAccent)
                             }
                         } else {
-                            Text("没有找到匹配的 Skill", style = mobileHeadline, color = mobileText)
+                            Text("No matching Skill found", style = mobileHeadline, color = mobileText)
                         }
                     }
                 }
@@ -307,7 +307,7 @@ private fun SkillListPage(
                     if (showFeatured && activeFilter != "bundled" && AgencyAgentsFetcher.featuredSkills.isNotEmpty()) {
                         item(key = "featured_header") {
                             Text(
-                                "🔥 精选",
+                                "🔥 Featured",
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                 style = mobileHeadline,
                                 color = mobileText,
@@ -386,7 +386,7 @@ private fun FeaturedSkillCard(skill: OnlineSkill, installed: Boolean, onClick: (
                 Text(skill.emoji, fontSize = 28.sp)
                 if (installed) {
                     Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.Check, contentDescription = "已安装", modifier = Modifier.size(16.dp), tint = mobileAccent)
+                    Icon(Icons.Default.Check, contentDescription = "Installed", modifier = Modifier.size(16.dp), tint = mobileAccent)
                 }
             }
             Text(
@@ -434,7 +434,7 @@ private fun SkillListItem(skill: OnlineSkill, installed: Boolean, onClick: () ->
                 }
             }
             if (installed) {
-                Icon(Icons.Default.Check, contentDescription = "已安装", modifier = Modifier.size(18.dp), tint = mobileAccent)
+                Icon(Icons.Default.Check, contentDescription = "Installed", modifier = Modifier.size(18.dp), tint = mobileAccent)
             }
             Text("›", fontSize = 20.sp, color = mobileTextTertiary)
         }
@@ -511,7 +511,7 @@ private fun SkillDetailPage(
             title = { Text(skill.name, color = mobileText, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = mobileText)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = mobileText)
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = mobileCardSurface),
@@ -565,7 +565,7 @@ private fun SkillDetailPage(
                         ) {
                             Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp), tint = mobileAccent)
                             Spacer(Modifier.width(6.dp))
-                            Text("预置 Skill", color = mobileAccent)
+                            Text("Built-in Skill", color = mobileAccent)
                         }
                     } else if (isInstalled) {
                         OutlinedButton(
@@ -576,7 +576,7 @@ private fun SkillDetailPage(
                         ) {
                             Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp), tint = mobileAccent)
                             Spacer(Modifier.width(6.dp))
-                            Text("已安装 — 点击卸载", color = mobileAccent)
+                            Text("Installed — tap to uninstall", color = mobileAccent)
                         }
                     } else {
                         Button(
@@ -586,7 +586,7 @@ private fun SkillDetailPage(
                             colors = ButtonDefaults.buttonColors(containerColor = mobileAccent),
                             enabled = content.isNotEmpty(),
                         ) {
-                            Text("安装此 Skill", color = mobileText)
+                            Text("Install this Skill", color = mobileText)
                         }
                     }
 
@@ -600,7 +600,7 @@ private fun SkillDetailPage(
                         ) {
                             Icon(Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp), tint = mobileTextSecondary)
                             Spacer(Modifier.width(6.dp))
-                            Text("查看文件", color = mobileTextSecondary)
+                            Text("View files", color = mobileTextSecondary)
                         }
                     }
 
@@ -617,7 +617,7 @@ private fun SkillDetailPage(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            Text("无法加载内容", style = mobileBody, color = mobileTextSecondary)
+                            Text("Unable to load content", style = mobileBody, color = mobileTextSecondary)
                             Button(
                                 onClick = {
                                     scope.launch {
@@ -634,7 +634,7 @@ private fun SkillDetailPage(
                                 colors = ButtonDefaults.buttonColors(containerColor = mobileAccent),
                                 shape = RoundedCornerShape(12.dp),
                             ) {
-                                Text("重试", color = mobileText)
+                                Text("Retry", color = mobileText)
                             }
                         }
                     }

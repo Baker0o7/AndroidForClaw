@@ -16,41 +16,41 @@ import java.io.InputStreamReader
 /**
  * ADB Self-Control Skill
  *
- * 给开发电脑使用，通过 ADB 远程调用 PhoneForClaw 的 Self-Control 功能。
+ * Used by development computers, remote invocation of PhoneForClaw's Self-Control features via ADB.
  *
- * 这个 Skill 封装了 ADB 命令，让开发者可以从电脑上远程控制 PhoneForClaw。
+ * This Skill encapsulates ADB commands, allowing developers to remotely control PhoneForClaw from their computer.
  *
- * 使用场景：
- * - CI/CD 自动化测试
- * - 远程调试和配置
- * - 开发过程中的快速测试
- * - 多设备批量控制
+ * Use cases:
+ * - CI/CD automated testing
+ * - Remote debugging and configuration
+ * - Quick testing during development
+ * - Batch control of multiple devices
  *
- * 注意：
- * - 这个 Skill 运行在开发电脑上（不是 Android 设备上）
- * - 需要安装 ADB（Android Debug Bridge）
- * - 需要通过 USB 连接或网络 ADB 连接设备
+ * Note:
+ * - This Skill runs on the development computer (not on Android device)
+ * - Requires ADB (Android Debug Bridge) installed
+ * - Requires device connected via USB or network ADB
  *
- * 示例（Python/Shell）：
+ * Examples (Python/Shell):
  * ```python
- * # 使用 Python
+ * # Using Python
  * import subprocess
  *
  * def adb_self_control(skill, **kwargs):
  *     args = " ".join([f"--extra {k}:s:{v}" for k, v in kwargs.items()])
- *     cmd = f'adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute --method {skill} {args}'
+ *     cmd = f'alb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute --method {skill} {args}'
  *     result = subprocess.check_output(cmd, shell=True)
  *     return result.decode()
  *
- * # 页面导航
+ * # Page navigation
  * adb_self_control("navigate_app", page="config")
  *
- * # 配置管理
+ * # Configuration management
  * adb_self_control("manage_config", operation="get", key="exploration_mode")
  * ```
  *
  * ```bash
- * # 使用 Shell 脚本
+ * # Using Shell script
  * ./self-control-adb.sh navigate_app page=config
  * ./self-control-adb.sh manage_config operation=get key=exploration_mode
  * ```
@@ -60,7 +60,7 @@ class ADBSelfControlSkill(private val context: Context) : Skill {
         private const val TAG = "ADBSelfControlSkill"
 
         /**
-         * 生成 ADB 命令字符串
+         * Generate ADB command string
          */
         fun generateADBCommand(skill: String, args: Map<String, Any?>): String {
             val extras = args.map { (key, value) ->
@@ -81,7 +81,7 @@ class ADBSelfControlSkill(private val context: Context) : Skill {
         }
 
         /**
-         * 生成 Broadcast 命令字符串
+         * Generate Broadcast command string
          */
         fun generateBroadcastCommand(skill: String, args: Map<String, Any?>): String {
             val extras = args.map { (key, value) ->
@@ -102,7 +102,7 @@ class ADBSelfControlSkill(private val context: Context) : Skill {
         }
 
         /**
-         * 生成辅助脚本命令字符串
+         * Generate helper script command string
          */
         fun generateScriptCommand(skill: String, args: Map<String, Any?>): String {
             val params = args.map { (key, value) ->
@@ -123,52 +123,52 @@ class ADBSelfControlSkill(private val context: Context) : Skill {
     override val name = "adb_self_control"
 
     override val description = """
-        通过 ADB 远程调用 PhoneForClaw 的 Self-Control 功能（开发电脑使用）。
+        Remote invocation of PhoneForClaw's Self-Control features via ADB (for development computers).
 
-        此 Skill 生成 ADB 命令，用于从开发电脑远程控制 Android 设备上的 PhoneForClaw。
+        This Skill generates ADB commands to remotely control PhoneForClaw on Android devices from a development computer.
 
-        支持 3 种命令格式：
-        - ContentProvider (推荐)：返回结构化数据
-        - Broadcast：兼容性好，异步执行
-        - Shell Script：封装简化，易于使用
+        Supports 3 command formats:
+        - ContentProvider (recommended): returns structured data
+        - Broadcast: better compatibility, async execution
+        - Shell Script: simplified encapsulation, easy to use
 
-        使用场景：
-        - CI/CD 自动化测试
-        - 远程调试和配置
-        - 快速测试和验证
-        - 多设备批量控制
+        Use cases:
+        - CI/CD automated testing
+        - Remote debugging and configuration
+        - Quick testing and validation
+        - Batch control of multiple devices
 
-        示例：
+        Examples:
         ```
-        # 获取 ContentProvider 命令
+        # Get ContentProvider command
         {
           "method": "provider",
           "skill": "navigate_app",
           "args": {"page": "config"}
         }
-        返回：adb shell content call --uri ... --method navigate_app --extra page:s:config
+        Returns: adb shell content call --uri ... --method navigate_app --extra page:s:config
 
-        # 获取 Broadcast 命令
+        # Get Broadcast command
         {
           "method": "broadcast",
           "skill": "manage_config",
           "args": {"operation": "get", "key": "exploration_mode"}
         }
-        返回：adb shell am broadcast -a ... --es skill manage_config --es operation get --es key exploration_mode
+        Returns: adb shell am broadcast -a ... --es skill manage_config --es operation get --es key exploration_mode
 
-        # 获取脚本命令
+        # Get script command
         {
           "method": "script",
           "skill": "control_service",
           "args": {"operation": "hide_float"}
         }
-        返回：./self-control-adb.sh control_service operation=hide_float
+        Returns: ./self-control-adb.sh control_service operation=hide_float
         ```
 
-        注意：
-        - 此 Skill 仅生成命令字符串，不实际执行
-        - 需要在开发电脑上运行生成的命令
-        - 设备需要通过 USB 或网络 ADB 连接
+        Note:
+        - This Skill only generates command strings, does not actually execute
+        - Run generated commands on development computer
+        - Device must be connected via USB or network ADB
     """.trimIndent()
 
     override fun getToolDefinition(): ToolDefinition {
@@ -182,16 +182,16 @@ class ADBSelfControlSkill(private val context: Context) : Skill {
                     properties = mapOf(
                         "method" to PropertySchema(
                             type = "string",
-                            description = "ADB 调用方法",
+                            description = "ADB invocation method",
                             enum = listOf("provider", "broadcast", "script")
                         ),
                         "skill" to PropertySchema(
                             type = "string",
-                            description = "目标 Skill 名称"
+                            description = "Target Skill name"
                         ),
                         "args" to PropertySchema(
                             type = "object",
-                            description = "Skill 参数（JSON 对象）"
+                            description = "Skill parameters (JSON object)"
                         )
                     ),
                     required = listOf("method", "skill")
