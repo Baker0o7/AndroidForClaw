@@ -59,17 +59,16 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "OpenRouter",
                 baseUrl = "https://openrouter.ai/api/v1",
                 api = "openai-completions",
-                hint = "OpenRouter 聚合了 Claude、GPT、Gemini、MiMo 等多个模型，一个 Key 即可使用全部。",
+                hint = "OpenRouter aggregates Claude, GPT, Gemini, MiMo and more — one Key for all.",
                 models = listOf(
-                    ModelPreset("qwen/qwen3.6-plus:free", "Qwen 3.6 Plus (默认，免费，推理)", reasoning = true, contextWindow = 131072, maxTokens = 32000),
-                    ModelPreset("openrouter/hunter-alpha", "🏹 Hunter Alpha (免费，1M上下文)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("openrouter/free", "🆓 免费自动路由 (无需充值)"),
-                    ModelPreset("qwen/qwen3-coder:free", "🆓 Qwen3 Coder (免费，262K)", contextWindow = 262000),
-                    ModelPreset("deepseek/deepseek-r1:free", "🆓 DeepSeek R1 (免费，推理)", reasoning = true, contextWindow = 163840),
-                    ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (付费，推荐)", contextWindow = 200000, maxTokens = 16384),
-                    ModelPreset("anthropic/claude-opus-4", "Claude Opus 4 (付费)", contextWindow = 200000, maxTokens = 32768),
-                    ModelPreset("openai/gpt-4.1", "GPT-4.1 (付费)", contextWindow = 1048576, maxTokens = 32768),
-                    ModelPreset("google/gemini-2.5-pro", "Gemini 2.5 Pro (付费)", contextWindow = 1048576, maxTokens = 65536)
+                    ModelPreset("qwen/qwen3.6-plus:free", "🆓 Qwen 3.6 Plus (Default, Free, Best Coding)", reasoning = true, contextWindow = 131072, maxTokens = 32000),
+                    ModelPreset("openrouter/hunter-alpha", "Hunter Alpha (Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    ModelPreset("openrouter/free", "Free Auto Router (No Top-up Required)"),
+                    ModelPreset("stepfun/step-3.5-flash:free", "Step 3.5 Flash (Free, Coding)", contextWindow = 262144),
+                    ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (Paid, Recommended)", contextWindow = 200000, maxTokens = 16384),
+                    ModelPreset("anthropic/claude-opus-4", "Claude Opus 4 (Paid)", contextWindow = 200000, maxTokens = 32768),
+                    ModelPreset("openai/gpt-4.1", "GPT-4.1 (Paid)", contextWindow = 1048576, maxTokens = 32768),
+                    ModelPreset("google/gemini-2.5-pro", "Gemini 2.5 Pro (Paid)", contextWindow = 1048576, maxTokens = 65536)
                 ),
                 authHeader = true
             ),
@@ -77,10 +76,10 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "Google (Gemini)",
                 baseUrl = "https://generativelanguage.googleapis.com/v1beta",
                 api = "google-generative-ai",
-                hint = "Google Gemini API。注册: aistudio.google.com/apikey",
+                hint = "Google Gemini API. Register: aistudio.google.com/apikey",
                 models = listOf(
-                    ModelPreset("gemini-2.5-pro", "Gemini 2.5 Pro (推荐，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("gemini-2.5-flash", "Gemini 2.5 Flash (快速，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 65536)
+                    ModelPreset("gemini-2.5-pro", "Gemini 2.5 Pro (Recommended, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    ModelPreset("gemini-2.5-flash", "Gemini 2.5 Flash (Fast, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536)
                 ),
                 authHeader = true
             ),
@@ -88,22 +87,22 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "Anthropic",
                 baseUrl = "https://api.anthropic.com/v1",
                 api = "anthropic-messages",
-                hint = "Anthropic 官方 API，直连 Claude。注册: console.anthropic.com",
+                hint = "Anthropic official API, direct connection to Claude. Register: console.anthropic.com",
                 models = listOf(
-                    ModelPreset("claude-sonnet-4-20250514", "Claude Sonnet 4 (推荐)"),
+                    ModelPreset("claude-sonnet-4-20250514", "Claude Sonnet 4 (Recommended)"),
                     ModelPreset("claude-opus-4-20250514", "Claude Opus 4"),
-                    ModelPreset("claude-haiku-3-5-20241022", "Claude 3.5 Haiku (快速)")
+                    ModelPreset("claude-haiku-3-5-20241022", "Claude 3.5 Haiku (Fast)")
                 )
             ),
             "xiaomi" to ProviderPreset(
-                name = "小米 MiMo",
+                name = "Xiaomi MiMo",
                 baseUrl = "https://api.xiaomimimo.com/v1",
                 api = "openai-completions",
-                hint = "小米 MiMo 大模型。注册: xiaomimimo.com",
+                hint = "Xiaomi MiMo LLM. Register: xiaomimimo.com",
                 models = listOf(
-                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (1M，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (1M, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
                     ModelPreset("mimo-v2-flash", "MiMo V2 Flash (262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
-                    ModelPreset("mimo-v2-omni", "MiMo V2 Omni (262K，推理+图片)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
+                    ModelPreset("mimo-v2-omni", "MiMo V2 Omni (262K, Reasoning+Vision)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
                 ),
                 authHeader = true
             ),
@@ -111,23 +110,23 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "OpenAI",
                 baseUrl = "https://api.openai.com/v1",
                 api = "openai-completions",
-                hint = "OpenAI 官方 API。注册: platform.openai.com",
+                hint = "OpenAI official API. Register: platform.openai.com",
                 models = listOf(
-                    ModelPreset("gpt-4.1", "GPT-4.1 (推荐)"),
-                    ModelPreset("gpt-4.1-mini", "GPT-4.1 Mini (快速)"),
-                    ModelPreset("o3", "o3 (推理)")
+                    ModelPreset("gpt-4.1", "GPT-4.1 (Recommended)"),
+                    ModelPreset("gpt-4.1-mini", "GPT-4.1 Mini (Fast)"),
+                    ModelPreset("o3", "o3 (Reasoning)")
                 )
             ),
             "nvidia" to ProviderPreset(
                 name = "NVIDIA NIM",
                 baseUrl = "https://integrate.api.nvidia.com/v1",
                 api = "openai-completions",
-                hint = "NVIDIA NIM 托管模型，免费试用。注册: build.nvidia.com",
+                hint = "NVIDIA NIM hosted models, free trial. Register: build.nvidia.com",
                 models = listOf(
-                    ModelPreset("moonshotai/kimi-k2.5", "Kimi K2.5 (免费，多模态)", contextWindow = 131072, maxTokens = 8192),
-                    ModelPreset("deepseek-ai/deepseek-r1", "DeepSeek R1 (免费，推理)", reasoning = true, contextWindow = 131072, maxTokens = 8192),
+                    ModelPreset("moonshotai/kimi-k2.5", "Kimi K2.5 (Free, Multimodal)", contextWindow = 131072, maxTokens = 8192),
+                    ModelPreset("deepseek-ai/deepseek-r1", "DeepSeek R1 (Free, Reasoning)", reasoning = true, contextWindow = 131072, maxTokens = 8192),
                     ModelPreset("meta/llama-4-maverick-17b-128e-instruct", "Llama 4 Maverick 17B", contextWindow = 131072, maxTokens = 8192),
-                    ModelPreset("", "手动输入模型 ID")
+                    ModelPreset("", "Enter Model ID Manually")
                 ),
                 authHeader = true
             ),
