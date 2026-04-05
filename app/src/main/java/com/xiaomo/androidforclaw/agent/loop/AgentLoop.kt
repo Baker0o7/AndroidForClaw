@@ -972,8 +972,16 @@ class AgentLoop(
 
                 // 4.4 No tool calls, meaning LLM provided final answer
                 // Filter SILENT_REPLY_TOKEN (aligned with OpenClaw normalizeStreamingText)
-                val rawContent = response.content?.let { ReasoningTagFilter.stripReasoningTags(it) }
+                var rawContent = response.content?.let { ReasoningTagFilter.stripReasoningTags(it) }
                     ?: response.content
+
+                // Fallback: some models (e.g. o3 on Copilot API) return content in reasoning_content
+                // instead of content when reasoning is disabled. Use reasoning as fallback.
+                if (rawContent.isNullOrBlank() && !response.thinkingContent.isNullOrBlank()) {
+                    writeLog("⚠️ content is empty, falling back to reasoning_content (${response.thinkingContent!!.length} chars)")
+                    Log.w(TAG, "⚠️ content empty, using reasoning_content as fallback")
+                    rawContent = response.thinkingContent
+                }
 
                 // Warn if LLM returned suspicious default text
                 if (rawContent == "无响应" || rawContent == "无响应。" || rawContent == "没有响应") {
