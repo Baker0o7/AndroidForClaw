@@ -130,6 +130,23 @@ object ContextErrors {
         return status in TRANSIENT_HTTP_ERROR_CODES
     }
 
+    /**
+     * Detect overloaded errors (HTTP 529 or 503+overloaded).
+     * Aligned with OpenClaw classifyFailoverReason → "overloaded":
+     * - 529 always overloaded
+     * - 503 with "overload" in message body
+     */
+    fun isOverloadedError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullOrBlank()) return false
+        val trimmed = errorMessage.trim()
+        val status = extractLeadingHttpStatus(trimmed) ?: return false
+        return when (status) {
+            529 -> true
+            503 -> trimmed.lowercase().contains("overload")
+            else -> false
+        }
+    }
+
     // ==================== Role Ordering / Session Corruption ====================
 
     /**

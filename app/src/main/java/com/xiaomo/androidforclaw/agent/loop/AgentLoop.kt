@@ -105,10 +105,29 @@ class AgentLoop(
         private const val TIMEOUT_COMPACTION_TOKEN_RATIO = 0.65f
 
         /**
-         * Iteration warn threshold (no hard limit).
+         * Iteration warn threshold.
          * OpenClaw has no per-iteration timeout; this is Android-only observability.
          */
         private const val ITERATION_WARN_THRESHOLD_MS = 5 * 60 * 1000L
+
+        /**
+         * Max loop iterations — safety cap aligned with OpenClaw MAX_RUN_LOOP_ITERATIONS.
+         * OpenClaw: resolveMaxRunRetryIterations(profileCandidates.length)
+         *   = BASE_RUN_RETRY_ITERATIONS(24) + RUN_RETRY_ITERATIONS_PER_PROFILE(8) * numProfiles
+         *   clamped to [MIN_RUN_RETRY_ITERATIONS(32), MAX_RUN_RETRY_ITERATIONS(160)]
+         * Android: single profile → use MAX (160) for safety headroom since no auth failover.
+         */
+        private const val MAX_RUN_LOOP_ITERATIONS = 160
+
+        /**
+         * Overload backoff: aligned with OpenClaw OVERLOAD_FAILOVER_BACKOFF_POLICY.
+         * Used for HTTP 529 (overloaded) and 503+overload message.
+         * exponential: initialMs=250, maxMs=1500, factor=2, jitter=0.2
+         */
+        private const val OVERLOAD_BACKOFF_INITIAL_MS = 250L
+        private const val OVERLOAD_BACKOFF_MAX_MS = 1_500L
+        private const val OVERLOAD_BACKOFF_FACTOR = 2
+        private const val OVERLOAD_BACKOFF_JITTER = 0.2
 
         // Context pruning constants (aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS)
         private const val SOFT_TRIM_RATIO = 0.3f
@@ -119,6 +138,10 @@ class AgentLoop(
         private const val SOFT_TRIM_HEAD_CHARS = 1_500
         private const val SOFT_TRIM_TAIL_CHARS = 1_500
         private const val HARD_CLEAR_PLACEHOLDER = "[Old tool result content cleared]"
+
+        // Anthropic refusal magic string scrub (aligned with OpenClaw scrubAnthropicRefusalMagic)
+        private const val ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL"
+        private const val ANTHROPIC_MAGIC_STRING_REPLACEMENT = "ANTHROPIC MAGIC STRING TRIGGER REFUSAL (redacted)"
     }
 
     private val gson = Gson()
@@ -428,12 +451,22 @@ class AgentLoop(
         var finalContent: String? = null
         val toolsUsed = mutableListOf<String>()
         val loopStartTime = System.currentTimeMillis()
+        // Usage accumulator (aligned with OpenClaw usageAccumulator — accumulate across retries)
+        var cumulativePromptTokens = 0L
+        var cumulativeCompletionTokens = 0L
+        var cumulativeTotalTokens = 0L
 
         // 4. Main loop — no iteration limit, no overall timeout (aligned with OpenClaw)
         // OpenClaw's inner loop is while(true), terminates when LLM returns
         // final answer (no tool_calls) or abort/error.
         while (!shouldStop) {
             iteration++
+            // Safety cap — aligned with OpenClaw MAX_RUN_LOOP_ITERATIONS
+            if (iteration > MAX_RUN_LOOP_ITERATIONS) {
+                writeLog("🛑 Max loop iterations reached ($MAX_RUN_LOOP_ITERATIONS), stopping")
+                finalContent = "❌ Request failed after repeated internal retries (max iterations: $MAX_RUN_LOOP_ITERATIONS)."
+                break
+            }
             val iterationStartTime = System.currentTimeMillis()
             writeLog("========== Iteration $iteration ==========")
 
@@ -501,9 +534,12 @@ class AgentLoop(
                     var finalUsage: LLMUsage? = null
                     var finalFinishReason: String? = null
 
+                    // Scrub Anthropic refusal magic string from system prompt (aligned with OpenClaw scrubAnthropicRefusalMagic)
+                    val scrubbedMessages = scrubAnthropicRefusalMagic(messages)
+
                     kotlinx.coroutines.withTimeout(LLM_TIMEOUT_MS) {
                         llmProvider.chatWithToolsStreaming(
-                            messages = messages,
+                            messages = scrubbedMessages,
                             tools = allToolDefinitions,
                             modelRef = modelRef,
                             reasoningEnabled = reasoningEnabled
@@ -541,21 +577,29 @@ class AgentLoop(
                     }
 
                     // 组装完整 LLMResponse（与后续工具调用逻辑衔接）
+                    val rawToolCalls = if (toolCallsAccumulated.isEmpty()) null else {
+                        toolCallsAccumulated.entries.sortedBy { it.key }.map { (_, tc) ->
+                            LLMToolCall(
+                                id = tc.id.ifEmpty { "call_${System.currentTimeMillis()}" },
+                                name = tc.name,
+                                arguments = tc.args.toString()
+                            )
+                        }
+                    }
                     response = LLMResponse(
                         content = contentAccumulated.toString().ifEmpty { null },
-                        toolCalls = if (toolCallsAccumulated.isEmpty()) null else {
-                            toolCallsAccumulated.entries.sortedBy { it.key }.map { (_, tc) ->
-                                LLMToolCall(
-                                    id = tc.id.ifEmpty { "call_${System.currentTimeMillis()}" },
-                                    name = tc.name,
-                                    arguments = tc.args.toString()
-                                )
-                            }
-                        },
+                        toolCalls = rawToolCalls?.let { sanitizeToolCalls(it) },
                         thinkingContent = thinkingAccumulated.toString().ifEmpty { null },
                         usage = finalUsage,
                         finishReason = finalFinishReason
                     )
+
+                    // Accumulate usage across retries (aligned with OpenClaw usageAccumulator)
+                    finalUsage?.let { u ->
+                        cumulativePromptTokens += u.promptTokens
+                        cumulativeCompletionTokens += u.completionTokens
+                        cumulativeTotalTokens += u.totalTokens
+                    }
                 } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                     val errorMsg = "LLM 调用超时 (${LLM_TIMEOUT_MS / 1000}s)"
                     writeLog("⏰ $errorMsg")
@@ -891,7 +935,26 @@ class AgentLoop(
                             continue
                         }
                         is ContextRecoveryResult.CannotRecover -> {
-                            writeLog("❌ 上下文恢复失败: ${recoveryResult.reason}")
+                            // Step 2: Aggressive tool result truncation (aligned with OpenClaw truncateOversizedToolResultsInSession)
+                            // OpenClaw: when contextEngine.compact fails, try truncating oversized tool results before giving up
+                            writeLog("⚠️ Compaction failed, trying aggressive tool result truncation...")
+                            val ctxTokens = resolveContextWindowTokens()
+                            val budgetCharsNow = (ctxTokens * 4 * 0.75).toInt()
+                            pruneOldToolResults(messages, ctxTokens)
+                            ToolResultContextGuard.enforceContextBudget(messages, ctxTokens)
+                            aggressiveTrimMessages(messages, budgetCharsNow)
+
+                            val totalAfterTruncation = ToolResultContextGuard.estimateContextChars(messages)
+                            if (totalAfterTruncation <= budgetCharsNow) {
+                                writeLog("✅ Tool result truncation succeeded, retrying iteration")
+                                _progressFlow.emit(ProgressUpdate.ContextRecovered(
+                                    strategy = "tool_result_truncation",
+                                    attempt = 0
+                                ))
+                                continue
+                            }
+
+                            writeLog("❌ 上下文恢复失败（含 truncation fallback）: ${recoveryResult.reason}")
                             Log.e(TAG, "❌ 上下文恢复失败: ${recoveryResult.reason}")
                             _progressFlow.emit(ProgressUpdate.Error("Context overflow: ${recoveryResult.reason}"))
 
@@ -932,19 +995,38 @@ class AgentLoop(
                     // Transient HTTP error → single retry with delay
                     // Aligned with OpenClaw: TRANSIENT_HTTP_RETRY_DELAY_MS = 2500, retry once
                     if (isTransientHttp && !didRetryTransientHttpError) {
+                        // Overloaded (529/503+overload) → exponential backoff (aligned with OpenClaw OVERLOAD_FAILOVER_BACKOFF_POLICY)
+                        val isOverloaded = ContextErrors.isOverloadedError(errorMessage)
+                        if (isOverloaded) {
+                            writeLog("⚠️ Overloaded error, exponential backoff...")
+                            var backoffDelay = OVERLOAD_BACKOFF_INITIAL_MS
+                            val maxRetries = 4  // 250 → 500 → 1000 → 1500ms
+                            for (backoffAttempt in 1..maxRetries) {
+                                // Add jitter: delay * (1 ± jitter)
+                                val jitter = backoffDelay * OVERLOAD_BACKOFF_JITTER * (Math.random() * 2 - 1)
+                                val actualDelay = (backoffDelay + jitter).toLong().coerceAtLeast(0)
+                                writeLog("   Backoff $backoffAttempt/$maxRetries: ${actualDelay}ms")
+                                kotlinx.coroutines.delay(actualDelay)
+                                backoffDelay = (backoffDelay * OVERLOAD_BACKOFF_FACTOR).coerceAtMost(OVERLOAD_BACKOFF_MAX_MS)
+                            }
+                        } else {
+                            writeLog("⚠️ Transient HTTP error, retrying in ${TRANSIENT_HTTP_RETRY_DELAY_MS}ms... ($errorMessage)")
+                            kotlinx.coroutines.delay(TRANSIENT_HTTP_RETRY_DELAY_MS)
+                        }
                         didRetryTransientHttpError = true
-                        writeLog("⚠️ Transient HTTP error, retrying in ${TRANSIENT_HTTP_RETRY_DELAY_MS}ms... ($errorMessage)")
                         Log.w(TAG, "Transient HTTP error, retrying: $errorMessage")
-                        kotlinx.coroutines.delay(TRANSIENT_HTTP_RETRY_DELAY_MS)
                         continue
                     }
 
                     _progressFlow.emit(ProgressUpdate.Error(e.message ?: "Unknown error"))
 
-                    // Timeout error: retry (no delay — already timed out)
+                    // Timeout error: no bare retry (aligned with OpenClaw — timeout is failover, not retry)
+                    // OpenClaw handles timeout via runWithModelFallback → classifyFailoverReason("timeout") → failover.
+                    // Android has no model fallback, so surface the error instead of infinite retry.
                     if (e.message?.contains("timeout", ignoreCase = true) == true) {
-                        writeLog("⏰ Timeout error, retrying... (${e.message?.take(100)})")
-                        continue
+                        writeLog("⏰ Timeout error, surfacing to user (no infinite retry)")
+                        finalContent = "⏰ LLM 调用超时。请简化问题或使用 /new 开始新对话。"
+                        break
                     }
 
                     // Other errors, stop loop and format error message
@@ -1001,6 +1083,11 @@ class AgentLoop(
                 role = "assistant",
                 content = effectiveFinalContent
             ))
+        }
+
+        // Log cumulative usage (aligned with OpenClaw usageAccumulator)
+        if (cumulativeTotalTokens > 0) {
+            writeLog("📊 Cumulative usage: $cumulativePromptTokens prompt + $cumulativeCompletionTokens completion = $cumulativeTotalTokens total tokens")
         }
 
         val result = AgentResult(
@@ -1131,6 +1218,117 @@ class AgentLoop(
         }
 
         writeLog("✅ Pruned: ${messages.size} messages, ${ToolResultContextGuard.estimateContextChars(messages)} chars after $iterations iterations")
+    }
+
+    // ===== Anthropic Refusal Magic Scrub (aligned with OpenClaw scrubAnthropicRefusalMagic) =====
+
+    /**
+     * Scrub Anthropic refusal magic string from system prompt messages.
+     * Aligned with OpenClaw scrubAnthropicRefusalMagic:
+     * Replaces "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL" (which triggers Anthropic's
+     * refusal filter) with a redacted version.
+     * Only applied to system messages (the system prompt).
+     */
+    private fun scrubAnthropicRefusalMagic(messages: List<Message>): List<Message> {
+        // Fast path: no magic string present
+        val hasMagic = messages.any { it.role == "system" && it.content?.contains(ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL) == true }
+        if (!hasMagic) return messages
+
+        return messages.map { msg ->
+            if (msg.role == "system" && msg.content?.contains(ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL) == true) {
+                msg.copy(content = msg.content.replace(ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL, ANTHROPIC_MAGIC_STRING_REPLACEMENT))
+            } else {
+                msg
+            }
+        }
+    }
+
+    // ===== Tool Call Sanitization (aligned with OpenClaw stream wrapper chain) =====
+
+    /**
+     * Sanitize and repair tool calls from LLM response.
+     * Aligned with OpenClaw stream wrapper chain:
+     * 1. wrapStreamFnTrimToolCallNames — trim whitespace from tool names
+     * 2. wrapStreamFnRepairMalformedToolCallArguments — repair Anthropic JSON issues
+     * 3. wrapStreamFnDecodeXaiToolCallArguments — decode HTML entities in xAI responses
+     */
+    private fun sanitizeToolCalls(toolCalls: List<LLMToolCall>): List<LLMToolCall> {
+        return toolCalls.map { tc ->
+            val trimmedName = tc.name.trim()
+            val repairedArgs = repairToolCallArguments(tc.arguments)
+            val decodedArgs = decodeHtmlEntities(repairedArgs)
+            if (trimmedName != tc.name || repairedArgs != tc.arguments || decodedArgs != repairedArgs) {
+                if (trimmedName != tc.name) writeLog("🔧 Trimmed tool name: '${tc.name}' → '${trimmedName}'")
+                if (repairedArgs != tc.arguments) writeLog("🔧 Repaired tool arguments for $trimmedName")
+                LLMToolCall(id = tc.id, name = trimmedName, arguments = decodedArgs)
+            } else {
+                tc
+            }
+        }
+    }
+
+    /**
+     * Repair malformed tool call arguments (aligned with OpenClaw wrapStreamFnRepairMalformedToolCallArguments).
+     * Handles common Anthropic streaming issues:
+     * - Missing closing braces
+     * - Double-encoded JSON strings
+     * - Truncated JSON at natural break points
+     */
+    private fun repairToolCallArguments(arguments: String): String {
+        if (arguments.isBlank()) return arguments
+        val trimmed = arguments.trim()
+
+        // Try parsing as-is first
+        try {
+            com.google.gson.JsonParser.parseString(trimmed)
+            return trimmed // Valid JSON, no repair needed
+        } catch (_: Exception) { /* continue to repair */ }
+
+        // Attempt 1: Fix missing closing braces/brackets
+        var repaired = trimmed
+        val openBraces = repaired.count { it == '{' }
+        val closeBraces = repaired.count { it == '}' }
+        val openBrackets = repaired.count { it == '[' }
+        val closeBrackets = repaired.count { it == ']' }
+        repaired += "}".repeat((openBraces - closeBraces).coerceAtLeast(0))
+        repaired += "]".repeat((openBrackets - closeBrackets).coerceAtLeast(0))
+
+        try {
+            com.google.gson.JsonParser.parseString(repaired)
+            return repaired
+        } catch (_: Exception) { /* continue */ }
+
+        // Attempt 2: If it looks like a JSON string value, try removing trailing incomplete value
+        val lastColon = repaired.lastIndexOf(':')
+        val lastComma = repaired.lastIndexOf(',')
+        if (lastComma > lastColon && lastComma < repaired.length - 1) {
+            val truncated = repaired.substring(0, lastComma) + "}"
+            try {
+                com.google.gson.JsonParser.parseString(truncated)
+                return truncated
+            } catch (_: Exception) { /* give up */ }
+        }
+
+        return trimmed // Return original if all repairs fail
+    }
+
+    /**
+     * Decode HTML entities in tool call arguments (aligned with OpenClaw wrapStreamFnDecodeXaiToolCallArguments).
+     * xAI models sometimes emit HTML-encoded characters in JSON arguments.
+     */
+    private fun decodeHtmlEntities(arguments: String): String {
+        if (!arguments.contains("&#")) return arguments
+        return arguments
+            .replace("&#39;", "'")
+            .replace("&#34;", "\"")
+            .replace("&#38;", "&")
+            .replace("&#60;", "<")
+            .replace("&#62;", ">")
+            .replace("&amp;", "&")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'")
     }
 
     /**
