@@ -272,8 +272,7 @@ class MainActivityCompose : ComponentActivity() {
         super.onResume()
         // Refresh permission LiveData on every resume
         com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.refreshPermissions(this)
-        // Notify float window manager when main activity is visible
-        SessionFloatWindow.setMainActivityVisible(true, this)
+        // Note: SessionFloatWindow lifecycle is now managed by ActivityLifecycleCallbacks
         // Silent update check on every resume (cold + warm start)
         silentUpdateCheck()
     }
@@ -370,8 +369,7 @@ class MainActivityCompose : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        // Notify float window manager when main activity is not visible
-        SessionFloatWindow.setMainActivityVisible(false, this)
+        // Note: SessionFloatWindow lifecycle is now managed by ActivityLifecycleCallbacks
     }
 
     override fun onDestroy() {

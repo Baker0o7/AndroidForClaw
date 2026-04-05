@@ -5,10 +5,12 @@
 package com.xiaomo.androidforclaw.ui.float
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import com.xiaomo.androidforclaw.logging.Log
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.widget.TextView
 import com.lzf.easyfloat.EasyFloat
 import com.lzf.easyfloat.enums.ShowPattern
@@ -21,9 +23,9 @@ import com.tencent.mmkv.MMKV
  * Session info floating window manager
  *
  * Features:
- * - Only shown when main page is not visible
- * - Display current session status and latest message
- * - No scrolling, only fixed content
+ * - Only shown when app is in background (no activity visible)
+ * - Uses ActivityLifecycleCallbacks to track foreground state
+ * - Float window never shows on any app screen (main, chat, settings, etc.)
  * - Disabled by default, controlled by in-app switch
  */
 object SessionFloatWindow {
@@ -33,20 +35,68 @@ object SessionFloatWindow {
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     private var isEnabled = false
-    private var isMainActivityVisible = true
+    private var foregroundActivityCount = 0
     private var sessionInfoTextView: TextView? = null
     private var titleTextView: TextView? = null
     private var latestMessage: String = ""
+    private var latestContext: Context? = null
+    private var lifecycleRegistered = false
 
     /**
-     * Initialize floating window configuration
+     * Initialize floating window configuration and register lifecycle callbacks.
+     * Call this from MyApplication.onCreate().
      */
     fun init(context: Context) {
+        latestContext = context.applicationContext
+
         // Read switch status from MMKV
         val mmkv = MMKV.defaultMMKV()
         isEnabled = mmkv.decodeBool(MMKVKeys.FLOAT_WINDOW_ENABLED.key, false)
 
+        // Register lifecycle callbacks once
+        if (!lifecycleRegistered) {
+            val app = context.applicationContext as? Application
+            if (app != null) {
+                app.registerActivityLifecycleCallbacks(lifecycleCallback)
+                lifecycleRegistered = true
+                Log.d(TAG, "ActivityLifecycleCallbacks registered")
+            } else {
+                Log.w(TAG, "Context is not Application, cannot register lifecycle callbacks")
+            }
+        }
+
         Log.d(TAG, "SessionFloatWindow initialized, enabled=$isEnabled")
+    }
+
+    /**
+     * Lifecycle callbacks: track foreground/background state
+     */
+    private val lifecycleCallback = object : Application.ActivityLifecycleCallbacks {
+        override fun onActivityStarted(activity: Activity) {
+            foregroundActivityCount++
+            if (foregroundActivityCount == 1) {
+                Log.d(TAG, "App went to foreground, dismissing float window")
+                dismissFloatWindow()
+            }
+        }
+
+        override fun onActivityStopped(activity: Activity) {
+            foregroundActivityCount--
+            if (foregroundActivityCount <= 0) {
+                foregroundActivityCount = 0
+                Log.d(TAG, "App went to background, checking if float window should show")
+                if (isEnabled) {
+                    latestContext?.let { createFloatWindow(it) }
+                }
+            }
+        }
+
+        // Unused lifecycle callbacks
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+        override fun onActivityResumed(activity: Activity) {}
+        override fun onActivityPaused(activity: Activity) {}
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+        override fun onActivityDestroyed(activity: Activity) {}
     }
 
     /**
@@ -54,6 +104,7 @@ object SessionFloatWindow {
      */
     fun setEnabled(context: Context, enabled: Boolean) {
         isEnabled = enabled
+        latestContext = context.applicationContext
 
         // Save to MMKV
         val mmkv = MMKV.defaultMMKV()
@@ -62,12 +113,11 @@ object SessionFloatWindow {
         Log.d(TAG, "Float window enabled=$enabled")
 
         if (enabled) {
-            // If main page not visible, create and show floating window
-            if (!isMainActivityVisible) {
+            // Only show if app is in background
+            if (foregroundActivityCount == 0) {
                 createFloatWindow(context)
             }
         } else {
-            // Destroy floating window when disabled
             dismissFloatWindow()
         }
     }
@@ -77,27 +127,6 @@ object SessionFloatWindow {
      */
     fun isEnabled(): Boolean {
         return isEnabled
-    }
-
-    /**
-     * Set main activity visibility
-     */
-    fun setMainActivityVisible(visible: Boolean, context: Context) {
-        isMainActivityVisible = visible
-
-        Log.d(TAG, "Main activity visible=$visible, enabled=$isEnabled")
-
-        if (!isEnabled) {
-            return
-        }
-
-        if (visible) {
-            // Main page visible, hide floating window
-            dismissFloatWindow()
-        } else {
-            // Main page not visible, show floating window
-            createFloatWindow(context)
-        }
     }
 
     /**
@@ -128,7 +157,6 @@ object SessionFloatWindow {
      */
     @SuppressLint("InflateParams")
     private fun createFloatWindow(context: Context) {
-        // Check if already exists
         if (EasyFloat.isShow(FLOAT_TAG)) {
             Log.d(TAG, "Float window already exists")
             return
@@ -140,7 +168,6 @@ object SessionFloatWindow {
                 .setLayout(R.layout.layout_session_float) { view ->
                     titleTextView = view.findViewById(R.id.tv_float_title)
                     sessionInfoTextView = view.findViewById(R.id.tv_session_info)
-                    // Show latest message if available
                     if (latestMessage.isNotEmpty()) {
                         sessionInfoTextView?.text = latestMessage.take(100)
                     }
