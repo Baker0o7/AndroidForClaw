@@ -21,64 +21,64 @@ import com.xiaomo.androidforclaw.selfcontrol.ToolDefinition
 /**
  * Self-Control Config Skill
  *
- * 读取和修改 PhoneForClaw 的配置参数，让 AI Agent 能够：
- * - 查看当前配置
- * - 修改运行时参数
- * - 切换功能开关
- * - 调整性能参数
+ * Read and modify PhoneForClaw configuration parameters, enabling AI Agent to:
+ * - View current configuration
+ * - Modify runtime parameters
+ * - Toggle feature flags
+ * - Adjust performance parameters
  *
- * 使用场景：
- * - AI 自我调优（调整超时、重试次数等）
- * - 功能开关管理
- * - 远程配置更新
- * - A/B 测试
+ * Use cases:
+ * - AI self-tuning (adjusting timeout, retry count, etc.)
+ * - Feature flag management
+ * - Remote configuration updates
+ * - A/B testing
  */
 class ConfigSkill(private val context: Context) : Skill {
     companion object {
         private const val TAG = "ConfigSkill"
 
-        // 操作类型
+        // Operation types
         object Operations {
-            const val GET = "get"              // 读取配置
-            const val SET = "set"              // 设置配置
-            const val LIST = "list"            // 列出所有配置
-            const val DELETE = "delete"        // 删除配置
+            const val GET = "get"              // Read config
+            const val SET = "set"              // Set config
+            const val LIST = "list"            // List all config
+            const val DELETE = "delete"        // Delete config
         }
 
-        // 配置分类
+        // Configuration categories
         object Categories {
-            const val AGENT = "agent"          // Agent 配置
-            const val API = "api"              // API 配置
-            const val UI = "ui"                // UI 配置
-            const val FEATURE = "feature"      // 功能开关
-            const val PERFORMANCE = "perf"     // 性能参数
+            const val AGENT = "agent"          // Agent config
+            const val API = "api"              // API config
+            const val UI = "ui"                // UI config
+            const val FEATURE = "feature"      // Feature flags
+            const val PERFORMANCE = "perf"     // Performance parameters
         }
     }
 
     override val name = "manage_config"
 
     override val description = """
-        管理 PhoneForClaw 应用配置。
+        Manage PhoneForClaw application configuration.
 
-        支持操作：
-        - get: 读取指定配置项
-        - set: 设置配置项值
-        - list: 列出指定分类的所有配置
-        - delete: 删除配置项
+        Supported operations:
+        - get: Read specified config item
+        - set: Set config item value
+        - list: List all configs in specified category
+        - delete: Delete config item
 
-        配置分类：
-        - agent: Agent 运行参数（max_iterations, timeout 等）
-        - api: API 设置（base_url, api_key, model 等）
-        - ui: UI 偏好（theme, language 等）
-        - feature: 功能开关（exploration_mode, reasoning_enabled 等）
-        - perf: 性能参数（screenshot_delay, ui_tree_enabled 等）
+        Configuration categories:
+        - agent: Agent runtime parameters (max_iterations, timeout, etc.)
+        - api: API settings (base_url, api_key, model, etc.)
+        - ui: UI preferences (theme, language, etc.)
+        - feature: Feature flags (exploration_mode, reasoning_enabled, etc.)
+        - perf: Performance parameters (screenshot_delay, ui_tree_enabled, etc.)
 
-        示例：
-        - 读取: {"operation": "get", "key": "exploration_mode"}
-        - 设置: {"operation": "set", "key": "exploration_mode", "value": true}
-        - 列表: {"operation": "list", "category": "feature"}
+        Examples:
+        - Read: {"operation": "get", "key": "exploration_mode"}
+        - Set: {"operation": "set", "key": "exploration_mode", "value": true}
+        - List: {"operation": "list", "category": "feature"}
 
-        注意：修改某些配置可能需要重启应用才能生效。
+        Note: Some config changes may require app restart to take effect.
     """.trimIndent()
 
     override fun getToolDefinition(): ToolDefinition {
@@ -92,7 +92,7 @@ class ConfigSkill(private val context: Context) : Skill {
                     properties = mapOf(
                         "operation" to PropertySchema(
                             type = "string",
-                            description = "操作类型",
+                            description = "Operation type",
                             enum = listOf(
                                 Operations.GET,
                                 Operations.SET,
@@ -102,15 +102,15 @@ class ConfigSkill(private val context: Context) : Skill {
                         ),
                         "key" to PropertySchema(
                             type = "string",
-                            description = "配置键名（get/set/delete 操作必需）"
+                            description = "Configuration key (required for get/set/delete operations)"
                         ),
                         "value" to PropertySchema(
                             type = "string",
-                            description = "配置值（set 操作必需，支持 string/number/boolean）"
+                            description = "Configuration value (required for set operation, supports string/number/boolean)"
                         ),
                         "category" to PropertySchema(
                             type = "string",
-                            description = "配置分类（list 操作可选）",
+                            description = "Configuration category (optional for list operation)",
                             enum = listOf(
                                 Categories.AGENT,
                                 Categories.API,
@@ -142,7 +142,7 @@ class ConfigSkill(private val context: Context) : Skill {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Config operation failed: $operation", e)
-            SkillResult.error("配置操作失败: ${e.message}")
+            SkillResult.error("Config operation failed: ${e.message}")
         }
     }
 
@@ -151,10 +151,10 @@ class ConfigSkill(private val context: Context) : Skill {
             ?: return SkillResult.error("Missing parameter: key")
 
         if (!mmkv.contains(key)) {
-            return SkillResult.error("配置项不存在: $key")
+            return SkillResult.error("Config item does not exist: $key")
         }
 
-        // 尝试不同类型
+        // Try different types
         val value: Any? = when {
             mmkv.decodeInt(key, Int.MIN_VALUE) != Int.MIN_VALUE -> mmkv.decodeInt(key)
             mmkv.decodeLong(key, Long.MIN_VALUE) != Long.MIN_VALUE -> mmkv.decodeLong(key)
@@ -168,7 +168,7 @@ class ConfigSkill(private val context: Context) : Skill {
         }
 
         return SkillResult.success(
-            "配置项 '$key' = $value",
+            "Config item '$key' = $value",
             mapOf(
                 "key" to key,
                 "value" to value,
@@ -184,7 +184,7 @@ class ConfigSkill(private val context: Context) : Skill {
         val valueStr = args["value"] as? String
             ?: return SkillResult.error("Missing parameter: value")
 
-        // 智能类型转换
+        // Smart type conversion
         val success = when {
             valueStr.equals("true", ignoreCase = true) -> {
                 mmkv.encode(key, true)
@@ -211,11 +211,11 @@ class ConfigSkill(private val context: Context) : Skill {
 
         return if (success) {
             SkillResult.success(
-                "配置已更新: $key = $valueStr",
+                "Config updated: $key = $valueStr",
                 mapOf("key" to key, "value" to valueStr)
             )
         } else {
-            SkillResult.error("配置更新失败")
+            SkillResult.error("Config update failed")
         }
     }
 
@@ -224,7 +224,7 @@ class ConfigSkill(private val context: Context) : Skill {
 
         val allKeys = mmkv.allKeys() ?: emptyArray()
 
-        // 根据分类过滤（简单前缀匹配）
+        // Filter by category (simple prefix matching)
         val filteredKeys = if (category != null) {
             allKeys.filter { it.startsWith(category, ignoreCase = true) }
         } else {
@@ -237,9 +237,9 @@ class ConfigSkill(private val context: Context) : Skill {
         }
 
         val summary = if (category != null) {
-            "【$category 分类配置】（共 ${filteredKeys.size} 项）\n$configList"
+            "[$category category config] (${filteredKeys.size} items total)\n$configList"
         } else {
-            "【全部配置】（共 ${filteredKeys.size} 项）\n$configList"
+            "[All config] (${filteredKeys.size} items total)\n$configList"
         }
 
         return SkillResult.success(
@@ -257,13 +257,13 @@ class ConfigSkill(private val context: Context) : Skill {
             ?: return SkillResult.error("Missing parameter: key")
 
         if (!mmkv.contains(key)) {
-            return SkillResult.error("配置项不存在: $key")
+            return SkillResult.error("Config item does not exist: $key")
         }
 
         mmkv.remove(key)
 
         return SkillResult.success(
-            "配置项已删除: $key",
+            "Config item deleted: $key",
             mapOf("key" to key)
         )
     }

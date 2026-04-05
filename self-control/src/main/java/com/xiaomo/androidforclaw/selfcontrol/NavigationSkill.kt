@@ -21,56 +21,56 @@ import com.xiaomo.androidforclaw.selfcontrol.ToolDefinition
 /**
  * Self-Control Navigation Skill
  *
- * 暴露 PhoneForClaw 自身的页面导航功能，让 AI Agent 能够：
- * - 跳转到各个配置页面
- * - 打开功能设置界面
- * - 访问日志和历史记录
- * - 管理 Channels 和会话
+ * Exposes PhoneForClaw's own page navigation capabilities, enabling AI Agent to:
+ * - Jump to various config pages
+ * - Open feature settings
+ * - Access logs and history
+ * - Manage Channels and sessions
  *
- * 使用场景：
- * - AI 自我开发迭代（修改配置、查看日志）
- * - 远程配置和管理
- * - 自动化测试和调试
+ * Use Cases:
+ * - AI self-development iteration (modify config, view logs)
+ * - Remote configuration and management
+ * - Automated testing and debugging
  */
 class NavigationSkill(private val context: Context) : Skill {
     companion object {
         private const val TAG = "NavigationSkill"
 
-        // 可用的页面目标
+        // Available page targets
         object Pages {
-            const val MAIN = "main"                    // 主界面
-            const val CONFIG = "config"                // 配置页面
-            const val PERMISSIONS = "permissions"      // 权限管理
-            const val CHAT_HISTORY = "chat_history"    // 对话历史
-            const val CHAT_LOG = "chat_log"            // 对话日志
-            const val FEISHU_CHANNEL = "feishu"        // 飞书通道
-            const val CHANNEL_LIST = "channels"        // 通道列表
-            const val RESULT = "result"                // 结果页面
+            const val MAIN = "main"                    // Main screen
+            const val CONFIG = "config"                // Config page
+            const val PERMISSIONS = "permissions"      // Permission management
+            const val CHAT_HISTORY = "chat_history"    // Chat history
+            const val CHAT_LOG = "chat_log"            // Chat logs
+            const val FEISHU_CHANNEL = "feishu"        // Feishu channel
+            const val CHANNEL_LIST = "channels"        // Channel list
+            const val RESULT = "result"                // Result page
         }
     }
 
     override val name = "navigate_app"
 
     override val description = """
-        导航到 PhoneForClaw 应用内的各个页面。
+        Navigate to various pages within the PhoneForClaw app.
 
-        可用页面：
-        - main: 主界面
-        - config: 配置页面（API、模型设置）
-        - permissions: 权限管理页面
-        - chat_history: 对话历史记录
-        - chat_log: 详细对话日志
-        - feishu: 飞书通道配置
-        - channels: 通道列表管理
-        - result: 结果展示页面
+        Available pages:
+        - main: Main screen
+        - config: Config page (API, model settings)
+        - permissions: Permission management page
+        - chat_history: Chat history records
+        - chat_log: Detailed chat logs
+        - feishu: Feishu channel config
+        - channels: Channel list management
+        - result: Result display page
 
-        使用场景：
-        - 修改应用配置
-        - 检查权限状态
-        - 查看运行日志
-        - 管理通道连接
+        Use cases:
+        - Modify app config
+        - Check permission status
+        - View runtime logs
+        - Manage channel connections
 
-        注意：需要应用在前台或有悬浮窗权限。
+        Note: App must be in foreground or have floating window permission.
     """.trimIndent()
 
     override fun getToolDefinition(): ToolDefinition {
@@ -84,7 +84,7 @@ class NavigationSkill(private val context: Context) : Skill {
                     properties = mapOf(
                         "page" to PropertySchema(
                             type = "string",
-                            description = "目标页面名称",
+                            description = "Target page name",
                             enum = listOf(
                                 Pages.MAIN,
                                 Pages.CONFIG,
@@ -98,7 +98,7 @@ class NavigationSkill(private val context: Context) : Skill {
                         ),
                         "extras" to PropertySchema(
                             type = "object",
-                            description = "可选的 Intent extras（JSON 对象）"
+                            description = "Optional Intent extras (JSON object)"
                         )
                     ),
                     required = listOf("page")
@@ -117,7 +117,7 @@ class NavigationSkill(private val context: Context) : Skill {
             val intent = createIntentForPage(page)
                 ?: return SkillResult.error("Unknown page: $page")
 
-            // 添加额外参数
+            // Add extra parameters
             extras?.forEach { (key, value) ->
                 when (value) {
                     is String -> intent.putExtra(key, value)
@@ -129,14 +129,14 @@ class NavigationSkill(private val context: Context) : Skill {
                 }
             }
 
-            // 启动 Activity
+            // Start Activity
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
 
             Log.d(TAG, "Successfully navigated to page: $page")
 
             SkillResult.success(
-                "已跳转到页面: $page",
+                "Navigated to page: $page",
                 mapOf(
                     "page" to page,
                     "extras" to (extras ?: emptyMap<String, Any>())
@@ -144,7 +144,7 @@ class NavigationSkill(private val context: Context) : Skill {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to navigate to page: $page", e)
-            SkillResult.error("页面跳转失败: ${e.message}")
+            SkillResult.error("Page navigation failed: ${e.message}")
         }
     }
 
