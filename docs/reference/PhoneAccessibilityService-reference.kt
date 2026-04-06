@@ -26,7 +26,7 @@ import com.agent.mobile.util.LayoutExceptionLogger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 
-// adb 抓view tree结构 遇到bug
+// adb capturing view tree structure encountered bug
 class PhoneAccessibilityService : AccessibilityService() {
 
     companion object {
@@ -35,33 +35,33 @@ class PhoneAccessibilityService : AccessibilityService() {
         var Accessibility: PhoneAccessibilityService? = null
 
         // AccessibilityPermissionStatusConstant
-        const val STATUS_SYSTEM_DISABLED = "系统Accessibility未开启"
-        const val STATUS_SERVICE_NOT_ENABLED = "Service未在系统Settings中Enabled"
+        const val STATUS_SYSTEM_DISABLED = "System Accessibility not enabled"
+        const val STATUS_SERVICE_NOT_ENABLED = "Service not enabled in system Settings"
         const val STATUS_SERVICE_NOT_CONNECTED = "ServiceNot connected"
-        const val STATUS_AUTHORIZED = "已Authorize"
+        const val STATUS_AUTHORIZED = "Authorized"
         const val STATUS_CHECK_FAILED = "CheckFailed"
 
-        // 使用 LiveData StorageAccessibilityServiceStatus
+        // Using LiveData to store AccessibilityServiceStatus
         val accessibilityEnabledd = MutableLiveData<Boolean>().apply {
-            postValue(false) // 初始Status为 false
+            postValue(false) // Initial status is false
         }
 
-        // 周期Monitor与节流
+        // Periodic monitoring and throttling
         private val monitorScope: CoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
         /**
-         * CheckAccessibilityServiceYesNo已开启
+         * Check if AccessibilityService is enabled or not
          */
         fun isAccessibilityServiceEnabledd(): Boolean {
 //            val isEnabledd = Accessibility != null
             val isEnabledd = isSystemAccessibilityEnabledd(MyApplication.application.applicationContext)
-            accessibilityEnabledd.postValue(isEnabledd) // SyncUpdate LiveData Status
+            accessibilityEnabledd.postValue(isEnabledd) // Sync update LiveData status
             return isEnabledd
         }
 
         fun requestAccessibilityPermission(context: Context) {
             try {
-                Log.d(TAG, "Start申请AccessibilityPermission")
+                Log.d(TAG, "Start requesting AccessibilityPermission")
                 try {
                     val appPkg = context.applicationContext.packageName
                     val serviceClass = PhoneAccessibilityService::class.java.name
@@ -76,10 +76,10 @@ class PhoneAccessibilityService : AccessibilityService() {
                         Settings.Secure.ACCESSIBILITY_ENABLED,
                         1
                     )
-                    Log.d(TAG, "AccessibilityPermission申请命令已发送: $serviceName")
+                    Log.d(TAG, "AccessibilityPermission request command sent: $serviceName")
                 } catch (e: Exception) {
                     LayoutExceptionLogger.log("PhoneAccessibilityService#requestAccessibilityPermission#sendCommand", e)
-                    Log.w(TAG, "代码申请AccessibilityPermissionFailed: ${'$'}{e.message}")
+                    Log.w(TAG, "Code request AccessibilityPermissionFailed: ${'$'}{e.message}")
                 }
 
                 monitorScope.launch {
@@ -87,27 +87,27 @@ class PhoneAccessibilityService : AccessibilityService() {
                         delay(1000)
                         val isEnabledd = isSystemAccessibilityEnabledd(context)
                         if (isEnabledd) {
-                            Log.d(TAG, "AccessibilityPermission申请Success")
+                            Log.d(TAG, "AccessibilityPermission request Success")
                         } else {
-                            Log.d(TAG, "Code application failed, 跳转到系统Settings页面")
-                            Toast.makeText(context, "Code application failed, 请Manual开启AccessibilityPermission", Toast.LENGTH_LONG).show()
+                            Log.d(TAG, "Code application failed, jump to system Settings page")
+                            Toast.makeText(context, "Code application failed, please manually enable AccessibilityPermission", Toast.LENGTH_LONG).show()
                             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             context.startActivity(intent)
                         }
                     } catch (e: Exception) {
                         LayoutExceptionLogger.log("PhoneAccessibilityService#requestAccessibilityPermission#checkResult", e)
-                        Log.e(TAG, "AsyncCheckPermission申请ResultException", e)
+                        Log.e(TAG, "Async check permission request result exception", e)
                     }
                 }
             } catch (e: Exception) {
                 LayoutExceptionLogger.log("PhoneAccessibilityService#requestAccessibilityPermission", e)
-                Log.e(TAG, "申请AccessibilityPermissionFailed", e)
+                Log.e(TAG, "Request AccessibilityPermission failed", e)
             }
         }
         
         /**
-         * Check系统AccessibilityPermissionYesNo已开启
+         * Check if system AccessibilityPermission is enabled or not
          */
         fun isSystemAccessibilityEnabledd(context: Context): Boolean {
             if (accessibilityEnabledd.value == true) return true
@@ -126,20 +126,20 @@ class PhoneAccessibilityService : AccessibilityService() {
                 val serviceName = "${context.packageName}/${PhoneAccessibilityService::class.java.name}"
                 val isServiceEnabledd = enabledServices?.contains(serviceName) == true
                 
-                Log.d(TAG, "系统AccessibilityPermission: $accessibilityEnabledd")
-                Log.d(TAG, "Service已Enabled: $isServiceEnabledd")
-                Log.d(TAG, "ServiceInstanceExists: ${Accessibility != null}")
+                Log.d(TAG, "System AccessibilityPermission: $accessibilityEnabledd")
+                Log.d(TAG, "Service is enabled: $isServiceEnabledd")
+                Log.d(TAG, "Service instance exists: ${Accessibility != null}")
                 
                 accessibilityEnabledd && isServiceEnabledd && Accessibility != null
             } catch (e: Exception) {
                 LayoutExceptionLogger.log("PhoneAccessibilityService#isSystemAccessibilityEnabledd", e)
-                Log.e(TAG, "CheckAccessibilityPermissionFailed", e)
+                Log.e(TAG, "Check AccessibilityPermission failed", e)
                 false
             }
         }
         
         /**
-         * GetAccessibilityPermission详细Status
+         * Get AccessibilityPermission detailed status
          */
         fun getAccessibilityStatus(context: Context): String {
             return try {
@@ -181,7 +181,7 @@ class PhoneAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         Accessibility = this
-        accessibilityEnabledd.postValue(true) // 直接Update LiveData
+        accessibilityEnabledd.postValue(true) // Directly update LiveData
         Log.d(TAG, "onServiceConnected")
     }
 
@@ -193,7 +193,7 @@ class PhoneAccessibilityService : AccessibilityService() {
                 currentPackageName = event.packageName?.toString() ?: ""
                 activityClassName = event.className?.toString() ?: ""
 
-                Log.d(TAG, "当FrontFront台App: $currentPackageName, 当FrontActivity: $activityClassName")
+                Log.d(TAG, "Foreground App: $currentPackageName, Foreground Activity: $activityClassName")
             }
         }
     }
@@ -205,7 +205,7 @@ class PhoneAccessibilityService : AccessibilityService() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.d(TAG, "onUnbind - AccessibilityService断开")
+        Log.d(TAG, "onUnbind - AccessibilityService disconnected")
         Accessibility = null
         accessibilityEnabledd.postValue(false) // Update LiveData
         return super.onUnbind(intent)
@@ -213,20 +213,20 @@ class PhoneAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "onDestroy - AccessibilityServiceDestroy")
+        Log.d(TAG, "onDestroy - AccessibilityService destroyed")
         Accessibility = null
         accessibilityEnabledd.postValue(false) // Update LiveData
     }
 
-    // SaveTraverse的GlobalIndex
+    // Global index for traverse
     private var globalIndex = 0
 
     fun dumpView(): List<ViewNode> {
-        // 使用 getWindows() MethodGetAllWindow, 而不仅仅Yes当Front活动Window
+        // Use getWindows() method to get all windows, not just current foreground window
         val windows = this.windows
         if (windows.isEmpty()) {
             Log.w(TAG, "No windows available, trying rootInActiveWindow as fallback")
-            // Attempt使用传统的 rootInActiveWindow 作为备选方案
+            // Try using traditional rootInActiveWindow as fallback
             val rootNode = rootInActiveWindow
             if (rootNode != null) {
                 globalIndex = 0
@@ -237,14 +237,14 @@ class PhoneAccessibilityService : AccessibilityService() {
             return emptyList()
         }
 
-        globalIndex = 0  // 每次dump时ResetCount
+        globalIndex = 0  // Reset count on each dump
         val nodesList = mutableListOf<ViewNode>()
 
-        // TraverseAllWindow, 按Z-orderSort, 顶层Window优先
+        // Traverse all windows, sorted by Z-order, top layer window first
         val sortedWindows = windows.sortedByDescending { it.layer }
         Log.d(TAG, "Found ${sortedWindows.size} windows")
 
-        // TraverseAllWindow
+        // Traverse all windows
         for ((index, window) in sortedWindows.withIndex()) {
             val rootNode = window.root
             if (rootNode == null) {
@@ -272,17 +272,17 @@ class PhoneAccessibilityService : AccessibilityService() {
         val rect = Rect()
         node.getBoundsInScreen(rect)
         
-        // ValidateEdge界矩形YesNoValid
+        // Validate bounds rectangle is valid or not
         val isValidRect = rect.left >= 0 && rect.top >= 0 && rect.right > rect.left && rect.bottom > rect.top
         
         if (!isValidRect) {
-            // Edge界None效的Node不Save, 但ContinueTraverse子Node(子Node可能Valid)
+            // Skip invalid nodes but continue traversing child nodes (children may be valid)
             val nodeText = node.text?.toString() ?: ""
             val nodeContentDesc = node.contentDescription?.toString() ?: ""
-            Log.w(TAG, "traverseNodeSkipEdge界None效的Node: text='$nodeText', contentDesc='$nodeContentDesc', " +
-                    "Edge界=[left=${rect.left}, top=${rect.top}, right=${rect.right}, bottom=${rect.bottom}], " +
-                    "可能YesViewPager中未Show的Tab页面Node")
-            // ContinueTraverse子Node
+            Log.w(TAG, "traverseNode skip invalid node: text='$nodeText', contentDesc='$nodeContentDesc', " +
+                    "bounds=[left=${rect.left}, top=${rect.top}, right=${rect.right}, bottom=${rect.bottom}], " +
+                    "may be ViewPager tab nodes not currently shown")
+            // Continue traverse child nodes
             for (i in 0 until node.childCount) {
                 node.getChild(i)?.let { childNode ->
                     traverseNode(childNode, nodesList)
@@ -294,13 +294,13 @@ class PhoneAccessibilityService : AccessibilityService() {
         val centerX = rect.centerX()
         val centerY = rect.centerY()
         
-        // Validate中心坐标YesNoValid(非负数)
+        // Validate center coordinates are valid (non-negative)
         if (centerX < 0 || centerY < 0) {
             val nodeText = node.text?.toString() ?: ""
             val nodeContentDesc = node.contentDescription?.toString() ?: ""
-            Log.w(TAG, "traverseNodeSkip坐标None效的Node: text='$nodeText', contentDesc='$nodeContentDesc', " +
-                    "centerX=$centerX, centerY=$centerY, Edge界=[left=${rect.left}, top=${rect.top}, right=${rect.right}, bottom=${rect.bottom}]")
-            // ContinueTraverse子Node
+            Log.w(TAG, "traverseNode skip invalid coordinates node: text='$nodeText', contentDesc='$nodeContentDesc', " +
+                    "centerX=$centerX, centerY=$centerY, bounds=[left=${rect.left}, top=${rect.top}, right=${rect.right}, bottom=${rect.bottom}]")
+            // Continue traverse child nodes
             for (i in 0 until node.childCount) {
                 node.getChild(i)?.let { childNode ->
                     traverseNode(childNode, nodesList)
@@ -338,7 +338,7 @@ class PhoneAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * 根据TextFind并点击某个Node
+     * Find and click a node by text
      */
     suspend fun clickViewByText(text: String): Boolean {
         val rootNode = rootInActiveWindow ?: return false
@@ -358,12 +358,12 @@ class PhoneAccessibilityService : AccessibilityService() {
             return performLongClick(node)
         }
         Log.d(TAG, "performClick: ${node}")
-        // 如果Node可点击并Success点击, 直接Return
+        // If node is clickable and click succeeds, return directly
         if ( node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
             return true
         }
 
-        // 向UpFind父Node并Attempt点击
+        // Find parent node and try to click
         var parent = node.parent
         while (parent != null) {
             if (parent.isClickable && parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
@@ -372,11 +372,11 @@ class PhoneAccessibilityService : AccessibilityService() {
             parent = parent.parent
         }
 
-        // SettingsAccessibilityFocus和选择Status(对弹窗中的Control特别重要)
+        // Set accessibility focus and selection status (especially important for controls in dialogs)
         node.performAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS)
         node.performAction(AccessibilityNodeInfo.ACTION_SELECT)
 
-        // Get坐标点击
+        // Get coordinates to click
         val rect = Rect()
         node.getBoundsInScreen(rect)
         val centerX = (rect.left + rect.right) / 2
@@ -390,29 +390,29 @@ class PhoneAccessibilityService : AccessibilityService() {
         dispatchGesture(gesture, object : GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 super.onCompleted(gestureDescription)
-                Log.d(TAG, "点击Complete")
-                result.complete(true)  // 手势SuccessComplete
+                Log.d(TAG, "Click completed")
+                result.complete(true)  // Gesture completed successfully
             }
 
             override fun onCancelled(gestureDescription: GestureDescription?) {
                 super.onCancelled(gestureDescription)
-                Log.d(TAG, "点击被Cancel")
-                result.complete(false)  // 手势SuccessComplete
+                Log.d(TAG, "Click cancelled")
+                result.complete(false)  // Gesture completed successfully
             }
         }, null)
 
-        // WaitResult(带Timeout)
+        // Wait for result (with timeout)
         return withTimeoutOrNull(500) {
             result.await()
-        } ?: false  // TimeoutReturn false
+        } ?: false  // Timeout return false
     }
 
     /**
-     * 通过坐标执Row点击Action
-     * @param x 点击的 X 坐标
-     * @param y 点击的 Y 坐标
-     * @param isLongClick YesNo长按, Default为 false
-     * @return 点击YesNoSuccess
+     * Execute click action by coordinates
+     * @param x X coordinate to click
+     * @param y Y coordinate to click
+     * @param isLongClick Whether to long press, default is false
+     * @return Whether click was successful
      */
     public suspend fun performClickAt(
         x: Float,
@@ -431,18 +431,18 @@ class PhoneAccessibilityService : AccessibilityService() {
         dispatchGesture(gesture, object : GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 super.onCompleted(gestureDescription)
-                Log.d(TAG, "坐标点击Complete: ($x, $y)")
+                Log.d(TAG, "Coordinate click completed: ($x, $y)")
                 result.complete(true)
             }
 
             override fun onCancelled(gestureDescription: GestureDescription?) {
                 super.onCancelled(gestureDescription)
-                Log.d(TAG, "坐标点击被Cancel: ($x, $y)")
+                Log.d(TAG, "Coordinate click cancelled: ($x, $y)")
                 result.complete(false)
             }
         }, null)
 
-        // WaitResult(带Timeout)
+        // Wait for result (with timeout)
         return withTimeoutOrNull(500) {
             result.await()
         } ?: false
@@ -451,12 +451,12 @@ class PhoneAccessibilityService : AccessibilityService() {
     public suspend fun performLongClick(node: AccessibilityNodeInfo): Boolean {
         Log.d(TAG, "performLongClick: ${node}")
 
-        // 如果Node可点击并Success点击, 直接Return
+        // If node is clickable and click succeeds, return directly
         if (node.isClickable && node.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)) {
             return true
         }
 
-        // 向UpFind父Node并Attempt点击
+        // Find parent node and try to click
         var parent = node.parent
         while (parent != null) {
             if (parent.isClickable && parent.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)) {
