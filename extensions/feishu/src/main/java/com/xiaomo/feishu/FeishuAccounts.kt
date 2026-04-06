@@ -11,20 +11,20 @@ package com.xiaomo.feishu
 import android.util.Log
 
 /**
- * 飞书AccountManage
+ * Feishu Account Management
  * Aligned with OpenClaw accounts.ts
  *
  * Feature: 
- * - 多AccountConfigManage
- * - Accountchoose和Parse
- * - 凭证Validate
+ * - Multi account config management
+ * - Account selection and parsing
+ * - Credential validation
  */
 object FeishuAccounts {
     private const val TAG = "FeishuAccounts"
     private const val DEFAULT_ACCOUNT_ID = "default"
 
     /**
-     * AccountConfig
+     * Account Config
      */
     data class AccountConfig(
         val name: String? = null,
@@ -38,7 +38,7 @@ object FeishuAccounts {
     )
 
     /**
-     * 多AccountConfig
+     * Multi account config
      */
     data class MultiAccountConfig(
         val defaultAccount: String? = null,
@@ -47,17 +47,17 @@ object FeishuAccounts {
     )
 
     /**
-     * Accountchoose来源
+     * Account selection source
      */
     enum class AccountSelectionSource {
-        EXPLICIT,           // 明确指定的Account
-        EXPLICIT_DEFAULT,   // Config中明确指定的DefaultAccount
-        MAPPED_DEFAULT,     // Map到 default Account
-        FALLBACK            // Fallback到FirstAccount
+        EXPLICIT,           // Explicitly specified account
+        EXPLICIT_DEFAULT,   // Default account explicitly specified in config
+        MAPPED_DEFAULT,     // Mapped to default account
+        FALLBACK            // Fallback to first account
     }
 
     /**
-     * ParseBack的Account
+     * Parsed back account
      */
     data class ResolvedAccount(
         val accountId: String,
@@ -74,53 +74,53 @@ object FeishuAccounts {
     )
 
     /**
-     * 规范化Account ID
+     * Normalize account ID
      */
     fun normalizeAccountId(accountId: String?): String {
         return accountId?.trim()?.ifEmpty { DEFAULT_ACCOUNT_ID } ?: DEFAULT_ACCOUNT_ID
     }
 
     /**
-     * ListConfig的AllAccount ID
+     * List all configured account IDs
      */
     fun listAccountIds(config: MultiAccountConfig): List<String> {
         val ids = config.accounts.keys.filter { it.isNotBlank() }
         if (ids.isEmpty()) {
-            // 向Back兼容: NoneConfigAccount时Return default
+            // Backward compatibility: return default when no accounts configured
             return listOf(DEFAULT_ACCOUNT_ID)
         }
         return ids.sorted()
     }
 
     /**
-     * ParseDefaultAccountchoose
+     * Parse default account selection
      */
     fun resolveDefaultAccountSelection(config: MultiAccountConfig): Pair<String, AccountSelectionSource> {
-        // 1. 明确指定的DefaultAccount
+        // 1. Explicitly specified default account
         val preferred = config.defaultAccount?.trim()
         if (!preferred.isNullOrEmpty()) {
             return Pair(normalizeAccountId(preferred), AccountSelectionSource.EXPLICIT_DEFAULT)
         }
 
-        // 2. Map到 default Account
+        // 2. Mapped to default account
         val ids = listAccountIds(config)
         if (ids.contains(DEFAULT_ACCOUNT_ID)) {
             return Pair(DEFAULT_ACCOUNT_ID, AccountSelectionSource.MAPPED_DEFAULT)
         }
 
-        // 3. Fallback到FirstAccount
+        // 3. Fallback to first account
         return Pair(ids.firstOrNull() ?: DEFAULT_ACCOUNT_ID, AccountSelectionSource.FALLBACK)
     }
 
     /**
-     * ParseDefaultAccount ID
+     * Parse default account ID
      */
     fun resolveDefaultAccountId(config: MultiAccountConfig): String {
         return resolveDefaultAccountSelection(config).first
     }
 
     /**
-     * GetAccount特定Config
+     * Get account specific config
      */
     private fun getAccountConfig(
         config: MultiAccountConfig,
@@ -130,8 +130,8 @@ object FeishuAccounts {
     }
 
     /**
-     * MergeAccountConfig
-     * Account特定ConfigOverride基础Config
+     * Merge account config
+     * Account specific config overrides base config
      */
     private fun mergeAccountConfig(
         config: MultiAccountConfig,
@@ -140,17 +140,17 @@ object FeishuAccounts {
         val base = config.baseConfig
         val account = getAccountConfig(config, accountId)
 
-        // ifNone基础Config, useAccountConfig
+        // If no base config, use account config
         if (base == null) {
             return account?.config
         }
 
-        // ifNoneAccountConfig, use基础Config
+        // If no account config, use base config
         if (account?.config == null) {
             return base
         }
 
-        // MergeConfig(AccountConfig优先)
+        // Merge config (account config takes priority)
         return base.copy(
             enabled = account.config.enabled,
             appId = account.appId,
@@ -162,7 +162,7 @@ object FeishuAccounts {
     }
 
     /**
-     * Validate凭证
+     * Validate credentials
      */
     fun validateCredentials(
         appId: String?,
@@ -172,11 +172,11 @@ object FeishuAccounts {
     }
 
     /**
-     * ParseAccount
+     * Parse account
      *
-     * @param config 多AccountConfig
-     * @param accountId Account ID(null Table示useDefaultAccount)
-     * @return ParseBack的Account
+     * @param config Multi account config
+     * @param accountId Account ID (null means use default account)
+     * @return Parsed account
      */
     fun resolveAccount(
         config: MultiAccountConfig,
@@ -202,16 +202,16 @@ object FeishuAccounts {
             defaultSelection?.second ?: AccountSelectionSource.FALLBACK
         }
 
-        // GetAccountConfig
+        // Get account config
         val accountConfig = getAccountConfig(config, resolvedAccountId)
-        val baseEnabledd = config.baseConfig?.enabled ?: true
-        val accountEnabledd = accountConfig?.enabled ?: true
-        val enabled = baseEnabledd && accountEnabledd
+        val baseEnabled = config.baseConfig?.enabled ?: true
+        val accountEnabled = accountConfig?.enabled ?: true
+        val enabled = baseEnabled && accountEnabled
 
-        // MergeConfig
+        // Merge config
         val mergedConfig = mergeAccountConfig(config, resolvedAccountId)
 
-        // Validate凭证
+        // Validate credentials
         val configured = validateCredentials(accountConfig?.appId, accountConfig?.appSecret)
 
         Log.d(TAG, "Resolved account: id=$resolvedAccountId, source=$selectionSource, " +
@@ -233,16 +233,16 @@ object FeishuAccounts {
     }
 
     /**
-     * ListAllEnabled且Config完整的Account
+     * List all enabled and configured accounts
      */
-    fun listEnableddAccounts(config: MultiAccountConfig): List<ResolvedAccount> {
+    fun listEnabledAccounts(config: MultiAccountConfig): List<ResolvedAccount> {
         return listAccountIds(config)
             .map { accountId -> resolveAccount(config, accountId) }
             .filter { it.enabled && it.configured }
     }
 
     /**
-     * 从单一ConfigCreate多AccountConfig(向Back兼容)
+     * Create multi account config from single config (backward compatibility)
      */
     fun fromSingleConfig(config: FeishuConfig): MultiAccountConfig {
         return MultiAccountConfig(

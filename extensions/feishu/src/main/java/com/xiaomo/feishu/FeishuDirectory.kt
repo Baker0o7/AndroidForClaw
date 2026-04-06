@@ -13,19 +13,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书Contact目录
+ * Feishu Contact Directory
  * Aligned with OpenClaw directory.ts
  *
  * Feature: 
- * - ListConfig的User和Group
- * - 从 API 实时GetUser和GroupList
- * - SupportSearch和Limit数量
+ * - List configured users and groups
+ * - Get user and group list from API in real-time
+ * - Support search and limit
  */
 object FeishuDirectory {
     private const val TAG = "FeishuDirectory"
 
     /**
-     * UserInfo
+     * User info
      */
     data class DirectoryPeer(
         val kind: String = "user",
@@ -34,7 +34,7 @@ object FeishuDirectory {
     )
 
     /**
-     * GroupInfo
+     * Group info
      */
     data class DirectoryGroup(
         val kind: String = "group",
@@ -43,12 +43,12 @@ object FeishuDirectory {
     )
 
     /**
-     * ListConfig的User
+     * List configured users
      *
-     * @param config 飞书Config
-     * @param query SearchQuery(Optional)
-     * @param limit Limit数量(Optional)
-     * @return UserList
+     * @param config Feishu config
+     * @param query Search query (optional)
+     * @param limit Limit number (optional)
+     * @return User list
      */
     fun listConfiguredPeers(
         config: FeishuConfig,
@@ -58,7 +58,7 @@ object FeishuDirectory {
         val q = query?.trim()?.lowercase() ?: ""
         val ids = mutableSetOf<String>()
 
-        // 从 allowFrom Get
+        // Get from allowFrom
         for (entry in config.allowFrom) {
             val trimmed = entry.trim()
             if (trimmed.isNotEmpty() && trimmed != "*") {
@@ -74,12 +74,12 @@ object FeishuDirectory {
     }
 
     /**
-     * ListConfig的Group
+     * List configured groups
      *
-     * @param config 飞书Config
-     * @param query SearchQuery(Optional)
-     * @param limit Limit数量(Optional)
-     * @return GroupList
+     * @param config Feishu config
+     * @param query Search query (optional)
+     * @param limit Limit number (optional)
+     * @return Group list
      */
     fun listConfiguredGroups(
         config: FeishuConfig,
@@ -89,7 +89,7 @@ object FeishuDirectory {
         val q = query?.trim()?.lowercase() ?: ""
         val ids = mutableSetOf<String>()
 
-        // 从 groupAllowFrom Get
+        // Get from groupAllowFrom
         for (entry in config.groupAllowFrom) {
             val trimmed = entry.trim()
             if (trimmed.isNotEmpty() && trimmed != "*") {
@@ -105,13 +105,13 @@ object FeishuDirectory {
     }
 
     /**
-     * 从 API 实时GetUserList
+     * Get user list from API in real-time
      *
      * @param client Feishu Client
-     * @param config 飞书Config
-     * @param query SearchQuery(Optional)
-     * @param limit Limit数量(Default 50)
-     * @return UserList
+     * @param config Feishu config
+     * @param query Search query (optional)
+     * @param limit Limit number (default 50)
+     * @return User list
      */
     suspend fun listPeersLive(
         client: FeishuClient,
@@ -146,7 +146,7 @@ object FeishuDirectory {
                 val openId = user.get("open_id")?.asString ?: continue
                 val name = user.get("name")?.asString ?: ""
 
-                // SearchFilter
+                // Search filter
                 if (q.isNotEmpty() && !openId.lowercase().contains(q) && !name.lowercase().contains(q)) {
                     continue
                 }
@@ -167,13 +167,13 @@ object FeishuDirectory {
     }
 
     /**
-     * 从 API 实时GetGroupList
+     * Get group list from API in real-time
      *
      * @param client Feishu Client
-     * @param config 飞书Config
-     * @param query SearchQuery(Optional)
-     * @param limit Limit数量(Default 50)
-     * @return GroupList
+     * @param config Feishu config
+     * @param query Search query (optional)
+     * @param limit Limit number (default 50)
+     * @return Group list
      */
     suspend fun listGroupsLive(
         client: FeishuClient,
@@ -208,7 +208,7 @@ object FeishuDirectory {
                 val chatId = chat.get("chat_id")?.asString ?: continue
                 val name = chat.get("name")?.asString ?: ""
 
-                // SearchFilter
+                // Search filter
                 if (q.isNotEmpty() && !chatId.lowercase().contains(q) && !name.lowercase().contains(q)) {
                     continue
                 }

@@ -21,7 +21,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 /**
- * 飞书 API Client
+ * Feishu API Client
  * Aligned with OpenClaw feishu client.ts
  */
 class FeishuClient(private val config: FeishuConfig) {
@@ -45,22 +45,22 @@ class FeishuClient(private val config: FeishuConfig) {
     private val gson = Gson()
     private val baseUrl = config.getApiBaseUrl()
 
-    // Access token Cache
+    // Access token cache
     private var cachedAccessToken: String? = null
     private var tokenExpireTime: Long = 0
 
     /**
-     * Get tenant_access_token (协程Version)
+     * Get tenant_access_token (Coroutine Version)
      */
     suspend fun getTenantAccessToken(): result<String> = withContext(Dispatchers.IO) {
         try {
-            // CheckCache
+            // Check cache
             val now = System.currentTimeMillis()
             if (cachedAccessToken != null && now < tokenExpireTime) {
                 return@withContext result.success(cachedAccessToken!!)
             }
 
-            // RequestNew token
+            // Request new token
             val url = "$baseUrl/open-apis/auth/v3/tenant_access_token/internal"
             val requestBody = mapOf(
                 "app_id" to config.appId,
@@ -97,7 +97,7 @@ class FeishuClient(private val config: FeishuConfig) {
 
             val expire = json.get("expire")?.asInt ?: 7200
 
-            // Cache token(提Front 5 分钟过期)
+            // Cache token (5 minutes before expiry)
             cachedAccessToken = token
             tokenExpireTime = now + (expire - 300) * 1000L
 
@@ -111,18 +111,18 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * Get tenant_access_token (SyncVersion)
-     * 用于在 IO Thread中直接call
+     * Get tenant_access_token (Sync Version)
+     * Used for direct calls on IO thread
      */
     fun getTenantAccessTokenSync(): String? {
         try {
-            // CheckCache
+            // Check cache
             val now = System.currentTimeMillis()
             if (cachedAccessToken != null && now < tokenExpireTime) {
                 return cachedAccessToken
             }
 
-            // RequestNew token
+            // Request new token
             val url = "$baseUrl/open-apis/auth/v3/tenant_access_token/internal"
             val requestBody = mapOf(
                 "app_id" to config.appId,
@@ -157,7 +157,7 @@ class FeishuClient(private val config: FeishuConfig) {
             val token = json.get("tenant_access_token")?.asString ?: return null
             val expire = json.get("expire")?.asInt ?: 7200
 
-            // Cache token(提Front 5 分钟过期)
+            // Cache token (5 minutes before expiry)
             cachedAccessToken = token
             tokenExpireTime = now + (expire - 300) * 1000L
 
@@ -171,8 +171,8 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * send API Request
-     * @param headers 额Outside的Request头(Optional), Used for X-Chat-Custom-Header 等场景
+     * Send API Request
+     * @param headers External request headers (optional), used for X-Chat-Custom-Header etc.
      */
     suspend fun apiRequest(
         method: String,
@@ -186,21 +186,21 @@ class FeishuClient(private val config: FeishuConfig) {
 
             val requestBuilder = Request.Builder().url(url)
 
-            // AddAuthenticate头
+            // Add authentication header
             if (requireAuth) {
-                val tokenresult = getTenantAccessToken()
-                if (tokenresult.isFailure) {
-                    return@withContext result.failure(tokenresult.exceptionOrNull()!!)
+                val tokenResult = getTenantAccessToken()
+                if (tokenResult.isFailure) {
+                    return@withContext result.failure(tokenResult.exceptionOrNull()!!)
                 }
-                requestBuilder.addHeader("Authorization", "Bearer ${tokenresult.getOrNull()}")
+                requestBuilder.addHeader("Authorization", "Bearer ${tokenResult.getOrNull()}")
             }
 
-            // Add额OutsideRequest头
+            // Add external request headers
             headers?.forEach { (key, value) ->
                 requestBuilder.addHeader(key, value)
             }
 
-            // AddRequest体
+            // Add request body
             if (body != null) {
                 val json = if (body is String) body else gson.toJson(body)
                 val requestBody = json.toRequestBody("application/json".toMediaType())
@@ -287,7 +287,7 @@ class FeishuClient(private val config: FeishuConfig) {
     suspend fun patch(path: String, body: Any): result<JsonObject> = apiRequest("PATCH", path, body)
 
     /**
-     * Upload文件到云Space (upload_all, 小文件 <=15MB)
+     * Upload file to cloud space (upload_all, small files <=15MB)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadFile(
@@ -341,7 +341,7 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * ShardingUpload - 预Upload (uploadPrepare)
+     * Sharding upload - Prepare (uploadPrepare)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadPrepare(
@@ -360,7 +360,7 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * ShardingUpload - UploadSharding (uploadPart)
+     * Sharding upload - Upload Sharding (uploadPart)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadPart(
@@ -412,7 +412,7 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * ShardingUpload - CompleteUpload (uploadFinish)
+     * Sharding upload - Complete (uploadFinish)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadFinish(
@@ -427,7 +427,7 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * Download二Into制Data(用于媒体文件Download)
+     * Download binary data (for media file download)
      * Aligned with OpenClaw downloadImageFeishu / downloadMessageResourceFeishu
      */
     suspend fun downloadRaw(path: String): result<ByteArray> = withContext(Dispatchers.IO) {
@@ -503,7 +503,7 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * Upload媒体文件(Graph片/文件)到飞书
+     * Upload media file (image/file) to Feishu
      * Aligned with @larksuite/openclaw-lark doc-media insert flow.
      *
      * @param fileName File name
@@ -568,7 +568,7 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * Get机器人Info (Aligned with OpenClaw probe.ts)
+     * Get bot info (Aligned with OpenClaw probe.ts)
      * https://open.feishu.cn/document/server-docs/bot-v3/bot-overview
      */
     suspend fun getBotInfo(): result<BotInfo> = withContext(Dispatchers.IO) {
@@ -606,7 +606,7 @@ class FeishuClient(private val config: FeishuConfig) {
                 return@withContext result.failure(Exception("getBotInfo failed: $msg (code: $code)"))
             }
 
-            // 飞书 API v3 的Response结构: { code: 0, bot: { activate_status: 2, app_name: "...", open_id: "...", ... }, msg: "ok" }
+            // Feishu API v3 response structure: { code: 0, bot: { activate_status: 2, app_name: "...", open_id: "...", ... }, msg: "ok" }
             val bot = json.getAsJsonObject("bot")
             Log.d(TAG, "bot object: $bot")
 
@@ -629,7 +629,7 @@ class FeishuClient(private val config: FeishuConfig) {
 }
 
 /**
- * 机器人Info
+ * Bot Info
  */
 data class BotInfo(
     val openId: String?,

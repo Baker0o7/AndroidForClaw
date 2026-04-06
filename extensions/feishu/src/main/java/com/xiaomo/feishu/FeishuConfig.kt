@@ -9,21 +9,21 @@ package com.xiaomo.feishu
 
 
 /**
- * 飞书Config
- * Aligned with OpenClaw feishu plugin Config结构
+ * Feishu Config
+ * Aligned with OpenClaw feishu plugin Config structure
  */
 data class FeishuConfig(
-    // ===== 基础Config =====
+    // ===== Base Config =====
     val enabled: Boolean = false,
     val appId: String,
     val appSecret: String,
     val encryptKey: String? = null,
     val verificationToken: String? = null,
 
-    // ===== 域名Config =====
+    // ===== Domain Config =====
     val domain: String = "feishu", // "feishu", "lark", or custom domain
 
-    // ===== ConnectSchema =====
+    // ===== Connection Schema =====
     val connectionMode: ConnectionMode = ConnectionMode.WEBSOCKET,
     val webhookPath: String = "/feishu/webhook",
     val webhookPort: Int = 8765,
@@ -32,31 +32,31 @@ data class FeishuConfig(
     val dmPolicy: DmPolicy = DmPolicy.PAIRING,
     val allowFrom: List<String> = emptyList(),
 
-    // ===== GroupPolicy =====
+    // ===== Group Policy =====
     val groupPolicy: GroupPolicy = GroupPolicy.ALLOWLIST,
     val groupAllowFrom: List<String> = emptyList(),
     val requireMention: Boolean? = null, // null = use groupPolicy-based default (open→false, else→true)
     val groupCommandMentionBypass: MentionBypass = MentionBypass.NEVER,
     val allowMentionlessInMultiBotGroup: Boolean = false,
 
-    // ===== SessionSchema =====
+    // ===== Session Schema =====
     val groupSessionScope: String? = null, // "per-user" = isolate per sender in groups
     val topicSessionMode: TopicSessionMode = TopicSessionMode.DISABLED,
 
-    // ===== 历史Record =====
+    // ===== History Record =====
     val historyLimit: Int = 20,
     val dmHistoryLimit: Int = 10,
 
-    // ===== Message分块 =====
+    // ===== Message Chunking =====
     val textChunkLimit: Int = 4000,
     val chunkMode: ChunkMode = ChunkMode.LENGTH,
     val maxTablesPerCard: Int = 3,  // Max tables supported by Feishu card (according to API Limit)
 
-    // ===== 媒体Config =====
+    // ===== Media Config =====
     val mediaMaxMb: Double = 20.0,
     val audioMaxDurationSec: Int = 300,
 
-    // ===== 工具Config =====
+    // ===== Tool Config =====
     val enableDocTools: Boolean = true,
     val enableWikiTools: Boolean = true,
     val enableDriveTools: Boolean = true,
@@ -71,7 +71,7 @@ data class FeishuConfig(
     val enableSearchTools: Boolean = true,
     val enableCommonTools: Boolean = true,
 
-    // ===== Its他Config =====
+    // ===== Other Config =====
     val typingIndicator: Boolean = true,
     val reactionDedup: Boolean = true,
     val debugMode: Boolean = false
@@ -101,14 +101,14 @@ data class FeishuConfig(
     }
 
     /**
-     * Get API 基础 URL
+     * Get API Base URL
      */
     fun getApiBaseUrl(): String {
         return when (domain.lowercase()) {
             "feishu" -> "https://open.feishu.cn"
             "lark" -> "https://open.larksuite.com"
             else -> {
-                // Custom domain: EnsureHas https:// Front缀
+                // Custom domain: Ensure https:// prefix
                 if (domain.startsWith("http://") || domain.startsWith("https://")) {
                     domain
                 } else {
@@ -119,7 +119,7 @@ data class FeishuConfig(
     }
 
     /**
-     * ValidateConfig
+     * Validate Config
      */
     fun validate(): result<Unit> {
         if (appId.isBlank()) {

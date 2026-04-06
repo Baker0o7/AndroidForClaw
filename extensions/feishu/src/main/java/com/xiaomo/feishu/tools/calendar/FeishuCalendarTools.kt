@@ -657,12 +657,12 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
         // Handle time conversion if provided
         (args["start_time"] as? String)?.let { timeStr ->
             val startTs = parseTimeToTimestamp(timeStr)
-                ?: return Toolresult.error("start_time Format error!Must useISO 8601 / RFC 3339 格式(with timezone), e.g. '2024-01-01T00:00:00+08:00'")
+                ?: return ToolResult.error("start_time format error! Must use ISO 8601 / RFC 3339 format (with timezone), e.g. '2024-01-01T00:00:00+08:00'")
             updateData["start_time"] = mapOf("timestamp" to startTs)
         }
         (args["end_time"] as? String)?.let { timeStr ->
             val endTs = parseTimeToTimestamp(timeStr)
-                ?: return Toolresult.error("end_time Format error!Must useISO 8601 / RFC 3339 格式(with timezone), e.g. '2024-01-01T00:00:00+08:00'")
+                ?: return ToolResult.error("end_time format error! Must use ISO 8601 / RFC 3339 format (with timezone), e.g. '2024-01-01T00:00:00+08:00'")
             updateData["end_time"] = mapOf("timestamp" to endTs)
         }
 
@@ -852,7 +852,7 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
                     "user_open_id" to PropertySchema("string", "The open_id of the user making the request (optional, but strongly suggested to provide). Get from the SenderId field in the message, format is ou_xxx."),
                     "attendees" to PropertySchema("array", "Attendee list. When type='user', id is open_id; when type='third_party', id is email.",
                         items = PropertySchema("object", "Attendee {type, id}")),
-                    "vchat" to PropertySchema("object", "视频会议Info"),
+                    "vchat" to PropertySchema("object", "Video conference info"),
                     "visibility" to PropertySchema("string", "Event visibility", enum = listOf("default", "public", "private")),
                     "attendee_ability" to PropertySchema("string", "Attendee permission (default: can_modify_event)",
                         enum = listOf("none", "can_see_others", "can_invite_others", "can_modify_event")),

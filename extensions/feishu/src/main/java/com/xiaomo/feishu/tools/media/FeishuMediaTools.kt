@@ -13,7 +13,7 @@ import com.xiaomo.feishu.FeishuConfig
 import com.xiaomo.feishu.tools.FeishuToolBase
 
 /**
- * 飞书媒体工具集
+ * Feishu media tools
  */
 class FeishuMediaTools(
     private val config: FeishuConfig,
@@ -22,7 +22,7 @@ class FeishuMediaTools(
     private val imageUploadTool = FeishuImageUploadTool(config, client)
 
     /**
-     * GetAll媒体工具
+     * Get all media tools
      */
     fun getAllTools(): List<FeishuToolBase> {
         return listOf(
