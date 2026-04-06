@@ -4,8 +4,8 @@ package com.xiaomo.androidforclaw.camera
  * OpenClaw Source Reference:
  * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/JpegSizeLimiter.kt
  *
- * JPEG compress尺寸Limit器
- * Auto降low质量andzoom尺寸, EnsureOutputnot超over指定Size
+ * JPEG compress size limiter
+ * Auto reduce quality and zoom size, ensure output not exceeding specified size
  */
 
 import kotlin.math.max

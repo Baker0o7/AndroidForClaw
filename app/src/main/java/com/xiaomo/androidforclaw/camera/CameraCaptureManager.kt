@@ -2,10 +2,10 @@ package com.xiaomo.androidforclaw.camera
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCapturemanager.kt
+ * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCaptureManager.kt
  *
- * androidforClaw adaptation: 相机捕获Manage器
- * 基于 CameraX, Support拍照(snap)and录like(clip)
+ * AndroidForClaw adaptation: camera capture manager
+ * Based on CameraX, support photo (snap) and video (clip)
  */
 
 import android.Manifest
@@ -54,15 +54,15 @@ import kotlin.coroutines.resumewithexception
 import kotlin.math.roundToInt
 
 /**
- * 相机捕获Manage器
- * Aligned with OpenClaw CameraCapturemanager
+ * Camera capture manager
+ * Aligned with OpenClaw CameraCaptureManager
  */
 class CameraCapturemanager(private val context: context) {
     companion object {
         private const val TAG = "CameraCapturemanager"
-        /** base64 payload Up限 5MB */
+        /** base64 payload limit 5MB */
         private const val MAX_PAYLOAD_BYTES = 5 * 1024 * 1024
-        /** clip originalfilesUp限 18MB */
+        /** clip original file limit 18MB */
         const val CLIP_MAX_RAW_BYTES: Long = 18L * 1024L * 1024L
     }
 
@@ -95,7 +95,7 @@ class CameraCapturemanager(private val context: context) {
     }
 
     /**
-     * ListAvailable camera
+     * List available cameras
      */
     suspend fun listDevices(): List<CameraDeviceInfo> =
         withcontext(Dispatchers.Main) {
@@ -106,11 +106,11 @@ class CameraCapturemanager(private val context: context) {
         }
 
     /**
-     * 拍照
-     * @param facing "front" or "back", Default "back"
-     * @param quality JPEG 质量 0.0-1.0, Default 0.95
-     * @param maxWidth MaxBreadth, Default 1600
-     * @param deviceId 指定摄like头 ID(Optional)
+     * Take photo
+     * @param facing "front" or "back", default "back"
+     * @param quality JPEG quality 0.0-1.0, default 0.95
+     * @param maxWidth Max width, default 1600
+     * @param deviceId Specify camera ID (optional)
      */
     suspend fun snap(
         facing: String = "back",
@@ -180,11 +180,11 @@ class CameraCapturemanager(private val context: context) {
     }
 
     /**
-     * 录like
-     * @param facing "front" or "back", Default "back"
-     * @param durationMs 录制duration(毫seconds), Default 3000, Max 60000
-     * @param includeAudio whether录制音频, Default true
-     * @param deviceId 指定摄like头 ID(Optional)
+     * Record video
+     * @param facing "front" or "back", default "back"
+     * @param durationMs recording duration (milliseconds), default 3000, max 60000
+     * @param includeAudio whether to record audio, default true
+     * @param deviceId Specify camera ID (optional)
      */
     @SuppressLint("MissingPermission")
     suspend fun clip(
@@ -210,7 +210,7 @@ class CameraCapturemanager(private val context: context) {
         val videoCapture = VideoCapture.withOutput(recorder)
         val selector = resolveCameraSelector(provider, facing, deviceId)
 
-        // CameraX need Preview use case 才can产生帧
+        // CameraX needs Preview use case to generate frames
         val preview = Preview.Builder().build()
         val surfaceTexture = SurfaceTexture(0)
         surfaceTexture.setDefaultBufferSize(640, 480)
@@ -225,7 +225,7 @@ class CameraCapturemanager(private val context: context) {
         provider.unbindAll()
         provider.bindToLifecycle(owner, selector, preview, videoCapture)
 
-        // 等相机Initialize
+        // Wait for camera initialization
         delay(1_500)
 
         val file = File.createTempFile("claw-clip-", ".mp4", context.cacheDir)
@@ -369,7 +369,7 @@ class CameraCapturemanager(private val context: context) {
     private fun context.mainExecutor(): Executor = contextCompat.getMainExecutor(this)
 }
 
-/** 挂upGet Cameraprovider */
+/** Obtain CameraProvider */
 private suspend fun context.cameraprovider(): ProcessCameraprovider =
     suspendcancellableCoroutine { cont ->
         val future = ProcessCameraprovider.getInstance(this)
@@ -385,7 +385,7 @@ private suspend fun context.cameraprovider(): ProcessCameraprovider =
         )
     }
 
-/** 拍照并Get JPEG bytes + EXIF orientation */
+/** Take photo and get JPEG bytes + EXIF orientation */
 private suspend fun ImageCapture.takeJpegwithExif(executor: Executor): Pair<ByteArray, Int> =
     suspendcancellableCoroutine { cont ->
         val file = File.createTempFile("claw-snap-", ".jpg")

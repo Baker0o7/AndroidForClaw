@@ -100,7 +100,7 @@ class TermuxBridgetool(private val context: context) : tool {
                 sshAuthOk = false,
                 keypairPresent = false,
                 lastStep = TermuxSetupStep.TERMUX_NOT_INSTALLED,
-                message = "Termux \u672a\u5b89\u88c5"
+                message = "Termux not installed"
             ).also { persistStatus(it) }
         }
 
@@ -116,10 +116,10 @@ class TermuxBridgetool(private val context: context) : tool {
         }
 
         val (step, message) = when {
-            !keypairPresent -> TermuxSetupStep.KEYPAIR_MISSING to "SSH \u5bc6\u94a5\u5bf9\u672a\u751f\u6210"
-            !sshReachable -> TermuxSetupStep.SSHD_NOT_REACHABLE to "SSH \u7aef\u53e3 8022 \u4e0d\u53ef\u8fbe"
-            !sshAuthOk -> TermuxSetupStep.SSH_AUTH_FAILED to "SSH \u8ba4\u8bc1\u5931\u8d25"
-            else -> TermuxSetupStep.READY to "Termux \u5df2\u5c31\u7eea"
+            !keypairPresent -> TermuxSetupStep.KEYPAIR_MISSING to "SSH key pair not generated"
+            !sshReachable -> TermuxSetupStep.SSHD_NOT_REACHABLE to "SSH port 8022 not reachable"
+            !sshAuthOk -> TermuxSetupStep.SSH_AUTH_FAILED to "SSH authentication failed"
+            else -> TermuxSetupStep.READY to "Termux ready"
         }
 
         return TermuxStatus(
@@ -401,48 +401,48 @@ class TermuxBridgetool(private val context: context) : tool {
     private fun shellEscape(s: String) = "'" + s.replace("'", "'\\''") + "'"
 
     /**
-     * on-demand start Termux sshd: 先拉up Termux, Start sshd, WaitReady. 
-     * ifAuthenticateFailed(authorized_keys lose), Auto注入公钥. 
+     * On-demand start Termux sshd: Launch Termux, start sshd, wait for ready.
+     * If authentication failed (authorized_keys lost), auto-inject public key.
      */
     private suspend fun autoStartSshd(): TermuxStatus {
-        // Connect池alreadyConnectthen直接Return
+        // Connection pool already connected then directly return
         if (TermuxSSHPool.isConnected) {
-            Log.i(TAG, "SSH Connect池alreadyConnect, Skipon-demand start")
+            Log.i(TAG, "SSH connection pool already connected, skip on-demand start")
             return getStatus()
         }
         Log.i(TAG, "[PENGUIN] on-demand start Termux sshd...")
         val launcher = com.xiaomo.androidforclaw.core.TermuxSshdLauncher
         try {
-            launcher.ensureandLaunch(context)
-        } catch (e: exception) {
-            Log.w(TAG, "ensureandLaunch failed: ${e.message}")
+            launcher.ensureAndLaunch(context)
+        } catch (e: Exception) {
+            Log.w(TAG, "ensureAndLaunch failed: ${e.message}")
         }
 
-        // 轮询Wait sshd Ready
+        // Poll wait for sshd ready
         var keyInjected = false
         for (attempt in 1..20) {
             kotlinx.coroutines.delay(1000)
             val s = getStatus()
             if (s.ready) {
                 TermuxSSHPool.warmUp(context)
-                Log.i(TAG, "[OK] on-demand start sshd Success(Wait ${attempt}s)")
+                Log.i(TAG, "[OK] on-demand start sshd success (wait ${attempt}s)")
                 return s
             }
-            // sshd can达butAuthenticateFailed → Auto注入公钥
+            // sshd can reach but authentication failed -> auto-inject public key
             if (s.sshReachable && !s.sshAuthOk && !keyInjected) {
                 val pubKey = getPublicKey()
                 if (pubKey != null) {
-                    Log.i(TAG, "[KEY] sshd can达butAuthenticateFailed, Auto注入公钥...")
+                    Log.i(TAG, "[KEY] sshd can reach but authentication failed, auto-injecting public key...")
                     launcher.injectPublicKey(context, pubKey)
                     keyInjected = true
                 }
             }
-            // retry RUN_COMMAND
+            // retry launch
             if (!s.sshReachable && (attempt == 5 || attempt == 10)) {
-                try { launcher.launch(context) } catch (_: exception) { }
+                try { launcher.launch(context) } catch (_: Exception) { }
             }
         }
-        // Timeout, Returnmost终Status
+        // Timeout, return final status
         val finalStatus = getStatus()
         if (!finalStatus.ready && launcher.isMiui()) {
             launcher.showAutoStartGuide(context)

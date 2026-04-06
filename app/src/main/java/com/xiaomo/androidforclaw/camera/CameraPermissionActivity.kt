@@ -14,14 +14,14 @@ import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.CompletableDeferred
 
 /**
- * Transparent Activity, 用于inbackground skill callhour弹出相机PermissionRequest. 
+ * Transparent Activity, used in background skill to popup camera permission request.
  *
- * 流程:
- * 1. Eyeskill DetectedNone CAMERA Permission
- * 2. Start CameraPermissionActivity(Transparent、NoneUI)
- * 3. 弹出系统Permissionpopup
- * 4. ifuser之Frontdenyover且选"not再询问", 弹 Toast steergoSettings页
- * 5. resultthrough CompletableDeferred return传给 Eyeskill
+ * Flow:
+ * 1. Eye skill detected no CAMERA permission
+ * 2. Start CameraPermissionActivity (transparent, no UI)
+ * 3. Show system permission popup
+ * 4. If user denied and selected "don't ask again", show Toast and steer to settings page
+ * 5. Result through CompletableDeferred return to Eye skill
  */
 class CameraPermissionActivity : Activity() {
 
@@ -30,16 +30,16 @@ class CameraPermissionActivity : Activity() {
         private const val REQUEST_CODE_CAMERA = 1001
         private const val REQUEST_CODE_SETTINGS = 1002
 
-        // 用于WaitPermissionresult deferred
+        // For waiting permission result deferred
         @Volatile
         var pendingresult: CompletableDeferred<Boolean>? = null
 
         /**
-         * frombackgroundRequest相机Permission
-         * @return true=alreadyAuthorize, false=userdeny
+         * Request camera permission from background
+         * @return true=already authorized, false=user denied
          */
         suspend fun requestPermission(context: context): Boolean {
-            // already经HasPermission
+            // Already has permission
             if (context.checkSelfPermission(Manifest.permission.CAMERA) ==
                 Packagemanager.PERMISSION_GRANTED
             ) {
@@ -66,7 +66,7 @@ class CameraPermissionActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // CheckwhetheralreadyHasPermission(possiblyin Activity StartFront就授)
+        // Check whether already has permission (possibly granted at Activity start)
         if (checkSelfPermission(Manifest.permission.CAMERA) ==
             Packagemanager.PERMISSION_GRANTED
         ) {
@@ -75,16 +75,16 @@ class CameraPermissionActivity : Activity() {
             return
         }
 
-        // Checkwhethercan弹系统Permissionpopup
+        // Check whether can show system permission popup
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-            // user之Frontdenyoverbut没选"not再询问", can再timespopup
+            // User denied but didn't select "don't ask again", can show again
             Log.d(TAG, "Requesting CAMERA permission (rationale shown)")
             requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CODE_CAMERA)
         } else {
-            // 两种情况: 
-            // 1. 首timesRequest → 弹系统popup
-            // 2. user选"not再询问" → 系统notpopup, needsteergoSettings
-            // 先Trypopup, ifCallbackinYes DENIED 再跳Settings
+            // Two cases:
+            // 1. First time request -> show system popup
+            // 2. User selected "don't ask again" -> system not popup, need steer to settings
+            // First try popup, if callback is DENIED then jump to Settings
             Log.d(TAG, "Requesting CAMERA permission (first time or denied permanently)")
             requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CODE_CAMERA)
         }
@@ -104,12 +104,12 @@ class CameraPermissionActivity : Activity() {
             Log.d(TAG, "CAMERA permission granted via dialog")
             completeandFinish(true)
         } else {
-            // 被deny
+            // Denied
             if (!ActivityCompat.shouldShowRequestPermissionRationale(
                     this, Manifest.permission.CAMERA
                 )
             ) {
-                // user选"not再询问", steergoSettings页
+                // User selected "don't ask again", steer to settings page
                 Log.d(TAG, "CAMERA permission permanently denied, opening settings")
                 Toast.makeText(
                     this,
@@ -118,7 +118,7 @@ class CameraPermissionActivity : Activity() {
                 ).show()
                 openAppSettings()
             } else {
-                // user只Yes点"deny"
+                // User just clicked "deny"
                 Log.d(TAG, "CAMERA permission denied by user")
                 completeandFinish(false)
             }
@@ -128,7 +128,7 @@ class CameraPermissionActivity : Activity() {
     override fun onActivityresult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityresult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_SETTINGS) {
-            // fromSettings页Return, CheckPermissionwhetheralreadygrant
+            // Return from settings page, check permission whether already granted
             val granted = checkSelfPermission(Manifest.permission.CAMERA) ==
                 Packagemanager.PERMISSION_GRANTED
             Log.d(TAG, "Returned from settings, granted=$granted")

@@ -26,8 +26,8 @@ class Swipeskill : skill {
     override val description: String
         get() {
             val isAccessibilityEnabled = AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isserviceReady()
-            val statusnote = if (!isAccessibilityEnabled) " [WARN] **notAvailable**-Accessibilityservicenot connected" else " [OK]"
-            return "inScreenUpswipe. 用于滚动页面、Switch tabs, etc. Support swipe up/down/left/right. **note**: ActionScreenFrontuse get_view_tree() Get UI ElementInfothat iscan, notneed再call screenshot(). $statusnote"
+            val statusNote = if (!isAccessibilityEnabled) " [WARN] **notAvailable** - Accessibility service not connected" else " [OK]"
+            return "Swipe on screen. Used for scrolling pages, switching tabs, etc. Support swipe up/down/left/right. **note**: For screen front use get_view_tree() to get UI element info that is valid, no need to call screenshot(). $statusNote"
         }
 
     override fun gettoolDefinition(): toolDefinition {
@@ -39,11 +39,11 @@ class Swipeskill : skill {
                 parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "start_x" to Propertyschema("integer", "up始 X 坐标"),
-                        "start_y" to Propertyschema("integer", "up始 Y 坐标"),
-                        "end_x" to Propertyschema("integer", "End X 坐标"),
-                        "end_y" to Propertyschema("integer", "End Y 坐标"),
-                        "duration" to Propertyschema("integer", "swipe持续Time(毫seconds), Default 300")
+                        "start_x" to PropertySchema("integer", "Starting X coordinate"),
+                        "start_y" to PropertySchema("integer", "Starting Y coordinate"),
+                        "end_x" to PropertySchema("integer", "End X coordinate"),
+                        "end_y" to PropertySchema("integer", "End Y coordinate"),
+                        "duration" to PropertySchema("integer", "Swipe duration (milliseconds), default 300")
                     ),
                     required = listOf("start_x", "start_y", "end_x", "end_y")
                 )
