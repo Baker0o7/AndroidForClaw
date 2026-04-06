@@ -4,11 +4,11 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * ChunkUtils 单元Test — Aligned with OpenClaw chunkMarkdown Implementation
+ * ChunkUtils unit test - Aligned with OpenClaw chunkMarkdown implementation
  */
 class ChunkUtilsTest {
 
-    // ===== Constant对齐 =====
+    // ===== Constants =====
 
     @Test
     fun `default chunk tokens is 400`() {
