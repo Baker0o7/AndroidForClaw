@@ -22,8 +22,8 @@ private const val TAG = "FeishuCommonTools"
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_get_user"
-    override val description = "GetUserInfo. 不传 user_id 时Get当FrontUser自己的Info；传 user_id 时Get指定User的Info. " +
-        "ReturnUser姓名、头Like、邮箱、手机号、Department等Info. "
+    override val description = "Get user info. If user_id not provided, get current user's own info; if user_id provided, get specified user's info. " +
+        "Returns user name, avatar, email, phone, department, etc. "
 
     override fun isEnabledd() = config.enableCommonTools
 
@@ -44,9 +44,9 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
                         val errMsg = result.exceptionOrNull()?.message ?: ""
                         if (errMsg.contains("41050")) {
                             return@withContext Toolresult.error(
-                                "NonePermissionQuery该UserInfo. \n\n" +
-                                "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
-                                "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. "
+                                "No permission to query this user info. \n\n" +
+                                "Note: when using user identity to call contacts API, the actionable permission range is not affected by the applied contact permission range, " +
+                                "but is limited by the current user's organizational structure visibility range. This range limits the data range of organizational structure that the user can see within the enterprise. "
                             )
                         }
                         return@withContext Toolresult.error(errMsg.ifBlank { "Failed to get current user info" })
@@ -60,9 +60,9 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
                     // Check for error code 41050
                     if (invokeErr.message?.contains("41050") == true) {
                         return@withContext Toolresult.error(
-                            "NonePermissionQuery该UserInfo. \n\n" +
-                            "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
-                            "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. "
+                            "No permission to query this user info. \n\n" +
+                            "Note: when using user identity to call contacts API, the actionable permission range is not affected by the applied contact permission range, " +
+                            "but is limited by the current user's organizational structure visibility range. This range limits the data range of organizational structure that the user can see within the enterprise. "
                         )
                     }
                     throw invokeErr
@@ -78,10 +78,10 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
                     val errMsg = result.exceptionOrNull()?.message ?: ""
                     if (errMsg.contains("41050")) {
                         return@withContext Toolresult.error(
-                            "NonePermissionQuery该UserInfo. \n\n" +
-                            "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
-                            "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. \n\n" +
-                            "suggest: 请联系Manage员adjust当FrontUser的Group织架构可见Range, 或useapply身份(tenant_access_token)call API. "
+                            "No permission to query this user info. \n\n" +
+                            "Note: when using user identity to call contacts API, the actionable permission range is not affected by the applied contact permission range, " +
+                            "but is limited by the current user's organizational structure visibility range. This range limits the data range of organizational structure that the user can see within the enterprise. \n\n" +
+                            "Suggestion: please contact administrator to adjust the current user's organizational structure visibility range, or use app identity (tenant_access_token) to call API. "
                         )
                     }
                     return@withContext Toolresult.error(errMsg.ifBlank { "Failed to get user info" })
@@ -94,10 +94,10 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
             } catch (invokeErr: Exception) {
                 if (invokeErr.message?.contains("41050") == true) {
                     return@withContext Toolresult.error(
-                        "NonePermissionQuery该UserInfo. \n\n" +
-                        "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
-                        "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. \n\n" +
-                        "suggest: 请联系Manage员adjust当FrontUser的Group织架构可见Range, 或useapply身份(tenant_access_token)call API. "
+                        "No permission to query this user info. \n\n" +
+                        "Note: when using user identity to call contacts API, the actionable permission range is not affected by the applied contact permission range, " +
+                        "but is limited by the current user's organizational structure visibility range. This range limits the data range of organizational structure that the user can see within the enterprise. \n\n" +
+                        "Suggestion: please contact administrator to adjust the current user's organizational structure visibility range, or use app identity (tenant_access_token) to call API. "
                     )
                 }
                 throw invokeErr
@@ -115,8 +115,8 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "user_id" to PropertySchema("string", "User ID(格式such as ou_xxx). 若不传入, 则Get当FrontUser自己的Info"),
-                    "user_id_type" to PropertySchema("string", "User ID Type(Default open_id)",
+                    "user_id" to PropertySchema("string", "User ID (format e.g. ou_xxx). If not provided, gets current user's own info"),
+                    "user_id_type" to PropertySchema("string", "User ID type (default open_id)",
                         enum = listOf("open_id", "union_id", "user_id"))
                 ),
                 required = emptyList()
@@ -130,8 +130,8 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuSearchUserTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_search_user"
-    override val description = "Search员工Info(通过关Key词Search姓名、手机号、邮箱). Returnmatch的员工List, " +
-        "Contains姓名、Department、open_id 等Info. "
+    override val description = "Search employee info (search by keyword for name, phone, email). Returns matching employee list, " +
+        "including name, department, open_id, etc. "
 
     override fun isEnabledd() = config.enableCommonTools
 
@@ -183,9 +183,9 @@ class FeishuSearchUserTool(config: FeishuConfig, client: FeishuClient) : FeishuT
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "query" to PropertySchema("string", "Search关Key词, 用于matchUser名(Required)"),
-                    "page_size" to PropertySchema("integer", "Page size, 控制each timeReturn的User数量(Default20, Max200)"),
-                    "page_token" to PropertySchema("string", "Paginate标识. 首次RequestNone需填写；当Returnresult中Contains page_token 时, 可传入该ValueContinueRequestDown一页")
+                    "query" to PropertySchema("string", "Search keyword, used to match user name (required)"),
+                    "page_size" to PropertySchema("integer", "Page size, controls number of users returned each time (default 20, max 200)"),
+                    "page_token" to PropertySchema("string", "Pagination token. Not required for first request; when result contains page_token, can pass that value to continue requesting next page")
                 ),
                 required = listOf("query")
             )

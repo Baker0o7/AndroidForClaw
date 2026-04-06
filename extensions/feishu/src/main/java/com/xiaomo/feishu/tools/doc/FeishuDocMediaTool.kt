@@ -60,11 +60,11 @@ private const val MAX_FILE_SIZE = 20L * 1024 * 1024 // 20MB
 class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_media"
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official description)
-    override val description = "【As user】Document媒体Manage工具. " +
-        "Support两种Action: " +
-        "(1) insert - 在飞书Document末尾Insert本地Graph片或文件(NeedDocument ID + 本地File path)；" +
-        "(2) download - DownloadDocument素材或画板缩略Graph到本地(NeedResource token + OutputPath). " +
-        "\n\n[Important]insert 仅Support本地File path. URL Graph片请use create-doc/update-doc 的 <image url=\"...\"/> 语法. "
+    override val description = "[As user] Document media management tool. " +
+        "Supports two actions: " +
+        "(1) insert - Insert local image or file at end of Feishu document (requires document ID + local file path);" +
+        "(2) download - Download document media or whiteboard thumbnail to local (requires resource token + output path). " +
+        "\n\n[Important] insert only supports local file path. For URL images, use create-doc/update-doc <image url=\"...\"/> syntax. "
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -121,12 +121,12 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             blockType = 27
             blockData = mapOf("image" to emptyMap<String, Any?>())
             parentType = "docx_image"
-            label = "Graph片"
+            label = "image"
         } else {
             blockType = 23
             blockData = mapOf("file" to mapOf("token" to ""))
             parentType = "docx_file"
-            label = "文件"
+            label = "file"
         }
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (Step 2: create empty block)
@@ -321,17 +321,17 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action: insert or download",
                         enum = listOf("insert", "download")),
-                    "doc_id" to PropertySchema("string", "Document ID 或Document URL(insert 时Required). Support从 URL Auto提取 document_id"),
-                    "file_path" to PropertySchema("string", "本地文件的absolutelyPath(insert 时Required). Graph片Support jpg/png/gif/webp 等, 文件SupportAny格式, Max 20MB"),
-                    "type" to PropertySchema("string", "媒体Type: \"image\"(Graph片, Default)或 \"file\"(文件附件)",
+                    "doc_id" to PropertySchema("string", "Document ID or document URL (required for insert). Supports auto-extract document_id from URL"),
+                    "file_path" to PropertySchema("string", "Absolute local file path (required for insert). Images support jpg/png/gif/webp etc, files support any format, max 20MB"),
+                    "type" to PropertySchema("string", "Media type: \"image\" (image, default) or \"file\" (file attachment)",
                         enum = listOf("image", "file")),
-                    "align" to PropertySchema("string", "对齐方式(仅Graph片生效): \"center\"(Default居中)、\"left\"(居Left)、\"right\"(居Right)",
+                    "align" to PropertySchema("string", "Alignment (only for images): \"center\" (default center), \"left\" (left), \"right\" (right)",
                         enum = listOf("left", "center", "right")),
-                    "caption" to PropertySchema("string", "Graph片Description/Title(Optional, 仅Graph片生效)"),
-                    "resource_token" to PropertySchema("string", "Resource的Unique标识(file_token 用于Document素材, whiteboard_id 用于画板)"),
-                    "resource_type" to PropertySchema("string", "ResourceType: media(Document素材: Graph片、视频、Files, etc)或 whiteboard(画板缩略Graph)",
+                    "caption" to PropertySchema("string", "Image caption/title (optional, only for images)"),
+                    "resource_token" to PropertySchema("string", "Unique identifier for resource (file_token for document media, whiteboard_id for whiteboard)"),
+                    "resource_type" to PropertySchema("string", "Resource type: media (document media: images, videos, files, etc) or whiteboard (whiteboard thumbnail)",
                         enum = listOf("media", "whiteboard")),
-                    "output_path" to PropertySchema("string", "Save文件的完整本地Path. CanContains扩展名(such as /tmp/image.png), AlsoCan不带扩展名, 系统会according to Content-Type AutoAdd")
+                    "output_path" to PropertySchema("string", "Full local path to save file. Can include extension (e.g. /tmp/image.png), or without extension - system will auto-add based on Content-Type")
                 ),
                 required = listOf("action")
             )

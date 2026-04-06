@@ -34,7 +34,7 @@ fun extractDocId(input: String): String {
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_fetch_doc"
-    override val description = "Get飞书云DocumentInside容, ReturnDocumentTitle和 Markdown 格式Inside容. SupportPaginateGet大Document. "
+    override val description = "Get Feishu Cloud document content, returns document title and Markdown format content. Supports paginated fetching for large documents. "
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -98,9 +98,9 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "doc_id" to PropertySchema("string", "Document ID 或 URL(SupportAutoParse)"),
-                    "offset" to PropertySchema("integer", "字符Offset量(Optional, Default0). 用于大DocumentPaginateGet. "),
-                    "limit" to PropertySchema("integer", "Return的Maxcharacters(Optional). 仅在User明确要求Paginate时use. ")
+                    "doc_id" to PropertySchema("string", "Document ID or URL (supports auto-parse)"),
+                    "offset" to PropertySchema("integer", "Character offset (optional, default 0). Used for pagination when fetching large documents. "),
+                    "limit" to PropertySchema("integer", "Maximum characters to return (optional). Only used when user explicitly requests pagination. ")
                 ),
                 required = listOf("doc_id")
             )
@@ -113,7 +113,7 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_create_doc"
-    override val description = "从 Markdown Create云Document(SupportAsync task_id Query)"
+    override val description = "Create cloud document from Markdown (supports async task_id query)"
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -122,9 +122,9 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
         val taskId = args["task_id"] as? String
         if (taskId != null) return null // task_id provided, skip other validation
 
-        // Matching official: "未提供 task_id 时, 至少Need提供 markdown 和 title"
+        // Matching official: "When task_id is not provided, at least markdown and title are required"
         if (args["markdown"] == null || args["title"] == null) {
-            return "create-doc: 未提供 task_id 时, 至少Need提供 markdown 和 title"
+            return "create-doc: when task_id is not provided, at least markdown and title are required"
         }
 
         // Matching official: folder_token / wiki_node / wiki_space are mutually exclusive
@@ -134,7 +134,7 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             args["wiki_space"]
         )
         if (flags.size > 1) {
-            return "create-doc: folder_token / wiki_node / wiki_space 三者Mutex, 请只提供一个"
+            return "create-doc: folder_token / wiki_node / wiki_space are mutually exclusive, please provide only one"
         }
 
         return null
@@ -185,12 +185,12 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "markdown" to PropertySchema("string", "Markdown Inside容"),
-                    "title" to PropertySchema("string", "DocumentTitle"),
-                    "folder_token" to PropertySchema("string", "父文件夹 token(Optional)"),
-                    "wiki_node" to PropertySchema("string", "Knowledge BaseNode token 或 URL(Optional, 传入则在该NodeDownCreateDocument)"),
-                    "wiki_space" to PropertySchema("string", "Knowledge Space ID(Optional, Special value my_library)"),
-                    "task_id" to PropertySchema("string", "AsyncTask ID. 提供此Parameters将QueryTaskStatus而非CreateNewDocument")
+                    "markdown" to PropertySchema("string", "Markdown content"),
+                    "title" to PropertySchema("string", "Document title"),
+                    "folder_token" to PropertySchema("string", "Parent folder token (optional)"),
+                    "wiki_node" to PropertySchema("string", "Knowledge base node token or URL (optional, if provided, create document under this node)"),
+                    "wiki_space" to PropertySchema("string", "Knowledge space ID (optional, special value my_library)"),
+                    "task_id" to PropertySchema("string", "Async task ID. If provided, will query task status instead of creating new document")
                 ),
                 required = listOf()
             )
@@ -248,7 +248,7 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_update_doc"
-    override val description = "Update云Document(overwrite/append/replace_range/replace_all/insert_before/insert_after/delete_range, SupportAsync task_id Query)"
+    override val description = "Update cloud document (overwrite/append/replace_range/replace_all/insert_before/insert_after/delete_range, supports async task_id query)"
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -257,9 +257,9 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
         val taskId = args["task_id"] as? String
         if (taskId != null) return null // task_id provided, skip other validation
 
-        // Matching official: "未提供 task_id 时Must提供 doc_id"
+        // Matching official: "When task_id is not provided, doc_id is required"
         if (args["doc_id"] == null) {
-            return "update-doc: 未提供 task_id 时Must提供 doc_id"
+            return "update-doc: when task_id is not provided, doc_id is required"
         }
 
         val mode = args["mode"] as? String
@@ -270,16 +270,16 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             val hasEllipsis = args["selection_with_ellipsis"] != null
             val hasTitle = args["selection_by_title"] != null
 
-            // Matching official: "selection_with_ellipsis 与 selection_by_title MustChoose one"
+            // Matching official: "selection_with_ellipsis and selection_by_title are mutually exclusive"
             if ((hasEllipsis && hasTitle) || (!hasEllipsis && !hasTitle)) {
-                return "update-doc: mode 为 replace_range/insert_before/insert_after/delete_range 时, selection_with_ellipsis 与 selection_by_title MustChoose one"
+                return "update-doc: for mode replace_range/insert_before/insert_after/delete_range, you must provide exactly one of selection_with_ellipsis or selection_by_title"
             }
         }
 
         // Matching official: modes that need markdown
         val needMarkdown = mode != "delete_range"
         if (needMarkdown && args["markdown"] == null) {
-            return "update-doc: mode=$mode 时Must提供 markdown"
+            return "update-doc: mode=$mode requires markdown"
         }
 
         return null
@@ -332,14 +332,14 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "doc_id" to PropertySchema("string", "Document ID 或 URL"),
-                    "markdown" to PropertySchema("string", "Markdown Inside容"),
-                    "mode" to PropertySchema("string", "UpdateSchema(Required)",
+                    "doc_id" to PropertySchema("string", "Document ID or URL"),
+                    "markdown" to PropertySchema("string", "Markdown content"),
+                    "mode" to PropertySchema("string", "Update mode (required)",
                         enum = listOf("overwrite", "append", "replace_range", "replace_all", "insert_before", "insert_after", "delete_range")),
-                    "selection_with_ellipsis" to PropertySchema("string", "定位Table达式: 开头Inside容...结尾Inside容(与 selection_by_title Choose one)"),
-                    "selection_by_title" to PropertySchema("string", "Title定位: e.g. ## 章节Title(与 selection_with_ellipsis Choose one)"),
-                    "new_title" to PropertySchema("string", "New的DocumentTitle(Optional)"),
-                    "task_id" to PropertySchema("string", "AsyncTask ID, 用于QueryTaskStatus")
+                    "selection_with_ellipsis" to PropertySchema("string", "Selection expression: start content...end content (mutually exclusive with selection_by_title)"),
+                    "selection_by_title" to PropertySchema("string", "Title-based selection: e.g. ## section title (mutually exclusive with selection_with_ellipsis)"),
+                    "new_title" to PropertySchema("string", "New document title (optional)"),
+                    "task_id" to PropertySchema("string", "Async task ID, used to query task status")
                 ),
                 required = listOf("mode")
             )

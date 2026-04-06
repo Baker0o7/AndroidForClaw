@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书群聊工具集
- * 对齐 @larksuite/openclaw-lark chat-tools
+ * Feishu group chat tool set.
+ * Aligned with @larksuite/openclaw-lark chat-tools
  */
 class FeishuChatTools(config: FeishuConfig, client: FeishuClient) {
     private val chatTool = FeishuChatTool(config, client)
@@ -44,8 +44,8 @@ class FeishuChatTool(
     override val name = "feishu_chat"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "As usercall飞书群聊Manage工具. Actions: search(Search群List, Support关Key词match群Name、群Member), " +
-            "get(Get指定群的详细Info, Package括群Name、Description、头Like、群主、PermissionConfig等). "
+    override val description = "As user, call Feishu group chat management tool. Actions: search (search group list, supports keyword matching for group name, group members), " +
+            "get (get specified group detailed info, including group name, description, avatar, owner, permission config, etc). "
 
     override fun isEnabledd() = config.enableChatTools
 
@@ -150,24 +150,24 @@ class FeishuChatTool(
                     ),
                     "chat_id" to PropertySchema(
                         type = "string",
-                        description = "群 ID(格式such as oc_xxx)(get ActionRequired)"
+                        description = "Group ID (format e.g. oc_xxx) (required for get action)"
                     ),
                     "query" to PropertySchema(
                         type = "string",
-                        description = "Search关Key词(search ActionRequired). Supportmatch群Name、群MemberName. Support多语种、拼音、Front缀等模糊Search. "
+                        description = "Search keyword (required for search action). Supports matching group name, group member name. Supports multilingual, pinyin, prefix and other fuzzy search. "
                     ),
                     "user_id_type" to PropertySchema(
                         type = "string",
-                        description = "User ID Type(Optional, Default open_id)",
+                        description = "User ID type (optional, default open_id)",
                         enum = listOf("open_id", "union_id", "user_id")
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "Page size(Default 20)"
+                        description = "Page size (default 20)"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "Page token. 首次RequestNone需填写"
+                        description = "Page token. Not required for first request"
                     )
                 ),
                 required = listOf("action")
@@ -198,9 +198,9 @@ class FeishuChatMembersTool(
     override val name = "feishu_chat_members"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "以User的身份Get指定Group的MemberList. " +
-            "ReturnMemberInfo, ContainsMember ID、姓名等. " +
-            "注意: 不会ReturnGroupInside的机器人Member. "
+    override val description = "Get specified group member list as user. " +
+            "Returns member info, including member ID, name, etc. " +
+            "Note: will not return robot members inside the group. "
 
     override fun isEnabledd() = config.enableChatTools
 
@@ -262,20 +262,20 @@ class FeishuChatMembersTool(
                 properties = mapOf(
                     "chat_id" to PropertySchema(
                         type = "string",
-                        description = "群 ID(格式such as oc_xxx). Can通过 feishu_chat_search 工具SearchGet"
+                        description = "Group ID (format e.g. oc_xxx). Can obtain via feishu_chat_search tool"
                     ),
                     "member_id_type" to PropertySchema(
                         type = "string",
-                        description = "Member ID Type(Optional, Default open_id)",
+                        description = "Member ID type (optional, default open_id)",
                         enum = listOf("open_id", "union_id", "user_id")
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "Page size(Default 20)"
+                        description = "Page size (default 20)"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "Page token. 首次RequestNone需填写"
+                        description = "Page token. Not required for first request"
                     )
                 ),
                 required = listOf("chat_id")

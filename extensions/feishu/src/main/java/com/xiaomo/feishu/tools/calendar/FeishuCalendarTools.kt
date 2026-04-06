@@ -292,8 +292,8 @@ private suspend fun resolveCalendarId(calendarId: String?, client: FeishuClient)
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarCalendarTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_calendar"
-    override val description = "【As user】飞书日历Manage工具. 用于Query日历List、Get日历Info、Query主日历. " +
-        "Actions: list(Query日历List), get(Query指定日历Info), primary(Query主日历Info). "
+    override val description = "[As user] Feishu calendar management tool. Used for querying calendar list, getting calendar info, querying primary calendar. " +
+        "Actions: list (query calendar list), get (get specified calendar info), primary (query primary calendar info). "
 
     override fun isEnabledd() = config.enableCalendarTools
 
@@ -393,13 +393,13 @@ class FeishuCalendarCalendarTool(config: FeishuConfig, client: FeishuClient) : F
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_event"
-    override val description = "【As user】飞书日程Manage工具. 当User要求View日程、Create会议、约会议、Modify日程、" +
-        "Delete日程、Search日程、回复日程邀请时use. Actions: create(Create日历Event), list(QueryTimeRangeInside的日程, Auto展开Duplicate日程), " +
-        "get(Get日程Details), patch(Update日程), delete(Delete日程), search(Search日程), reply(回复日程邀请), " +
-        "instances(GetDuplicate日程的InstanceList, 仅对Duplicate日程Valid), instance_view(View展开Back的日程List). " +
-        "[Important]create 时Must传 user_open_id Parameters, Value为MessageUpDown文中的 SenderId(格式 ou_xxx), No则日程只在apply日历Up, Usercompletely看不到. " +
-        "list Actionuse instance_view Interface, 会Auto展开Duplicate日程为MultipleInstance, Time区间cannot超过40天, ReturnInstance数量Up限1000. " +
-        "Time parametersuseISO 8601 / RFC 3339 格式(with timezone), e.g. '2024-01-01T00:00:00+08:00'. "
+    override val description = "[As user] Feishu schedule event management tool. Use when user asks to view schedule, create meeting, schedule meeting, modify schedule, " +
+        "delete schedule, search schedule, reply to meeting invite. Actions: create (create calendar event), list (query events in time range, auto-expand recurring events), " +
+        "get (get event details), patch (update event), delete (delete event), search (search events), reply (reply to meeting invite), " +
+        "instances (get recurring event instance list, only valid for recurring events), instance_view (view expanded event list). " +
+        "[Important] create must pass user_open_id parameter, value is SenderId from message (format ou_xxx), otherwise event only exists on app calendar, user cannot see it. " +
+        "list action uses instance_view interface, will auto-expand recurring events to multiple instances, time range cannot exceed 40 days, return instance count max 1000. " +
+        "Time parameters use ISO 8601 / RFC 3339 format (with timezone), e.g. '2024-01-01T00:00:00+08:00'. "
 
     override fun isEnabledd() = config.enableCalendarTools
 

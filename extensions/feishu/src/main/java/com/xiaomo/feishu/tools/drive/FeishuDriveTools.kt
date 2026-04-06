@@ -10,8 +10,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * 飞书云Space工具集
- * 对齐 @larksuite/openclaw-lark drive-tools
+ * Feishu Cloud Space tool set.
+ * Aligned with @larksuite/openclaw-lark drive-tools
  */
 class FeishuDriveTools(config: FeishuConfig, client: FeishuClient) {
     private val fileTool = FeishuDriveFileTool(config, client)
@@ -43,19 +43,19 @@ class FeishuDriveFileTool(
     override val name = "feishu_drive_file"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "【As user】飞书云Space文件Manage工具. 当User要求View云Space(云盘)中的文件List、Get文件Info、" +
-            "Copy/Move/Delete文件、Upload/Download文件时use. Message中的文件读写**禁止**use该工具!" +
+    override val description = "[As user] Feishu Cloud Space file management tool. Use when user asks to list files in Cloud Space, get file info, " +
+            "copy/move/delete files, upload/download files. File I/O in messages **must not** use this tool!" +
             "\n\nActions:" +
-            "\n- list(List文件): List文件夹Down的文件. 不提供 folder_token 时Get根目录Task list" +
-            "\n- get_meta(BatchGet元Data): BatchQueryDocument元Info, use request_docs ArrayParameters, 格式: [{doc_token: '...', doc_type: 'sheet'}]" +
-            "\n- copy(Copy文件): Copy文件到指定位置" +
-            "\n- move(Move文件): Move文件到指定文件夹" +
-            "\n- delete(Delete文件): Delete文件" +
-            "\n- upload(Upload文件): Upload本地文件到云Space. 提供 file_path(本地File path)或 file_content_base64(Base64 Encode)" +
-            "\n- download(Download文件): Download文件到本地. 提供 output_path(本地SavePath)则Save到本地, No则Return Base64 Encode" +
-            "\n\n[Important]copy/move/delete ActionNeed file_token 和 type Parameters. get_meta use request_docs ArrayParameters. " +
-            "\n[Important]upload 优先use file_path(AutoRead文件、提取文件名和Size), AlsoSupport file_content_base64(需Manual提供 file_name 和 size). " +
-            "\n[Important]download 提供 output_path 时Save到本地(CanYesFile path或文件夹Path+file_name), 不提供则Return Base64. "
+            "\n- list(List files): List files in folder. If folder_token not provided, list root directory" +
+            "\n- get_meta(BatchGet metadata): Batch query document metadata, use request_docs array parameter, format: [{doc_token: '...', doc_type: 'sheet'}]" +
+            "\n- copy(Copy file): Copy file to specified location" +
+            "\n- move(Move file): Move file to specified folder" +
+            "\n- delete(Delete file): Delete file" +
+            "\n- upload(Upload file): Upload local file to Cloud Space. Provide file_path (local file path) or file_content_base64 (Base64 encoded)" +
+            "\n- download(Download file): Download file to local. Provide output_path (local save path) to save locally, otherwise return Base64 encoded" +
+            "\n\n[Important] copy/move/delete actions require file_token and type parameters. get_meta uses request_docs array parameter. " +
+            "\n[Important] upload prefers file_path (auto-read file, extract filename and size), also supports file_content_base64 (requires manually providing file_name and size). " +
+            "\n[Important] download provides output_path to save locally (can be file path or folder path+file_name), otherwise returns Base64. "
 
     override fun isEnabledd() = config.enableDriveTools
 
@@ -268,7 +268,7 @@ class FeishuDriveFileTool(
 
         // JS: if (p.file_path) { ... } else if (p.file_content_base64) { ... } else { error }
         if (filePath != null) {
-            // 优先use file_path
+            // Use file_path if provided
             Log.i(TAG, "upload: reading from local file: $filePath")
             try {
                 val file = File(filePath)
@@ -310,7 +310,7 @@ class FeishuDriveFileTool(
 
         // JS: if (fileSize <= SMALL_FILE_THRESHOLD) { upload_all } else { chunked upload }
         if (fileSize <= SMALL_FILE_THRESHOLD) {
-            // 小文件: use一次Upload (upload_all)
+            // Small file: use single upload (upload_all)
             Log.i(TAG, "upload: using upload_all (file size $fileSize <= 15MB)")
 
             val result = client.uploadFile(
@@ -334,10 +334,10 @@ class FeishuDriveFileTool(
                 "size" to fileSize
             ))
         } else {
-            // 大文件: useShardingUpload
+            // Large file: use chunked upload
             Log.i(TAG, "upload: using chunked upload (file size $fileSize > 15MB)")
 
-            // Step 1: 预Upload (uploadPrepare)
+            // Step 1: prepare upload
             Log.i(TAG, "upload: step 1 - prepare upload")
             val prepareresult = client.uploadPrepare(
                 fileName = fileName,
@@ -471,32 +471,32 @@ class FeishuDriveFileTool(
                     ),
                     "file_token" to PropertySchema(
                         type = "string",
-                        description = "文件 token(copy/move/delete/download ActionRequired)"
+                        description = "File token (required for copy/move/delete/download actions)"
                     ),
                     "folder_token" to PropertySchema(
                         type = "string",
-                        description = "文件夹 token(list ActionOptional, copy ActionOptional指定目标文件夹, move ActionRequired)"
+                        description = "Folder token (optional for list, optional for copy to specify target folder, required for move)"
                     ),
                     "name" to PropertySchema(
                         type = "string",
-                        description = "目标文件名(copy ActionRequired)"
+                        description = "Target file name (required for copy action)"
                     ),
                     "type" to PropertySchema(
                         type = "string",
-                        description = "DocumentType(copy/move/delete ActionRequired)",
+                        description = "Document type (required for copy/move/delete actions)",
                         enum = listOf("doc", "sheet", "file", "bitable", "docx", "folder", "mindnote", "slides")
                     ),
                     "request_docs" to PropertySchema(
                         type = "array",
-                        description = "要Query的DocumentList(get_meta ActionRequired, BatchQuery, most多 50 个). 示例: [{doc_token: 'Z1FjxxxxxxxxxxxxxxxxxxxtnAc', doc_type: 'sheet'}]",
+                        description = "Document list to query (required for get_meta action, batch query, max 50). Example: [{doc_token: 'Z1FjxxxxxxxxxxxxxxxxxxxtnAc', doc_type: 'sheet'}]",
                         items = PropertySchema(
                             type = "object",
-                            description = "DocumentQuery项",
+                            description = "Document query item",
                             properties = mapOf(
-                                "doc_token" to PropertySchema("string", "Document token(从浏览器 URL 中Get, such as spreadsheet_token、doc_token 等)"),
+                                "doc_token" to PropertySchema("string", "Document token (from browser URL, e.g. spreadsheet_token, doc_token, etc.)"),
                                 "doc_type" to PropertySchema(
                                     "string",
-                                    "DocumentType: doc、sheet、file、bitable、docx、folder、mindnote、slides",
+                                    "Document type: doc, sheet, file, bitable, docx, folder, mindnote, slides",
                                     enum = listOf("doc", "sheet", "file", "bitable", "docx", "folder", "mindnote", "slides")
                                 )
                             )
@@ -504,44 +504,44 @@ class FeishuDriveFileTool(
                     ),
                     "parent_node" to PropertySchema(
                         type = "string",
-                        description = "父Node token(upload ActionOptional). explorer Type填文件夹 token, bitable Type填 app_token. 不填写或填NullString时, Upload到云Space根目录"
+                        description = "Parent node token (optional for upload). For explorer type, fill folder token; for bitable type, fill app_token. If not provided or empty, upload to Cloud Space root"
                     ),
                     "file_path" to PropertySchema(
                         type = "string",
-                        description = "本地File path(upload Action, 与 file_content_base64 Choose one). 优先use此Parameters, 会AutoRead文件Inside容、calcSize、提取文件名. "
+                        description = "Local file path (for upload action, choose one with file_content_base64). Prefer this parameter, will auto-read file content, calculate size, and extract filename. "
                     ),
                     "file_content_base64" to PropertySchema(
                         type = "string",
-                        description = "文件Inside容的 Base64 Encode(upload Action, 与 file_path Choose one). 当不提供 file_path 时use. "
+                        description = "Base64 encoded file content (for upload action, choose one with file_path). Use when file_path is not provided. "
                     ),
                     "file_name" to PropertySchema(
                         type = "string",
-                        description = "文件名(upload ActionOptional). if提供了 file_path, 会Auto从Path中提取文件名；ifuse file_content_base64, 则Must提供此Parameters. "
+                        description = "File name (optional for upload). If file_path is provided, auto-extract filename from path; if using file_content_base64, must provide this parameter. "
                     ),
                     "size" to PropertySchema(
                         type = "integer",
-                        description = "文件Size(字节, upload ActionOptional). if提供了 file_path, 会Autocalc；ifuse file_content_base64, 则Must提供此Parameters. "
+                        description = "File size in bytes (optional for upload). If file_path is provided, auto-calculate; if using file_content_base64, must provide this parameter. "
                     ),
                     "output_path" to PropertySchema(
                         type = "string",
-                        description = "本地Save的完整File path(download ActionOptional). MustContains文件名和扩展名, e.g. '/tmp/file.pdf'. if不提供, 则Return Base64 Encode的文件Inside容. "
+                        description = "Full local save path for download (optional). Must include filename and extension, e.g. '/tmp/file.pdf'. If not provided, returns Base64 encoded file content. "
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "Page size(Default 200, Max 200)"
+                        description = "Page size (default 200, max 200)"
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "Page token. 首次RequestNone需填写"
+                        description = "Page token. Not required for first request"
                     ),
                     "order_by" to PropertySchema(
                         type = "string",
-                        description = "Sort方式: EditedTime(EditTime)、CreatedTime(CreateTime)",
+                        description = "Sort by: EditedTime, CreatedTime",
                         enum = listOf("EditedTime", "CreatedTime")
                     ),
                     "direction" to PropertySchema(
                         type = "string",
-                        description = "Sort方向: ASC(Ascending)、DESC(Descending)",
+                        description = "Sort direction: ASC (ascending), DESC (descending)",
                         enum = listOf("ASC", "DESC")
                     )
                 ),

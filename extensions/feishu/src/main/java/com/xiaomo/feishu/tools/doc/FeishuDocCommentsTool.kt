@@ -22,11 +22,11 @@ private const val TAG = "FeishuDocComments"
 class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_comments"
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official description)
-    override val description = "【As user】Manage云DocumentComment. Support: " +
-        "(1) list - GetCommentList(含完整回复); " +
-        "(2) create - Add全文Comment(SupportText、@User、超链接); " +
-        "(3) patch - Resolve/ResumeComment. " +
-        "Support wiki token. "
+    override val description = "[As user] Manage cloud document comments. Supports: " +
+        "(1) list - Get comment list (with full replies); " +
+        "(2) create - Add whole document comment (supports text, @user, hyperlinks); " +
+        "(3) patch - Resolve/restore comment. " +
+        "Supports wiki token. "
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -76,7 +76,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                 "list" -> doList(args, actualFileToken, actualFileType, userIdType)
                 "create" -> doCreate(args, actualFileToken, actualFileType, userIdType)
                 "patch" -> doPatch(args, actualFileToken, actualFileType)
-                else -> Toolresult.error("Unknown的 action: $action")
+                else -> Toolresult.error("Unknown action: $action")
             }
         } catch (e: Exception) {
             Log.e(TAG, "feishu_doc_comments failed", e)
@@ -144,7 +144,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official validation)
         if (elements == null || elements.isEmpty()) {
-            return Toolresult.error("elements ParametersRequired且cannot为Null")
+            return Toolresult.error("elements parameter is required and cannot be null")
         }
 
         Log.i(TAG, "doc_comments.create: file_token=\"$actualFileToken\", elements=${elements.size}")
@@ -320,17 +320,17 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action: list, create, or patch",
                         enum = listOf("list", "create", "patch")),
-                    "file_token" to PropertySchema("string", "云Documenttoken或wikiNodetoken(可从DocumentURLGet). ifYeswiki token, 会AutoConvert为实际Document的obj_token"),
-                    "file_type" to PropertySchema("string", "DocumentType. wikiType会AutoParse为实际DocumentType(docx/sheet/bitable等)",
+                    "file_token" to PropertySchema("string", "Cloud document token or wiki node token (can get from document URL). If wiki token is provided, will auto-convert to actual document's obj_token"),
+                    "file_type" to PropertySchema("string", "Document type. Wiki type will auto-parse to actual document type (docx/sheet/bitable etc)",
                         enum = listOf("doc", "docx", "sheet", "file", "slides", "wiki")),
-                    "is_whole" to PropertySchema("boolean", "YesNo只Get全文Comment(action=list时Optional)"),
-                    "is_solved" to PropertySchema("boolean", "YesNo只Get已Resolve的Comment(action=list时Optional)"),
+                    "is_whole" to PropertySchema("boolean", "Whether to get only whole document comments (optional for list action)"),
+                    "is_solved" to PropertySchema("boolean", "Whether to get only resolved comments (optional for list action)"),
                     "page_size" to PropertySchema("integer", "Page size"),
                     "page_token" to PropertySchema("string", "Page token"),
-                    "elements" to PropertySchema("array", "CommentInside容ElementArray(action=create时Required). Supporttext(纯Text)、mention(@User)、link(超链接)三种Type",
+                    "elements" to PropertySchema("array", "Comment content element array (required for create action). Supports text (plain text), mention (@user), link (hyperlink) three types",
                         items = PropertySchema("object", "Comment element")),
-                    "comment_id" to PropertySchema("string", "CommentID(action=patch时Required)"),
-                    "is_solved_value" to PropertySchema("boolean", "ResolveStatus:true=Resolve,false=Resume(action=patch时Required)"),
+                    "comment_id" to PropertySchema("string", "Comment ID (required for patch action)"),
+                    "is_solved_value" to PropertySchema("boolean", "Resolve status: true=resolve, false=restore (required for patch action)"),
                     "user_id_type" to PropertySchema("string", "User ID type: open_id, union_id, user_id",
                         enum = listOf("open_id", "union_id", "user_id"))
                 ),

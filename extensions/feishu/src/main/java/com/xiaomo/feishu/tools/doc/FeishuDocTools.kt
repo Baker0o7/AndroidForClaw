@@ -34,11 +34,11 @@ class FeishuDocTools(config: FeishuConfig, client: FeishuClient) {
 }
 
 /**
- * CreateDocument工具
+ * Create document tool
  */
 class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_create"
-    override val description = "Create飞书Document"
+    override val description = "Create Feishu document"
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -66,7 +66,7 @@ class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             val docId = data?.get("document")?.asJsonObject?.get("document_id")?.asString
                 ?: return@withContext Toolresult.error("Missing document_id")
 
-            // ifHasInside容, WriteDocument(Aligned with OpenClaw writeDoc 逻辑)
+            // If has content, write to document (aligned with OpenClaw writeDoc logic)
             var contentWriteError: String? = null
             if (content.isNotEmpty()) {
                 val writeresult = DocUpdateHelper(client).updateDocContent(docId, content)
@@ -101,8 +101,8 @@ class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             parameters = ParametersSchema(
                 properties = mapOf(
                     "title" to PropertySchema("string", "DocumentTitle"),
-                    "content" to PropertySchema("string", "DocumentInside容(Optional)"),
-                    "folder_id" to PropertySchema("string", "文件夹ID(Optional)")
+                    "content" to PropertySchema("string", "Document content (optional)"),
+                    "folder_id" to PropertySchema("string", "Folder ID (optional)")
                 ),
                 required = listOf("title")
             )
@@ -112,11 +112,11 @@ class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * ReadDocument工具
+ * Read document tool
  */
 class DocReadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_read"
-    override val description = "Read飞书DocumentInside容"
+    override val description = "Read Feishu document content"
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -157,8 +157,8 @@ class DocReadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(c
 }
 
 /**
- * DocumentInside容Write工具Class - Aligned with OpenClaw docx.ts 的 insertBlocksWithDescendant. 
- * DocCreateTool 和 DocUpdateTool 共用. 
+ * Document content write tool class - aligned with OpenClaw docx.ts insertBlocksWithDescendant.
+ * Shared by DocCreateTool and DocUpdateTool.
  */
 class DocUpdateHelper(private val client: FeishuClient) {
     companion object {
@@ -166,12 +166,12 @@ class DocUpdateHelper(private val client: FeishuClient) {
     }
 
     /**
-     * 将TextInside容WriteDocument body. 
-     * 1. GetDocument block List, 找到 body 块 (block_type=1, parent_id=docId)
-     * 2. 通过 documentBlockChildren.create API 在 body 块DownInsertText子块
+     * Write text content to document body.
+     * 1. Get document block list, find body block (block_type=1, parent_id=docId)
+     * 2. Use documentBlockChildren.create API to insert text child block under body block
      */
     suspend fun updateDocContent(docId: String, content: String): result<Unit> {
-        // Step 1: GetDocument的 block List, 找到 body 块
+        // Step 1: Get document block list, find body block
         val blocksresult = client.get("/open-apis/docx/v1/documents/$docId/blocks?page_size=500")
         if (blocksresult.isFailure) {
             val err = blocksresult.exceptionOrNull()?.message ?: "Failed to list blocks"
@@ -183,7 +183,7 @@ class DocUpdateHelper(private val client: FeishuClient) {
             ?.getAsJsonObject("data")
             ?.getAsJsonArray("items")
 
-        // 找 body 块: parent_id == docId 且 block_type == 1
+        // Find body block: parent_id == docId and block_type == 1
         var bodyBlockId: String? = null
         blocks?.forEach { block ->
             val b = block.asJsonObject
@@ -200,7 +200,7 @@ class DocUpdateHelper(private val client: FeishuClient) {
             bodyBlockId = docId
         }
 
-        // Step 2: use documentBlockChildren.create API InsertText块
+        // Step 2: Use documentBlockChildren.create API to insert text block
         val createBody = mapOf(
             "children" to listOf(
                 mapOf(
@@ -237,8 +237,8 @@ class DocUpdateHelper(private val client: FeishuClient) {
     }
 
     /**
-     * Fallback: use batch_update insert RequestInsertText. 
-     * Aligned with OpenClaw docx.ts 的 batchUpdateInsertChildren 逻辑. 
+     * Fallback: use batch_update insert request to insert text.
+     * Aligned with OpenClaw docx.ts batchUpdateInsertChildren logic.
      */
     private suspend fun insertViaBatchUpdate(docId: String, content: String): result<Unit> {
         val body = mapOf(
@@ -279,11 +279,11 @@ class DocUpdateHelper(private val client: FeishuClient) {
 }
 
 /**
- * UpdateDocument工具
+ * Update document tool
  */
 class DocUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_update"
-    override val description = "Update飞书DocumentInside容"
+    override val description = "Update Feishu document content"
 
     override fun isEnabledd() = config.enableDocTools
 
@@ -292,7 +292,7 @@ class DocUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             val docId = args["document_id"] as? String ?: return@withContext Toolresult.error("Missing document_id")
             val content = args["content"] as? String ?: return@withContext Toolresult.error("Missing content")
 
-            // 复用 DocCreateTool 的 updateDocContent 逻辑
+            // Reuse DocCreateTool's updateDocContent logic
             val helper = DocUpdateHelper(client)
             val result = helper.updateDocContent(docId, content)
 
@@ -316,7 +316,7 @@ class DocUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             parameters = ParametersSchema(
                 properties = mapOf(
                     "document_id" to PropertySchema("string", "DocumentID"),
-                    "content" to PropertySchema("string", "要Add的Inside容")
+                    "content" to PropertySchema("string", "Content to add")
                 ),
                 required = listOf("document_id", "content")
             )
@@ -325,11 +325,11 @@ class DocUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * DeleteDocument工具
+ * Delete document tool
  */
 class DocDeleteTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_delete"
-    override val description = "Delete飞书Document"
+    override val description = "Delete Feishu document"
 
     override fun isEnabledd() = config.enableDocTools
 
