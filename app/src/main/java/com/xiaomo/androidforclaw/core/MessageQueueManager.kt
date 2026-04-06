@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Fully aligned with OpenClaw queue mechanisms:
  * - interrupt: new message immediately interrupts current run, clears queue
  * - steer: new message is passed to the running agent
- * - followup: new message is aed to queue, processed in order
+ * - followup: new message is added to queue, processed in order
  * - collect: collect multiple messages, process in batch
  * - queue: Simple FIFO queue
  *
@@ -34,7 +34,7 @@ class Messagequeuemanager {
     }
 
     /**
-     * queue mode (aligned with OpenClaw)
+     * Queue mode (aligned with OpenClaw)
      */
     enum class queueMode {
         INTERRUPT,   // interrupt current run
@@ -69,7 +69,7 @@ class Messagequeuemanager {
     )
 
     /**
-     * queued message
+     * Queued message
      */
     data class queuedMessage(
         val messageId: String,
@@ -89,19 +89,18 @@ class Messagequeuemanager {
 
     // Active agentloop instances keyed by queue key.
     // Set when an agent run starts; cleared when it finishes.
-    // used by STEER mode to inject mid-run messages and STOP to cancel runs.
+    // Used by STEER mode to inject mid-run messages and STOP to cancel runs.
     private val activeagentloops = ConcurrentHashMap<String, agentloop>()
 
     // Active coroutine Jobs keyed by queue key.
-    // used to cancel the coroutine when stopping a run.
+    // Used to cancel the coroutine when stopping a run.
     private val activeJobs = ConcurrentHashMap<String, Job>()
 
     /**
      * Stop commands recognized across all channels.
      */
     private val STOP_COMMANDS = setOf(
-        "Stop", "停", "stop", "cancel", "cancel",
-        "StopTask", "Stop allTask", "中止", "Terminate"
+        "Stop", "stop", "cancel", "StopTask", "Stop allTask", "Terminate"
     )
 
     /**
@@ -120,7 +119,7 @@ class Messagequeuemanager {
         val loop = activeagentloops[key]
         val job = activeJobs[key]
         if (loop != null || job != null) {
-            Log.i(TAG, "🛑 [STOP] Stopping active run for $key")
+            Log.i(TAG, "Stopping active run for $key")
             loop?.stop()
             job?.cancel()
             activeagentloops.remove(key)
@@ -133,7 +132,7 @@ class Messagequeuemanager {
     /**
      * Register the currently running agentloop for a queue key.
      * Call this before starting an agent run so that STEER mode can
-     * push messages into the agent's steerchannel, and stop commands
+     * push messages into the agent's steer channel, and stop commands
      * can cancel the run.
      */
     fun setActiveagentloop(key: String, agentloop: agentloop) {
@@ -210,19 +209,19 @@ class Messagequeuemanager {
 
         // 1. cancel currently running task (agentloop + Job)
         if (state.isProcessing.get()) {
-            Log.d(TAG, "🛑 [INTERRUPT] Aborting current run for $key")
+            Log.d(TAG, "[INTERRUPT] Aborting current run for $key")
             stopActiveRun(key)
         }
 
         // 2. Clear queue
         val cleared = state.messages.size
         if (cleared > 0) {
-            Log.d(TAG, "[DELETE]  [INTERRUPT] Clearing $cleared queued messages for $key")
+            Log.d(TAG, "[DELETE] [INTERRUPT] Clearing $cleared queued messages for $key")
             state.messages.clear()
         }
 
         // 3. Process new message immediately
-        Log.d(TAG, "⚡ [INTERRUPT] Processing new message immediately for $key")
+        Log.d(TAG, "[INTERRUPT] Processing new message immediately for $key")
         state.isProcessing.set(true)
         try {
             processor(message)
@@ -248,14 +247,14 @@ class Messagequeuemanager {
         }
 
         if (state.isProcessing.get()) {
-            // agent is running, a message to steer queue
+            // Agent is running, add message to steer queue
             Log.d(TAG, "[TARGET] [STEER] Injecting message into running agent for $key")
-            state.messages.a(message)
+            state.messages.add(message)
             // TODO: notify agentloop of new message (requires agentloop support)
             notifyagentloop(key, message)
         } else {
-            // agent not running, process normally
-            Log.d(TAG, "[PLAY]  [STEER] agent not running, processing normally for $key")
+            // Agent not running, process normally
+            Log.d(TAG, "[PLAY] [STEER] agent not running, processing normally for $key")
             basequeue.enqueue(key) {
                 state.isProcessing.set(true)
                 try {
@@ -268,7 +267,7 @@ class Messagequeuemanager {
     }
 
     /**
-     * FOLLOWUP mode: A to queue, process in order
+     * FOLLOWUP mode: Add to queue, process in order
      *
      * This is the currently implemented basic behavior
      */
@@ -297,7 +296,7 @@ class Messagequeuemanager {
      * COLLECT mode: collect multiple messages, process in batch
      *
      * Aligned with OpenClaw logic:
-     * - Messages are aed to queue
+     * - Messages are added to queue
      * - after current message processing completes, all queued messages are processed in batch
      */
     private suspend fun handlecollect(
@@ -310,15 +309,15 @@ class Messagequeuemanager {
         }
 
         // Apply drop policy
-        if (!appDropPolicy(state, message)) {
-            Log.w(TAG, "🚫 [COLLECT] Message dropped due to drop policy for $key")
+        if (!applyDropPolicy(state, message)) {
+            Log.w(TAG, "[COLLECT] Message dropped due to drop policy for $key")
             return
         }
 
-        state.messages.a(message)
+        state.messages.add(message)
         Log.d(TAG, "[PACKAGE] [COLLECT] collected message for $key (${state.messages.size} total)")
 
-        // if not currently processing, trigger batch processing
+        // If not currently processing, trigger batch processing
         if (!state.isProcessing.get()) {
             basequeue.enqueue(key) {
                 state.isProcessing.set(true)
@@ -346,7 +345,7 @@ class Messagequeuemanager {
     /**
      * Apply drop policy
      */
-    private fun appDropPolicy(state: queueState, newMessage: queuedMessage): Boolean {
+    private fun applyDropPolicy(state: queueState, newMessage: queuedMessage): Boolean {
         if (state.cap <= 0 || state.messages.size < state.cap) {
             return true
         }
@@ -354,20 +353,20 @@ class Messagequeuemanager {
         return when (state.dropPolicy) {
             DropPolicy.NEW -> {
                 // Reject new message
-                Log.w(TAG, "🚫 Drop policy: NEW - rejecting new message")
+                Log.w(TAG, "Drop policy: NEW - rejecting new message")
                 false
             }
             DropPolicy.OLD -> {
                 // Drop oldest message
                 val dropped = state.messages.removeAt(0)
-                Log.d(TAG, "[DELETE]  Drop policy: OLD - dropped message: ${dropped.messageId}")
+                Log.d(TAG, "[DELETE] Drop policy: OLD - dropped message: ${dropped.messageId}")
                 true
             }
             DropPolicy.SUMMARIZE -> {
                 // Drop oldest message but keep summary
                 val dropped = state.messages.removeAt(0)
                 val summary = summarizeMessage(dropped)
-                state.summaryLines.a(summary)
+                state.summaryLines.add(summary)
                 Log.d(TAG, "[NOTE] Drop policy: SUMMARIZE - dropped and summarized: ${dropped.messageId}")
 
                 // Limit summary count
@@ -422,8 +421,8 @@ class Messagequeuemanager {
             appendLine("[Batch] collected ${messages.size} message(s):")
             appendLine()
 
-            // if there are dropped message summaries
-            if (state.droppedCount > 0 && state.summaryLines.isnotEmpty()) {
+            // If there are dropped message summaries
+            if (state.droppedCount > 0 && state.summaryLines.isNotEmpty()) {
                 appendLine("[queue overflow] Dropped ${state.droppedCount} message(s) due to cap.")
                 appendLine("Summary:")
                 state.summaryLines.forEach { line ->
@@ -437,12 +436,12 @@ class Messagequeuemanager {
             messages.forEachIndexed { index, msg ->
                 appendLine("Message ${index + 1}:")
                 appendLine("from: ${msg.senderId}")
-                appendLine("Content: ${msg.content}")
+                appendLine("content: ${msg.content}")
                 appendLine()
             }
         }
 
-        // use metadata from last message
+        // Use metadata from last message
         val lastMessage = messages.last()
         return queuedMessage(
             messageId = "batch_${System.currentTimeMillis()}",
@@ -459,9 +458,9 @@ class Messagequeuemanager {
     }
 
     /**
-     * notify agentloop of new message (STEER mode).
+     * Notify agentloop of new message (STEER mode).
      *
-     * Sends the message content into the active agentloop's steerchannel.
+     * Sends the message content into the active agentloop's steer channel.
      * The agent loop drains the channel after each tool-execution round and
      * injects the messages as user turns before the next LLM call.
      */
@@ -476,7 +475,7 @@ class Messagequeuemanager {
         if (sent.isSuccess) {
             Log.i(TAG, "[TARGET] [STEER] Message injected into agentloop for $key: ${message.content.take(50)}...")
         } else {
-            Log.w(TAG, "[WARN] [STEER] steerchannel full or closed for $key, message dropped")
+            Log.w(TAG, "[WARN] [STEER] steer channel full or closed for $key, message dropped")
         }
     }
 
@@ -526,7 +525,7 @@ class Messagequeuemanager {
         val state = queues[key] ?: return
         state.messages.clear()
         state.summaryLines.clear()
-        Log.d(TAG, "[DELETE]  Cleared queue for $key")
+        Log.d(TAG, "[DELETE] Cleared queue for $key")
     }
 
     /**
@@ -538,6 +537,6 @@ class Messagequeuemanager {
             state.summaryLines.clear()
         }
         queues.clear()
-        Log.d(TAG, "[DELETE]  Cleared all queues")
+        Log.d(TAG, "[DELETE] Cleared all queues")
     }
 }

@@ -22,6 +22,5 @@ data class Checkresult(
     val newKeyboardActive: Boolean,
     val summary: String,
     val action: String,
-    // reflect评minutewhetherforA
     val isA: Boolean
 )
