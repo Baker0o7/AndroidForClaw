@@ -36,7 +36,7 @@ object DeviceController {
 
                 Log.d(TAG, "Got screenshot URI: $uriString")
 
-                // Try作for Content URI Decode
+                // Try to decode Content URI
                 val bitmap = try {
                     if (uriString.startswith("content://")) {
                         val uri = android.net.Uri.parse(uriString)
@@ -44,7 +44,7 @@ object DeviceController {
                             BitmapFactory.decodeStream(inputStream)
                         }
                     } else {
-                        // FallbacktoFile path
+                        // Fallback to File path
                         BitmapFactory.decodeFile(uriString)
                     }
                 } catch (e: exception) {
@@ -65,37 +65,37 @@ object DeviceController {
         }
     }
 
-    // CheckwhenFrontEnableInput methodwhetherYes ADB Keyboard
+    // Check whether ADB Keyboard is enabled as Input method
     fun isClawKeyboardActive(context: context): Boolean {
         val currentInputMethod = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.DEFAULT_INPUT_METHOD
         )
-        // 3. CheckADBInput methodwhetherinEnableList中
+        // Check if ADB Input method is in the enabled list
         val adbInputMethodName =
-            "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME" // ADBInput methodName, according to实际情况Modify
+            "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME" // ADB Input method name, modify according to actual situation
         return currentInputMethod == adbInputMethodName || currentInputMethod.contains("adbkeyboard")
     }
 
-    // CheckwhenFrontFocuswhetherinInput fieldUp
+    // Check whether focus is in an input field
     fun findFocusedEditText(service: Accessibilityservice): AccessibilityNodeInfo? {
         val rootNode = service.rootInActiveWindow ?: return null
         return rootNode.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
     }
 
 
-    // 综合Check: whether ADB Key盘 + FocusinInput field
+    // Comprehensive Check: whether ADB Keyboard + Focus in Input field
     fun isAdbKeyboardVisible(service: Accessibilityservice, context: context): Boolean {
         val focusedNode = findFocusedEditText(service)
         val isClawIme = isClawKeyboardActive(context)
-        Log.d("ADBKey盘Check", "whetherFocusinEditText: ${focusedNode != null}")
+        Log.d("ADBKeyboardCheck", "WhetherFocusinEditText: ${focusedNode != null}")
         return focusedNode != null && isClawIme
     }
 
 
-    // todo 截屏and抓tree 放tooneup delayMergetooneup
+    // TODO: Screenshot and dump tree merge to one
     fun detectIcons(context: context): Pair<List<ViewNode>, List<ViewNode>>? {
-        // CheckAccessibilityservicewhetherConnect
+        // Check if Accessibility service is connected
         if (!AccessibilityProxy.isserviceReady()) {
             Log.w(TAG, "AccessibilityservicenotReady")
             return null
@@ -106,7 +106,7 @@ object DeviceController {
                 Log.d(TAG, "detectIcons: dumpView via AIDL")
                 var dumpView = AccessibilityProxy.dumpViewTree(useCache = false)
 
-                // mostmanyretry 3 times
+                // Most many retry 3 times
                 var retryCount = 0
                 while (dumpView.isEmpty() && retryCount < 3) {
                     Log.d(TAG, "detectIcons: retry $retryCount")
@@ -120,10 +120,10 @@ object DeviceController {
                     return@runBlocking null
                 }
 
-                // CloneoriginalData
+                // Clone original data
                 val originalNodes = dumpView.map { it.copy() }
 
-                // 经over完整ProcessData
+                // Process through complete process
                 val processedNodes = processHierarchy(dumpView)
 
                 Pair(originalNodes, processedNodes)

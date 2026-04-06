@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.cron
 
 /**
- * Cron 系统Data模型 - Aligned with OpenClaw
+ * Cron system data model - Aligned with OpenClaw
  */
 
 // Schedule Types

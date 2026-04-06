@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.providers
 import com.google.gson.annotations.SerializedName
 
 /**
- * Anthropic Messages API Data模型
+ * Anthropic Messages API Data model
  * for Legacy Anthropic API compatible interface
  */
 

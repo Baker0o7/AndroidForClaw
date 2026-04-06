@@ -8,10 +8,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * MCP (model context Protocol) Protocol定义
+ * MCP (Model Context Protocol) Protocol definition
  *
- * 基于 JSON-RPC 2.0 标准
- * 参考: https://spec.modelcontextprotocol.io/
+ * Based on JSON-RPC 2.0 standard
+ * Reference: https://spec.modelcontextprotocol.io/
  */
 
 /**
@@ -131,7 +131,7 @@ data class JsonRpcError(
     }
 
     companion object {
-        // JSON-RPC 2.0 标准Error码
+        // JSON-RPC 2.0 Standard Error codes
         const val PARSE_ERROR = -32700
         const val INVALID_REQUEST = -32600
         const val METHOD_NOT_FOUND = -32601

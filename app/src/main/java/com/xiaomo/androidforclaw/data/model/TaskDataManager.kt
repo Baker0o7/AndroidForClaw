@@ -48,7 +48,7 @@ class TaskDatamanager {
      * Clear current task data
      */
     fun clearCurrentTask() {
-        Log.d(TAG, "清理whenFrontTaskData")
+        Log.d(TAG, "Clear current task data")
         _currentTaskData.value = null
     }
 

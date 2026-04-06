@@ -16,10 +16,10 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * MCP (model context Protocol) HTTP Client
+ * MCP (Model Context Protocol) HTTP Client
  *
- * Support标准 MCP over HTTP transport
- * use JSON-RPC 2.0 Protocol
+ * Support standard MCP over HTTP transport
+ * uses JSON-RPC 2.0 Protocol
  */
 class McpClient(
     private val baseUrl: String,
