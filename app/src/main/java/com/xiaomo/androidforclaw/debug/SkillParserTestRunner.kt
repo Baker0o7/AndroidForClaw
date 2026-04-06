@@ -4,39 +4,39 @@
  */
 package com.xiaomo.androidforclaw.agent.skills
 
-import android.content.context
+import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
- * skillParser TestRun器
- * 用于in android Environment中Test skillParser
+ * SkillParser Test Runner
+ * Used in android environment to test skill parser
  */
-object skillParserTestRunner {
+object SkillParserTestRunner {
     private const val TAG = "skillParserTest"
 
     /**
-     * RunAllTest
+     * Run All Tests
      */
-    fun runAllTests(context: context): Testresult {
-        val results = mutableListOf<SingleTestresult>()
+    fun runAllTests(context: Context): TestResult {
+        val results = mutableListOf<SingleTestResult>()
 
-        results.a(testSimpleskill())
-        results.a(testskillwithRequires())
-        results.a(testskillwithoutMetadata())
-        results.a(testMobileOperationsskill(context))
-        results.a(testInvalidformat())
+        results.add(testSimpleSkill())
+        results.add(testSkillWithRequires())
+        results.add(testSkillWithoutMetadata())
+        results.add(testMobileOperationsSkill(context))
+        results.add(testInvalidFormat())
 
         val passed = results.count { it.passed }
         val total = results.size
 
-        return Testresult(
+        return TestResult(
             passed = passed,
             total = total,
             results = results
         )
     }
 
-    private fun testSimpleskill(): SingleTestresult {
+    private fun testSimpleSkill(): SingleTestResult {
         return try {
             val content = """
 ---
@@ -55,7 +55,7 @@ metadata:
 This is a test skill.
             """.trimIndent()
 
-            val skill = skillParser.parse(content)
+            val skill = SkillParser.parse(content)
 
             assert(skill.name == "test-skill") { "Name mismatch" }
             assert(skill.description == "A test skill") { "Description mismatch" }
@@ -63,20 +63,20 @@ This is a test skill.
             assert(skill.metadata.emoji == "[TEST]") { "Emoji mismatch" }
             assert(skill.content.contains("This is a test skill")) { "Content mismatch" }
 
-            Log.d(TAG, "[OK] testSimpleskill PASSED")
-            SingleTestresult("testSimpleskill", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testSimpleskill FAILED: ${e.message}")
-            SingleTestresult("testSimpleskill", false, e.message)
+            Log.d(TAG, "[OK] testSimpleSkill PASSED")
+            SingleTestResult("testSimpleSkill", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testSimpleSkill FAILED: ${e.message}")
+            SingleTestResult("testSimpleSkill", false, e.message)
         }
     }
 
-    private fun testskillwithRequires(): SingleTestresult {
+    private fun testSkillWithRequires(): SingleTestResult {
         return try {
             val content = """
 ---
 name: advanced-skill
-description: skill with requirements
+description: Skill with requirements
 metadata:
   {
     "openclaw": {
@@ -93,7 +93,7 @@ metadata:
 # Advanced
             """.trimIndent()
 
-            val skill = skillParser.parse(content)
+            val skill = SkillParser.parse(content)
 
             assert(skill.name == "advanced-skill") { "Name mismatch" }
             assert(!skill.metadata.always) { "Always should be false" }
@@ -101,15 +101,15 @@ metadata:
             assert(skill.metadata.requires?.bins == listOf("adb")) { "Bins mismatch" }
             assert(skill.metadata.requires?.hasRequirements() == true) { "should have requirements" }
 
-            Log.d(TAG, "[OK] testskillwithRequires PASSED")
-            SingleTestresult("testskillwithRequires", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testskillwithRequires FAILED: ${e.message}")
-            SingleTestresult("testskillwithRequires", false, e.message)
+            Log.d(TAG, "[OK] testSkillWithRequires PASSED")
+            SingleTestResult("testSkillWithRequires", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testSkillWithRequires FAILED: ${e.message}")
+            SingleTestResult("testSkillWithRequires", false, e.message)
         }
     }
 
-    private fun testskillwithoutMetadata(): SingleTestresult {
+    private fun testSkillWithoutMetadata(): SingleTestResult {
         return try {
             val content = """
 ---
@@ -120,44 +120,44 @@ description: Simple skill
 # Simple
             """.trimIndent()
 
-            val skill = skillParser.parse(content)
+            val skill = SkillParser.parse(content)
 
             assert(skill.name == "simple-skill") { "Name mismatch" }
             assert(!skill.metadata.always) { "Always should default to false" }
             assert(skill.metadata.emoji == null) { "Emoji should be null" }
 
-            Log.d(TAG, "[OK] testskillwithoutMetadata PASSED")
-            SingleTestresult("testskillwithoutMetadata", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testskillwithoutMetadata FAILED: ${e.message}")
-            SingleTestresult("testskillwithoutMetadata", false, e.message)
+            Log.d(TAG, "[OK] testSkillWithoutMetadata PASSED")
+            SingleTestResult("testSkillWithoutMetadata", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testSkillWithoutMetadata FAILED: ${e.message}")
+            SingleTestResult("testSkillWithoutMetadata", false, e.message)
         }
     }
 
-    private fun testMobileOperationsskill(context: context): SingleTestresult {
+    private fun testMobileOperationsSkill(context: Context): SingleTestResult {
         return try {
-            // TryLoad实际 mobile-operations skill
+            // Try load actual mobile-operations skill
             val content = context.assets.open("skills/mobile-operations/SKILL.md")
                 .bufferedReader().use { it.readText() }
 
-            val skill = skillParser.parse(content)
+            val skill = SkillParser.parse(content)
 
             assert(skill.name == "mobile-operations") { "Name should be mobile-operations" }
             assert(skill.metadata.always) { "should be always loaded" }
             assert(skill.metadata.emoji == "[APP]") { "Emoji should be [APP]" }
-            assert(skill.content.contains("观察 → think → Row动 → validation")) { "should contain core loop" }
+            assert(skill.content.contains("观察 → think → 行动 → 验证")) { "should contain core loop" }
 
-            Log.d(TAG, "[OK] testMobileOperationsskill PASSED")
+            Log.d(TAG, "[OK] testMobileOperationsSkill PASSED")
             Log.d(TAG, "  - skill name: ${skill.name}")
             Log.d(TAG, "  - Token estimate: ${skill.estimateTokens()} tokens")
-            SingleTestresult("testMobileOperationsskill", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testMobileOperationsskill FAILED: ${e.message}")
-            SingleTestresult("testMobileOperationsskill", false, e.message)
+            SingleTestResult("testMobileOperationsSkill", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testMobileOperationsSkill FAILED: ${e.message}")
+            SingleTestResult("testMobileOperationsSkill", false, e.message)
         }
     }
 
-    private fun testInvalidformat(): SingleTestresult {
+    private fun testInvalidFormat(): SingleTestResult {
         return try {
             val content = """
 # Just Content
@@ -165,35 +165,35 @@ No frontmatter
             """.trimIndent()
 
             try {
-                skillParser.parse(content)
-                // if没抛exception, TestFailed
-                Log.e(TAG, "[ERROR] testInvalidformat FAILED: should throw exception")
-                SingleTestresult("testInvalidformat", false, "should throw exception")
-            } catch (e: IllegalArgumentexception) {
-                // 预期exception
-                Log.d(TAG, "[OK] testInvalidformat PASSED (correctly threw exception)")
-                SingleTestresult("testInvalidformat", true, null)
+                SkillParser.parse(content)
+                // if no exception, test failed
+                Log.e(TAG, "[ERROR] testInvalidFormat FAILED: should throw exception")
+                SingleTestResult("testInvalidFormat", false, "should throw exception")
+            } catch (e: IllegalArgumentException) {
+                // Expected exception
+                Log.d(TAG, "[OK] testInvalidFormat PASSED (correctly threw exception)")
+                SingleTestResult("testInvalidFormat", true, null)
             }
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testInvalidformat FAILED: ${e.message}")
-            SingleTestresult("testInvalidformat", false, e.message)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testInvalidFormat FAILED: ${e.message}")
+            SingleTestResult("testInvalidFormat", false, e.message)
         }
     }
 }
 
 /**
- * Testresult
+ * Test Result
  */
-data class Testresult(
+data class TestResult(
     val passed: Int,
     val total: Int,
-    val results: List<SingleTestresult>
+    val results: List<SingleTestResult>
 ) {
     fun isSuccess(): Boolean = passed == total
 
     fun getSummary(): String {
         val emoji = if (isSuccess()) "[OK]" else "[ERROR]"
-        return "$emoji skillParser Tests: $passed/$total passed"
+        return "$emoji SkillParser Tests: $passed/$total passed"
     }
 
     fun getDetailedReport(): String {
@@ -214,9 +214,9 @@ data class Testresult(
 }
 
 /**
- * SingleTestresult
+ * Single Test Result
  */
-data class SingleTestresult(
+data class SingleTestResult(
     val testName: String,
     val passed: Boolean,
     val error: String?

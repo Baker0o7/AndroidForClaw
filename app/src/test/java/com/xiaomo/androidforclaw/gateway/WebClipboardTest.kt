@@ -4,20 +4,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * Web Clipboard Feature单元Test
+ * Web Clipboard Feature Unit Test
  *
- * TestInside容: 
- * 1. 剪切板历史Manage(Add、Up限、Sort)
- * 2. 剪切板页面 HTML 生成
- * 3. API Route匹配逻辑
- * 4. Connect 页面 IP 地址Parse
+ * Test Content:
+ * 1. Clipboard History Management (Add, Update, Sort)
+ * 2. Clipboard Page HTML Generation
+ * 3. API Route Matching Logic
+ * 4. Connect Page IP Address Parse
  */
 class WebClipboardTest {
 
-    // ── 剪切板历史Manage ────────────────────────────────────
+    // ── Clipboard History Management ────────────────────────────────────
 
     /**
-     * Mock GatewayServer 中的剪切板历史逻辑
+     * Mock GatewayServer's clipboard history logic
      */
     private class ClipboardHistory(private val maxSize: Int = 20) {
         private val history = mutableListOf<Pair<String, Long>>()
@@ -41,7 +41,7 @@ class WebClipboardTest {
     }
 
     @Test
-    fun `AddText到历史Record`() {
+    fun `Add text to history record`() {
         val history = ClipboardHistory()
         history.add("test-text-1", 1000L)
         assertEquals(1, history.size)
@@ -50,7 +50,7 @@ class WebClipboardTest {
     }
 
     @Test
-    fun `最NewRecord排在最Front`() {
+    fun `Newest record at front`() {
         val history = ClipboardHistory()
         history.add("older", 1000L)
         history.add("newer", 2000L)
@@ -59,21 +59,21 @@ class WebClipboardTest {
     }
 
     @Test
-    fun `历史Record不超过MaxValue`() {
+    fun `History record not exceed max value`() {
         val maxSize = 5
         val history = ClipboardHistory(maxSize)
         for (i in 1..10) {
             history.add("text-$i", i.toLong())
         }
         assertEquals(maxSize, history.size)
-        // 最New的Should在最Front面
+        // Newest should be at front
         assertEquals("text-10", history.getAll()[0].first)
-        // 最Old的被淘汰
+        // Oldest is evicted
         assertFalse(history.getAll().any { it.first == "text-1" })
     }
 
     @Test
-    fun `DefaultMax历史为 20 条`() {
+    fun `Default max history is 20 items`() {
         val history = ClipboardHistory()
         for (i in 1..25) {
             history.add("text-$i")
@@ -82,16 +82,16 @@ class WebClipboardTest {
     }
 
     @Test
-    fun `Null历史ReturnNullList`() {
+    fun `Empty history returns empty list`() {
         val history = ClipboardHistory()
         assertTrue(history.getAll().isEmpty())
         assertEquals(0, history.size)
     }
 
-    // ── API Route匹配 ─────────────────────────────────────
+    // ── API Route Matching ─────────────────────────────────────
 
     /**
-     * Mock GatewayServer.serve() 中的Route匹配逻辑
+     * Mock GatewayServer.serve() route matching logic
      */
     private enum class RouteResult {
         CLIPBOARD_PAGE, CLIPBOARD_SEND, CLIPBOARD_HISTORY, API, WEBUI
@@ -113,7 +113,7 @@ class WebClipboardTest {
     }
 
     @Test
-    fun `Route - clipboard 页面`() {
+    fun `Route - clipboard page`() {
         assertEquals(RouteResult.CLIPBOARD_PAGE, matchRoute("/clipboard"))
         assertEquals(RouteResult.CLIPBOARD_PAGE, matchRoute("/clipboard/"))
     }
@@ -124,8 +124,8 @@ class WebClipboardTest {
     }
 
     @Test
-    fun `Route - clipboard send GET 不匹配`() {
-        // GET Request不应匹配 clipboard send
+    fun `Route - clipboard send GET not matching`() {
+        // GET request should not match clipboard send
         assertNotEquals(RouteResult.CLIPBOARD_SEND, matchRoute("/api/clipboard/send", "GET"))
     }
 
@@ -135,60 +135,60 @@ class WebClipboardTest {
     }
 
     @Test
-    fun `Route - 普通 API 不受影响`() {
+    fun `Route - normal API unaffected`() {
         assertEquals(RouteResult.API, matchRoute("/api/health"))
         assertEquals(RouteResult.API, matchRoute("/api/device/status"))
     }
 
     @Test
-    fun `Route - 普通页面走 WebUI`() {
+    fun `Route - normal page goes to WebUI`() {
         assertEquals(RouteResult.WEBUI, matchRoute("/"))
         assertEquals(RouteResult.WEBUI, matchRoute("/index.html"))
     }
 
-    // ── 剪切板页面 HTML ──────────────────────────────────
+    // ── Clipboard Page HTML ──────────────────────────────────
 
     @Test
-    fun `剪切板页面Contains关KeyElement`() {
-        // Mock serveClipboardPage 中 HTML 的关KeyInside容
+    fun `Clipboard page contains key elements`() {
+        // Mock serveClipboardPage HTML content
         val html = buildClipboardPageHtml()
-        assertTrue("缺少Title", html.contains("Web Clipboard"))
-        assertTrue("缺少发送按钮", html.contains("发送到手机"))
-        assertTrue("缺少 textarea", html.contains("<textarea"))
-        assertTrue("缺少 fetch API 调用", html.contains("/api/clipboard/send"))
-        assertTrue("缺少历史Record区域", html.contains("历史Record"))
-        assertTrue("缺少 Ctrl+Enter 快捷Key", html.contains("ctrlKey") || html.contains("metaKey"))
+        assertTrue("Missing Title", html.contains("Web Clipboard"))
+        assertTrue("Missing send button", html.contains("发送到手机"))
+        assertTrue("Missing textarea", html.contains("<textarea"))
+        assertTrue("Missing fetch API call", html.contains("/api/clipboard/send"))
+        assertTrue("Missing history record area", html.contains("历史Record"))
+        assertTrue("Missing Ctrl+Enter shortcut", html.contains("ctrlKey") || html.contains("metaKey"))
     }
 
     @Test
-    fun `剪切板页面 API Path正确`() {
+    fun `Clipboard page API paths correct`() {
         val html = buildClipboardPageHtml()
-        assertTrue("send API Path", html.contains("'/api/clipboard/send'") || html.contains("\"/api/clipboard/send\""))
-        assertTrue("history API Path", html.contains("'/api/clipboard/history'") || html.contains("\"/api/clipboard/history\""))
+        assertTrue("send API path", html.contains("'/api/clipboard/send'") || html.contains("\"/api/clipboard/send\""))
+        assertTrue("history API path", html.contains("'/api/clipboard/history'") || html.contains("\"/api/clipboard/history\""))
     }
 
     @Test
-    fun `剪切板页面Has XSS 防护`() {
+    fun `Clipboard page has XSS protection`() {
         val html = buildClipboardPageHtml()
-        assertTrue("Contains escapeHtml Function", html.contains("escapeHtml"))
-        assertTrue("Contains escapeAttr Function", html.contains("escapeAttr"))
+        assertTrue("Contains escapeHtml function", html.contains("escapeHtml"))
+        assertTrue("Contains escapeAttr function", html.contains("escapeAttr"))
     }
 
     private fun buildClipboardPageHtml(): String {
-        // 与 GatewayServer.serveClipboardPage() 中的 HTML 保持一致
+        // Consistent with GatewayServer.serveClipboardPage() HTML
         return """
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>AndroidForClaw - Web Clipboard</title>
 </head>
 <body>
 <h1>Web Clipboard</h1>
-<p>在电脑UpInput, 手机UpAutoCopyto clipboard</p>
-<textarea id="text" placeholder="粘贴 API Key、ConfigInside容或AnyText..."></textarea>
-<button class="btn-send" id="sendBtn" onclick="send()">发送到手机</button>
-<h2>历史Record(点击Copy)</h2>
+<p>Input on computer, auto copy to phone</p>
+<textarea id="text" placeholder="Paste API Key, config content or any text..."></textarea>
+<button class="btn-send" id="sendBtn" onclick="send()">Send to Phone</button>
+<h2>History (click to copy)</h2>
 <ul class="history" id="history"></ul>
 <script>
 async function send() {
@@ -215,10 +215,10 @@ loadHistory();
         """.trimIndent()
     }
 
-    // ── IP 地址Parse ──────────────────────────────────────
+    // ── IP Address Parse ──────────────────────────────────────
 
     @Test
-    fun `IP 地址Format为 URL`() {
+    fun `IP address format as URL`() {
         val ip = "192.168.1.100"
         val port = 19789
         val url = "http://$ip:$port/clipboard"
@@ -229,29 +229,29 @@ loadHistory();
     }
 
     @Test
-    fun `None WiFi 时不生成 URL`() {
+    fun `No WiFi then no URL generated`() {
         val ip = "Not connected WiFi"
         val url = if (ip.contains(".")) "http://$ip:19789/clipboard" else ip
         assertEquals("Not connected WiFi", url)
         assertFalse(url.startsWith("http"))
     }
 
-    // ── 剪切板TextValidate ──────────────────────────────────
+    // ── Clipboard Text Validation ──────────────────────────────────
 
     @Test
-    fun `NullText应被拒绝`() {
+    fun `Null text should be rejected`() {
         val text = "   "
-        assertTrue("Null白Text", text.isBlank())
+        assertTrue("Empty text", text.isBlank())
     }
 
     @Test
-    fun `正常Text应通过`() {
+    fun `Normal text should pass`() {
         val text = "sk-or-v1-abcdef1234567890"
-        assertFalse("ValidText", text.isBlank())
+        assertFalse("Valid text", text.isBlank())
     }
 
     @Test
-    fun `长Text不截断`() {
+    fun `Long text not truncated`() {
         val longText = "a".repeat(10000)
         val history = ClipboardHistory()
         history.add(longText)
@@ -259,7 +259,7 @@ loadHistory();
     }
 
     @Test
-    fun `特殊字符不影响Storage`() {
+    fun `Special characters do not affect storage`() {
         val history = ClipboardHistory()
         val special = """{"key": "value", "nested": {"a": [1,2,3]}}"""
         history.add(special)
@@ -267,17 +267,17 @@ loadHistory();
     }
 
     @Test
-    fun `Contains换Row的Text正常Storage`() {
+    fun `Text with newlines stored normally`() {
         val history = ClipboardHistory()
         val multiline = "line1\nline2\nline3"
         history.add(multiline)
         assertEquals(multiline, history.getAll()[0].first)
     }
 
-    // ── ConcurrencySecure ─────────────────────────────────────────
+    // ── Concurrency Security ─────────────────────────────────────────
 
     @Test
-    fun `ConcurrencyWrite不丢Data`() {
+    fun `Concurrent writes no data loss`() {
         val history = ClipboardHistory(100)
         val threads = (1..10).map { threadId ->
             Thread {
@@ -291,17 +291,17 @@ loadHistory();
         assertEquals(100, history.size)
     }
 
-    // ── Connect 页面Show逻辑 ─────────────────────────────
+    // ── Connect Page Show Logic ─────────────────────────────
 
     @Test
-    fun `Valid IP Show为可点击链接`() {
+    fun `Valid IP shown as clickable link`() {
         val localIp = "192.168.1.5"
         val clipboardUrl = if (localIp.contains(".")) "http://$localIp:19789/clipboard" else localIp
         assertTrue(clipboardUrl.startsWith("http://"))
     }
 
     @Test
-    fun `None效 IP 不Show链接`() {
+    fun `Invalid IP not shown as link`() {
         val localIp = "GetFailed"
         val clipboardUrl = if (localIp.contains(".")) "http://$localIp:19789/clipboard" else localIp
         assertEquals("GetFailed", clipboardUrl)

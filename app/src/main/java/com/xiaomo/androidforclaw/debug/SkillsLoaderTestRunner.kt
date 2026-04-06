@@ -4,141 +4,141 @@
  */
 package com.xiaomo.androidforclaw.agent.skills
 
-import android.content.context
+import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
- * skillsLoader TestRun器
+ * SkillsLoader Test Runner
  */
-object skillsLoaderTestRunner {
+object SkillsLoaderTestRunner {
     private const val TAG = "skillsLoaderTest"
 
     /**
-     * RunAllTest
+     * Run All Tests
      */
-    fun runAllTests(context: context): Testresult {
-        val results = mutableListOf<SingleTestresult>()
+    fun runAllTests(context: Context): TestResult {
+        val results = mutableListOf<SingleTestResult>()
 
-        // Block 2 原HasTest
-        results.a(testLoadBundledskills(context))
-        results.a(testGetAlwaysskills(context))
-        results.a(testSelectRelevantskills(context))
-        results.a(testStatistics(context))
-        results.a(testPriorityoverride(context))
-        results.a(testReload(context))
-        results.a(testCheckRequirements(context))
+        // Block 2 original tests
+        results.add(testLoadBundledSkills(context))
+        results.add(testGetAlwaysSkills(context))
+        results.add(testSelectRelevantSkills(context))
+        results.add(testStatistics(context))
+        results.add(testPriorityOverride(context))
+        results.add(testReload(context))
+        results.add(testCheckRequirements(context))
 
-        // Block 5 new增Test
-        results.a(testnewskillsLoaded(context))
-        results.a(testImprovedSelection(context))
+        // Block 5 new tests
+        results.add(testNewSkillsLoaded(context))
+        results.add(testImprovedSelection(context))
 
-        // Block 6 new增Test
-        results.a(testHotReload(context))
+        // Block 6 new tests
+        results.add(testHotReload(context))
 
         val passed = results.count { it.passed }
         val total = results.size
 
-        return Testresult(
+        return TestResult(
             passed = passed,
             total = total,
             results = results
         )
     }
 
-    private fun testLoadBundledskills(context: context): SingleTestresult {
+    private fun testLoadBundledSkills(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
-            val skills = loader.loadskills()
+            val loader = SkillsLoader(context)
+            val skills = loader.loadSkills()
 
-            // validation至fewLoad mobile-operations
-            assert(skills.isnotEmpty()) { "should load at least 1 skill" }
+            // Validate at least mobile-operations loaded
+            assert(skills.isNotEmpty()) { "should load at least 1 skill" }
             assert(skills.containsKey("mobile-operations")) { "should contain mobile-operations" }
 
             val mobileOps = skills["mobile-operations"]!!
             assert(mobileOps.metadata.always) { "mobile-operations should be always loaded" }
             assert(mobileOps.metadata.emoji == "[APP]") { "mobile-operations emoji should be [APP]" }
 
-            Log.d(TAG, "[OK] testLoadBundledskills PASSED")
+            Log.d(TAG, "[OK] testLoadBundledSkills PASSED")
             Log.d(TAG, "   Loaded ${skills.size} skills")
-            SingleTestresult("testLoadBundledskills", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testLoadBundledskills FAILED: ${e.message}")
-            SingleTestresult("testLoadBundledskills", false, e.message)
+            SingleTestResult("testLoadBundledSkills", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testLoadBundledSkills FAILED: ${e.message}")
+            SingleTestResult("testLoadBundledSkills", false, e.message)
         }
     }
 
-    private fun testGetAlwaysskills(context: context): SingleTestresult {
+    private fun testGetAlwaysSkills(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
-            val alwaysskills = loader.getAlwaysskills()
+            val loader = SkillsLoader(context)
+            val alwaysSkills = loader.getAlwaysSkills()
 
-            assert(alwaysskills.isnotEmpty()) { "should have at least 1 always skill" }
+            assert(alwaysSkills.isNotEmpty()) { "should have at least 1 always skill" }
 
-            // validationAllReturn skills 都Yes always
-            for (skill in alwaysskills) {
+            // Validate all returned skills are always
+            for (skill in alwaysSkills) {
                 assert(skill.metadata.always) { "${skill.name} should be always" }
             }
 
-            Log.d(TAG, "[OK] testGetAlwaysskills PASSED")
-            Log.d(TAG, "   Always skills: ${alwaysskills.size}")
-            SingleTestresult("testGetAlwaysskills", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testGetAlwaysskills FAILED: ${e.message}")
-            SingleTestresult("testGetAlwaysskills", false, e.message)
+            Log.d(TAG, "[OK] testGetAlwaysSkills PASSED")
+            Log.d(TAG, "   Always skills: ${alwaysSkills.size}")
+            SingleTestResult("testGetAlwaysSkills", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testGetAlwaysSkills FAILED: ${e.message}")
+            SingleTestResult("testGetAlwaysSkills", false, e.message)
         }
     }
 
-    private fun testSelectRelevantskills(context: context): SingleTestresult {
+    private fun testSelectRelevantSkills(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
+            val loader = SkillsLoader(context)
 
-            // Testnot同user目标
-            val testGoal = loader.selectRelevantskills("Test音乐播放器", excludeAlways = true)
-            val debugGoal = loader.selectRelevantskills("DebugLoginFeature", excludeAlways = true)
+            // Test different user goals
+            val testGoal = loader.selectRelevantSkills("Test music player", excludeAlways = true)
+            val debugGoal = loader.selectRelevantSkills("Debug login feature", excludeAlways = true)
 
-            Log.d(TAG, "[OK] testSelectRelevantskills PASSED")
+            Log.d(TAG, "[OK] testSelectRelevantSkills PASSED")
             Log.d(TAG, "   Test goal: ${testGoal.size} skills")
             Log.d(TAG, "   Debug goal: ${debugGoal.size} skills")
-            SingleTestresult("testSelectRelevantskills", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testSelectRelevantskills FAILED: ${e.message}")
-            SingleTestresult("testSelectRelevantskills", false, e.message)
+            SingleTestResult("testSelectRelevantSkills", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testSelectRelevantSkills FAILED: ${e.message}")
+            SingleTestResult("testSelectRelevantSkills", false, e.message)
         }
     }
 
-    private fun testStatistics(context: context): SingleTestresult {
+    private fun testStatistics(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
+            val loader = SkillsLoader(context)
             val stats = loader.getStatistics()
 
-            assert(stats.totalskills > 0) { "should have skills" }
-            assert(stats.alwaysskills + stats.onDemandskills == stats.totalskills) {
+            assert(stats.totalSkills > 0) { "should have skills" }
+            assert(stats.alwaysSkills + stats.onDemandSkills == stats.totalSkills) {
                 "Always + OnDemand should equal total"
             }
             assert(stats.totalTokens > 0) { "should have tokens" }
 
             Log.d(TAG, "[OK] testStatistics PASSED")
             Log.d(TAG, stats.getReport())
-            SingleTestresult("testStatistics", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testStatistics", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testStatistics FAILED: ${e.message}")
-            SingleTestresult("testStatistics", false, e.message)
+            SingleTestResult("testStatistics", false, e.message)
         }
     }
 
-    private fun testPriorityoverride(context: context): SingleTestresult {
+    private fun testPriorityOverride(context: Context): SingleTestResult {
         return try {
-            // CreateTest用 Workspace skill
-            val workspaceDir = File(StoragePaths.workspaceskills, "test-override")
+            // Create test workspace skill
+            val workspaceDir = File(StoragePaths.workspaceSkills, "test-override")
             workspaceDir.mkdirs()
 
-            val testskillFile = File(workspaceDir, "SKILL.md")
-            testskillFile.writeText("""
+            val testSkillFile = File(workspaceDir, "SKILL.md")
+            testSkillFile.writeText("""
 ---
 name: mobile-operations
-description: Workspace overrideVersion
+description: Workspace override version
 metadata:
   {
     "openclaw": {
@@ -151,66 +151,66 @@ metadata:
 # Workspace override Test
             """.trimIndent())
 
-            // reLoad
-            val loader = skillsLoader(context)
+            // Reload
+            val loader = SkillsLoader(context)
             loader.reload()
-            val skills = loader.loadskills()
+            val skills = loader.loadSkills()
 
             val mobileOps = skills["mobile-operations"]
-            val isWorkspaceVersion = mobileOps?.description == "Workspace overrideVersion"
+            val isWorkspaceVersion = mobileOps?.description == "Workspace override version"
 
-            // 清理Testfiles
-            testskillFile.delete()
+            // Cleanup test files
+            testSkillFile.delete()
             workspaceDir.delete()
 
             if (isWorkspaceVersion) {
-                Log.d(TAG, "[OK] testPriorityoverride PASSED")
+                Log.d(TAG, "[OK] testPriorityOverride PASSED")
                 Log.d(TAG, "   Workspace skill correctly overrides bundled")
-                SingleTestresult("testPriorityoverride", true, null)
+                SingleTestResult("testPriorityOverride", true, null)
             } else {
-                Log.e(TAG, "[ERROR] testPriorityoverride FAILED: Workspace not overriding")
-                SingleTestresult("testPriorityoverride", false, "Priority not working")
+                Log.e(TAG, "[ERROR] testPriorityOverride FAILED: Workspace not overriding")
+                SingleTestResult("testPriorityOverride", false, "Priority not working")
             }
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testPriorityoverride FAILED: ${e.message}")
-            SingleTestresult("testPriorityoverride", false, e.message)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testPriorityOverride FAILED: ${e.message}")
+            SingleTestResult("testPriorityOverride", false, e.message)
         }
     }
 
-    private fun testReload(context: context): SingleTestresult {
+    private fun testReload(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
+            val loader = SkillsLoader(context)
 
-            // firsttimesLoad
-            val skills1 = loader.loadskills()
+            // First time load
+            val skills1 = loader.loadSkills()
             val count1 = skills1.size
 
-            // reLoad
+            // Reload
             loader.reload()
-            val skills2 = loader.loadskills()
+            val skills2 = loader.loadSkills()
             val count2 = skills2.size
 
             assert(count1 == count2) { "Reload should load same number of skills" }
 
             Log.d(TAG, "[OK] testReload PASSED")
             Log.d(TAG, "   Reloaded ${count2} skills")
-            SingleTestresult("testReload", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testReload", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testReload FAILED: ${e.message}")
-            SingleTestresult("testReload", false, e.message)
+            SingleTestResult("testReload", false, e.message)
         }
     }
 
-    private fun testCheckRequirements(context: context): SingleTestresult {
+    private fun testCheckRequirements(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
+            val loader = SkillsLoader(context)
 
-            // CreateoneHasDependencyTest skill
-            val skillwithRequires = skillDocument(
+            // Create one has dependency test skill
+            val skillWithRequires = SkillDocument(
                 name = "test-requires",
                 description = "Test",
-                metadata = skillMetadata(
-                    requires = skillRequires(
+                metadata = SkillMetadata(
+                    requires = SkillRequires(
                         bins = listOf("nonexistent-binary"),
                         env = listOf("NONEXISTENT_ENV"),
                         config = listOf("nonexistent.config")
@@ -219,39 +219,39 @@ metadata:
                 content = "Test"
             )
 
-            val result = loader.checkRequirements(skillwithRequires)
+            val result = loader.checkRequirements(skillWithRequires)
 
-            assert(result is RequirementsCheckresult.Unsatisfied) {
+            assert(result is RequirementsCheckResult.Unsatisfied) {
                 "should be unsatisfied"
             }
 
-            if (result is RequirementsCheckresult.Unsatisfied) {
+            if (result is RequirementsCheckResult.Unsatisfied) {
                 assert(result.missingBins.contains("nonexistent-binary"))
                 assert(result.missingEnv.contains("NONEXISTENT_ENV"))
-                assert(result.missingconfig.contains("nonexistent.config"))
+                assert(result.missingConfig.contains("nonexistent.config"))
             }
 
             Log.d(TAG, "[OK] testCheckRequirements PASSED")
-            SingleTestresult("testCheckRequirements", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testCheckRequirements", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testCheckRequirements FAILED: ${e.message}")
-            SingleTestresult("testCheckRequirements", false, e.message)
+            SingleTestResult("testCheckRequirements", false, e.message)
         }
     }
 
     /**
-     * Test Block 5: new skills whetherLoad
+     * Test Block 5: new skills whether load
      */
-    private fun testnewskillsLoaded(context: context): SingleTestresult {
+    private fun testNewSkillsLoaded(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
-            val skills = loader.loadskills()
+            val loader = SkillsLoader(context)
+            val skills = loader.loadSkills()
 
-            // validationnew增 4 count skills
-            val newskills = listOf("accessibility", "performance", "ui-validation", "network-testing")
+            // Validate new 4 count skills
+            val newSkills = listOf("accessibility", "performance", "ui-validation", "network-testing")
             var allLoaded = true
 
-            for (skillName in newskills) {
+            for (skillName in newSkills) {
                 if (!skills.containsKey(skillName)) {
                     Log.w(TAG, "[WARN] skill not loaded: $skillName")
                     allLoaded = false
@@ -260,36 +260,36 @@ metadata:
 
             assert(allLoaded) { "All new skills should be loaded" }
 
-            Log.d(TAG, "[OK] testnewskillsLoaded PASSED")
-            Log.d(TAG, "   Loaded ${newskills.size} new skills")
-            SingleTestresult("testnewskillsLoaded", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testnewskillsLoaded FAILED: ${e.message}")
-            SingleTestresult("testnewskillsLoaded", false, e.message)
+            Log.d(TAG, "[OK] testNewSkillsLoaded PASSED")
+            Log.d(TAG, "   Loaded ${newSkills.size} new skills")
+            SingleTestResult("testNewSkillsLoaded", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testNewSkillsLoaded FAILED: ${e.message}")
+            SingleTestResult("testNewSkillsLoaded", false, e.message)
         }
     }
 
     /**
-     * Test Block 5: ImprovechooseAlgorithm
+     * Test Block 5: Improve choose algorithm
      */
-    private fun testImprovedSelection(context: context): SingleTestresult {
+    private fun testImprovedSelection(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
+            val loader = SkillsLoader(context)
 
-            // TestTaskType识别
+            // Test task type recognition
             val testTasks = mapOf(
-                "Test音乐播放器Performance" to listOf("app-testing", "performance"),
-                "DebugNetworkIssue" to listOf("debugging", "network-testing"),
-                "validation界面Show" to listOf("ui-validation"),
-                "CheckNoneAccessibility adaptation" to listOf("accessibility")
+                "Test music player performance" to listOf("app-testing", "performance"),
+                "Debug network issue" to listOf("debugging", "network-testing"),
+                "Validate UI display" to listOf("ui-validation"),
+                "Check no accessibility adaptation" to listOf("accessibility")
             )
 
             var allMatched = true
-            for ((userGoal, expectedskills) in testTasks) {
-                val selected = loader.selectRelevantskills(userGoal, excludeAlways = true)
+            for ((userGoal, expectedSkills) in testTasks) {
+                val selected = loader.selectRelevantSkills(userGoal, excludeAlways = true)
                 val selectedNames = selected.map { it.name }
 
-                for (expected in expectedskills) {
+                for (expected in expectedSkills) {
                     if (!selectedNames.contains(expected)) {
                         Log.w(TAG, "[WARN] Expected '$expected' for goal '$userGoal', but not selected")
                         allMatched = false
@@ -299,34 +299,75 @@ metadata:
 
             Log.d(TAG, if (allMatched) "[OK] testImprovedSelection PASSED" else "[WARN] testImprovedSelection PARTIAL")
             Log.d(TAG, "   Task type identification working")
-            SingleTestresult("testImprovedSelection", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testImprovedSelection", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testImprovedSelection FAILED: ${e.message}")
-            SingleTestresult("testImprovedSelection", false, e.message)
+            SingleTestResult("testImprovedSelection", false, e.message)
         }
     }
 
     /**
-     * Test Block 6: 热overload
+     * Test Block 6: hot overload
      */
-    private fun testHotReload(context: context): SingleTestresult {
+    private fun testHotReload(context: Context): SingleTestResult {
         return try {
-            val loader = skillsLoader(context)
+            val loader = SkillsLoader(context)
 
-            // Enable热overload
+            // Enable hot reload
             loader.enableHotReload()
             assert(loader.isHotReloadEnabled()) { "Hot reload should be enabled" }
 
-            // Disabled热overload
+            // Disable hot reload
             loader.disableHotReload()
             assert(!loader.isHotReloadEnabled()) { "Hot reload should be disabled" }
 
             Log.d(TAG, "[OK] testHotReload PASSED")
             Log.d(TAG, "   Hot reload mechanism working")
-            SingleTestresult("testHotReload", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testHotReload", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testHotReload FAILED: ${e.message}")
-            SingleTestresult("testHotReload", false, e.message)
+            SingleTestResult("testHotReload", false, e.message)
         }
     }
 }
+
+/**
+ * Test Result
+ */
+data class TestResult(
+    val passed: Int,
+    val total: Int,
+    val results: List<SingleTestResult>
+) {
+    fun isSuccess(): Boolean = passed == total
+
+    fun getSummary(): String {
+        val emoji = if (isSuccess()) "[OK]" else "[ERROR]"
+        return "$emoji SkillsLoader Tests: $passed/$total passed"
+    }
+
+    fun getDetailedReport(): String {
+        val builder = StringBuilder()
+        builder.appendLine(getSummary())
+        builder.appendLine()
+
+        for (result in results) {
+            val emoji = if (result.passed) "[OK]" else "[ERROR]"
+            builder.appendLine("$emoji ${result.testName}")
+            if (!result.passed && result.error != null) {
+                builder.appendLine("   Error: ${result.error}")
+            }
+        }
+
+        return builder.toString()
+    }
+}
+
+/**
+ * Single Test Result
+ */
+data class SingleTestResult(
+    val testName: String,
+    val passed: Boolean,
+    val error: String?
+)

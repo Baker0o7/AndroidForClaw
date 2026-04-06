@@ -4,39 +4,39 @@
  */
 package com.xiaomo.androidforclaw.agent.context
 
-import android.content.context
+import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.agent.skills.SingleTestresult
-import com.xiaomo.androidforclaw.agent.skills.Testresult
-import com.xiaomo.androidforclaw.agent.tools.androidtoolRegistry
-import com.xiaomo.androidforclaw.agent.tools.toolRegistry
-import com.xiaomo.androidforclaw.data.model.TaskDatamanager
+import com.xiaomo.androidforclaw.agent.skills.SingleTestResult
+import com.xiaomo.androidforclaw.agent.skills.TestResult
+import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
+import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
+import com.xiaomo.androidforclaw.data.model.TaskDataManager
 
 /**
- * contextBuilder TestRun器 (Block 3)
+ * ContextBuilder Test Runner (Block 3)
  */
-object contextBuilderTestRunner {
+object ContextBuilderTestRunner {
     private const val TAG = "contextBuilderTest"
 
     /**
-     * RunAllTest
+     * Run All Tests
      */
-    fun runAllTests(context: context): Testresult {
-        val results = mutableListOf<SingleTestresult>()
+    fun runAllTests(context: Context): TestResult {
+        val results = mutableListOf<SingleTestResult>()
 
-        // Block 3 原HasTest
-        results.a(testBuildSystemPrompt(context))
-        results.a(testAlwaysskillsInjection(context))
-        results.a(testRelevantskillsSelection(context))
-        results.a(testTokenReduction(context))
+        // Block 3 original tests
+        results.add(testBuildSystemPrompt(context))
+        results.add(testAlwaysSkillsInjection(context))
+        results.add(testRelevantSkillsSelection(context))
+        results.add(testTokenReduction(context))
 
-        // Block 4 new增Test
-        results.a(testBootstrapFilesLoaded(context))
+        // Block 4 new test
+        results.add(testBootstrapFilesLoaded(context))
 
         val passed = results.count { it.passed }
         val total = results.size
 
-        return Testresult(
+        return TestResult(
             passed = passed,
             total = total,
             results = results
@@ -44,106 +44,106 @@ object contextBuilderTestRunner {
     }
 
     /**
-     * Test 1: Build系统Hint词
+     * Test 1: Build system prompt
      */
-    private fun testBuildSystemPrompt(context: context): SingleTestresult {
+    private fun testBuildSystemPrompt(context: Context): SingleTestResult {
         return try {
-            val builder = createcontextBuilder(context)
+            val builder = createContextBuilder(context)
 
             val systemPrompt = builder.buildSystemPrompt(
-                userGoal = "Test音乐播放器",
+                userGoal = "Test music player",
                 packageName = "com.example.music",
                 testMode = "exploration"
             )
 
-            assert(systemPrompt.isnotEmpty()) { "System prompt should not be empty" }
-            assert(systemPrompt.contains("androidforClaw")) { "should contain identity" }
+            assert(systemPrompt.isNotEmpty()) { "System prompt should not be empty" }
+            assert(systemPrompt.contains("AndroidForClaw")) { "should contain identity" }
 
             Log.d(TAG, "[OK] testBuildSystemPrompt PASSED")
             Log.d(TAG, "   Prompt length: ${systemPrompt.length} chars")
-            SingleTestresult("testBuildSystemPrompt", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testBuildSystemPrompt", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testBuildSystemPrompt FAILED: ${e.message}")
-            SingleTestresult("testBuildSystemPrompt", false, e.message)
+            SingleTestResult("testBuildSystemPrompt", false, e.message)
         }
     }
 
     /**
-     * Test 2: Always skills 注入
+     * Test 2: Always skills injection
      */
-    private fun testAlwaysskillsInjection(context: context): SingleTestresult {
+    private fun testAlwaysSkillsInjection(context: Context): SingleTestResult {
         return try {
-            val builder = createcontextBuilder(context)
+            val builder = createContextBuilder(context)
 
             val systemPrompt = builder.buildSystemPrompt(
-                userGoal = "Open微信",
+                userGoal = "Open WeChat",
                 packageName = "com.tencent.mm",
                 testMode = "exploration"
             )
 
-            // shouldContains mobile-operations (always: true)
+            // Should contain mobile-operations (always: true)
             assert(systemPrompt.contains("Active skills")) { "should contain Active skills section" }
             assert(systemPrompt.contains("mobile-operations") || systemPrompt.contains("[APP]")) {
                 "should contain mobile-operations skill"
             }
 
-            Log.d(TAG, "[OK] testAlwaysskillsInjection PASSED")
+            Log.d(TAG, "[OK] testAlwaysSkillsInjection PASSED")
             Log.d(TAG, "   Contains Always skills: mobile-operations")
-            SingleTestresult("testAlwaysskillsInjection", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testAlwaysskillsInjection FAILED: ${e.message}")
-            SingleTestresult("testAlwaysskillsInjection", false, e.message)
+            SingleTestResult("testAlwaysSkillsInjection", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testAlwaysSkillsInjection FAILED: ${e.message}")
+            SingleTestResult("testAlwaysSkillsInjection", false, e.message)
         }
     }
 
     /**
-     * Test 3: 相关 skills choose
+     * Test 3: Relevant skills selection
      */
-    private fun testRelevantskillsSelection(context: context): SingleTestresult {
+    private fun testRelevantSkillsSelection(context: Context): SingleTestResult {
         return try {
-            val builder = createcontextBuilder(context)
+            val builder = createContextBuilder(context)
 
-            // TestTaskshouldLoad app-testing
+            // Test task should load app-testing
             val testPrompt = builder.buildSystemPrompt(
-                userGoal = "Test音乐播放器AllFeature",
+                userGoal = "Test music player all features",
                 packageName = "com.example.music",
                 testMode = "exploration"
             )
 
-            // DebugTaskshouldLoad debugging
+            // Debug task should load debugging
             val debugPrompt = builder.buildSystemPrompt(
-                userGoal = "DebugLoginFeatureIssue",
+                userGoal = "Debug login feature issue",
                 packageName = "com.example.app",
                 testMode = "exploration"
             )
 
-            Log.d(TAG, "[OK] testRelevantskillsSelection PASSED")
+            Log.d(TAG, "[OK] testRelevantSkillsSelection PASSED")
             Log.d(TAG, "   Test prompt: ${testPrompt.length} chars")
             Log.d(TAG, "   Debug prompt: ${debugPrompt.length} chars")
-            SingleTestresult("testRelevantskillsSelection", true, null)
-        } catch (e: exception) {
-            Log.e(TAG, "[ERROR] testRelevantskillsSelection FAILED: ${e.message}")
-            SingleTestresult("testRelevantskillsSelection", false, e.message)
+            SingleTestResult("testRelevantSkillsSelection", true, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "[ERROR] testRelevantSkillsSelection FAILED: ${e.message}")
+            SingleTestResult("testRelevantSkillsSelection", false, e.message)
         }
     }
 
     /**
-     * Test 4: Token 减fewvalidation
+     * Test 4: Token reduction validation
      */
-    private fun testTokenReduction(context: context): SingleTestresult {
+    private fun testTokenReduction(context: Context): SingleTestResult {
         return try {
-            val builder = createcontextBuilder(context)
+            val builder = createContextBuilder(context)
 
-            // SimpleTask(只Has Always skills)
+            // Simple task (only has always skills)
             val simplePrompt = builder.buildSystemPrompt(
-                userGoal = "Open微信",
+                userGoal = "Open WeChat",
                 packageName = "com.tencent.mm",
                 testMode = "exploration"
             )
 
-            // ComplexTask(Always + Relevant skills)
+            // Complex task (Always + relevant skills)
             val complexPrompt = builder.buildSystemPrompt(
-                userGoal = "Test并Debug音乐播放器",
+                userGoal = "Test and debug music player",
                 packageName = "com.example.music",
                 testMode = "exploration"
             )
@@ -154,67 +154,67 @@ object contextBuilderTestRunner {
             Log.d(TAG, "[OK] testTokenReduction PASSED")
             Log.d(TAG, "   Simple task: ~$simpleTokens tokens")
             Log.d(TAG, "   Complex task: ~$complexTokens tokens")
-            Log.d(TAG, "   目标: < 1500 tokens (Block 3)")
+            Log.d(TAG, "   Goal: < 1500 tokens (Block 3)")
 
-            // validation Token use合理
+            // Validate token usage reasonable
             assert(simpleTokens < 2000) { "Simple task tokens should be < 2000" }
             assert(complexTokens < 3000) { "Complex task tokens should be < 3000" }
 
-            SingleTestresult("testTokenReduction", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testTokenReduction", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testTokenReduction FAILED: ${e.message}")
-            SingleTestresult("testTokenReduction", false, e.message)
+            SingleTestResult("testTokenReduction", false, e.message)
         }
     }
 
     /**
-     * Test Block 4: Bootstrap filesLoad
+     * Test Block 4: Bootstrap files load
      */
-    private fun testBootstrapFilesLoaded(context: context): SingleTestresult {
+    private fun testBootstrapFilesLoaded(context: Context): SingleTestResult {
         return try {
-            val builder = createcontextBuilder(context)
+            val builder = createContextBuilder(context)
 
             val systemPrompt = builder.buildSystemPrompt(
-                userGoal = "Testapp",
+                userGoal = "Test app",
                 packageName = "com.example.app",
                 testMode = "exploration"
             )
 
-            // shouldContains Bootstrap filescontent
-            assert(systemPrompt.contains("androidforClaw agent") ||
+            // Should contain bootstrap files content
+            assert(systemPrompt.contains("AndroidForClaw agent") ||
                    systemPrompt.contains("core capability") ||
-                   systemPrompt.contains("工作原then")) {
+                   systemPrompt.contains("working principle")) {
                 "should contain Bootstrap files content (IDENTITY.md or AGENTS.md)"
             }
 
             Log.d(TAG, "[OK] testBootstrapFilesLoaded PASSED")
             Log.d(TAG, "   Bootstrap files loaded successfully")
-            SingleTestresult("testBootstrapFilesLoaded", true, null)
-        } catch (e: exception) {
+            SingleTestResult("testBootstrapFilesLoaded", true, null)
+        } catch (e: Exception) {
             Log.e(TAG, "[ERROR] testBootstrapFilesLoaded FAILED: ${e.message}")
-            SingleTestresult("testBootstrapFilesLoaded", false, e.message)
+            SingleTestResult("testBootstrapFilesLoaded", false, e.message)
         }
     }
 
     /**
-     * Create contextBuilder Instance
+     * Create ContextBuilder instance
      */
-    private fun createcontextBuilder(context: context): contextBuilder {
-        val toolRegistry = toolRegistry(
+    private fun createContextBuilder(context: Context): ContextBuilder {
+        val toolRegistry = ToolRegistry(
             context = context,
-            taskDatamanager = TaskDatamanager.getInstance()
+            taskDataManager = TaskDataManager.getInstance()
         )
 
-        val androidtoolRegistry = androidtoolRegistry(
+        val androidToolRegistry = AndroidToolRegistry(
             context = context,
-            taskDatamanager = TaskDatamanager.getInstance(),
-            cameraCapturemanager = com.xiaomo.androidforclaw.core.MyApplication.getCameraCapturemanager(),
+            taskDataManager = TaskDataManager.getInstance(),
+            cameraCaptureManager = com.xiaomo.androidforclaw.core.MyApplication.getCameraCaptureManager(),
         )
 
-        return contextBuilder(
+        return ContextBuilder(
             context = context,
             toolRegistry = toolRegistry,
-            androidtoolRegistry = androidtoolRegistry
+            androidToolRegistry = androidToolRegistry
         )
     }
 }
