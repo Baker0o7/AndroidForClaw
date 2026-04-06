@@ -15,11 +15,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书媒体Process (简化版)
+ * Feishu media handling (simplified)
  *
- * 注意:
- * - uploadImage 已Delete,use FeishuImageUploadTool 替代
- * - 只保留 sendImage/sendFile (send已Upload的媒体)
+ * Note:
+ * - uploadImage removed, use FeishuImageUploadTool instead
+ * - Only keep sendImage/sendFile (send already uploaded media)
  */
 class FeishuMedia(
     private val config: FeishuConfig,
@@ -30,7 +30,7 @@ class FeishuMedia(
     }
 
     /**
-     * sendGraph片Message
+     * Send image message
      */
     suspend fun sendImage(
         receiveId: String,
@@ -68,7 +68,7 @@ class FeishuMedia(
     }
 
     /**
-     * send文件Message
+     * Send file message
      */
     suspend fun sendFile(
         receiveId: String,

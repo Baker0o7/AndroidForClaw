@@ -12,7 +12,7 @@ import com.xiaomo.feishu.FeishuClient
 import java.io.File
 
 /**
- * 媒体Downloadresult
+ * Media download result
  */
 data class Downloadresult(
     val file: File,
@@ -20,7 +20,7 @@ data class Downloadresult(
 )
 
 /**
- * 飞书媒体Download器
+ * Feishu media downloader
  * Aligned with OpenClaw media.ts download APIs
  */
 class FeishuMediaDownload(
@@ -37,7 +37,7 @@ class FeishuMediaDownload(
     }
 
     /**
-     * Download独立Graph片
+     * Download individual image
      * Aligned with OpenClaw downloadImageFeishu
      *
      * API: GET /open-apis/im/v1/images/{image_key}
@@ -62,7 +62,7 @@ class FeishuMediaDownload(
     }
 
     /**
-     * DownloadMessage附件Resource
+     * Download message attachment resource
      * Aligned with OpenClaw downloadMessageResourceFeishu
      *
      * API: GET /open-apis/im/v1/messages/{message_id}/resources/{file_key}?type={image|file}
@@ -92,8 +92,8 @@ class FeishuMediaDownload(
     }
 
     /**
-     * according to MediaKeys AutoDownload
-     * Return本地File pathDescription(Append toMessageInside容中)
+     * Auto download based on media keys
+     * Returns local file path (to be appended to message content)
      */
     suspend fun downloadMedia(
         messageId: String,
@@ -115,7 +115,7 @@ class FeishuMediaDownload(
     }
 
     /**
-     * 清理过期Cache(超过 24 小时)
+     * Cleanup expired cache (older than 24 hours)
      */
     fun cleanupCache(maxAgeMs: Long = 24 * 60 * 60 * 1000) {
         val now = System.currentTimeMillis()

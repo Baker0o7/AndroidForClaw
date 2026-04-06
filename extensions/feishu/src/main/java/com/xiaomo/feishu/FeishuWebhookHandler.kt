@@ -12,10 +12,10 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
- * 飞书 Webhook ConnectProcess器
+ * Feishu Webhook connection handler
  * Aligned with OpenClaw webhook Schema
  *
- * TODO: Need集成到 Gateway HTTP Service器
+ * TODO: Need to integrate with Gateway HTTP server
  */
 class FeishuWebhookHandler(
     private val config: FeishuConfig,
@@ -32,24 +32,24 @@ class FeishuWebhookHandler(
         Log.i(TAG, "Webhook path: ${config.webhookPath}")
         Log.i(TAG, "Webhook port: ${config.webhookPort}")
 
-        // TODO: Register webhook endpoint 到 Gateway HTTP Service器
-        // Gateway 会将飞书的 webhook Callback转发到这里
+        // TODO: Register webhook endpoint with Gateway HTTP server
+        // Gateway will forward Feishu webhook callbacks here
     }
 
     override fun stop() {
         Log.i(TAG, "Webhook mode stopped")
-        // TODO: Logout webhook endpoint
+        // TODO: Unregister webhook endpoint
     }
 
     /**
-     * Process Webhook Callback
-     * by Gateway HTTP Service器call
+     * Process webhook callback
+     * Called by Gateway HTTP server
      */
     suspend fun handleWebhookCallback(payload: String): String {
         try {
-            // TODO: Parse并Process webhook payload
-            // TODO: Validate签名
-            // TODO: sendEvent到 eventFlow
+            // TODO: Parse and process webhook payload
+            // TODO: Validate signature
+            // TODO: Emit event to eventFlow
             return """{"code":0}"""
 
         } catch (e: Exception) {

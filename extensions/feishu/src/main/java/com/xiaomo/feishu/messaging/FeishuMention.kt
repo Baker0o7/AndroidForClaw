@@ -9,38 +9,38 @@ package com.xiaomo.feishu.messaging
 
 
 /**
- * 飞书 @提及 Process
+ * Feishu @mention handling
  * Aligned with OpenClaw mention.ts
  *
  * Feature: 
- * - 提Cancel息中的 @提及 目标
- * - 检测YesNo为转发Request
- * - Format @提及 标签
+ * - Extract @mention targets from messages
+ * - Detect if it's a forward request
+ * - Format @mention tags
  */
 object FeishuMention {
 
     /**
-     * 提及目标Info
+     * Mention target info
      */
     data class MentionTarget(
         val openId: String,
         val name: String,
-        val key: String  // 占位符, e.g. @_user_1
+        val key: String  // placeholder, e.g. @_user_1
     )
 
     /**
-     * 转义正则Table达式元字符
+     * Escape regex metacharacters
      */
     private fun escapeRegex(input: String): String {
         return Regex.escape(input)
     }
 
     /**
-     * 从MessageEvent中提取提及目标(exclude机器人自己)
+     * Extract mention targets from MessageEvent (excluding the bot itself)
      *
-     * @param mentions 提及List
-     * @param botOpenId 机器人 open_id
-     * @return 提及目标List
+     * @param mentions List of mentions
+     * @param botOpenId Bot's open_id
+     * @return List of mention targets
      */
     fun extractMentionTargets(
         mentions: List<Map<String, Any?>>,
@@ -52,7 +52,7 @@ object FeishuMention {
             val name = mention["name"] as? String ?: ""
             val key = mention["key"] as? String ?: ""
 
-            // exclude机器人自己 && MustHas open_id
+            // Exclude bot itself && must have open_id
             if (openId != null && openId != botOpenId) {
                 MentionTarget(openId, name, key)
             } else {
@@ -62,16 +62,16 @@ object FeishuMention {
     }
 
     /**
-     * CheckYesNo为提及转发Request
+     * Check if it's a mention forward request
      *
      * Rule: 
-     * - 群聊: Message提及机器人 + 至少一个Its他User
-     * - 私聊: Message提及任何User(None需提及机器人)
+     * - Group chat: Message mentions bot + at least one other user
+     * - Direct message: Message mentions any user (no need to mention bot)
      *
-     * @param mentions 提及List
-     * @param chatType ChatType(p2p/group)
-     * @param botOpenId 机器人 open_id
-     * @return YesNo为转发Request
+     * @param mentions List of mentions
+     * @param chatType Chat type (p2p/group)
+     * @param botOpenId Bot's open_id
+     * @return Whether it's a forward request
      */
     fun isMentionForwardRequest(
         mentions: List<Map<String, Any?>>,
@@ -90,10 +90,10 @@ object FeishuMention {
         }
 
         return if (isDirectMessage) {
-            // 私聊: 提及任何非机器人Userthat is触发
+            // DM: mention any non-bot user triggers
             hasOtherMention
         } else {
-            // 群聊: Needat the same time提及机器人和Its他User
+            // Group: need to mention both bot and other users
             val hasBotMention = mentions.any { mention ->
                 val id = mention["id"] as? Map<*, *>
                 val openId = id?.get("open_id") as? String
@@ -104,64 +104,64 @@ object FeishuMention {
     }
 
     /**
-     * 从Text中提Cancel息正文(移除 @ 占位符)
+     * Extract message body (removing @ placeholders)
      *
-     * @param text 原始Text
-     * @param allMentionKeys All @ 占位符List
-     * @return 清理Back的Text
+     * @param text Original text
+     * @param allMentionKeys List of all @ placeholders
+     * @return Cleaned text
      */
     fun extractMessageBody(text: String, allMentionKeys: List<String>): String {
         var result = text
 
-        // 移除All @ 占位符
+        // Remove all @ placeholders
         for (key in allMentionKeys) {
             result = result.replace(Regex(escapeRegex(key)), "")
         }
 
-        // CompressNull白字符
+        // Compress whitespace
         return result.replace(Regex("\\s+"), " ").trim()
     }
 
     /**
-     * Format @提及 标签(TextMessage)
+     * Format @mention tag (text message)
      *
-     * @param target 提及目标
-     * @return Format的标签
+     * @param target Mention target
+     * @return Formatted tag
      */
     fun formatMentionForText(target: MentionTarget): String {
         return """<at user_id="${target.openId}">${target.name}</at>"""
     }
 
     /**
-     * Format @All人 标签(TextMessage)
+     * Format @all tag (text message)
      */
     fun formatMentionAllForText(): String {
         return """<at user_id="all">Everyone</at>"""
     }
 
     /**
-     * Format @提及 标签(卡片Message lark_md)
+     * Format @mention tag (card message lark_md)
      *
-     * @param target 提及目标
-     * @return Format的标签
+     * @param target Mention target
+     * @return Formatted tag
      */
     fun formatMentionForCard(target: MentionTarget): String {
         return """<at id=${target.openId}></at>"""
     }
 
     /**
-     * Format @All人 标签(卡片Message lark_md)
+     * Format @all tag (card message lark_md)
      */
     fun formatMentionAllForCard(): String {
         return """<at id=all></at>"""
     }
 
     /**
-     * Build带提及的TextMessage
+     * Build text message with mentions
      *
-     * @param targets 提及目标List
-     * @param messageBody Message正文
-     * @return 完整MessageText
+     * @param targets List of mention targets
+     * @param messageBody Message body
+     * @return Complete message text
      */
     fun buildMentionedMessage(targets: List<MentionTarget>, messageBody: String): String {
         val mentions = targets.joinToString(" ") { formatMentionForText(it) }
@@ -173,11 +173,68 @@ object FeishuMention {
     }
 
     /**
-     * Build带提及的卡片Inside容(lark_md)
+     * Build card content with mentions (lark_md)
      *
-     * @param targets 提及目标List
-     * @param cardContent 卡片Inside容
-     * @return 带提及的卡片Inside容
+     * @param targets List of mention targets
+     * @param cardContent Card content
+     * @return Card content with mentions
+     */
+    fun buildMentionedCardContent(targets: List<MentionTarget>, cardContent: String): String {
+        val mentions = targets.joinToString(" ") { formatMentionForCard(it) }
+        return if (mentions.isNotEmpty()) {
+            "$mentions\n\n$cardContent"
+        } else {
+            cardContent
+        }
+    }
+}
+
+    /**
+     * Format @all tag (text message)
+     */
+    fun formatMentionAllForText(): String {
+        return """<at user_id="all">Everyone</at>"""
+    }
+
+    /**
+     * Format @mention tag (card message lark_md)
+     *
+     * @param target Mention target
+     * @return Formatted tag
+     */
+    fun formatMentionForCard(target: MentionTarget): String {
+        return """<at id=${target.openId}></at>"""
+    }
+
+    /**
+     * Format @all tag (card message lark_md)
+     */
+    fun formatMentionAllForCard(): String {
+        return """<at id=all></at>"""
+    }
+
+    /**
+     * Build text message with mentions
+     *
+     * @param targets List of mention targets
+     * @param messageBody Message body
+     * @return Complete message text
+     */
+    fun buildMentionedMessage(targets: List<MentionTarget>, messageBody: String): String {
+        val mentions = targets.joinToString(" ") { formatMentionForText(it) }
+        return if (mentions.isNotEmpty()) {
+            "$mentions $messageBody"
+        } else {
+            messageBody
+        }
+    }
+
+    /**
+     * Build card content with mentions (lark_md)
+     *
+     * @param targets List of mention targets
+     * @param cardContent Card content
+     * @return Card content with mentions
      */
     fun buildMentionedCardContent(targets: List<MentionTarget>, cardContent: String): String {
         val mentions = targets.joinToString(" ") { formatMentionForCard(it) }

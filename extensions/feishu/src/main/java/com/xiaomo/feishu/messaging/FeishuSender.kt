@@ -495,8 +495,8 @@ class FeishuSender(
         val messageIds = mutableListOf<String>()
 
         for ((index, chunk) in chunks.withIndex()) {
-            val prefix = if (index > 0) "[续...]\n" else ""
-            val suffix = if (index < chunks.size - 1) "\n[未完待续...]" else ""
+            val prefix = if (index > 0) "[Cont...]\n" else ""
+            val suffix = if (index < chunks.size - 1) "\n[To be continued...]" else ""
             val text = "$prefix$chunk$suffix"
 
             val content = buildTextContent(text)

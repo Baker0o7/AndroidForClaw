@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书Table情回复
+ * Feishu reaction handling
  * Aligned with OpenClaw src/reactions.ts
  */
 class FeishuReactions(private val client: FeishuClient) {
@@ -22,9 +22,9 @@ class FeishuReactions(private val client: FeishuClient) {
         private const val TAG = "FeishuReactions"
     }
 
-    /**
-     * AddTable情回复
-     */
+/**
+ * Add reaction
+ */
     suspend fun addReaction(messageId: String, emoji: FeishuEmoji): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val body = mapOf(
@@ -48,9 +48,9 @@ class FeishuReactions(private val client: FeishuClient) {
         }
     }
 
-    /**
-     * 移除Table情回复
-     */
+/**
+ * Remove reaction
+ */
     suspend fun removeReaction(messageId: String, reactionId: String): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val result = client.delete("/open-apis/im/v1/messages/$messageId/reactions/$reactionId")
@@ -68,9 +68,9 @@ class FeishuReactions(private val client: FeishuClient) {
         }
     }
 
-    /**
-     * ListMessage的All回复
-     */
+/**
+ * List all reactions on a message
+ */
     suspend fun listReactions(messageId: String): result<List<ReactionInfo>> = withContext(Dispatchers.IO) {
         try {
             val result = client.get("/open-apis/im/v1/messages/$messageId/reactions")
@@ -105,7 +105,7 @@ class FeishuReactions(private val client: FeishuClient) {
 }
 
 /**
- * 飞书Table情枚举
+ * Feishu emoji enum
  * Aligned with OpenClaw FeishuEmoji
  */
 enum class FeishuEmoji(val code: String) {
@@ -117,7 +117,7 @@ enum class FeishuEmoji(val code: String) {
     OK("OK"),
     STAR("STAR"),
     EYES("EYES"),
-    THINKING("Typing"),  // 对齐 clawdbot-feishu: Typing Table情Table示"typing"
+    THINKING("Typing"),  // Align with clawdbfeishu: Typing emoji represents "typing"
     CRY("CRY"),
     CELEBRATE("CELEBRATE"),
     ROCKET("ROCKET"),
@@ -126,7 +126,7 @@ enum class FeishuEmoji(val code: String) {
 }
 
 /**
- * Table情回复Info
+ * Reaction info
  */
 data class ReactionInfo(
     val reactionId: String,
