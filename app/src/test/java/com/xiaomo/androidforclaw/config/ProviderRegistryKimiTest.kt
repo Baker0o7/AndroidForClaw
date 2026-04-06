@@ -6,15 +6,15 @@ import org.junit.Test
 import java.io.File
 
 /**
- * ProviderRegistry 单元Test
+ * ProviderRegistry unit test.
  *
- * Validate provider 从 JSON Load、normalize Map和Register完整性. 
+ * Validates provider loading from JSON, normalize map, and registration completeness.
  */
 class ProviderRegistryTest {
 
     @Before
     fun setup() {
-        // 单元Test中None Android Context, 直接从文件Load JSON
+        // No Android context in unit tests, load JSON directly from file
         ProviderRegistry.reset()
         // Gradle test working dir is the module root (app/)
         val candidates = listOf(
@@ -30,7 +30,7 @@ class ProviderRegistryTest {
         }
     }
 
-    // ========== normalizeProviderId Test ==========
+    // ========== normalizeProviderId test ==========
 
     @Test
     fun `normalizeProviderId maps kimi to moonshot`() {
@@ -65,7 +65,7 @@ class ProviderRegistryTest {
         assertEquals("custom-xyz", ProviderRegistry.normalizeProviderId("custom-xyz"))
     }
 
-    // ========== JSON LoadTest ==========
+    // ========== JSON load test ==========
 
     @Test
     fun `ALL list loads from providers_json`() {
@@ -91,7 +91,7 @@ class ProviderRegistryTest {
         assertEquals("OpenRouter", openrouter!!.name)
     }
 
-    // ========== Provider Inside容Test ==========
+    // ========== Provider content test ==========
 
     @Test
     fun `ALL list contains moonshot provider`() {
@@ -152,7 +152,7 @@ class ProviderRegistryTest {
         assertEquals("/api/tags", ollama!!.discoveryEndpoint)
     }
 
-    // ========== buildProviderConfig Test ==========
+    // ========== buildProviderConfig test ==========
 
     @Test
     fun `buildProviderConfig uses definition defaults`() {
@@ -184,7 +184,7 @@ class ProviderRegistryTest {
         assertEquals("anthropic/claude-sonnet-4-6", ProviderRegistry.buildModelRef("anthropic", "claude-sonnet-4-6"))
     }
 
-    // ========== initFromJson Test ==========
+    // ========== initFromJson test ==========
 
     @Test
     fun `initFromJson parses minimal JSON correctly`() {

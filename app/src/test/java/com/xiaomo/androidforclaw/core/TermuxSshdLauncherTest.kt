@@ -7,11 +7,11 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * TermuxSshdLauncher 单元Test. 
+ * TermuxSshdLauncher unit test.
  *
- * 注意: Intent 在纯 JVM Test中Yes Android stub(NoneRealImplementation), 
- * 所以 intent extras/action/component 的Validate放在 instrumented test 中. 
- * 这里Validate: Constant正确性、startService 调用、Exception传播. 
+ * Note: Intent is an Android stub (no real implementation) in pure JVM tests,
+ * so intent extras/action/component validation is in instrumented tests.
+ * Validated here: constants correctness, startService call, exception propagation.
  */
 class TermuxSshdLauncherTest {
 
@@ -22,7 +22,7 @@ class TermuxSshdLauncherTest {
         context = mockk(relaxed = true)
     }
 
-    // ==================== 1. launch 调用 startService ====================
+    // ==================== 1. launch calls startService ====================
 
     @Test
     fun `launch calls startService exactly once`() {
@@ -36,7 +36,7 @@ class TermuxSshdLauncherTest {
         verify(exactly = 0) { context.startActivity(any()) }
     }
 
-    // ==================== 2. Exception传播 ====================
+    // ==================== 2. Exception propagation ====================
 
     @Test(expected = SecurityException::class)
     fun `launch rethrows SecurityException when allow-external-apps disabled`() {
@@ -58,7 +58,7 @@ class TermuxSshdLauncherTest {
         verify { context.startService(any()) }
     }
 
-    // ==================== 3. ConstantValidate ====================
+    // ==================== 3. Constant validation ====================
 
     @Test
     fun `SSHD_PATH contains termux prefix and sshd`() {
@@ -72,7 +72,7 @@ class TermuxSshdLauncherTest {
         assertTrue(TermuxSshdLauncher.SSHD_PATH.startsWith("/"))
     }
 
-    // ==================== 4. buildIntent Return非 null ====================
+    // ==================== 4. buildIntent returns non-null ====================
 
     @Test
     fun `buildIntent returns non-null intent`() {
