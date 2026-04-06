@@ -9,20 +9,20 @@ package com.xiaomo.discord
 import android.util.Log
 
 /**
- * Discord 多AccountManage
- * 参考 OpenClaw Discord 和 Feishu FeishuAccounts.kt
+ * Discord Multi-Account Manager
+ * Reference OpenClaw Discord and Feishu FeishuAccounts.kt
  */
 object DiscordAccounts {
     private const val TAG = "DiscordAccounts"
 
     /**
-     * Parse Discord AccountConfig
-     * Support多Account和DefaultAccount
+     * Parse Discord Account Config
+     * Supports Multiple Accounts and Default Account
      */
     fun resolveAccount(config: DiscordConfig, accountId: String? = null): DiscordAccount {
         val targetAccountId = accountId ?: DiscordConfig.DEFAULT_ACCOUNT_ID
 
-        // ifYesDefaultAccount, Return主Config
+        // If default account, return main config
         if (targetAccountId == DiscordConfig.DEFAULT_ACCOUNT_ID) {
             val token = config.token ?: throw IllegalArgumentException("Discord token is required")
             return DiscordAccount(
@@ -34,11 +34,11 @@ object DiscordAccounts {
             )
         }
 
-        // Find指定Account
+        // Find specified account
         val accountConfig = config.accounts?.get(targetAccountId)
             ?: throw IllegalArgumentException("Discord account not found: $targetAccountId")
 
-        // MergeConfig (AccountConfig优先)
+        // Merge config (account config takes priority)
         val mergedConfig = mergeAccountConfig(config, accountConfig)
 
         val token = accountConfig.token
@@ -54,8 +54,8 @@ object DiscordAccounts {
     }
 
     /**
-     * MergeAccountConfig和DefaultConfig
-     * AccountConfigPriority高于DefaultConfig
+     * Merge Account Config and Default Config
+     * Account Config Priority Higher than Default Config
      */
     private fun mergeAccountConfig(
         baseConfig: DiscordConfig,
@@ -66,25 +66,25 @@ object DiscordAccounts {
             token = accountConfig.token,
             name = accountConfig.name ?: baseConfig.name,
             dm = accountConfig.dm ?: baseConfig.dm,
-            groupPolicy = baseConfig.groupPolicy, // 不InheritAccount级别的 groupPolicy
+            groupPolicy = baseConfig.groupPolicy, // Do not inherit account-level groupPolicy
             guilds = accountConfig.guilds ?: baseConfig.guilds,
             replyToMode = baseConfig.replyToMode,
-            accounts = null // 不嵌套
+            accounts = null // Do not nest
         )
     }
 
     /**
-     * ListAllAccount ID
+     * List All Account IDs
      */
     fun listAccountIds(config: DiscordConfig): List<String> {
         val accountIds = mutableListOf<String>()
 
-        // AddDefaultAccount
+        // Add Default Account
         if (config.token != null) {
             accountIds.add(DiscordConfig.DEFAULT_ACCOUNT_ID)
         }
 
-        // Add子Account
+        // Add Sub Accounts
         config.accounts?.keys?.forEach { accountId ->
             accountIds.add(accountId)
         }
@@ -93,19 +93,19 @@ object DiscordAccounts {
     }
 
     /**
-     * ParseDefaultAccount ID
+     * Resolve Default Account ID
      */
     fun resolveDefaultAccountId(config: DiscordConfig): String {
         return if (config.token != null) {
             DiscordConfig.DEFAULT_ACCOUNT_ID
         } else {
-            // ifNoneDefaultAccount, ReturnFirst子Account
+            // If no default account, return first sub-account
             config.accounts?.keys?.firstOrNull() ?: DiscordConfig.DEFAULT_ACCOUNT_ID
         }
     }
 
     /**
-     * CheckAccountYesNo已Config
+     * Check if Account is Configured
      */
     fun isAccountConfigured(config: DiscordConfig, accountId: String? = null): Boolean {
         return try {
@@ -118,7 +118,7 @@ object DiscordAccounts {
     }
 
     /**
-     * GetAccountDescriptionInfo
+     * Get Account Description Info
      */
     fun describeAccount(account: DiscordAccount): Map<String, Any?> {
         return mapOf(
@@ -132,7 +132,7 @@ object DiscordAccounts {
     }
 
     /**
-     * 规范化Account ID
+     * Normalize Account ID
      */
     fun normalizeAccountId(accountId: String?): String {
         return accountId?.takeIf { it.isNotBlank() } ?: DiscordConfig.DEFAULT_ACCOUNT_ID

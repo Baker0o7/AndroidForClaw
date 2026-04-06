@@ -11,8 +11,8 @@ import com.google.gson.JsonObject
 import com.xiaomo.discord.DiscordClient
 
 /**
- * Discord Messagesend封装
- * 参考 Feishu FeishuSender.kt
+ * Discord Message Send Wrapper
+ * Reference Feishu FeishuSender.kt
  */
 class DiscordSender(private val client: DiscordClient) {
     companion object {
@@ -20,7 +20,7 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * sendTextMessage
+     * Send Text Message
      */
     suspend fun sendText(
         channelId: String,
@@ -51,7 +51,7 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * send嵌入Message (Embed)
+     * Send Embed Message
      */
     suspend fun sendEmbed(
         channelId: String,
@@ -88,7 +88,7 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * sendGroup件Message (Buttons, Selects, etc.)
+     * Send Component Message (Buttons, Selects, etc.)
      */
     suspend fun sendWithComponents(
         channelId: String,
@@ -125,7 +125,7 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * send DM (私聊Message)
+     * Send DM (Private Message)
      */
     suspend fun sendDirectMessage(userId: String, text: String): result<String> {
         return try {
@@ -147,8 +147,8 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * FormatMessageInside容
-     * Support Discord Markdown
+     * Format Message Content
+     * Supports Discord Markdown
      */
     fun formatMessage(
         text: String,
@@ -179,7 +179,7 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * Create Embed Build器
+     * Create Embed Builder
      */
     fun buildEmbed(
         title: String? = null,

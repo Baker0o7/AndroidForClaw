@@ -7,15 +7,15 @@
 package com.xiaomo.discord.messaging
 
 /**
- * Discord @提及Process
- * 参考 Feishu FeishuMention.kt
+ * Discord @Mention Processor
+ * Reference Feishu FeishuMention.kt
  */
 object DiscordMention {
     private const val TAG = "DiscordMention"
 
     /**
-     * Parse提及
-     * 从MessageInside容中提取All @提及
+     * Parse Mentions
+     * Extract all @ mentions from message content
      */
     fun parseMentions(content: String): List<String> {
         val mentions = mutableListOf<String>()
@@ -30,39 +30,39 @@ object DiscordMention {
     }
 
     /**
-     * FormatUser提及
+     * Format User Mention
      */
     fun formatUserMention(userId: String): String {
         return "<@$userId>"
     }
 
     /**
-     * FormatRole提及
+     * Format Role Mention
      */
     fun formatRoleMention(roleId: String): String {
         return "<@&$roleId>"
     }
 
     /**
-     * FormatChannel提及
+     * Format Channel Mention
      */
     fun formatChannelMention(channelId: String): String {
         return "<#$channelId>"
     }
 
     /**
-     * 移除All提及
+     * Remove All Mentions
      */
     fun stripMentions(content: String): String {
         return content
-            .replace(Regex("<@!?\\d+>"), "") // User提及
-            .replace(Regex("<@&\\d+>"), "") // Role提及
-            .replace(Regex("<#\\d+>"), "") // Channel提及
+            .replace(Regex("<@!?\\d+>"), "") // User mentions
+            .replace(Regex("<@&\\d+>"), "") // Role mentions
+            .replace(Regex("<#\\d+>"), "") // Channel mentions
             .trim()
     }
 
     /**
-     * CheckMessageYesNoContains指定User的提及
+     * Check if Message Contains Specific User's Mention
      */
     fun containsUserMention(content: String, userId: String): Boolean {
         val pattern = Regex("<@!?$userId>")
@@ -70,7 +70,7 @@ object DiscordMention {
     }
 
     /**
-     * Replace提及为ShowName
+     * Replace Mentions with Display Names
      */
     fun replaceMentionsWithNames(
         content: String,
@@ -87,12 +87,12 @@ object DiscordMention {
     }
 
     /**
-     * @everyone 提及
+     * @everyone Mention
      */
     const val MENTION_EVERYONE = "@everyone"
 
     /**
-     * @here 提及
+     * @here Mention
      */
     const val MENTION_HERE = "@here"
 }

@@ -10,14 +10,14 @@ import android.util.Log
 import com.xiaomo.discord.DiscordClient
 
 /**
- * Discord Table情反应Manage
- * 参考 Feishu FeishuReactions.kt
+ * Discord Reaction Manager
+ * Reference Feishu FeishuReactions.kt
  */
 class DiscordReactions(private val client: DiscordClient) {
     companion object {
         private const val TAG = "DiscordReactions"
 
-        // 常用Table情
+        // Common Emojis
         const val EMOJI_THUMBS_UP = "👍"
         const val EMOJI_THUMBS_DOWN = "👎"
         const val EMOJI_HEART = "❤️"
@@ -29,7 +29,7 @@ class DiscordReactions(private val client: DiscordClient) {
     }
 
     /**
-     * Add反应
+     * Add Reaction
      */
     suspend fun add(
         channelId: String,
@@ -51,7 +51,7 @@ class DiscordReactions(private val client: DiscordClient) {
     }
 
     /**
-     * 移除反应
+     * Remove Reaction
      */
     suspend fun remove(
         channelId: String,
@@ -73,19 +73,52 @@ class DiscordReactions(private val client: DiscordClient) {
     }
 
     /**
-     * AddMultiple反应
+     * Add Multiple Reactions
      */
     suspend fun addMultiple(
         channelId: String,
         messageId: String,
         emojis: List<String>
-    ): result<Unit> {
-        return try {
-            for (emoji in emojis) {
-                add(channelId, messageId, emoji)
-                // 避免速率Limit
-                kotlinx.coroutines.delay(250)
-            }
+    ): result<Unit> = try {
+        for (emoji in emojis) {
+            add(channelId, messageId, emoji)
+            // Avoid rate limit
+            kotlinx.coroutines.delay(250)
+        }
+        result.success(Unit)
+    } catch (e: Exception) {
+        Log.e(TAG, "Error adding multiple reactions", e)
+        result.failure(e)
+    }
+
+    /**
+     * Add Check Mark (✅)
+     */
+    suspend fun addCheck(channelId: String, messageId: String): result<Unit> {
+        return add(channelId, messageId, EMOJI_CHECK)
+    }
+
+    /**
+     * Add Error Mark (❌)
+     */
+    suspend fun addCross(channelId: String, messageId: String): result<Unit> {
+        return add(channelId, messageId, EMOJI_CROSS)
+    }
+
+    /**
+     * Add Thinking Mark (🤔)
+     */
+    suspend fun addThinking(channelId: String, messageId: String): result<Unit> {
+        return add(channelId, messageId, EMOJI_THINKING)
+    }
+
+    /**
+     * Add Eyes Mark (👀)
+     */
+    suspend fun addEyes(channelId: String, messageId: String): result<Unit> {
+        return add(channelId, messageId, EMOJI_EYES)
+    }
+}
             result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error adding multiple reactions", e)

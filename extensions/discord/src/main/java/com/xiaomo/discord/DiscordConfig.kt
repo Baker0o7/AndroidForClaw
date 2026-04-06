@@ -10,7 +10,7 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Discord Config
- * 参考 OpenClaw Discord 扩展Config结构
+ * Reference OpenClaw Discord extension config structure
  */
 data class DiscordConfig(
     @SerializedName("enabled")
@@ -22,23 +22,23 @@ data class DiscordConfig(
     @SerializedName("name")
     val name: String? = null,
 
-    // DM (私聊) Policy
+    // DM (Private Message) Policy
     @SerializedName("dm")
     val dm: DmConfig? = null,
 
-    // GroupPolicy
+    // Group Policy
     @SerializedName("groupPolicy")
     val groupPolicy: String? = null, // "open", "allowlist", "denylist"
 
-    // Guild (Service器) Config
+    // Guild (Server) Config
     @SerializedName("guilds")
     val guilds: Map<String, GuildConfig>? = null,
 
-    // 回复Schema
+    // Reply Mode
     @SerializedName("replyToMode")
     val replyToMode: String? = null, // "off", "always", "threads"
 
-    // 多AccountSupport
+    // Multi-Account Support
     @SerializedName("accounts")
     val accounts: Map<String, DiscordAccountConfig>? = null
 ) {
@@ -84,7 +84,7 @@ data class DiscordConfig(
 }
 
 /**
- * Discord AccountInfo
+ * Discord Account Info
  */
 data class DiscordAccount(
     val accountId: String,

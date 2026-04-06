@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Discord API Client
- * 基于 Discord REST API v10
+ * Based on Discord REST API v10
  */
 class DiscordClient(
     private val token: String
@@ -40,7 +40,7 @@ class DiscordClient(
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     /**
-     * sendMessage到 Discord Channel
+     * Send Message to Discord Channel
      */
     suspend fun sendMessage(
         channelId: String,
@@ -85,7 +85,7 @@ class DiscordClient(
     }
 
     /**
-     * send DM (私聊Message)
+     * Send DM (Private Message)
      */
     suspend fun sendDirectMessage(
         userId: String,
@@ -96,7 +96,7 @@ class DiscordClient(
             val dmChannel = createDMChannel(userId).getOrThrow()
             val channelId = dmChannel.get("id").asString
 
-            // 2. sendMessage
+            // 2. Send Message
             sendMessage(channelId, content)
         } catch (e: Exception) {
             Log.e(TAG, "Error sending DM to user $userId", e)
@@ -134,7 +134,7 @@ class DiscordClient(
     }
 
     /**
-     * Add反应 (Emoji)
+     * Add Reaction (Emoji)
      */
     suspend fun addReaction(
         channelId: String,
@@ -166,7 +166,7 @@ class DiscordClient(
     }
 
     /**
-     * 移除反应
+     * Remove Reaction
      */
     suspend fun removeReaction(
         channelId: String,
@@ -198,7 +198,7 @@ class DiscordClient(
     }
 
     /**
-     * 触发InputStatus (Typing Indicator)
+     * Trigger Input Status (Typing Indicator)
      */
     suspend fun triggerTyping(channelId: String): result<Unit> = withContext(Dispatchers.IO) {
         try {
@@ -222,7 +222,7 @@ class DiscordClient(
     }
 
     /**
-     * Get当Front Bot UserInfo
+     * Get Current Bot User Info
      */
     suspend fun getCurrentUser(): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
@@ -248,7 +248,7 @@ class DiscordClient(
     }
 
     /**
-     * Get Guild (Service器) Info
+     * Get Guild (Server) Info
      */
     suspend fun getGuild(guildId: String): result<JsonObject> = withContext(Dispatchers.IO) {
         try {

@@ -11,8 +11,8 @@ import com.xiaomo.discord.DiscordClient
 import kotlinx.coroutines.*
 
 /**
- * Discord InputStatus指示器
- * 参考 Feishu FeishuTyping.kt
+ * Discord Input Status Indicator
+ * Reference Feishu FeishuTyping.kt
  */
 class DiscordTyping(private val client: DiscordClient) {
     companion object {
@@ -25,8 +25,8 @@ class DiscordTyping(private val client: DiscordClient) {
     private val activeTypingJobs = mutableMapOf<String, Job>()
 
     /**
-     * 触发InputStatus
-     * 单次触发, 持续 10 秒
+     * Trigger Input Status
+     * Single trigger, lasts 10 seconds
      */
     suspend fun trigger(channelId: String): result<Unit> {
         return try {
@@ -44,11 +44,11 @@ class DiscordTyping(private val client: DiscordClient) {
     }
 
     /**
-     * Start持续InputStatus
-     * Auto续期, 直到call stop()
+     * Start Continuous Input Status
+     * Auto-renewal, until call stop()
      */
     fun startContinuous(channelId: String) {
-        // Cancel已Exists的Task
+        // Cancel existing task
         stopContinuous(channelId)
 
         val job = scope.launch {
@@ -56,10 +56,10 @@ class DiscordTyping(private val client: DiscordClient) {
                 Log.d(TAG, "Starting continuous typing for channel: $channelId")
 
                 while (isActive) {
-                    // 触发InputStatus
+                    // Trigger Input Status
                     trigger(channelId)
 
-                    // Wait续期Interval
+                    // Wait for renewal interval
                     delay(RENEWAL_INTERVAL_MS)
                 }
             } catch (e: CancellationException) {
@@ -73,7 +73,7 @@ class DiscordTyping(private val client: DiscordClient) {
     }
 
     /**
-     * Stop持续InputStatus
+     * Stop Continuous Input Status
      */
     fun stopContinuous(channelId: String) {
         activeTypingJobs[channelId]?.let { job ->
@@ -84,7 +84,7 @@ class DiscordTyping(private val client: DiscordClient) {
     }
 
     /**
-     * StopAll持续InputStatus
+     * Stop All Continuous Input Status
      */
     fun stopAll() {
         activeTypingJobs.keys.toList().forEach { channelId ->
@@ -93,7 +93,7 @@ class DiscordTyping(private val client: DiscordClient) {
     }
 
     /**
-     * 清理Resource
+     * Cleanup Resources
      */
     fun cleanup() {
         stopAll()

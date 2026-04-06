@@ -13,15 +13,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Discord 目录Service
- * 参考:
+ * Discord Directory Service
+ * Reference:
  * - OpenClaw Discord directory section
  * - Feishu FeishuDirectory.kt
  *
  * Feature:
- * - listPeers: List DM Contact
- * - listGroups: List Guild/Channel
- * - Autodiscover
+ * - listPeers: List DM Contacts
+ * - listGroups: List Guilds/Channels
+ * - Auto Discover
  */
 class DiscordDirectory(private val client: DiscordClient) {
     companion object {
@@ -29,7 +29,7 @@ class DiscordDirectory(private val client: DiscordClient) {
     }
 
     /**
-     * List DM Contact (从Config)
+     * List DM Contacts (from Config)
      */
     suspend fun listPeersFromConfig(config: DiscordConfig): List<DirectoryPeer> = withContext(Dispatchers.IO) {
         val peers = mutableListOf<DirectoryPeer>()
@@ -38,12 +38,12 @@ class DiscordDirectory(private val client: DiscordClient) {
             val allowFrom = config.dm?.allowFrom ?: emptyList()
 
             allowFrom.forEach { userId ->
-                // TODO: Can通过 Discord API GetUserInfo
+                // TODO: Can get user info via Discord API
                 // GET /users/{userId}
                 peers.add(
                     DirectoryPeer(
                         id = userId,
-                        name = userId, // 暂时use ID 作为Name
+                        name = userId, // Use ID as name temporarily
                         type = "user"
                     )
                 )
@@ -58,7 +58,7 @@ class DiscordDirectory(private val client: DiscordClient) {
     }
 
     /**
-     * ListGroup (从Config)
+     * List Groups (from Config)
      */
     suspend fun listGroupsFromConfig(config: DiscordConfig): List<DirectoryGroup> = withContext(Dispatchers.IO) {
         val groups = mutableListOf<DirectoryGroup>()
@@ -68,19 +68,19 @@ class DiscordDirectory(private val client: DiscordClient) {
 
             guilds.forEach { (guildId, guildConfig) ->
                 // Get Guild Info
-                val guildresult = client.getGuild(guildId)
-                val guildName = if (guildresult.isSuccess) {
-                    guildresult.getOrNull()?.get("name")?.asString ?: guildId
+                val guildResult = client.getGuild(guildId)
+                val guildName = if (guildResult.isSuccess) {
+                    guildResult.getOrNull()?.get("name")?.asString ?: guildId
                 } else {
                     guildId
                 }
 
-                // AddConfig的 Channels
+                // Add Configured Channels
                 val channels = guildConfig.channels ?: emptyList()
                 channels.forEach { channelId ->
-                    val channelresult = client.getChannel(channelId)
-                    val channelName = if (channelresult.isSuccess) {
-                        channelresult.getOrNull()?.get("name")?.asString ?: channelId
+                    val channelResult = client.getChannel(channelId)
+                    val channelName = if (channelResult.isSuccess) {
+                        channelResult.getOrNull()?.get("name")?.asString ?: channelId
                     } else {
                         channelId
                     }
@@ -106,8 +106,8 @@ class DiscordDirectory(private val client: DiscordClient) {
     }
 
     /**
-     * List DM Contact (实时)
-     * Need扫描most近的 DM
+     * List DM Contacts (live)
+     * Need to scan recent DMs
      */
     suspend fun listPeersLive(): List<DirectoryPeer> = withContext(Dispatchers.IO) {
         // Discord Bot API does not provide a direct endpoint for listing DM peers.
@@ -118,30 +118,30 @@ class DiscordDirectory(private val client: DiscordClient) {
     }
 
     /**
-     * ListGroup (实时)
-     * 扫描 Bot 所在的All Guild 和 Channel
+     * List Groups (live)
+     * Scan all Guilds and Channels the bot is in
      */
     suspend fun listGroupsLive(): List<DirectoryGroup> = withContext(Dispatchers.IO) {
         val groups = mutableListOf<DirectoryGroup>()
 
         try {
-            val guildsresult = client.getUserGuilds()
-            if (guildsresult.isFailure) {
-                Log.e(TAG, "Failed to get guilds: ${guildsresult.exceptionOrNull()?.message}")
+            val guildsResult = client.getUserGuilds()
+            if (guildsResult.isFailure) {
+                Log.e(TAG, "Failed to get guilds: ${guildsResult.exceptionOrNull()?.message}")
                 return@withContext groups
             }
 
-            val guilds = guildsresult.getOrNull() ?: return@withContext groups
+            val guilds = guildsResult.getOrNull() ?: return@withContext groups
 
             for (guildElement in guilds) {
                 val guild = guildElement.asJsonObject
                 val guildId = guild.get("id")?.asString ?: continue
                 val guildName = guild.get("name")?.asString ?: guildId
 
-                val channelsresult = client.getGuildChannels(guildId)
-                if (channelsresult.isFailure) continue
+                val channelsResult = client.getGuildChannels(guildId)
+                if (channelsResult.isFailure) continue
 
-                val channels = channelsresult.getOrNull() ?: continue
+                val channels = channelsResult.getOrNull() ?: continue
                 for (channelElement in channels) {
                     val channel = channelElement.asJsonObject
                     val channelType = channel.get("type")?.asInt ?: continue
@@ -172,16 +172,16 @@ class DiscordDirectory(private val client: DiscordClient) {
     }
 
     /**
-     * ParseUser白名单
+     * Resolve User Allowlist
      */
     suspend fun resolveUserAllowlist(
         entries: List<String>
     ): List<ResolvedUser> = withContext(Dispatchers.IO) {
         entries.map { entry ->
             try {
-                // AttemptGetUserInfo
-                // TODO: Need specific permission for Discord APIGetUserInfo
-                // 暂时Return基本Info
+                // Attempt to get user info
+                // TODO: Need specific permission for Discord API to get user info
+                // Return basic info temporarily
                 ResolvedUser(
                     input = entry,
                     resolved = true,
@@ -202,14 +202,14 @@ class DiscordDirectory(private val client: DiscordClient) {
     }
 
     /**
-     * ParseChannel白名单
+     * Resolve Channel Allowlist
      */
     suspend fun resolveChannelAllowlist(
         entries: List<String>
     ): List<ResolvedChannel> = withContext(Dispatchers.IO) {
         entries.map { entry ->
             try {
-                // AttemptParse为 Guild ID 或 Channel ID
+                // Attempt to parse as Guild ID or Channel ID
                 val result = client.getChannel(entry)
 
                 if (result.isSuccess) {
@@ -250,7 +250,7 @@ class DiscordDirectory(private val client: DiscordClient) {
 }
 
 /**
- * 目录Contact
+ * Directory Contact
  */
 data class DirectoryPeer(
     val id: String,
@@ -259,7 +259,7 @@ data class DirectoryPeer(
 )
 
 /**
- * 目录Group
+ * Directory Group
  */
 data class DirectoryGroup(
     val id: String,
@@ -270,7 +270,7 @@ data class DirectoryGroup(
 )
 
 /**
- * Parse的User
+ * Resolved User
  */
 data class ResolvedUser(
     val input: String,
@@ -281,7 +281,7 @@ data class ResolvedUser(
 )
 
 /**
- * Parse的Channel
+ * Resolved Channel
  */
 data class ResolvedChannel(
     val input: String,

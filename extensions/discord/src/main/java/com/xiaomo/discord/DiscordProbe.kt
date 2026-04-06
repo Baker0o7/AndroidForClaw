@@ -12,19 +12,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * Discord ConnectProbe
- * 参考 Feishu FeishuProbe.kt
+ * Discord Connection Probe
+ * Reference Feishu FeishuProbe.kt
  *
- * 用于HealthCheck和StatusMonitor
+ * Used for Health Check and Status Monitoring
  */
 object DiscordProbe {
     private const val TAG = "DiscordProbe"
     private const val DEFAULT_TIMEOUT_MS = 5000L
 
     /**
-     * Proberesult
+     * Probe Result
      */
-    data class Proberesult(
+    data class ProbeResult(
         val ok: Boolean,
         val latencyMs: Long? = null,
         val error: String? = null,
@@ -32,52 +32,34 @@ object DiscordProbe {
         val application: ApplicationInfo? = null
     )
 
-    data class BotInfo(
-        val id: String,
-        val username: String,
-        val discriminator: String,
-        val bot: Boolean = true
-    )
-
-    data class ApplicationInfo(
-        val id: String,
-        val name: String,
-        val verifyKey: String? = null,
-        val intents: IntentsInfo? = null
-    )
-
-    data class IntentsInfo(
-        val messageContent: String? = null // "enabled", "disabled", "limited"
-    )
-
     /**
-     * Probe Discord Connect
+     * Probe Discord Connection
      */
     suspend fun probe(
         token: String,
         timeoutMs: Long = DEFAULT_TIMEOUT_MS,
         includeApplication: Boolean = false
-    ): Proberesult = withContext(Dispatchers.IO) {
+    ): ProbeResult = withContext(Dispatchers.IO) {
         try {
             val startTime = System.currentTimeMillis()
 
-            // CreateTemporaryClient
+            // Create Temporary Client
             val client = DiscordClient(token)
 
-            // Get当Front Bot Info
+            // Get Current Bot Info
             val result = withTimeoutOrNull(timeoutMs) {
                 client.getCurrentUser()
             }
 
             if (result == null) {
-                return@withContext Proberesult(
+                return@withContext ProbeResult(
                     ok = false,
                     error = "Timeout after ${timeoutMs}ms"
                 )
             }
 
             if (result.isFailure) {
-                return@withContext Proberesult(
+                return@withContext ProbeResult(
                     ok = false,
                     error = result.exceptionOrNull()?.message ?: "Unknown error"
                 )
@@ -87,7 +69,7 @@ object DiscordProbe {
             val userData = result.getOrNull()
 
             if (userData == null) {
-                return@withContext Proberesult(
+                return@withContext ProbeResult(
                     ok = false,
                     error = "No user data returned"
                 )
@@ -104,8 +86,8 @@ object DiscordProbe {
 
             val appInfo = if (includeApplication) {
                 try {
-                    val appresult = client.getApplication()
-                    appresult.getOrNull()?.let { appData ->
+                    val appResult = client.getApplication()
+                    appResult.getOrNull()?.let { appData ->
                         ApplicationInfo(
                             id = appData.get("id")?.asString ?: "",
                             name = appData.get("name")?.asString ?: "",
@@ -119,7 +101,7 @@ object DiscordProbe {
                 }
             } else null
 
-            Proberesult(
+            ProbeResult(
                 ok = true,
                 latencyMs = latency,
                 bot = botInfo,
@@ -128,7 +110,7 @@ object DiscordProbe {
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Discord probe failed", e)
-            Proberesult(
+            ProbeResult(
                 ok = false,
                 error = e.message ?: "Unknown error"
             )
@@ -136,7 +118,7 @@ object DiscordProbe {
     }
 
     /**
-     * FastHealthCheck
+     * Fast Health Check
      */
     suspend fun healthCheck(token: String): Boolean {
         val result = probe(token, timeoutMs = 3000L, includeApplication = false)

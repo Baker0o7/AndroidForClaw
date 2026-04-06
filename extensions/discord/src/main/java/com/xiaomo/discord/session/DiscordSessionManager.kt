@@ -10,19 +10,19 @@ import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Discord SessionManage
- * 参考 Feishu FeishuSessionManager.kt
+ * Discord Session Manager
+ * Reference Feishu FeishuSessionManager.kt
  */
 class DiscordSessionManager {
     companion object {
         private const val TAG = "DiscordSessionManager"
     }
 
-    // SessionStorage (channelId -> Session)
+    // Session Storage (channelId -> Session)
     private val sessions = ConcurrentHashMap<String, DiscordSession>()
 
     /**
-     * Get或CreateSession
+     * Get or Create Session
      */
     fun getOrCreateSession(channelId: String, chatType: String): DiscordSession {
         return sessions.getOrPut(channelId) {
@@ -36,14 +36,14 @@ class DiscordSessionManager {
     }
 
     /**
-     * GetSession
+     * Get Session
      */
     fun getSession(channelId: String): DiscordSession? {
         return sessions[channelId]
     }
 
     /**
-     * 移除Session
+     * Remove Session
      */
     fun removeSession(channelId: String): DiscordSession? {
         Log.d(TAG, "Removing session: $channelId")
@@ -51,7 +51,7 @@ class DiscordSessionManager {
     }
 
     /**
-     * clearAllSession
+     * Clear All Sessions
      */
     fun clearAll() {
         Log.i(TAG, "Clearing all sessions (${sessions.size})")
@@ -59,14 +59,14 @@ class DiscordSessionManager {
     }
 
     /**
-     * Get活跃Session数量
+     * Get Active Session Count
      */
     fun getActiveSessionCount(): Int {
         return sessions.size
     }
 
     /**
-     * ListAllSession
+     * List All Sessions
      */
     fun listSessions(): List<DiscordSession> {
         return sessions.values.toList()
@@ -104,7 +104,7 @@ data class DiscordSession(
     val context: MutableMap<String, Any> = mutableMapOf()
 ) {
     /**
-     * Update活跃Time
+     * Update Active Time
      */
     fun touch() {
         lastActivityAt = System.currentTimeMillis()
@@ -112,14 +112,14 @@ data class DiscordSession(
     }
 
     /**
-     * SettingsUpDown文
+     * Set Context
      */
     fun setContext(key: String, value: Any) {
         context[key] = value
     }
 
     /**
-     * GetUpDown文
+     * Get Context
      */
     fun <T> getContext(key: String): T? {
         @Suppress("UNCHECKED_CAST")
@@ -127,7 +127,7 @@ data class DiscordSession(
     }
 
     /**
-     * clearUpDown文
+     * Clear Context
      */
     fun clearContext() {
         context.clear()

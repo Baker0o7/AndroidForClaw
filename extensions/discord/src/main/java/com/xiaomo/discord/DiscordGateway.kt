@@ -15,8 +15,8 @@ import okhttp3.*
 import java.util.concurrent.TimeUnit
 
 /**
- * Discord Gateway (WebSocket) ConnectProcess器
- * 基于 Discord Gateway API v10
+ * Discord Gateway (WebSocket) Connection Handler
+ * Based on Discord Gateway API v10
  * https://discord.com/developers/docs/topics/gateway
  */
 class DiscordGateway(
@@ -86,9 +86,9 @@ class DiscordGateway(
             heartbeatJob?.cancel()
             webSocket?.close(1000, "Normal closure")
             webSocket = null
-            Log.i(TAG, "Gateway 已Stop")
+            Log.i(TAG, "Gateway stopped")
         } catch (e: Exception) {
-            Log.e(TAG, "Stop Gateway 时出错", e)
+            Log.e(TAG, "Error stopping gateway", e)
         }
     }
 
@@ -99,7 +99,7 @@ class DiscordGateway(
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                Log.i(TAG, "✅ WebSocket 已Connect")
+                Log.i(TAG, "✅ WebSocket connected")
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -109,35 +109,35 @@ class DiscordGateway(
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                Log.w(TAG, "WebSocket 正在Close: $code - $reason")
+                Log.w(TAG, "WebSocket closing: $code - $reason")
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                Log.i(TAG, "WebSocket 已Close: $code - $reason")
+                Log.i(TAG, "WebSocket closed: $code - $reason")
                 isConnected = false
                 heartbeatJob?.cancel()
 
-                // Attempt重连 (unlessYes正常Close)
+                // Attempt reconnect (unless normal close)
                 if (code != 1000 && isConnected) {
                     scope.launch {
                         delay(5000)
-                        Log.i(TAG, "Attempt重连...")
+                        Log.i(TAG, "Attempting reconnect...")
                         connect()
                     }
                 }
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                Log.e(TAG, "WebSocket ConnectFailed: ${response?.code}", t)
+                Log.e(TAG, "WebSocket connection failed: ${response?.code}", t)
                 scope.launch {
                     eventFlow.emit(DiscordEvent.Error(t))
                 }
 
-                // Attempt重连
+                // Attempt reconnect
                 if (isConnected) {
                     scope.launch {
                         delay(5000)
-                        Log.i(TAG, "Attempt重连...")
+                        Log.i(TAG, "Attempting reconnect...")
                         connect()
                     }
                 }
@@ -153,7 +153,7 @@ class DiscordGateway(
             val eventName = payload.get("t")?.takeIf { !it.isJsonNull }?.asString
             val seq = payload.get("s")?.takeIf { !it.isJsonNull }?.asInt
 
-            // Update序Column号
+            // Update sequence number
             seq?.let { sequenceNumber = it }
 
             when (op) {
@@ -163,22 +163,22 @@ class DiscordGateway(
                 else -> Log.d(TAG, "Unknown opcode: $op")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "ProcessMessageFailed", e)
+            Log.e(TAG, "Failed to process message", e)
         }
     }
 
     private suspend fun handleHello(data: JsonObject?) {
         try {
             heartbeatInterval = data?.get("heartbeat_interval")?.asLong ?: 41250
-            Log.i(TAG, "👋 收到 HELLO, HeartbeatInterval: ${heartbeatInterval}ms")
+            Log.i(TAG, "👋 Received HELLO, HeartbeatInterval: ${heartbeatInterval}ms")
 
-            // StartHeartbeat
+            // Start Heartbeat
             startHeartbeat()
 
-            // send IDENTIFY
+            // Send IDENTIFY
             sendIdentify()
         } catch (e: Exception) {
-            Log.e(TAG, "Process HELLO Failed", e)
+            Log.e(TAG, "Failed to process HELLO", e)
         }
     }
 
@@ -204,9 +204,9 @@ class DiscordGateway(
             }
 
             webSocket?.send(gson.toJson(payload))
-            Log.d(TAG, "💓 sendHeartbeat")
+            Log.d(TAG, "💓 Sent heartbeat")
         } catch (e: Exception) {
-            Log.e(TAG, "sendHeartbeatFailed", e)
+            Log.e(TAG, "Failed to send heartbeat", e)
         }
     }
 
@@ -226,9 +226,9 @@ class DiscordGateway(
             }
 
             webSocket?.send(gson.toJson(payload))
-            Log.i(TAG, "🔐 send IDENTIFY")
+            Log.i(TAG, "🔐 Sent IDENTIFY")
         } catch (e: Exception) {
-            Log.e(TAG, "send IDENTIFY Failed", e)
+            Log.e(TAG, "Failed to send IDENTIFY", e)
         }
     }
 
@@ -242,10 +242,10 @@ class DiscordGateway(
                 "MESSAGE_REACTION_ADD" -> handleReactionAdd(data)
                 "MESSAGE_REACTION_REMOVE" -> handleReactionRemove(data)
                 "TYPING_START" -> handleTypingStart(data)
-                else -> Log.d(TAG, "未Process的Event: $eventName")
+                else -> Log.d(TAG, "Unhandled event: $eventName")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "ProcessEvent $eventName Failed", e)
+            Log.e(TAG, "Failed to process event $eventName", e)
         }
     }
 
@@ -255,13 +255,13 @@ class DiscordGateway(
             val user = data.get("user")?.asJsonObject
             val username = user?.get("username")?.asString
 
-            Log.i(TAG, "✅ READY - 已Login为: $username")
+            Log.i(TAG, "✅ READY - Logged in as: $username")
             Log.i(TAG, "   Session ID: $sessionId")
 
             isConnected = true
             eventFlow.emit(DiscordEvent.Connected)
         } catch (e: Exception) {
-            Log.e(TAG, "Process READY Failed", e)
+            Log.e(TAG, "Failed to process READY", e)
         }
     }
 
@@ -276,7 +276,7 @@ class DiscordGateway(
             val content = data.get("content")?.asString ?: ""
             val timestamp = data.get("timestamp")?.asString ?: ""
 
-            // Ignore Bot 自己的Message
+            // Ignore Bot's own messages
             val isBot = author.get("bot")?.asBoolean ?: false
             if (isBot) return
 
@@ -288,8 +288,8 @@ class DiscordGateway(
                 mentionId?.let { mentions.add(it) }
             }
 
-            Log.d(TAG, "📨 收到Message: $messageId from $authorName")
-            Log.d(TAG, "   Inside容: $content")
+            Log.d(TAG, "📨 Received message: $messageId from $authorName")
+            Log.d(TAG, "   Content: $content")
 
             eventFlow.emit(
                 DiscordEvent.Message(
@@ -304,7 +304,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Process MESSAGE_CREATE Failed", e)
+            Log.e(TAG, "Failed to process MESSAGE_CREATE", e)
         }
     }
 
@@ -316,7 +316,7 @@ class DiscordGateway(
             val emoji = data.get("emoji")?.asJsonObject
             val emojiName = emoji?.get("name")?.asString ?: return
 
-            Log.d(TAG, "👍 反应Add: $emojiName by $userId")
+            Log.d(TAG, "👍 Reaction added: $emojiName by $userId")
 
             eventFlow.emit(
                 DiscordEvent.ReactionAdd(
@@ -327,7 +327,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Process MESSAGE_REACTION_ADD Failed", e)
+            Log.e(TAG, "Failed to process MESSAGE_REACTION_ADD", e)
         }
     }
 
@@ -339,7 +339,7 @@ class DiscordGateway(
             val emoji = data.get("emoji")?.asJsonObject
             val emojiName = emoji?.get("name")?.asString ?: return
 
-            Log.d(TAG, "👎 反应移除: $emojiName by $userId")
+            Log.d(TAG, "👎 Reaction removed: $emojiName by $userId")
 
             eventFlow.emit(
                 DiscordEvent.ReactionRemove(
@@ -350,7 +350,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Process MESSAGE_REACTION_REMOVE Failed", e)
+            Log.e(TAG, "Failed to process MESSAGE_REACTION_REMOVE", e)
         }
     }
 
@@ -368,7 +368,7 @@ class DiscordGateway(
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Process TYPING_START Failed", e)
+            Log.e(TAG, "Failed to process TYPING_START", e)
         }
     }
 }

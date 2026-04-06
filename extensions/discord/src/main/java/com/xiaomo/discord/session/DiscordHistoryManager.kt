@@ -10,8 +10,8 @@ import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Discord 历史MessageManage
- * 参考 Feishu FeishuHistoryManager.kt
+ * Discord History Message Manager
+ * Reference Feishu FeishuHistoryManager.kt
  */
 class DiscordHistoryManager(
     private val maxHistoryPerChannel: Int = 100
@@ -20,11 +20,11 @@ class DiscordHistoryManager(
         private const val TAG = "DiscordHistoryManager"
     }
 
-    // 历史MessageStorage (channelId -> List<Message>)
+    // History Message Storage (channelId -> List<Message>)
     private val history = ConcurrentHashMap<String, MutableList<HistoryMessage>>()
 
     /**
-     * AddMessage到历史
+     * Add Message to History
      */
     fun addMessage(
         channelId: String,
@@ -36,7 +36,7 @@ class DiscordHistoryManager(
         val messages = history.getOrPut(channelId) { mutableListOf() }
 
         synchronized(messages) {
-            // AddMessage
+            // Add Message
             messages.add(
                 HistoryMessage(
                     messageId = messageId,
@@ -46,7 +46,7 @@ class DiscordHistoryManager(
                 )
             )
 
-            // 保持历史SizeLimit
+            // Keep History Size Limit
             if (messages.size > maxHistoryPerChannel) {
                 val toRemove = messages.size - maxHistoryPerChannel
                 repeat(toRemove) {
@@ -59,7 +59,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * GetChannel历史
+     * Get Channel History
      */
     fun getHistory(channelId: String, limit: Int = maxHistoryPerChannel): List<HistoryMessage> {
         val messages = history[channelId] ?: return emptyList()
@@ -70,7 +70,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * clearChannel历史
+     * Clear Channel History
      */
     fun clearHistory(channelId: String) {
         history.remove(channelId)
@@ -78,7 +78,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * clearAll历史
+     * Clear All History
      */
     fun clearAll() {
         val count = history.size
@@ -87,7 +87,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * Getmost近的Message
+     * Get Most Recent Message
      */
     fun getRecentMessage(channelId: String): HistoryMessage? {
         val messages = history[channelId] ?: return null
@@ -98,7 +98,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * FindMessage
+     * Find Message
      */
     fun findMessage(channelId: String, messageId: String): HistoryMessage? {
         val messages = history[channelId] ?: return null
@@ -109,7 +109,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * GetChannelMessage数量
+     * Get Channel Message Count
      */
     fun getMessageCount(channelId: String): Int {
         val messages = history[channelId] ?: return 0
@@ -120,7 +120,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * ListAllChannel
+     * List All Channels
      */
     fun listChannels(): List<String> {
         return history.keys.toList()
@@ -128,7 +128,7 @@ class DiscordHistoryManager(
 }
 
 /**
- * 历史Message
+ * History Message
  */
 data class HistoryMessage(
     val messageId: String,
@@ -138,14 +138,14 @@ data class HistoryMessage(
     val metadata: MutableMap<String, Any> = mutableMapOf()
 ) {
     /**
-     * Settings元Data
+     * Set Metadata
      */
     fun setMetadata(key: String, value: Any) {
         metadata[key] = value
     }
 
     /**
-     * Get元Data
+     * Get Metadata
      */
     fun <T> getMetadata(key: String): T? {
         @Suppress("UNCHECKED_CAST")

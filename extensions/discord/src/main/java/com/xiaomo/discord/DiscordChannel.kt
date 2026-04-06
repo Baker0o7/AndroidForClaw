@@ -16,17 +16,17 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 /**
- * Discord Channel 核心Class
- * 参考:
+ * Discord Channel Core Class
+ * Reference:
  * - OpenClaw discord/src/channel.ts
  * - Feishu FeishuChannel.kt
  *
  * Feature: 
- * - Gateway (WebSocket) ConnectManage
- * - Messagereceive和send
- * - Event分发
- * - SessionManage
- * - 多AccountSupport
+ * - Gateway (WebSocket) Connection Management
+ * - Message Receive and Send
+ * - Event Distribution
+ * - Session Management
+ * - Multi Account Support
  */
 class DiscordChannel private constructor(
     private val context: Context,
@@ -70,7 +70,7 @@ class DiscordChannel private constructor(
         }
 
         /**
-         * Get当FrontInstance
+         * Get Current Instance
          */
         fun getInstance(): DiscordChannel? = instance
     }
@@ -81,24 +81,24 @@ class DiscordChannel private constructor(
     // REST API Client
     private lateinit var client: DiscordClient
 
-    // Gateway (WebSocket) Connect
+    // Gateway (WebSocket) Connection
     private var gateway: DiscordGateway? = null
 
-    // Event流
+    // Event flow
     private val _eventFlow = MutableSharedFlow<ChannelEvent>(replay = 0, extraBufferCapacity = 100)
     val eventFlow: SharedFlow<ChannelEvent> = _eventFlow.asSharedFlow()
 
-    // ConnectStatus
+    // Connection Status
     private var isConnected = false
     private var currentBotUserId: String? = null
     private var currentBotUsername: String? = null
 
     /**
-     * InternalStart逻辑
+     * Internal Start Logic
      */
     private suspend fun startInternal() {
         try {
-            // ValidateConfig
+            // Validate Config
             val token = config.token?.trim()
             if (token.isNullOrBlank()) {
                 throw IllegalArgumentException("Discord token is required")
@@ -113,27 +113,27 @@ class DiscordChannel private constructor(
             // Initialize REST API Client
             client = DiscordClient(token)
 
-            // Get当Front Bot Info
-            val botInforesult = client.getCurrentUser()
-            if (botInforesult.isSuccess) {
-                val botInfo = botInforesult.getOrNull()
+            // Get Current Bot Info
+            val botInfoResult = client.getCurrentUser()
+            if (botInfoResult.isSuccess) {
+                val botInfo = botInfoResult.getOrNull()
                 currentBotUserId = botInfo?.get("id")?.asString
                 currentBotUsername = botInfo?.get("username")?.asString
                 Log.i(TAG, "   Bot: $currentBotUsername ($currentBotUserId)")
             } else {
-                Log.w(TAG, "   Failed to get bot info: ${botInforesult.exceptionOrNull()?.message}")
+                Log.w(TAG, "   Failed to get bot info: ${botInfoResult.exceptionOrNull()?.message}")
             }
 
-            // calc Intents
+            // Calculate Intents
             val intents = calculateIntents()
             Log.i(TAG, "   Intents: $intents")
 
-            // Start Gateway Connect
+            // Start Gateway Connection
             val eventFlow = MutableSharedFlow<DiscordEvent>(replay = 0, extraBufferCapacity = 100)
             gateway = DiscordGateway(token, intents, eventFlow)
             gateway?.start()
 
-            // 监听 Gateway Event
+            // Listen to Gateway Events
             scope.launch {
                 eventFlow.collect { event ->
                     handleGatewayEvent(event)
@@ -152,7 +152,7 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * InternalStop逻辑
+     * Internal Stop Logic
      */
     private fun stopInternal() {
         Log.i(TAG, "Stopping Discord Channel...")
@@ -168,7 +168,7 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * calc Gateway Intents
+     * Calculate Gateway Intents
      */
     private fun calculateIntents(): Int {
         return DiscordGateway.DEFAULT_INTENTS
@@ -213,30 +213,30 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * ProcessMessageEvent
+     * Process Message Event
      */
     private suspend fun handleMessage(event: DiscordEvent.Message) {
         try {
-            // Ignore Bot 自己的Message
+            // Ignore Bot's own messages
             if (event.authorId == currentBotUserId) {
                 Log.d(TAG, "Ignoring self message: ${event.messageId}")
                 return
             }
 
-            // DetermineMessageType (DM or Guild)
+            // Determine Message Type (DM or Guild)
             val chatType = if (event.guildId == null) "direct" else "channel"
 
-            // DM PermissionCheck
+            // DM Permission Check
             if (chatType == "direct") {
                 val dmPolicy = config.dm?.policy ?: "pairing"
                 val allowFrom = config.dm?.allowFrom ?: emptyList()
 
                 when (dmPolicy) {
                     "open" -> {
-                        // 允许All DM
+                        // Allow all DM
                     }
                     "pairing" -> {
-                        // Need配对
+                        // Need pairing
                         if (event.authorId !in allowFrom) {
                             Log.d(TAG, "DM from ${event.authorId} not in allowlist (pairing mode)")
                             sendPairingMessage(event.channelId)
@@ -244,14 +244,14 @@ class DiscordChannel private constructor(
                         }
                     }
                     "allowlist" -> {
-                        // 仅允许白名单
+                        // Allowlist only
                         if (event.authorId !in allowFrom) {
                             Log.d(TAG, "DM from ${event.authorId} not in allowlist")
                             return
                         }
                     }
                     "denylist" -> {
-                        // deny黑名单
+                        // Denylist only
                         if (event.authorId in allowFrom) {
                             Log.d(TAG, "DM from ${event.authorId} in denylist")
                             return
@@ -260,19 +260,19 @@ class DiscordChannel private constructor(
                 }
             }
 
-            // Guild PermissionCheck
+            // Guild Permission Check
             if (chatType == "channel" && event.guildId != null) {
                 val guildConfig = config.guilds?.get(event.guildId)
                 val groupPolicy = config.groupPolicy ?: "open"
 
-                // CheckYesNo在白名单中
+                // Check if in allowlist
                 val allowedChannels = guildConfig?.channels
                 if (allowedChannels != null && event.channelId !in allowedChannels) {
                     Log.d(TAG, "Channel ${event.channelId} not in allowlist")
                     return
                 }
 
-                // CheckYesNoNeed @提及
+                // Check if need @ mention
                 val requireMention = guildConfig?.requireMention ?: true
                 if (requireMention) {
                     val botMentioned = currentBotUserId in event.mentions
@@ -287,7 +287,7 @@ class DiscordChannel private constructor(
             Log.d(TAG, "   Content: ${event.content}")
             Log.d(TAG, "   Type: $chatType")
 
-            // 发出MessageEvent
+            // Emit Message Event
             _eventFlow.emit(
                 ChannelEvent.Message(
                     messageId = event.messageId,
@@ -307,7 +307,7 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * send配对Message
+     * Send Pairing Message
      */
     private suspend fun sendPairingMessage(channelId: String) {
         try {
@@ -324,7 +324,7 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * ProcessTable情AddEvent
+     * Process Reaction Add Event
      */
     private suspend fun handleReactionAdd(event: DiscordEvent.ReactionAdd) {
         try {
@@ -343,7 +343,7 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * ProcessTable情移除Event
+     * Process Reaction Remove Event
      */
     private suspend fun handleReactionRemove(event: DiscordEvent.ReactionRemove) {
         try {
@@ -362,7 +362,7 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * ProcessInputStatusEvent
+     * Process Input Status Event
      */
     private suspend fun handleTypingStart(event: DiscordEvent.TypingStart) {
         try {
@@ -382,7 +382,7 @@ class DiscordChannel private constructor(
     // ==================== Public API ====================
 
     /**
-     * sendMessage
+     * Send Message
      */
     suspend fun sendMessage(
         channelId: String,
@@ -412,7 +412,7 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * send DM (私聊Message)
+     * Send DM (Private Message)
      */
     suspend fun sendDirectMessage(userId: String, content: String): result<String> {
         return try {
@@ -432,21 +432,21 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * Add反应 (Table情)
+     * Add Reaction (Emoji)
      */
     suspend fun addReaction(channelId: String, messageId: String, emoji: String): result<Unit> {
         return client.addReaction(channelId, messageId, emoji)
     }
 
     /**
-     * 移除反应
+     * Remove Reaction
      */
     suspend fun removeReaction(channelId: String, messageId: String, emoji: String): result<Unit> {
         return client.removeReaction(channelId, messageId, emoji)
     }
 
     /**
-     * 触发InputStatus指示器
+     * Trigger Input Status Indicator
      */
     suspend fun triggerTyping(channelId: String): result<Unit> {
         return client.triggerTyping(channelId)
@@ -467,17 +467,17 @@ class DiscordChannel private constructor(
     }
 
     /**
-     * YesNo已Connect
+     * Is Connected
      */
     fun isConnected(): Boolean = isConnected
 
     /**
-     * Get当Front Bot User ID
+     * Get Current Bot User ID
      */
     fun getBotUserId(): String? = currentBotUserId
 
     /**
-     * Get当Front Bot User名
+     * Get Current Bot Username
      */
     fun getBotUsername(): String? = currentBotUsername
 }
