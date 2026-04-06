@@ -16,13 +16,13 @@ import com.xiaomo.androidforclaw.service.ClawIMEmanager
 import com.xiaomo.androidforclaw.service.ClipboardInputhelper
 
 /**
- * TextInput工具
- * 优先throughcut板pasteInputText, AccessibilitynotAvailablehour兜底to ClawIME Key盘
+ * Text Input tool
+ * Prefer clipboard paste input, fallback to ClawIME keyboard when Accessibility not available
  *
- * 工作原理:
- * 1. user先用 tap() clickInput field, 让ItsobtainFocus
- * 2. 优先Path: cut板Write → Accessibility ACTION_PASTE
- * 3. 兜底Path: ClawIME Input method commitText
+ * How it works:
+ * 1. User first uses tap() to click input field, let it obtain focus
+ * 2. Preferred path: Clipboard write → Accessibility ACTION_PASTE
+ * 3. Fallback path: ClawIME Input method commitText
  */
 class ClawImeInputskill(private val context: context) : skill {
     companion object {
@@ -35,9 +35,9 @@ class ClawImeInputskill(private val context: context) : skill {
             val clipboardOk = ClipboardInputhelper.isPasteAvailable() && ClipboardInputhelper.isClipboardAvailable(context)
             val imeOk = ClawIMEmanager.isClawImeEnabled(context) && ClawIMEmanager.isConnected()
             val statusnote = when {
-                clipboardOk -> " [OK] cut板InputalreadyReady"
-                imeOk -> " [OK] ClawIME Key盘alreadyReady(cut板notAvailable)"
-                else -> " [WARN] **notAvailable** - needopenAccessibilityserviceor ClawIME Input method"
+                clipboardOk -> " [OK] Clipboard input ready"
+                imeOk -> " [OK] ClawIME keyboard ready (clipboard not available)"
+                else -> " [WARN] **Not available** - need to open Accessibility service or ClawIME Input method"
             }
             return "Input text via clipboard paste (preferred) or ClawIME keyboard (fallback)$statusnote"
         }
@@ -51,10 +51,10 @@ class ClawImeInputskill(private val context: context) : skill {
                 parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "text" to Propertyschema("string", "needInputTextcontent"),
+                        "text" to Propertyschema("string", "Text content to input"),
                         "action" to Propertyschema(
                             "string",
-                            "Action type: 'input'(InputText,Default) | 'send'(Inputbacksend) | 'clear'(清NullInput field)",
+                            "Action type: 'input' (input text, default) | 'send' (input and send) | 'clear' (clear input field)",
                             enum = listOf("input", "send", "clear")
                         )
                     ),
@@ -77,7 +77,7 @@ class ClawImeInputskill(private val context: context) : skill {
 
         if (!clipboardOk && !imeOk) {
             return skillresult.error(
-                "Input unavailable. pleaseopenAccessibilityservice(recommend, Supportcut板paste), orswitchto ClawIME Input method"
+                "Input unavailable. Please open Accessibility service (recommended, supports clipboard paste), or switch to ClawIME Input method"
             )
         }
 
@@ -87,38 +87,38 @@ class ClawImeInputskill(private val context: context) : skill {
                     val success = if (imeOk) {
                         ClawIMEmanager.clearText()
                     } else {
-                        // Accessibility方式清Null: 选中All → Delete
+                        // Accessibility way to clear: Select All → Delete
                         false
                     }
                     if (success) {
                         kotlinx.coroutines.delay(100)
-                        skillresult.success("already清NullInput field")
+                        skillresult.success("Input field cleared")
                     } else {
-                        skillresult.error("清NullInput fieldFailed")
+                        skillresult.error("Clear input field failed")
                     }
                 }
                 "send" -> {
-                    // InputText
-                    val (inputSuccess, method) = inputTextwithFallback(text!!, clipboardOk, imeOk)
+                    // Input text
+                    val (inputSuccess, method) = inputTextWithFallback(text!!, clipboardOk, imeOk)
                     if (!inputSuccess) {
-                        return skillresult.error("InputTextFailed")
+                        return skillresult.error("Input text failed")
                     }
                     kotlinx.coroutines.delay(500)
 
-                    // send: 优先 ClawIME  sendMessage, 兜底return车Key
+                    // send: Prefer ClawIME sendMessage, fallback to return key
                     val sendSuccess = if (imeOk) {
                         ClawIMEmanager.sendMessage()
                     } else {
-                        // through shell sendreturn车Key
-                        Runtime.getRuntime().exec(arrayOf("sh", "-c", "input keyevent 66")).waitfor() == 0
+                        // Send return key via shell
+                        Runtime.getRuntime().exec(arrayOf("sh", "-c", "input keyevent 66")).waitFor() == 0
                     }
                     if (!sendSuccess) {
-                        return skillresult.error("sendMessageFailed")
+                        return skillresult.error("Send message failed")
                     }
                     kotlinx.coroutines.delay(1000)
 
                     skillresult.success(
-                        "alreadyInputConcurrency送: $text (${text.length} chars, via $method)",
+                        "Input and sent: $text (${text.length} chars, via $method)",
                         mapOf(
                             "text" to text,
                             "length" to text.length,
@@ -137,7 +137,7 @@ class ClawImeInputskill(private val context: context) : skill {
                     kotlinx.coroutines.delay(waitTime)
 
                     skillresult.success(
-                        "alreadyInput: $text (${text.length} chars, via $method)",
+                        "Input: $text (${text.length} chars, via $method)",
                         mapOf(
                             "text" to text,
                             "length" to text.length,
@@ -149,15 +149,15 @@ class ClawImeInputskill(private val context: context) : skill {
             }
         } catch (e: exception) {
             Log.e(TAG, "Input failed", e)
-            skillresult.error("InputFailed: ${e.message}")
+            skillresult.error("Input failed: ${e.message}")
         }
     }
 
     /**
-     * 优先cut板, 兜底 ClawIME
-     * @return Pair(whetherSuccess, useMethod名)
+     * Prefer clipboard, fallback to ClawIME
+     * @return Pair(whetherSuccess, methodName)
      */
-    private fun inputTextwithFallback(text: String, clipboardOk: Boolean, imeOk: Boolean): Pair<Boolean, String> {
+    private fun inputTextWithFallback(text: String, clipboardOk: Boolean, imeOk: Boolean): Pair<Boolean, String> {
         if (clipboardOk) {
             val success = ClipboardInputhelper.inputTextViaClipboard(context, text)
             if (success) return Pair(true, "clipboard")

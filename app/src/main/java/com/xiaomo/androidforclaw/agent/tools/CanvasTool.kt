@@ -3,14 +3,14 @@
  * - ../openclaw/src/agents/tools/canvas-tool.ts
  *
  * androidforClaw adaptation: canvas tool for agent function calling.
- * 优先走 Screen tab inside嵌 canvasController(WebView), 
- * 而notYesStart独立 canvasActivity. 
+ * Prefer Screen tab embedded canvasController (WebView),
+ * rather than starting a separate canvasActivity.
  */
 package com.xiaomo.androidforclaw.agent.tools
 
 import android.content.context
 import ai.openclaw.app.node.canvasController
-import com.xiaomo.androidforclaw.canvas.canvasmanager
+import com.xiaomo.androidforclaw.canvas.canvasManager
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.Parametersschema
@@ -18,15 +18,15 @@ import com.xiaomo.androidforclaw.providers.Propertyschema
 import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * canvas tool — 让 agent through function calling 控制 canvas WebView. 
+ * Canvas tool — let agent control canvas WebView via function calling.
  *
  * Actions:
- * - present: Show canvas(Optional url/target)
+ * - present: Show canvas (optional url/target)
  * - hide: Hide/Close canvas
- * - navigate: 导航tonew URL
- * - eval: execution JavaScript 并Returnresult
- * - snapshot: 截取 canvas Screenshot(Return base64)
- * - a2ui_push: push A2UI JSONL content
+ * - navigate: Navigate to new URL
+ * - eval: Execute JavaScript and return result
+ * - snapshot: Capture canvas screenshot (return base64)
+ * - a2ui_push: Push A2UI JSONL content
  * - a2ui_reset: Reset A2UI content
  */
 class canvastool(private val context: context) : tool {
@@ -93,8 +93,8 @@ class canvastool(private val context: context) : tool {
         )
     }
 
-    /** Get Screen tab  canvasController(优先), notAvailablehourReturn null */
-    private fun getController(): canvasController? = canvasmanager.screenTabController
+    /** Get Screen tab canvasController (prefer), return null if not available */
+    private fun getController(): canvasController? = canvasManager.screenTabController
 
     override suspend fun execute(args: Map<String, Any?>): toolresult {
         val action = args["action"] as? String
@@ -121,15 +121,15 @@ class canvastool(private val context: context) : tool {
         val url = args["url"] as? String ?: args["target"] as? String
         val ctrl = getController()
         if (ctrl != null) {
-            // in Screen tab  WebView 中导航
+            // Navigate in Screen tab WebView
             if (url != null) {
-                val resolved = canvasmanager.resolveUrlPublic(url)
+                val resolved = canvasManager.resolveUrlPublic(url)
                 ctrl.navigate(resolved)
             }
             Log.i(TAG, "canvas.present via canvasController url=$url")
         } else {
-            // Fallback: Start独立 canvasActivity
-            canvasmanager.present(context, url)
+            // Fallback: Start separate canvasActivity
+            canvasManager.present(context, url)
         }
         return toolresult.success("{\"ok\":true}")
     }
@@ -137,11 +137,11 @@ class canvastool(private val context: context) : tool {
     private fun executeHide(): toolresult {
         val ctrl = getController()
         if (ctrl != null) {
-            // 导航returnDefault首页(scaffold)
+            // Navigate to default home (scaffold)
             ctrl.navigate("")
             Log.i(TAG, "canvas.hide via canvasController (reset to scaffold)")
         } else {
-            canvasmanager.hide()
+            canvasManager.hide()
         }
         return toolresult.success("{\"ok\":true}")
     }
@@ -199,7 +199,7 @@ class canvastool(private val context: context) : tool {
                 )
             )
         } else {
-            // Fallback to canvasmanager (独立 canvasActivity)
+            // Fallback to canvasManager (separate canvasActivity)
             val format = if (formatRaw == "jpg" || formatRaw == "jpeg") "jpeg" else "png"
             val q = (quality?.toInt()) ?: 90
             val result = canvasmanager.snapshot(format, maxWidth, q)

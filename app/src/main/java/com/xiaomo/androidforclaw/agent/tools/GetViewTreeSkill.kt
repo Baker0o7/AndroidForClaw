@@ -54,7 +54,7 @@ class GetViewTreeskill(private val context: context) : skill {
             // Get original UI tree and processed UI tree
             val iconresult = DeviceController.detectIcons(context)
             if (iconresult == null) {
-                return skillresult.error("cannotGet UI Tree. pleaseCheck: \n1. AccessibilityservicewhetheralreadyEnable\n2. whenFrontappwhether允许access")
+                return skillresult.error("Cannot get UI Tree. Please check:\n1. Whether accessibility service is already enabled\n2. Whether front app allows access")
             }
             val (originalNodes, processedNodes) = iconresult
 
@@ -62,7 +62,7 @@ class GetViewTreeskill(private val context: context) : skill {
 
             // use processed nodes (deduplicated, empty removed)
             val uiInfo = buildString {
-                appendLine("【Screen UI ElementList】(共 ${processedNodes.size} countAvailableElement)")
+                appendLine("[Screen UI Element List] (${processedNodes.size} available elements)")
                 appendLine()
 
                 processedNodes.forEachIndexed { index, node ->
@@ -70,7 +70,7 @@ class GetViewTreeskill(private val context: context) : skill {
                 }
 
                 appendLine()
-                appendLine("Hint: useElement坐标 (x,y) intoRow tap Action")
+                appendLine("Hint: use element coordinates (x,y) for tap action")
             }
 
             skillresult.success(
@@ -116,8 +116,8 @@ class GetViewTreeskill(private val context: context) : skill {
             append(" bounds=[${node.left},${node.top},${node.right},${node.bottom}]")
 
             // Clickable / scrollable state
-            if (node.clickable) append(" [canclick]")
-            if (node.scrollable) append(" [can滚动]")
+            if (node.clickable) append(" [clickable]")
+            if (node.scrollable) append(" [scrollable]")
         }
     }
 }

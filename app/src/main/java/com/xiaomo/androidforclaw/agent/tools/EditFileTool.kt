@@ -39,9 +39,9 @@ class EditFiletool(
                 parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to Propertyschema("string", "needEditFile path"),
-                        "old_text" to Propertyschema("string", "needFind并ReplaceexactlyText"),
-                        "new_text" to Propertyschema("string", "ReplacebacknewText")
+                        "path" to Propertyschema("string", "File path to edit"),
+                        "old_text" to Propertyschema("string", "Text to find and replace"),
+                        "new_text" to Propertyschema("string", "Replacement text")
                     ),
                     required = listOf("path", "old_text", "new_text")
                 )
@@ -85,7 +85,7 @@ class EditFiletool(
             // Check for multiple matches
             val count = content.split(oldText).size - 1
             if (count > 1) {
-                return toolresult.error("old_text appears $count times. please provide more context to make it unique.")
+                return toolresult.error("old_text appears $count times. Please provide more context to make it unique.")
             }
 
             // Replace

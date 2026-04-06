@@ -68,28 +68,28 @@ class skillsLoader(private val context: context) {
      *
      * @return Map<name, skillDocument>
      */
-    fun loadskills(): Map<String, skillDocument> {
+    fun loadSkills(): Map<String, skillDocument> {
         // Return cached if valid
-        if (cacheValid && skillsCache.isnotEmpty()) {
-            Log.d(TAG, "ReturnCache skills (${skillsCache.size} count)")
+        if (cacheValid && skillsCache.isNotEmpty()) {
+            Log.d(TAG, "Return cached skills (${skillsCache.size} count)")
             return skillsCache.toMap()
         }
 
-        Log.d(TAG, "StartLoad skills...")
+        Log.d(TAG, "Start loading skills...")
         skillsCache.clear()
 
-        val config = configLoader.loadOpenClawconfig()
+        val config = configLoader.loadOpenClawConfig()
 
         // Load by priority (lowest first, higher overrides)
-        val extraCount = loadExtraDirsskills(skillsCache, config.skills.extraDirs)
-        val bundledCount = loadBundledskills(skillsCache)
-        val managedCount = loadManagedskills(skillsCache)
-        val pluginCount = loadPluginskills(skillsCache, config)
-        val workspaceCount = loadWorkspaceskills(skillsCache)
+        val extraCount = loadExtraDirsSkills(skillsCache, config.skills.extraDirs)
+        val bundledCount = loadBundledSkills(skillsCache)
+        val managedCount = loadManagedSkills(skillsCache)
+        val pluginCount = loadPluginSkills(skillsCache, config)
+        val workspaceCount = loadWorkspaceSkills(skillsCache)
 
         cacheValid = true
 
-        Log.i(TAG, "skills Load complete: Total ${skillsCache.size} count")
+        Log.i(TAG, "Skills load complete: Total ${skillsCache.size} count")
         Log.i(TAG, "  - extraDirs: $extraCount")
         Log.i(TAG, "  - Bundled: $bundledCount")
         Log.i(TAG, "  - Managed: $managedCount (override)")
@@ -103,9 +103,9 @@ class skillsLoader(private val context: context) {
      * Reload skills (clear cache)
      */
     fun reload() {
-        Log.i(TAG, "reLoad skills...")
+        Log.i(TAG, "Reload skills...")
         cacheValid = false
-        loadskills()
+        loadSkills()
     }
 
     /**
@@ -115,13 +115,13 @@ class skillsLoader(private val context: context) {
      */
     fun enableHotReload() {
         if (hotReloadEnabled) {
-            Log.d(TAG, "热overloadalreadyEnable")
+            Log.d(TAG, "Hot reload already enabled")
             return
         }
 
-        val config = configLoader.loadOpenClawconfig()
+        val config = configLoader.loadOpenClawConfig()
         if (!config.skills.watch) {
-            Log.d(TAG, "热overloadalreadyinconfig中Disabled (skills.watch=false)")
+            Log.d(TAG, "Hot reload disabled in config (skills.watch=false)")
             return
         }
 
@@ -129,16 +129,16 @@ class skillsLoader(private val context: context) {
 
         // Monitor both Workspace and Managed directories
         val dirsToWatch = mutableListOf<File>()
-        File(WORKSPACE_SKILLS_DIR).let { if (it.exists()) dirsToWatch.a(it) }
-        File(MANAGED_SKILLS_DIR).let { if (it.exists()) dirsToWatch.a(it) }
+        File(WORKSPACE_SKILLS_DIR).let { if (it.exists()) dirsToWatch.add(it) }
+        File(MANAGED_SKILLS_DIR).let { if (it.exists()) dirsToWatch.add(it) }
 
         // Also monitor extraDirs
         config.skills.extraDirs.forEach { dir ->
-            File(dir).let { if (it.exists()) dirsToWatch.a(it) }
+            File(dir).let { if (it.exists()) dirsToWatch.add(it) }
         }
 
         if (dirsToWatch.isEmpty()) {
-            Log.w(TAG, "NonecanMonitor skills directory")
+            Log.w(TAG, "No skills directory to monitor")
             return
         }
 
@@ -146,34 +146,34 @@ class skillsLoader(private val context: context) {
             try {
                 val observer = object : FileObserver(dir, CREATE or MODIFY or DELETE) {
                     override fun onEvent(event: Int, path: String?) {
-                        if (path != null && path.endswith(SKILL_FILE_NAME)) {
-                            Log.i(TAG, "Detected skill files变化: ${dir.name}/$path")
+                        if (path != null && path.endsWith(SKILL_FILE_NAME)) {
+                            Log.i(TAG, "Detected skill file change: ${dir.name}/$path")
                             scheduleReload(debounceMs)
                         }
                     }
                 }
                 observer.startWatching()
-                fileObservers.a(observer)
+                fileObservers.add(observer)
                 Log.i(TAG, "[OK] Monitor: ${dir.absolutePath}")
-            } catch (e: exception) {
-                Log.e(TAG, "Enable热overloadFailed: ${dir.absolutePath}", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Enable hot reload failed: ${dir.absolutePath}", e)
             }
         }
 
         hotReloadEnabled = true
-        Log.i(TAG, "[OK] 热overloadalreadyEnable (debounce=${debounceMs}ms, Monitor ${dirsToWatch.size} countdirectory)")
+        Log.i(TAG, "[OK] Hot reload enabled (debounce=${debounceMs}ms, monitoring ${dirsToWatch.size} directories)")
     }
 
     /**
      * Schedule a debounced reload
      */
     private fun scheduleReload(debounceMs: Long) {
-        // cancel any pending reload
+        // Cancel any pending reload
         pendingReload?.let { handler.removeCallbacks(it) }
 
         // Schedule new reload
         val runnable = Runnable {
-            Log.i(TAG, "Debounce Complete, executionreLoad...")
+            Log.i(TAG, "Debounce complete, executing reload...")
             reload()
         }
         pendingReload = runnable
@@ -181,7 +181,7 @@ class skillsLoader(private val context: context) {
     }
 
     /**
-     * Disabled hot reload
+     * Disable hot reload
      */
     fun disableHotReload() {
         pendingReload?.let { handler.removeCallbacks(it) }
@@ -189,7 +189,7 @@ class skillsLoader(private val context: context) {
         fileObservers.forEach { it.stopWatching() }
         fileObservers.clear()
         hotReloadEnabled = false
-        Log.i(TAG, "热overloadalreadyDisabled")
+        Log.i(TAG, "Hot reload disabled")
     }
 
     /**
@@ -250,7 +250,7 @@ class skillsLoader(private val context: context) {
                     matchesKeywords(skill, keywords)
         }
 
-        Log.d(TAG, "choose相关 skills: ${relevant.size} count")
+        Log.d(TAG, "Selected relevant skills: ${relevant.size} count")
         for (skill in relevant) {
             Log.d(TAG, "  - ${skill.name} (${skill.description})")
         }
@@ -288,8 +288,8 @@ class skillsLoader(private val context: context) {
             result[primaryEnv] = apiKeyValue
         }
 
-        if (result.isnotEmpty()) {
-            Log.d(TAG, "skill '$skillKey' env injection: ${result.keys.joinToString()}")
+        if (result.isNotEmpty()) {
+            Log.d(TAG, "Skill '$skillKey' env injection: ${result.keys.joinToString()}")
         }
 
         return result
@@ -377,7 +377,7 @@ class skillsLoader(private val context: context) {
      * Load skills from extraDirs (lowest priority)
      * Aligns with OpenClaw: skills.load.extraDirs
      */
-    private fun loadExtraDirsskills(
+    private fun loadExtraDirsSkills(
         skills: MutableMap<String, skillDocument>,
         extraDirs: List<String>
     ): Int {
@@ -385,7 +385,7 @@ class skillsLoader(private val context: context) {
         for (dirPath in extraDirs) {
             val dir = File(dirPath)
             if (!dir.exists() || !dir.isDirectory) {
-                Log.w(TAG, "extraDirs directorynotExists: $dirPath")
+                Log.w(TAG, "extraDirs directory not exists: $dirPath")
                 continue
             }
             count += loadskillsfromDirectory(dir, skillSource.EXTRA, skills)
@@ -396,12 +396,12 @@ class skillsLoader(private val context: context) {
     /**
      * Load bundled skills from assets/skills/
      */
-    private fun loadBundledskills(skills: MutableMap<String, skillDocument>): Int {
+    private fun loadBundledSkills(skills: MutableMap<String, skillDocument>): Int {
         var count = 0
 
         try {
             val skillDirs = context.assets.list(BUNDLED_SKILLS_PATH) ?: emptyArray()
-            Log.d(TAG, "扫描 Bundled skills: ${skillDirs.size} countdirectory")
+            Log.d(TAG, "Scanning Bundled skills: ${skillDirs.size} directories")
 
             for (dir in skillDirs) {
                 val skillPath = "$BUNDLED_SKILLS_PATH/$dir/$SKILL_FILE_NAME"
@@ -413,12 +413,12 @@ class skillsLoader(private val context: context) {
                         .copy(source = skillSource.BUNDLED, filePath = "assets://$skillPath")
                     skills[skill.name] = skill
                     count++
-                } catch (e: exception) {
-                    Log.w(TAG, "[ERROR] Load Bundled skill Failed: $dir - ${e.message}")
+                } catch (e: Exception) {
+                    Log.w(TAG, "[ERROR] Load Bundled skill failed: $dir - ${e.message}")
                 }
             }
-        } catch (e: exception) {
-            Log.e(TAG, "扫描 Bundled skills Failed", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Scanning Bundled skills failed", e)
         }
 
         return count
@@ -427,13 +427,13 @@ class skillsLoader(private val context: context) {
     /**
      * Load managed skills from /sdcard/.androidforclaw/skills/
      */
-    private fun loadManagedskills(skills: MutableMap<String, skillDocument>): Int {
+    private fun loadManagedSkills(skills: MutableMap<String, skillDocument>): Int {
         val managedDir = File(MANAGED_SKILLS_DIR)
         if (!managedDir.exists()) {
-            Log.d(TAG, "Managed skills directorynotExists: $MANAGED_SKILLS_DIR")
+            Log.d(TAG, "Managed skills directory not exists: $MANAGED_SKILLS_DIR")
             return 0
         }
-        return loadskillsfromDirectory(managedDir, skillSource.MANAGED, skills)
+        return loadSkillsFromDirectory(managedDir, skillSource.MANAGED, skills)
     }
 
     /**
@@ -472,11 +472,11 @@ class skillsLoader(private val context: context) {
                                 val skill = skillParser.parse(content, "assets://$skillMdPath")
                                     .copy(source = skillSource.PLUGIN, filePath = "assets://$skillMdPath")
 
-                                val isoverride = skills.containsKey(skill.name)
+                                val isOverride = skills.containsKey(skill.name)
                                 skills[skill.name] = skill
                                 count++
 
-                                val action = if (isoverride) "override" else "new增"
+                                val action = if (isOverride) "override" else "new"
                                 Log.d(TAG, "[OK] Plugin/$pluginName ($action): ${skill.name}")
                             } catch (e: exception) {
                                 // not a valid skill dir, skip
@@ -497,7 +497,7 @@ class skillsLoader(private val context: context) {
         }
 
         if (count > 0) {
-            Log.i(TAG, "Plugin skills: $count countLoad complete")
+            Log.i(TAG, "Plugin skills: $count loaded complete")
         }
 
         return count
@@ -506,26 +506,26 @@ class skillsLoader(private val context: context) {
     /**
      * Load workspace skills from /sdcard/.androidforclaw/workspace/skills/
      */
-    private fun loadWorkspaceskills(skills: MutableMap<String, skillDocument>): Int {
+    private fun loadWorkspaceSkills(skills: MutableMap<String, skillDocument>): Int {
         val workspaceDir = File(WORKSPACE_SKILLS_DIR)
         if (!workspaceDir.exists()) {
-            Log.d(TAG, "Workspace skills directorynotExists: $WORKSPACE_SKILLS_DIR")
+            Log.d(TAG, "Workspace skills directory not exists: $WORKSPACE_SKILLS_DIR")
             return 0
         }
-        return loadskillsfromDirectory(workspaceDir, skillSource.WORKSPACE, skills)
+        return loadSkillsFromDirectory(workspaceDir, skillSource.WORKSPACE, skills)
     }
 
     /**
      * Generic: Load skills from a filesystem directory
      */
-    private fun loadskillsfromDirectory(
+    private fun loadSkillsFromDirectory(
         dir: File,
         source: skillSource,
         skills: MutableMap<String, skillDocument>
     ): Int {
         var count = 0
         val skillDirs = dir.listFiles { file -> file.isDirectory } ?: emptyArray()
-        Log.d(TAG, "扫描 ${source.displayName} skills: ${skillDirs.size} countdirectory (${dir.absolutePath})")
+        Log.d(TAG, "Scanning ${source.displayName} skills: ${skillDirs.size} directories (${dir.absolutePath})")
 
         for (skillDir in skillDirs) {
             val skillFile = File(skillDir, SKILL_FILE_NAME)
@@ -536,14 +536,14 @@ class skillsLoader(private val context: context) {
                 val skill = skillParser.parse(content, skillFile.absolutePath)
                     .copy(source = source, filePath = skillFile.absolutePath)
 
-                val isoverride = skills.containsKey(skill.name)
+                val isOverride = skills.containsKey(skill.name)
                 skills[skill.name] = skill
                 count++
 
-                val action = if (isoverride) "override" else "new增"
+                val action = if (isOverride) "override" else "new"
                 Log.d(TAG, "[OK] ${source.displayName} ($action): ${skill.name}")
-            } catch (e: exception) {
-                Log.w(TAG, "[ERROR] Load ${source.displayName} skill Failed: ${skillDir.name} - ${e.message}")
+            } catch (e: Exception) {
+                Log.w(TAG, "[ERROR] Load ${source.displayName} skill failed: ${skillDir.name} - ${e.message}")
             }
         }
 
@@ -560,7 +560,7 @@ class skillsLoader(private val context: context) {
             "app-testing" -> {
                 keywords.contains("Test") || keywords.contains("test") ||
                 keywords.contains("Check") || keywords.contains("validation") ||
-                keywords.contains("Feature") || keywords.contains("用例")
+                keywords.contains("Feature") || keywords.contains("test case")
             }
             "debugging" -> {
                 keywords.contains("Debug") || keywords.contains("debug") ||
@@ -570,61 +570,61 @@ class skillsLoader(private val context: context) {
             }
             "accessibility" -> {
                 keywords.contains("Accessibility") || keywords.contains("accessibility") ||
-                keywords.contains("wcag") || keywords.contains("适配") ||
-                keywords.contains("can读性") || keywords.contains("correct比度")
+                keywords.contains("wcag") || keywords.contains("adaptation") ||
+                keywords.contains("readability") || keywords.contains("contrast ratio")
             }
             "performance" -> {
                 keywords.contains("Performance") || keywords.contains("performance") ||
-                keywords.contains("Optimize") || keywords.contains("卡顿") ||
-                keywords.contains("流畅") || keywords.contains("Start") ||
+                keywords.contains("Optimize") || keywords.contains("stutter") ||
+                keywords.contains("smooth") || keywords.contains("start") ||
                 keywords.contains("Load") || keywords.contains("slow")
             }
             "ui-validation" -> {
-                keywords.contains("ui") || keywords.contains("界面") ||
-                keywords.contains("布局") || keywords.contains("Show") ||
-                keywords.contains("页面") || keywords.contains("视觉")
+                keywords.contains("ui") || keywords.contains("interface") ||
+                keywords.contains("layout") || keywords.contains("show") ||
+                keywords.contains("page") || keywords.contains("visual")
             }
             "network-testing" -> {
                 keywords.contains("Network") || keywords.contains("network") ||
-                keywords.contains("联网") || keywords.contains("in线") ||
-                keywords.contains("离线") || keywords.contains("断网") ||
-                keywords.contains("api") || keywords.contains("Request")
+                keywords.contains("connect") || keywords.contains("online") ||
+                keywords.contains("offline") || keywords.contains("disconnect") ||
+                keywords.contains("api") || keywords.contains("request")
             }
             "feishu", "feishu-doc" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
+                keywords.contains("feishu") || keywords.contains("feishu") ||
                 keywords.contains("Document") || keywords.contains("doc")
             }
             "feishu-wiki" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
+                keywords.contains("feishu") || keywords.contains("feishu") ||
                 keywords.contains("Knowledge Base") || keywords.contains("wiki")
             }
             "feishu-drive" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("云Space") || keywords.contains("drive") ||
-                keywords.contains("files夹") || keywords.contains("云Document")
+                keywords.contains("feishu") || keywords.contains("feishu") ||
+                keywords.contains("cloud space") || keywords.contains("drive") ||
+                keywords.contains("folder") || keywords.contains("cloud document")
             }
             "feishu-bitable" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("Multi-dimensional table格") || keywords.contains("bitable") ||
-                keywords.contains("Table")
+                keywords.contains("feishu") || keywords.contains("feishu") ||
+                keywords.contains("multi-dimensional table") || keywords.contains("bitable") ||
+                keywords.contains("table")
             }
             "feishu-task" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
+                keywords.contains("feishu") || keywords.contains("feishu") ||
                 keywords.contains("Task") || keywords.contains("task") ||
-                keywords.contains("待办")
+                keywords.contains("todo")
             }
             "feishu-chat" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("群聊") || keywords.contains("chat") ||
-                keywords.contains("Group")
+                keywords.contains("feishu") || keywords.contains("feishu") ||
+                keywords.contains("group chat") || keywords.contains("chat") ||
+                keywords.contains("group")
             }
             "feishu-perm" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
+                keywords.contains("feishu") || keywords.contains("feishu") ||
                 keywords.contains("Permission") || keywords.contains("perm") ||
-                keywords.contains("share") || keywords.contains("Collaborate")
+                keywords.contains("share") || keywords.contains("collaborate")
             }
             "feishu-urgent" -> {
-                keywords.contains("飞书") || keywords.contains("feishu") ||
+                keywords.contains("feishu") || keywords.contains("feishu") ||
                 keywords.contains("Urgent") || keywords.contains("urgent") ||
                 keywords.contains("notify")
             }
@@ -634,8 +634,8 @@ class skillsLoader(private val context: context) {
         if (matched) return true
 
         // Feishu URL pattern matching
-        if (skill.name.startswith("feishu") &&
-            (keywords.contains("feishu.cn/") || keywords.contains("飞书"))) {
+        if (skill.name.startsWith("feishu") &&
+            (keywords.contains("feishu.cn/") || keywords.contains("feishu"))) {
             return true
         }
 
@@ -662,50 +662,69 @@ class skillsLoader(private val context: context) {
             recommendedskills.a("debugging")
         }
 
-        if (keywords.contains("界面") || keywords.contains("ui") ||
-            keywords.contains("布局") || keywords.contains("Show") ||
-            keywords.contains("页面")) {
+        if (keywords.contains("interface") || keywords.contains("ui") ||
+            keywords.contains("layout") || keywords.contains("show") ||
+            keywords.contains("page")) {
             recommendedskills.a("ui-validation")
         }
 
-        if (keywords.contains("Performance") || keywords.contains("卡顿") ||
-            keywords.contains("slow") || keywords.contains("Optimize") ||
-            keywords.contains("Start") || keywords.contains("流畅")) {
+        if (keywords.contains("Performance") || keywords.contains("stutter") ||
+            keywords.contains("slow") || keywords.contains("optimize") ||
+            keywords.contains("start") || keywords.contains("smooth")) {
             recommendedskills.a("performance")
         }
 
         if (keywords.contains("Accessibility") || keywords.contains("accessibility") ||
-            keywords.contains("适配") || keywords.contains("can读性")) {
+            keywords.contains("adaptation") || keywords.contains("readability")) {
             recommendedskills.a("accessibility")
         }
 
-        if (keywords.contains("Network") || keywords.contains("联网") ||
-            keywords.contains("离线") || keywords.contains("断网") ||
+        if (keywords.contains("Network") || keywords.contains("connect") ||
+            keywords.contains("offline") || keywords.contains("disconnect") ||
             keywords.contains("api")) {
             recommendedskills.a("network-testing")
         }
 
-        if (keywords.contains("飞书") || keywords.contains("feishu")) {
+        if (keywords.contains("feishu") || keywords.contains("feishu")) {
             if (keywords.contains("Document") || keywords.contains("doc") || keywords.contains("docx")) {
                 recommendedskills.a("feishu-doc")
             }
             if (keywords.contains("Knowledge Base") || keywords.contains("wiki")) {
                 recommendedskills.a("feishu-wiki")
             }
-            if (keywords.contains("Table") || keywords.contains("bitable") || keywords.contains("many维")) {
-                recommendedskills.a("feishu-bitable")
+            if (keywords.contains("Table") || keywords.contains("bitable") || keywords.contains("multi-dimensional")) {
+                recommendedSkills.add("feishu-bitable")
             }
-            if (keywords.contains("Task") || keywords.contains("task") || keywords.contains("待办")) {
-                recommendedskills.a("feishu-task")
+            if (keywords.contains("Task") || keywords.contains("task") || keywords.contains("todo")) {
+                recommendedSkills.add("feishu-task")
             }
-            if (keywords.contains("云Space") || keywords.contains("drive") || keywords.contains("files")) {
-                recommendedskills.a("feishu-drive")
+            if (keywords.contains("cloud space") || keywords.contains("drive") || keywords.contains("files")) {
+                recommendedSkills.add("feishu-drive")
             }
             if (keywords.contains("Permission") || keywords.contains("perm") || keywords.contains("share")) {
-                recommendedskills.a("feishu-perm")
+                recommendedSkills.add("feishu-perm")
             }
-            if (keywords.contains("群") || keywords.contains("chat")) {
-                recommendedskills.a("feishu-chat")
+            if (keywords.contains("group") || keywords.contains("chat")) {
+                recommendedSkills.add("feishu-chat")
+            }
+            if (keywords.contains("Urgent") || keywords.contains("urgent") || keywords.contains("notify")) {
+                recommendedSkills.add("feishu-urgent")
+            }
+            if (recommendedSkills.none { it.startsWith("feishu-") }) {
+                recommendedSkills.add("feishu")
+                recommendedSkills.add("feishu-doc")
+            }
+            if (keywords.contains("Task") || keywords.contains("task") || keywords.contains("todo")) {
+                recommendedSkills.add("feishu-task")
+            }
+            if (keywords.contains("cloud space") || keywords.contains("drive") || keywords.contains("files")) {
+                recommendedSkills.add("feishu-drive")
+            }
+            if (keywords.contains("Permission") || keywords.contains("perm") || keywords.contains("share")) {
+                recommendedSkills.add("feishu-perm")
+            }
+            if (keywords.contains("group") || keywords.contains("chat")) {
+                recommendedSkills.add("feishu-chat")
             }
             if (keywords.contains("Urgent") || keywords.contains("urgent") || keywords.contains("notify")) {
                 recommendedskills.a("feishu-urgent")
@@ -773,17 +792,17 @@ sealed class RequirementsCheckresult {
     ) : RequirementsCheckresult() {
         fun getErrorMessage(): String {
             val parts = mutableListOf<String>()
-            if (missingBins.isnotEmpty()) {
-                parts.a("缺fewtwointo制工具: ${missingBins.joinToString()}")
+            if (missingBins.isNotEmpty()) {
+                parts.add("Missing binary tools: ${missingBins.joinToString()}")
             }
-            if (missingAnyBins.isnotEmpty()) {
-                parts.a("至fewneedone: ${missingAnyBins.joinToString()}")
+            if (missingAnyBins.isNotEmpty()) {
+                parts.add("At least one needed: ${missingAnyBins.joinToString()}")
             }
-            if (missingEnv.isnotEmpty()) {
-                parts.a("缺fewEnvironmentVariable: ${missingEnv.joinToString()}")
+            if (missingEnv.isNotEmpty()) {
+                parts.add("Missing environment variables: ${missingEnv.joinToString()}")
             }
-            if (missingconfig.isnotEmpty()) {
-                parts.a("缺fewconfig项: ${missingconfig.joinToString()}")
+            if (missingConfig.isNotEmpty()) {
+                parts.add("Missing config items: ${missingConfig.joinToString()}")
             }
             return parts.joinToString("; ")
         }
@@ -806,7 +825,7 @@ skills count:
   - Total: $totalskills count
   - Always: $alwaysskills count
   - On-Demand: $onDemandskills count
-  - Token 总量: $totalTokens tokens
+  - Token total: $totalTokens tokens
   - Always Token: $alwaysTokens tokens
         """.trimIndent()
     }

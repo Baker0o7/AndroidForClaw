@@ -51,8 +51,8 @@ class Exectool(
                 parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "command" to Propertyschema("string", "needexecution shell 命令"),
-                        "working_dir" to Propertyschema("string", "Optional工作directory")
+                        "command" to Propertyschema("string", "Shell command to execute"),
+                        "working_dir" to Propertyschema("string", "Optional working directory")
                     ),
                     required = listOf("command")
                 )
