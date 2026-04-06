@@ -26,8 +26,8 @@ import com.xiaomo.feishu.tools.urgent.FeishuUrgentTools
 import com.xiaomo.feishu.tools.wiki.FeishuWikiTools
 
 /**
- * 飞书工具Register中心
- * 统一ManageAll工具集
+ * Feishu tool registry
+ * Manages all tool collections
  */
 class FeishuToolRegistry(
     private val config: FeishuConfig,
@@ -49,7 +49,7 @@ class FeishuToolRegistry(
     private val commonTools = FeishuCommonTools(config, client)
 
     /**
-     * GetAll工具
+     * Get all tools
      */
     fun getAllTools(): List<FeishuToolBase> {
         return buildList {
@@ -71,7 +71,7 @@ class FeishuToolRegistry(
     }
 
     /**
-     * GetAllEnabled的Tool definition(用于 LLM)
+     * Get enabled tool definitions for LLM
      */
     fun getToolDefinitions(): List<ToolDefinition> {
         return getAllTools()
@@ -80,14 +80,14 @@ class FeishuToolRegistry(
     }
 
     /**
-     * according toNameGet工具
+     * Get tool by name
      */
     fun getTool(name: String): FeishuToolBase? {
         return getAllTools().find { it.name == name }
     }
 
     /**
-     * 执Row工具
+     * Execute tool
      */
     suspend fun execute(name: String, args: Map<String, Any?>): Toolresult {
         val tool = getTool(name)
@@ -101,7 +101,7 @@ class FeishuToolRegistry(
     }
 
     /**
-     * Get工具count
+     * Get tool stats
      */
     fun getStats(): ToolStats {
         val allTools = getAllTools()
@@ -131,7 +131,7 @@ class FeishuToolRegistry(
 }
 
 /**
- * 工具count
+ * Tool statistics
  */
 data class ToolStats(
     val totalTools: Int,

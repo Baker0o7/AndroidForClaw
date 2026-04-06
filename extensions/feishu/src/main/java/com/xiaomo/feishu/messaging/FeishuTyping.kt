@@ -14,10 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书打字指示器
+ * Feishu typing indicator
  * Aligned with OpenClaw typing.ts
  *
- * 通过Add/移除 Typing Table情来Show"typing"Status
+ * Shows "typing" status by adding/removing typing reaction
  */
 object FeishuTyping {
     private const val TAG = "FeishuTyping"
@@ -29,7 +29,7 @@ object FeishuTyping {
     private val BACKOFF_CODES = setOf(99991400, 99991403, 429)
 
     /**
-     * 打字指示器Status
+     * Typing indicator state
      */
     data class TypingIndicatorState(
         val messageId: String,
@@ -37,19 +37,19 @@ object FeishuTyping {
     )
 
     /**
-     * Feishu backoff Exception(限流、配额超限)
+     * Feishu backoff exception (rate limit, quota exceeded)
      */
     class FeishuBackoffError(val code: Int) : Exception("Feishu API backoff: code $code")
 
     /**
-     * CheckYesNo为 backoff Error
+     * Check if backoff error
      */
     private fun isBackoffError(exception: Exception): Boolean {
         return exception is FeishuBackoffError
     }
 
     /**
-     * 从Response中Check backoff Error码
+     * Check backoff error code from response
      */
     private fun getBackoffCodeFromResponse(response: Map<String, Any?>): Int? {
         val code = response["code"] as? Int
@@ -57,12 +57,12 @@ object FeishuTyping {
     }
 
     /**
-     * Add打字指示器(Typing Table情)
+     * Add typing indicator (typing reaction)
      *
      * @param client Feishu Client
      * @param messageId Message ID
-     * @return 打字指示器Status
-     * @throws FeishuBackoffError 当遇到限流/配额Error时抛出
+     * @return typing indicator state
+     * @throws FeishuBackoffError when rate limit/quota exceeded
      */
     suspend fun addTypingIndicator(
         client: FeishuClient,
@@ -83,7 +83,7 @@ object FeishuTyping {
                     Log.d(TAG, "Typing indicator hit backoff, stopping keepalive")
                     throw exception
                 }
-                // Its他Error静默Failed(Messagepossibly已Delete、PermissionIssue等)
+                // Other errors fail silently (message may be deleted, permission issue, etc.)
                 Log.d(TAG, "Failed to add typing indicator (non-critical): ${exception?.message}")
                 return@withContext result.success(TypingIndicatorState(messageId, null))
             }
@@ -96,7 +96,7 @@ object FeishuTyping {
 
         } catch (e: Exception) {
             if (e is FeishuBackoffError) {
-                throw e // 重New抛出 backoff Error
+                throw e // Re-throw backoff error
             }
             Log.d(TAG, "Failed to add typing indicator: ${e.message}")
             result.success(TypingIndicatorState(messageId, null))
@@ -104,11 +104,11 @@ object FeishuTyping {
     }
 
     /**
-     * 移除打字指示器
+     * Remove typing indicator
      *
      * @param client Feishu Client
-     * @param state 打字指示器Status
-     * @throws FeishuBackoffError 当遇到限流/配额Error时抛出
+     * @param state typing indicator state
+     * @throws FeishuBackoffError when rate limit/quota exceeded
      */
     suspend fun removeTypingIndicator(
         client: FeishuClient,
@@ -129,7 +129,7 @@ object FeishuTyping {
                     Log.d(TAG, "Typing indicator removal hit backoff")
                     throw exception
                 }
-                // Its他Error静默Failed
+                // Other errors fail silently
                 Log.d(TAG, "Failed to remove typing indicator (non-critical): ${exception?.message}")
             }
 

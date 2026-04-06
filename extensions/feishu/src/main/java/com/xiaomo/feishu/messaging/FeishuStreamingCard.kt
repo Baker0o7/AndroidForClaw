@@ -18,7 +18,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书流式卡片Session
+ * Feishu streaming card session
  * Aligned with OpenClaw streaming-card-controller.js
  *
  * Uses Card Kit API to create a streaming card that updates in real-time:
@@ -48,7 +48,7 @@ class FeishuStreamingCard(
     private var lastUpdateTime: Long = 0
 
     /**
-     * Create流式卡片
+     * Create streaming card
      * Aligned with OpenClaw streaming-card-controller.js STREAMING_THINKING_CARD
      *
      * @return cardId on success
@@ -106,7 +106,7 @@ class FeishuStreamingCard(
     }
 
     /**
-     * 追加Text到流式卡片
+     * Append text to streaming card
      * Aligned with OpenClaw streaming-card-controller.js performFlush()
      *
      * Throttled to max 10 updates/second. Text is accumulated and sent in batch.
@@ -135,7 +135,7 @@ class FeishuStreamingCard(
     }
 
     /**
-     * Close流式卡片, Showmost终Inside容
+     * Close streaming card, show final content
      * Aligned with OpenClaw streaming-card-controller.js closeStreamingAndUpdate()
      *
      * Steps:
@@ -185,7 +185,7 @@ class FeishuStreamingCard(
     fun isActive(): Boolean = isOpen && cardId != null
 
     /**
-     * Refresh累积Text到卡片Element
+     * Flush accumulated text to card element
      * Aligned with OpenClaw cardkit.js updateCardKitElement()
      */
     private suspend fun flushUpdate(): result<Unit> = withContext(Dispatchers.IO) {

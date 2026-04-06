@@ -12,7 +12,7 @@ import android.util.Log
 import com.xiaomo.feishu.FeishuConfig
 
 /**
- * 飞书PolicyManage
+ * Feishu policy manager
  * Aligned with OpenClaw src/policy.ts
  */
 class FeishuPolicy(private val config: FeishuConfig) {
@@ -21,7 +21,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
     }
 
     /**
-     * Check DM YesNo允许
+     * Check if DM is allowed
      */
     fun isDmAllowed(senderId: String, isPaired: Boolean = false): Boolean {
         return when (config.dmPolicy) {
@@ -43,7 +43,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
     }
 
     /**
-     * CheckGroupYesNo允许
+     * Check if group is allowed
      */
     fun isGroupAllowed(chatId: String): Boolean {
         return when (config.groupPolicy) {
@@ -64,7 +64,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
     }
 
     /**
-     * CheckGroupMessageYesNoNeed @
+     * Check if group message needs @mention
      *
      * Aligned with OpenClaw policy.ts:
      * When groupPolicy is "open" and requireMention is not explicitly configured,
@@ -73,7 +73,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
      */
     fun requiresMention(chatType: String, isMentioned: Boolean, isSingleBot: Boolean): Boolean {
         if (chatType != "group") {
-            return false // DM 不Need @
+            return false // DM does not need @
         }
 
         // Resolve requireMention: explicit config > groupPolicy-based default
@@ -85,7 +85,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
             return false
         }
 
-        // Check bypass Rule
+        // Check bypass rule
         val bypass = when (config.groupCommandMentionBypass) {
             FeishuConfig.MentionBypass.NEVER -> false
             FeishuConfig.MentionBypass.SINGLE_BOT -> isSingleBot
@@ -106,7 +106,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
     }
 
     /**
-     * CheckYesNo在白名单中
+     * Check if in allowlist
      */
     private fun isInAllowlist(id: String, allowlist: List<String>): Boolean {
         if (allowlist.isEmpty()) {
@@ -126,17 +126,17 @@ class FeishuPolicy(private val config: FeishuConfig) {
     }
 
     /**
-     * Parse工具Policy
+     * Parse tool policy
      */
     fun resolveToolPolicy(chatType: String): ToolPolicy {
         return ToolPolicy(
-            allowTools = true, // Default允许All工具
-            allowedToolNames = null // null Table示All允许
+            allowTools = true, // Default allow all tools
+            allowedToolNames = null // null means all allowed
         )
     }
 
     /**
-     * Check工具YesNo允许use
+     * Check if tool is allowed to use
      */
     fun isToolAllowed(toolName: String, chatType: String): Boolean {
         val policy = resolveToolPolicy(chatType)
@@ -146,7 +146,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
         }
 
         if (policy.allowedToolNames == null) {
-            return true // All允许
+            return true // All allowed
         }
 
         return policy.allowedToolNames.contains(toolName)
@@ -154,7 +154,7 @@ class FeishuPolicy(private val config: FeishuConfig) {
 }
 
 /**
- * 工具Policy
+ * Tool policy
  */
 data class ToolPolicy(
     val allowTools: Boolean,

@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书Messagesend器
+ * Feishu message sender
  * Aligned with OpenClaw src/send.ts
  */
 class FeishuSender(
@@ -32,11 +32,11 @@ class FeishuSender(
     private val media = FeishuMedia(config, client)
 
     /**
-     * sendTextMessage
+     * Send text message
      *
-     * Aligned with OpenClaw 逻辑: 
-     * - Auto检测代码块和 Markdown Table
-     * - use interactive card (schema 2.0) 渲染FormatInside容
+     * Aligned with OpenClaw logic:
+     * - Auto-detect code blocks and Markdown tables
+     * - Use interactive card (schema 2.0) to render formatted content
      */
     suspend fun sendTextMessage(
         receiveId: String,
@@ -46,13 +46,13 @@ class FeishuSender(
         renderMode: RenderMode = RenderMode.AUTO
     ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
-            // 分块send(if超过Limit)
+            // Chunk if exceeds limit
             val chunks = chunkText(text, config.textChunkLimit)
             if (chunks.size > 1) {
                 return@withContext sendChunkedMessages(receiveId, chunks, receiveIdType)
             }
 
-            // DetermineYesNouse卡片(Aligned with OpenClaw)
+            // Determine whether to use card (Aligned with OpenClaw)
             val useCard = when (renderMode) {
                 RenderMode.CARD -> true
                 RenderMode.TEXT -> false
@@ -60,12 +60,12 @@ class FeishuSender(
             }
 
             if (useCard) {
-                // use Markdown 卡片send(正确渲染代码块和Table)
+                // Use markdown card (properly renders code blocks and tables)
                 Log.d(TAG, "Using markdown card for formatted content")
                 val card = buildMarkdownCard(text, mentionTargets)
                 return@withContext sendCard(receiveId, card, receiveIdType)
             } else {
-                // use普通TextMessage
+                // Use regular text message
                 val content = if (mentionTargets.isNotEmpty()) {
                     buildMentionedTextContent(text, mentionTargets)
                 } else {
@@ -81,7 +81,7 @@ class FeishuSender(
     }
 
     /**
-     * send卡片Message
+     * Send card message
      */
     suspend fun sendCard(
         receiveId: String,
@@ -97,7 +97,7 @@ class FeishuSender(
     }
 
     /**
-     * Update卡片Message
+     * Update card message
      */
     suspend fun updateCard(
         messageId: String,
@@ -121,7 +121,7 @@ class FeishuSender(
     }
 
     /**
-     * 通过 card_id send Card Kit 卡片(用于 Streaming Card)
+     * Send Card Kit card by card_id (for Streaming Card)
      * Aligned with OpenClaw: client.im.message.create with card_id reference
      */
     suspend fun sendCardById(
@@ -142,7 +142,7 @@ class FeishuSender(
     }
 
     /**
-     * 通过 card_id send引用回复卡片(Streaming Card + Quote Reply)
+     * Send reply card by card_id (Streaming Card + Quote Reply)
      */
     suspend fun sendCardByIdReply(
         replyToMessageId: String,
@@ -161,7 +161,7 @@ class FeishuSender(
     }
 
     /**
-     * EditMessage
+     * Edit message
      */
     suspend fun editMessage(
         messageId: String,
@@ -190,7 +190,7 @@ class FeishuSender(
     }
 
     /**
-     * DeleteMessage
+     * Delete message
      */
     suspend fun deleteMessage(messageId: String): result<Unit> = withContext(Dispatchers.IO) {
         try {
@@ -210,7 +210,7 @@ class FeishuSender(
     }
 
     /**
-     * sendGraph片Message
+     * Send image message
      * Aligned with OpenClaw src/send.ts sendImage()
      */
     suspend fun sendImage(
@@ -228,8 +228,8 @@ class FeishuSender(
     }
 
     /**
-     * UploadGraph片Concurrency送
-     * Aligned with OpenClaw 逻辑: upload file -> get image_key -> send image
+     * Upload image and send
+     * Aligned with OpenClaw logic: upload file -> get image_key -> send image
      */
     suspend fun uploadAndSendImage(
         receiveId: String,
@@ -242,7 +242,7 @@ class FeishuSender(
                 return@withContext result.failure(Exception("File not found: $filePath"))
             }
 
-            // 1. UploadGraph片Get image_key (useNew的 FeishuImageUploadTool)
+            // 1. Upload image and get image_key (use new FeishuImageUploadTool)
             val uploadTool = com.xiaomo.feishu.tools.media.FeishuImageUploadTool(config, client)
             val toolresult = uploadTool.execute(mapOf("image_path" to file.absolutePath))
 
@@ -255,7 +255,7 @@ class FeishuSender(
 
             Log.d(TAG, "Image uploaded: $imageKey")
 
-            // 2. sendGraph片Message
+            // 2. Send image message
             sendImage(receiveId, imageKey, receiveIdType)
 
         } catch (e: Exception) {
@@ -265,7 +265,7 @@ class FeishuSender(
     }
 
     /**
-     * 话题Inside回复(Thread Reply)
+     * Reply in thread (Thread Reply)
      * Aligned with OpenClaw replyInThread
      */
     suspend fun replyInThread(
@@ -301,7 +301,7 @@ class FeishuSender(
     }
 
     /**
-     * 引用回复(Quote Reply)
+     * Quote reply
      * Aligned with OpenClaw reply-dispatcher: POST /im/v1/messages/{message_id}/reply
      */
     suspend fun sendQuoteReply(
@@ -338,8 +338,8 @@ class FeishuSender(
     }
 
     /**
-     * 引用回复TextMessage(高层便捷Method)
-     * AutoProcess卡片检测、分块
+     * Send text reply (high-level convenience method)
+     * Auto-processes card detection, chunking
      */
     suspend fun sendTextReply(
         replyToMessageId: String,
@@ -348,16 +348,16 @@ class FeishuSender(
         renderMode: RenderMode = RenderMode.AUTO
     ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
-            // 分块Process
+            // Chunk process
             val chunks = chunkText(text, config.textChunkLimit)
             if (chunks.size > 1) {
-                // First块用引用回复, Back续直接发
+                // First chunk uses quote reply, subsequent chunks send directly
                 val firstresult = sendSingleTextReply(replyToMessageId, chunks[0], mentionTargets, renderMode)
                 if (firstresult.isFailure) return@withContext firstresult
 
                 val messageIds = mutableListOf(firstresult.getOrNull()!!.messageId)
-                // Back续 chunks Need receiveId, 从 reply API Cannot直接Get chatId
-                // soBack续 chunks 作为普通Messagesend不太合适, 这里简化为All用First条的方式
+                // Subsequent chunks need receiveId, from reply API cannot get chatId directly
+                // So subsequent chunks as regular messages don't quite fit, simplified to use first pattern for all
                 for (i in 1 until chunks.size) {
                     kotlinx.coroutines.delay(200)
                     val chunkresult = sendQuoteReply(
@@ -381,7 +381,7 @@ class FeishuSender(
     }
 
     /**
-     * send单条引用回复
+     * Send single quote reply
      */
     private suspend fun sendSingleTextReply(
         replyToMessageId: String,
@@ -409,7 +409,7 @@ class FeishuSender(
     }
 
     /**
-     * GetMessageDetails
+     * Get message details
      */
     suspend fun getMessage(messageId: String): result<MessageInfo> = withContext(Dispatchers.IO) {
         try {
@@ -450,10 +450,10 @@ class FeishuSender(
         }
     }
 
-    // ===== InternalMethod =====
+    // ===== Internal Methods =====
 
     /**
-     * sendMessage(Internal)
+     * Send message (internal)
      */
     private suspend fun sendMessageInternal(
         receiveId: String,
@@ -485,7 +485,7 @@ class FeishuSender(
     }
 
     /**
-     * send分块Message
+     * Send chunked messages
      */
     private suspend fun sendChunkedMessages(
         receiveId: String,
@@ -508,7 +508,7 @@ class FeishuSender(
                 Log.e(TAG, "Failed to send chunk $index")
             }
 
-            // 避免send过快
+            // Avoid sending too fast
             kotlinx.coroutines.delay(200)
         }
 
@@ -520,20 +520,20 @@ class FeishuSender(
     }
 
     /**
-     * BuildTextInside容
+     * Build text content
      */
     private fun buildTextContent(text: String): String {
         return gson.toJson(mapOf("text" to text))
     }
 
     /**
-     * Build带提及的TextInside容
+     * Build text content with mentions
      */
     private fun buildMentionedTextContent(
         text: String,
         mentionTargets: List<MentionTarget>
     ): String {
-        // Build提及Inside容
+        // Build mention content
         val mentionedText = StringBuilder()
         for (target in mentionTargets) {
             mentionedText.append("<at user_id=\"${target.userId}\"></at> ")
@@ -544,7 +544,7 @@ class FeishuSender(
     }
 
     /**
-     * Text分块
+     * Chunk text
      */
     private fun chunkText(text: String, limit: Int): List<String> {
         if (text.length <= limit) {
@@ -554,7 +554,7 @@ class FeishuSender(
         val chunks = mutableListOf<String>()
         when (config.chunkMode) {
             FeishuConfig.ChunkMode.LENGTH -> {
-                // 按长度分块
+                // Chunk by length
                 var start = 0
                 while (start < text.length) {
                     val end = minOf(start + limit, text.length)
@@ -563,7 +563,7 @@ class FeishuSender(
                 }
             }
             FeishuConfig.ChunkMode.NEWLINE -> {
-                // 按换Row符分块
+                // Chunk by newline
                 val lines = text.split("\n")
                 var currentChunk = StringBuilder()
 
@@ -573,7 +573,7 @@ class FeishuSender(
                             chunks.add(currentChunk.toString())
                             currentChunk = StringBuilder()
                         }
-                        // if单Row超过Limit, 强制分块
+                        // If single line exceeds limit, force chunk
                         if (line.length > limit) {
                             chunks.addAll(chunkText(line, limit))
                         } else {
@@ -597,7 +597,7 @@ class FeishuSender(
     }
 
     /**
-     * 提取纯Text
+     * Extract plain text
      */
     private fun extractPlainText(content: String, msgType: String): String {
         return try {
@@ -605,7 +605,7 @@ class FeishuSender(
             when (msgType) {
                 "text" -> json.get("text")?.asString ?: content
                 "post" -> {
-                    // 富TextMessage, 提取AllText
+                    // Rich text message, extract all text
                     val contentObj = json.getAsJsonObject("content")
                     val zhCn = contentObj?.getAsJsonArray("zh_cn")
                     zhCn?.joinToString("\n") { element ->
@@ -623,24 +623,24 @@ class FeishuSender(
     }
 
     /**
-     * 检测YesNoShoulduse卡片格式
-     * Aligned with OpenClaw: 任何 markdown 格式都用卡片渲染, 避免原始符号暴露
+     * Check if should use card format
+     * Aligned with OpenClaw: any markdown format uses card to avoid raw symbol exposure
      */
     private fun shouldUseCard(text: String): Boolean {
-        // 检测代码块 ```
+        // Check code blocks ```
         if (text.contains("```")) return true
 
-        // 检测 Markdown Table |...|
+        // Check Markdown tables |...|
         val tableCount = countMarkdownTables(text)
         if (tableCount > 0) {
             if (tableCount > config.maxTablesPerCard) {
-                Log.w(TAG, "⚠️ Table数量 ($tableCount) 超过飞书Limit (${config.maxTablesPerCard}),将use纯Text")
+                Log.w(TAG, "Table count ($tableCount) exceeds Feishu limit (${config.maxTablesPerCard}), using plain text")
                 return false
             }
             return true
         }
 
-        // 检测常见 Markdown 格式(加粗、斜体、Title、List、链接等)
+        // Check common Markdown formats (bold, italic, heading, list, link, etc.)
         val markdownPatterns = listOf(
             Regex("\\*\\*.+?\\*\\*"),           // **bold**
             Regex("\\*.+?\\*"),                  // *italic*
@@ -660,7 +660,7 @@ class FeishuSender(
     }
 
     /**
-     * count Markdown 中的Table数量
+     * Count Markdown tables
      */
     private fun countMarkdownTables(text: String): Int {
         var tableCount = 0
@@ -671,15 +671,15 @@ class FeishuSender(
             val line = lines[i]
             val nextLine = lines.getOrNull(i + 1) ?: continue
 
-            // CheckYesNoYesTableRow(Contains |)
+            // Check if has table row (contains |)
             if (line.contains("|") && !inTable) {
-                // CheckDown一RowYesNoYes分隔符(such as |---|---| 或 |:-:|:-:|)
+                // Check if next line has separator (e.g. |---|---| or |:-:|:-:|)
                 if (nextLine.matches(Regex("^\\s*\\|[-:| ]+\\|\\s*$"))) {
                     tableCount++
                     inTable = true
                 }
             } else if (inTable && !line.contains("|")) {
-                // TableEnd
+                // Table ends
                 inTable = false
             }
         }
@@ -688,7 +688,7 @@ class FeishuSender(
     }
 
     /**
-     * Build Markdown 卡片
+     * Build Markdown card
      * Aligned with OpenClaw buildMarkdownCard()
      *
      * Uses schema 2.0 format for proper markdown rendering (code blocks, tables, etc.)
@@ -697,7 +697,7 @@ class FeishuSender(
         text: String,
         mentionTargets: List<MentionTarget> = emptyList()
     ): String {
-        // Process @提及
+        // Process @mentions
         val cardText = if (mentionTargets.isNotEmpty()) {
             buildMentionedCardContent(text, mentionTargets)
         } else {
@@ -723,14 +723,14 @@ class FeishuSender(
     }
 
     /**
-     * Build带提及的卡片Inside容
+     * Build card content with mentions
      * Aligned with OpenClaw buildMentionedCardContent()
      */
     private fun buildMentionedCardContent(
         text: String,
         mentionTargets: List<MentionTarget>
     ): String {
-        // In card, use <at user_id="xxx"></at> 语法
+        // In card, use <at user_id="xxx"></at> syntax
         val mentionedText = StringBuilder()
         for (target in mentionTargets) {
             mentionedText.append("<at user_id=\"${target.userId}\"></at> ")
@@ -741,19 +741,19 @@ class FeishuSender(
 }
 
 /**
- * 渲染Schema(Aligned with OpenClaw)
+ * Render mode (Aligned with OpenClaw)
  */
 enum class RenderMode {
-    /** Auto检测(Default) */
+    /** Auto-detect (default) */
     AUTO,
-    /** 强制use卡片 */
+    /** Force use card */
     CARD,
-    /** 强制useText */
+    /** Force use text */
     TEXT
 }
 
 /**
- * 提及目标
+ * Mention target
  */
 data class MentionTarget(
     val userId: String,
@@ -762,7 +762,7 @@ data class MentionTarget(
 )
 
 /**
- * sendresult
+ * Send result
  */
 data class Sendresult(
     val messageId: String,
@@ -770,7 +770,7 @@ data class Sendresult(
 )
 
 /**
- * MessageInfo
+ * Message info
  */
 data class MessageInfo(
     val messageId: String,

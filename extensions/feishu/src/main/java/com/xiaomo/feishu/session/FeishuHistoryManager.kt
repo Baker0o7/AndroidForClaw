@@ -15,8 +15,8 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 飞书历史RecordManage器
- * Aligned with OpenClaw 历史RecordManage
+ * Feishu history manager
+ * Aligned with OpenClaw history management
  */
 class FeishuHistoryManager(private val config: FeishuConfig) {
     companion object {
@@ -27,7 +27,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     private val mutex = Mutex()
 
     /**
-     * Add历史Record
+     * Add history entry
      */
     suspend fun addHistory(
         chatId: String,
@@ -39,7 +39,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
 
         history.add(entry)
 
-        // Limit历史Record数量
+        // Limit history size
         val limit = if (chatType == "p2p") config.dmHistoryLimit else config.historyLimit
         while (history.size > limit) {
             history.removeAt(0)
@@ -49,7 +49,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * Get历史Record
+     * Get history
      */
     fun getHistory(chatId: String, chatType: String, limit: Int? = null): List<HistoryEntry> {
         val key = "$chatType:$chatId"
@@ -63,7 +63,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * clear历史Record
+     * Clear history
      */
     suspend fun clearHistory(chatId: String, chatType: String) = mutex.withLock {
         val key = "$chatType:$chatId"
@@ -72,7 +72,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * clearAll历史Record
+     * Clear all history
      */
     suspend fun clearAllHistory() = mutex.withLock {
         histories.clear()
@@ -80,7 +80,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * Get历史Record摘要
+     * Get history summary
      */
     fun getHistorySummary(): Map<String, Int> {
         return histories.mapValues { it.value.size }
@@ -88,7 +88,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
 }
 
 /**
- * 历史Record条目
+ * History entry
  */
 data class HistoryEntry(
     val messageId: String,

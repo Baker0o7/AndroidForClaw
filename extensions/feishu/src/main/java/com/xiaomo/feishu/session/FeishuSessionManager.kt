@@ -15,20 +15,20 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 飞书SessionManage器
- * Aligned with OpenClaw SessionManage逻辑
+ * Feishu session manager
+ * Aligned with OpenClaw session management logic
  */
 class FeishuSessionManager(private val config: FeishuConfig) {
     companion object {
         private const val TAG = "FeishuSessionManager"
-        const val SESSION_TIMEOUT_MS = 30 * 60 * 1000L // 30分钟
+        const val SESSION_TIMEOUT_MS = 30 * 60 * 1000L // 30 minutes
     }
 
     private val sessions = ConcurrentHashMap<String, FeishuSession>()
     private val mutex = Mutex()
 
     /**
-     * Get或CreateSession
+     * Get or create session
      */
     suspend fun getOrCreateSession(
         chatId: String,
@@ -37,14 +37,14 @@ class FeishuSessionManager(private val config: FeishuConfig) {
     ): FeishuSession = mutex.withLock {
         val sessionKey = buildSessionKey(chatId, chatType, senderId)
 
-        // Check现HasSession
+        // Check if session exists
         val existing = sessions[sessionKey]
         if (existing != null && !existing.isExpired()) {
             existing.updateLastActivity()
             return existing
         }
 
-        // CreateNewSession
+        // Create new session
         val session = FeishuSession(
             sessionId = sessionKey,
             chatId = chatId,
@@ -61,7 +61,7 @@ class FeishuSessionManager(private val config: FeishuConfig) {
     }
 
     /**
-     * GetSession
+     * Get session
      */
     fun getSession(chatId: String, chatType: String): FeishuSession? {
         val sessionKey = buildSessionKey(chatId, chatType)
@@ -69,7 +69,7 @@ class FeishuSessionManager(private val config: FeishuConfig) {
     }
 
     /**
-     * DeleteSession
+     * Delete session
      */
     suspend fun removeSession(chatId: String, chatType: String) = mutex.withLock {
         val sessionKey = buildSessionKey(chatId, chatType)
@@ -95,7 +95,7 @@ class FeishuSessionManager(private val config: FeishuConfig) {
     }
 
     /**
-     * GetAll活跃Session
+     * Get all active sessions
      */
     fun getActiveSessions(): List<FeishuSession> {
         return sessions.values
@@ -120,7 +120,7 @@ class FeishuSessionManager(private val config: FeishuConfig) {
 }
 
 /**
- * 飞书Session
+ * Feishu session
  */
 data class FeishuSession(
     val sessionId: String,
@@ -132,14 +132,14 @@ data class FeishuSession(
     val context: MutableMap<String, Any> = mutableMapOf()
 ) {
     /**
-     * UpdatemostBack活动Time
+     * Update last activity timestamp
      */
     fun updateLastActivity() {
         lastActivityAt = System.currentTimeMillis()
     }
 
     /**
-     * YesNo过期
+     * Check if expired
      */
     fun isExpired(): Boolean {
         val now = System.currentTimeMillis()
@@ -147,14 +147,14 @@ data class FeishuSession(
     }
 
     /**
-     * SettingsUpDown文
+     * Set context value
      */
     fun setContext(key: String, value: Any) {
         context[key] = value
     }
 
     /**
-     * GetUpDown文
+     * Get context value
      */
     @Suppress("UNCHECKED_CAST")
     fun <T> getContext(key: String): T? {
@@ -162,7 +162,7 @@ data class FeishuSession(
     }
 
     /**
-     * clearUpDown文
+     * Clear context
      */
     fun clearContext() {
         context.clear()

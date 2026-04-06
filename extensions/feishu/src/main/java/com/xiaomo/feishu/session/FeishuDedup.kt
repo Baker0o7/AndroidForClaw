@@ -12,35 +12,35 @@ import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 飞书Message去重
+ * Feishu message deduplication
  * Aligned with OpenClaw src/dedup.ts
  */
 class FeishuDedup {
     companion object {
         private const val TAG = "FeishuDedup"
-        private const val CACHE_TTL_MS = 10 * 60 * 1000L // 10分钟
+        private const val CACHE_TTL_MS = 10 * 60 * 1000L // 10 minutes
         private const val MAX_CACHE_SIZE = 10000
     }
 
     private val messageCache = ConcurrentHashMap<String, Long>()
 
     /**
-     * AttemptRecordMessage(if已Exists则Return false)
+     * Try record message (returns false if already exists)
      */
     fun tryRecordMessage(messageId: String): Boolean {
         val now = System.currentTimeMillis()
 
-        // 清理过期Cache
+        // Clean up expired cache
         cleanupExpired(now)
 
-        // CheckYesNo已Exists
+        // Check if already exists
         val existing = messageCache.putIfAbsent(messageId, now)
         if (existing != null) {
             Log.d(TAG, "Duplicate message detected: $messageId")
             return false
         }
 
-        // LimitCacheSize
+        // Limit cache size
         if (messageCache.size > MAX_CACHE_SIZE) {
             Log.w(TAG, "Message cache size exceeded, clearing old entries")
             cleanupOldest(MAX_CACHE_SIZE / 2)
@@ -50,14 +50,14 @@ class FeishuDedup {
     }
 
     /**
-     * CheckMessageYesNo已Process
+     * Check if message has been processed
      */
     fun isMessageProcessed(messageId: String): Boolean {
         return messageCache.containsKey(messageId)
     }
 
     /**
-     * 清理过期Cache
+     * Clean up expired cache
      */
     private fun cleanupExpired(now: Long) {
         val expiredKeys = messageCache.entries
@@ -74,7 +74,7 @@ class FeishuDedup {
     }
 
     /**
-     * 清理mostOld的Record
+     * Clean up oldest records
      */
     private fun cleanupOldest(keepCount: Int) {
         val sorted = messageCache.entries
@@ -89,7 +89,7 @@ class FeishuDedup {
     }
 
     /**
-     * clearAllCache
+     * Clear all cache
      */
     fun clearAll() {
         messageCache.clear()
@@ -97,7 +97,7 @@ class FeishuDedup {
     }
 
     /**
-     * GetCachecount
+     * Get cache stats
      */
     fun getStats(): DedupStats {
         return DedupStats(
@@ -109,7 +109,7 @@ class FeishuDedup {
 }
 
 /**
- * 去重count
+ * Deduplication statistics
  */
 data class DedupStats(
     val totalMessages: Int,

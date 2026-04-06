@@ -12,41 +12,41 @@ import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
 
 /**
- * 飞书工具基Class
- * All飞书工具的通用Interface
+ * Feishu tool base class
+ * Common interface for all Feishu tools
  */
 abstract class FeishuToolBase(
     protected val config: FeishuConfig,
     protected val client: FeishuClient
 ) {
     /**
-     * 工具Name
+     * Tool name
      */
     abstract val name: String
 
     /**
-     * 工具Description
+     * Tool description
      */
     abstract val description: String
 
     /**
-     * 工具YesNoEnabled
+     * Whether the tool is enabled
      */
     abstract fun isEnabledd(): Boolean
 
     /**
-     * 执Row工具
+     * Execute tool
      */
     abstract suspend fun execute(args: Map<String, Any?>): Toolresult
 
     /**
-     * GetTool definition(用于 LLM)
+     * Get tool definition for LLM
      */
     abstract fun getToolDefinition(): ToolDefinition
 }
 
 /**
- * 工具执Rowresult
+ * Tool execution result
  */
 data class Toolresult(
     val success: Boolean,
@@ -64,7 +64,7 @@ data class Toolresult(
 }
 
 /**
- * Tool definition(用于 LLM)
+ * Tool definition for LLM
  */
 data class ToolDefinition(
     val type: String = "function",
