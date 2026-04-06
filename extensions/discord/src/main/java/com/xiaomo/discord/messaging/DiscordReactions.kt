@@ -119,38 +119,3 @@ class DiscordReactions(private val client: DiscordClient) {
         return add(channelId, messageId, EMOJI_EYES)
     }
 }
-            result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error adding multiple reactions", e)
-            result.failure(e)
-        }
-    }
-
-    /**
-     * AddConfirm标记 (✅)
-     */
-    suspend fun addCheck(channelId: String, messageId: String): result<Unit> {
-        return add(channelId, messageId, EMOJI_CHECK)
-    }
-
-    /**
-     * AddError标记 (❌)
-     */
-    suspend fun addCross(channelId: String, messageId: String): result<Unit> {
-        return add(channelId, messageId, EMOJI_CROSS)
-    }
-
-    /**
-     * Addthink标记 (🤔)
-     */
-    suspend fun addThinking(channelId: String, messageId: String): result<Unit> {
-        return add(channelId, messageId, EMOJI_THINKING)
-    }
-
-    /**
-     * Add关注标记 (👀)
-     */
-    suspend fun addEyes(channelId: String, messageId: String): result<Unit> {
-        return add(channelId, messageId, EMOJI_EYES)
-    }
-}

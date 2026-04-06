@@ -16,7 +16,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Validate主 app 的PermissionIngress直接Into入 observer Permission页, 不再停留在主 app 中间页. 
+ * Validates that the main app's PermissionIngress directly enters the observer Permission page,
+ * instead of staying on the main app's intermediate page.
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -46,7 +47,7 @@ class PermissionsEntryFlowUITest {
 
     @Test
     fun testPermissionEntry_redirectsDirectlyToObserverPermissionPage() {
-        // Permission card at Compose 中通过 StatusCard 渲染, Need先切换到 Settings tab
+        // Permission card is rendered via StatusCard in Compose, need to switch to Settings tab first
         val settingsTab = device.wait(Until.findObject(By.desc("Settings")), 5000)
             ?: device.wait(Until.findObject(By.textContains("Settings")), 2000)
             ?: device.wait(Until.findObject(By.descContains("Settings")), 2000)
@@ -59,7 +60,7 @@ class PermissionsEntryFlowUITest {
         assertNotNull("Permission card should exist on settings tab", permissionCard)
         permissionCard!!.click()
 
-        // observer 页面独Has: StoragePermission项 / 一KeyAuthorize按钮
+        // Observer page uniquely has: StoragePermission item / OneKeyAuthorize button
         val accessibilityLabel = res.getString(R.string.connect_accessibility)
         val grantLabel = res.getString(R.string.connect_go_grant)
         val viewLabel = res.getString(R.string.connect_view)

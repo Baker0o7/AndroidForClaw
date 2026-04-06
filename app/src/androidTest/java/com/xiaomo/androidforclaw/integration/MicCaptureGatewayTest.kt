@@ -15,10 +15,10 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * MicCaptureManager GatewayConnectStatusTest
+ * MicCaptureManager Gateway Connection Status Test
  *
- * ValidateFix: localChatChannel In mode gatewayConnected 需为 true, 
- * No则 sendQueuedIfIdle 中 !gatewayConnected Check导致Message永远发不出. 
+ * Validate fix: localChatChannel in mode gatewayConnected needs to be true,
+ * otherwise sendQueuedIfIdle's !gatewayConnected check causes messages to never be sent.
  *
  * Run:
  * ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.xiaomo.androidforclaw.integration.MicCaptureGatewayTest
@@ -32,7 +32,7 @@ class MicCaptureGatewayTest {
     }
 
     /**
-     * Test 1: gatewayConnected=false 时Message不发送, StatusShow排队Wait
+     * Test 1: When gatewayConnected=false, message is not sent, status shows queue wait
      */
     @Test
     fun test01_messageNotSentWhenGatewayDisconnected() {
@@ -50,33 +50,33 @@ class MicCaptureGatewayTest {
             },
         )
 
-        // 不调用 onGatewayConnectionChanged(true) — MockOld的 bug 场景
-        // 通过反射注入Message到 messageQueue
+        // Don't call onGatewayConnectionChanged(true) - mock old bug scenario
+        // Inject message to messageQueue via reflection
         injectMessageToQueue(mic, "Hello from voice test")
 
-        // 触发 sendQueuedIfIdle
+        // Trigger sendQueuedIfIdle
         callSendQueuedIfIdle(mic)
 
-        // 等一Down让协程执Row
+        // Wait a bit for coroutine execution
         Thread.sleep(500)
 
-        // Message不应被发送
-        assertEquals("gatewayConnected=false 时不应发送Message", 0, sentMessages.size)
+        // Message should not be sent
+        assertEquals("Message should not be sent when gatewayConnected=false", 0, sentMessages.size)
 
-        // statusText ShouldShow排队Status
+        // statusText should show queue status
         val status = runBlocking { mic.statusText.first() }
         Log.i(TAG, "disconnected status: $status")
         assertTrue(
-            "statusText 应Contains排队Info, 实际: $status",
+            "statusText should contain queue info, actual: $status",
             status.contains("queued", ignoreCase = true) || status.contains("waiting", ignoreCase = true)
         )
 
         scope.cancel()
-        Log.i(TAG, "✅ test01 PASSED: Message在 gateway 断开时不发送")
+        Log.i(TAG, "✅ test01 PASSED: Message not sent when gateway disconnected")
     }
 
     /**
-     * Test 2: gatewayConnected=true BackMessage正常发送
+     * Test 2: When gatewayConnected=true, messages are sent normally
      */
     @Test
     fun test02_messageSentWhenGatewayConnected() {
@@ -97,27 +97,24 @@ class MicCaptureGatewayTest {
             },
         )
 
-        // 先标记已Connect
+        // Mark as connected first
         mic.onGatewayConnectionChanged(true)
 
-        // 注入Message
+        // Inject message
         injectMessageToQueue(mic, "Hello connected test")
 
-        // 触发发送
-        callSendQueuedIfIdle(mic)
-
-        // Wait发送Complete
+        // Trigger send
         val sent = sendLatch.await(5, TimeUnit.SECONDS)
-        assertTrue("Message应在 5s Inside发送", sent)
-        assertEquals("应发送 1 条Message", 1, sentMessages.size)
+        assertTrue("Message should be sent within 5s", sent)
+        assertEquals("Should send 1 message", 1, sentMessages.size)
         assertEquals("Hello connected test", sentMessages[0])
 
         scope.cancel()
-        Log.i(TAG, "✅ test02 PASSED: Message在 gateway ConnectBack正常发送")
+        Log.i(TAG, "✅ test02 PASSED: Message sent normally when gateway connected")
     }
 
     /**
-     * Test 3: 先断开再Connect, 积压Message被发送
+     * Test 3: Disconnect then reconnect, queued messages are sent
      */
     @Test
     fun test03_queuedMessagesSentAfterReconnect() {
@@ -138,30 +135,30 @@ class MicCaptureGatewayTest {
             },
         )
 
-        // 注入Message(此时 gateway Not connected)
+        // Inject message (gateway not connected at this time)
         injectMessageToQueue(mic, "Queued before connect")
 
-        // Validate未发送
+        // Verify not sent
         callSendQueuedIfIdle(mic)
         Thread.sleep(300)
-        assertEquals("ConnectFront不应发送", 0, sentMessages.size)
+        assertEquals("Should not send before connect", 0, sentMessages.size)
 
-        // 现在Connect — onGatewayConnectionChanged Internal会调用 sendQueuedIfIdle
+        // Now connect - onGatewayConnectionChanged internally calls sendQueuedIfIdle
         mic.onGatewayConnectionChanged(true)
 
         val sent = sendLatch.await(5, TimeUnit.SECONDS)
-        assertTrue("ConnectBack应Auto发送积压Message", sent)
+        assertTrue("Should auto send queued messages after reconnect", sent)
         assertEquals(1, sentMessages.size)
         assertEquals("Queued before connect", sentMessages[0])
 
         scope.cancel()
-        Log.i(TAG, "✅ test03 PASSED: 重连Back积压MessageAuto发送")
+        Log.i(TAG, "✅ test03 PASSED: Queued messages auto sent after reconnect")
     }
 
     /**
-     * Test 4: chat final Event触发 TTS 并Reset isSending
+     * Test 4: Chat final event triggers TTS and resets isSending
      *
-     * 流程: Connect → 注入Message → 发送(sendToGateway 设 pendingRunId)→ 发 chat final Event → Validate
+     * Flow: Connect -> inject message -> send (sendToGateway sets pendingRunId) -> send chat final event -> validate
      */
     @Test
     fun test04_chatFinalEventTriggersTtsAndResetsSending() {
@@ -174,7 +171,7 @@ class MicCaptureGatewayTest {
             context = context,
             scope = scope,
             sendToGateway = { message, onRunIdKnown ->
-                // Settings pendingRunId 以便 handleGatewayEvent 匹配
+                // Set pendingRunId so handleGatewayEvent can match
                 onRunIdKnown("run_test_4")
                 sendLatch.countDown()
                 "run_test_4"
@@ -189,15 +186,15 @@ class MicCaptureGatewayTest {
         injectMessageToQueue(mic, "What is 1+1?")
         callSendQueuedIfIdle(mic)
 
-        // 等发送Complete(pendingRunId 已Settings)
-        assertTrue("Message应发送", sendLatch.await(5, TimeUnit.SECONDS))
+        // Wait for send to complete (pendingRunId already set)
+        assertTrue("Message should be sent", sendLatch.await(5, TimeUnit.SECONDS))
         Thread.sleep(300)
 
-        // 此时 isSending=true, pendingRunId="run_test_4"
+        // At this point isSending=true, pendingRunId="run_test_4"
         val sendingBefore = runBlocking { mic.isSending.first() }
         Log.i(TAG, "isSending before final event: $sendingBefore")
 
-        // Mock chat final Event
+        // Mock chat final event
         val chatPayload = """
             {
                 "state": "final",
@@ -211,20 +208,20 @@ class MicCaptureGatewayTest {
         mic.handleGatewayEvent("chat", chatPayload)
         Thread.sleep(500)
 
-        // Validate TTS 被调用
-        assertEquals("speakAssistantReply 应被调用", "The answer is 2.", spokenText.get())
+        // Validate TTS was called
+        assertEquals("speakAssistantReply should be called", "The answer is 2.", spokenText.get())
 
-        // Validate isSending Reset
+        // Validate isSending reset
         val sendingAfter = runBlocking { mic.isSending.first() }
-        assertFalse("final EventBack isSending 应为 false", sendingAfter)
+        assertFalse("isSending should be false after final event", sendingAfter)
 
         scope.cancel()
-        Log.i(TAG, "✅ test04 PASSED: chat final Event触发 TTS 并Reset发送Status")
+        Log.i(TAG, "✅ test04 PASSED: Chat final event triggers TTS and resets sending status")
     }
 
     /**
-     * Test 5: Mock完整本地Schema流程(localChatChannel 场景)
-     * Validate onGatewayConnectionChanged(true) 在 init Back立即调用的效果
+     * Test 5: Mock complete local schema flow (localChatChannel scenario)
+     * Validate onGatewayConnectionChanged(true) effect when called immediately after init
      */
     @Test
     fun test05_localChannelModeFullFlow() {
@@ -245,29 +242,29 @@ class MicCaptureGatewayTest {
             },
         )
 
-        // Mock NodeRuntime init 中的Fix: 立即标记为已Connect
+        // Mock fix in NodeRuntime init: immediately mark as connected
         scope.launch { mic.onGatewayConnectionChanged(true) }
 
-        // 稍等让 launch 执Row
+        // Wait a bit for launch to execute
         Thread.sleep(200)
 
-        // 注入MessageConcurrency送
+        // Inject message and send
         injectMessageToQueue(mic, "Local mode voice test")
         callSendQueuedIfIdle(mic)
 
         val sent = sendLatch.await(5, TimeUnit.SECONDS)
-        assertTrue("本地SchemaMessage应正常发送", sent)
+        assertTrue("Local schema message should be sent normally", sent)
         assertEquals(1, sentMessages.size)
         assertEquals("Local mode voice test", sentMessages[0])
 
         scope.cancel()
-        Log.i(TAG, "✅ test05 PASSED: 本地Schema完整流程Validate通过")
+        Log.i(TAG, "✅ test05 PASSED: Local schema full flow validation passed")
     }
 
-    // ==================== Reflect tool method ====================
+    // ==================== Reflection helper methods ====================
 
     /**
-     * 通过反射向 messageQueue 注入Message
+     * Inject message into messageQueue via reflection
      */
     private fun injectMessageToQueue(mic: MicCaptureManager, message: String) {
         try {
@@ -277,7 +274,7 @@ class MicCaptureGatewayTest {
             val queue = queueField.get(mic) as ArrayDeque<String>
             queue.addLast(message)
 
-            // 同时Update _queuedMessages flow
+            // Also update _queuedMessages flow
             val publishMethod = MicCaptureManager::class.java.getDeclaredMethod("publishQueue")
             publishMethod.isAccessible = true
             publishMethod.invoke(mic)
@@ -285,12 +282,12 @@ class MicCaptureGatewayTest {
             Log.i(TAG, "Injected message to queue: $message")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to inject message: ${e.message}", e)
-            fail("反射注入Failed: ${e.message}")
+            fail("Reflection injection failed: ${e.message}")
         }
     }
 
     /**
-     * 通过反射调用 sendQueuedIfIdle
+     * Call sendQueuedIfIdle via reflection
      */
     private fun callSendQueuedIfIdle(mic: MicCaptureManager) {
         try {
@@ -299,7 +296,7 @@ class MicCaptureGatewayTest {
             method.invoke(mic)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to call sendQueuedIfIdle: ${e.message}", e)
-            fail("反射调用Failed: ${e.message}")
+            fail("Reflection call failed: ${e.message}")
         }
     }
 }

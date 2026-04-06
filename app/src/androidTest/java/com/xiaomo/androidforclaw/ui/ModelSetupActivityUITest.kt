@@ -23,19 +23,19 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * ModelSetupActivity UI Auto化Test
+ * ModelSetupActivity UI Automation Test
  *
- * Override场景: 
- * 1. 页面Start & 基本Element展示
- * 2. DefaultSchema交互(OpenRouter)
- * 3. 高级Options展开/收起
- * 4. Provider 切换
- * 5. 不填 Key 直接Start(Inside置 Key)
- * 6. 填入Custom Key Start
- * 7. Skip按钮
- * 8. Custom Provider 特殊 UI
- * 9. 模型选择Down拉
- * 10. ErrorHintValidate
+ * Override scenarios:
+ * 1. Page launch & basic elements display
+ * 2. Default schema interaction (OpenRouter)
+ * 3. Advanced options expand/collapse
+ * 4. Provider switch
+ * 5. Start without key (built-in key)
+ * 6. Enter custom key to start
+ * 7. Skip button
+ * 8. Custom provider special UI
+ * 9. Model selection dropdown
+ * 10. Error hint validation
  *
  * Run:
  * adb shell am instrument -w -e class com.xiaomo.androidforclaw.ui.ModelSetupActivityUITest \
@@ -91,7 +91,7 @@ class ModelSetupActivityUITest {
         }
     }
 
-    // ==================== 1. 页面Start & 基本Element ====================
+    // ==================== 1. Page launch & basic elements ====================
 
     @Test
     fun test01_activityLaunches() {
@@ -144,7 +144,7 @@ class ModelSetupActivityUITest {
             .check(matches(withText("🔗 Open openrouter.ai/keys")))
     }
 
-    // ==================== 2. DefaultSchema ====================
+    // ==================== 2. Default schema ====================
 
     @Test
     fun test08_defaultQuickSetupShowsModelDropdown() {
@@ -160,7 +160,7 @@ class ModelSetupActivityUITest {
             .check(matches(withEffectiveVisibility(Visibility.GONE)))
     }
 
-    // ==================== 3. 高级Options展开/收起 ====================
+    // ==================== 3. Advanced options expand/collapse ====================
 
     @Test
     fun test10_advancedToggleExpands() {
@@ -196,7 +196,7 @@ class ModelSetupActivityUITest {
             .check(matches(withText(containsString("使用Its他Service商"))))
     }
 
-    // ==================== 4. Provider 切换 ====================
+    // ==================== 4. Provider switch ====================
 
     @Test
     fun test13_openrouterChipSelectedByDefault() {
@@ -242,7 +242,7 @@ class ModelSetupActivityUITest {
             val tilApiBase = activity.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_api_base)
             val etApiBase = activity.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_setup_api_base)
             assert(tilApiBase.visibility == android.view.View.VISIBLE) { "API Base field should be visible in custom mode" }
-            assert(etApiBase.isEnabledd) { "API Base input should be enabled in custom mode" }
+            assert(etApiBase.isEnabled) { "API Base input should be enabled in custom mode" }
         }
     }
 
@@ -252,17 +252,17 @@ class ModelSetupActivityUITest {
         expandAdvanced()
         selectProvider(R.id.chip_anthropic)
 
-        // Collapse → reset
+        // Collapse -> reset
         onView(withId(R.id.tv_advanced)).perform(scrollTo(), click())
 
-        // Expand again → should be back to OpenRouter
+        // Expand again -> should be back to OpenRouter
         onView(withId(R.id.tv_advanced)).perform(scrollTo(), click())
         onView(withId(R.id.chip_openrouter)).check(matches(isChecked()))
         onView(withId(R.id.til_model))
             .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
-    // ==================== 5. 不填 Key 直接Start(Inside置 Key)====================
+    // ==================== 5. Start without key (built-in key) ====================
 
     @Test
     fun test18_startWithoutKey_usesBuiltIn() {
@@ -273,7 +273,7 @@ class ModelSetupActivityUITest {
         assertEquals(Lifecycle.State.DESTROYED, s.state)
     }
 
-    // ==================== 6. 填入Custom Key ====================
+    // ==================== 6. Enter custom key ====================
 
     @Test
     fun test19_enterCustomKey() {
@@ -286,7 +286,7 @@ class ModelSetupActivityUITest {
         assertEquals(Lifecycle.State.DESTROYED, s.state)
     }
 
-    // ==================== 7. Skip按钮 ====================
+    // ==================== 7. Skip button ====================
 
     @Test
     fun test19b_startWithoutKey_persistsOpenRouterProviderConfig() {
@@ -391,7 +391,7 @@ class ModelSetupActivityUITest {
         assert(openrouter != null) { "Expected skip to persist default openrouter provider" }
     }
 
-    // ==================== 8. Custom Provider 特殊 UI ====================
+    // ==================== 8. Custom provider special UI ====================
 
     @Test
     fun test21_customProvider_baseUrlRequired() {
@@ -405,7 +405,7 @@ class ModelSetupActivityUITest {
 
         Thread.sleep(500)
 
-        // Should show error — verify activity is NOT finished (validation failed)
+        // Should show error - verify activity is NOT finished (validation failed)
         scenario!!.onActivity { activity ->
             assert(!activity.isFinishing) { "Activity should not finish without base URL" }
         }
@@ -438,7 +438,7 @@ class ModelSetupActivityUITest {
         assertEquals(Lifecycle.State.DESTROYED, s.state)
     }
 
-    // ==================== 9. 模型Input(仅Custom Provider) ====================
+    // ==================== 9. Model input (custom provider only) ====================
 
     @Test
     fun test24_customProvider_modelInputBecomesVisible() {
@@ -458,7 +458,7 @@ class ModelSetupActivityUITest {
             .check(matches(withText("my-custom-model")))
     }
 
-    // ==================== 10. Provider hint Validate ====================
+    // ==================== 10. Provider hint validation ====================
 
     @Test
     fun test27_providerHintShowsOnAdvanced() {
@@ -489,7 +489,7 @@ class ModelSetupActivityUITest {
             .check(matches(withText(containsString("兼容"))))
     }
 
-    // ==================== 11. API Key InputBehavior ====================
+    // ==================== 11. API key input behavior ====================
 
     @Test
     fun test29_apiKeyInputIsPlainText() {
@@ -507,7 +507,7 @@ class ModelSetupActivityUITest {
             .check(matches(isDisplayed()))
     }
 
-    // ==================== 12. 教程链接 ====================
+    // ==================== 12. Tutorial links ====================
 
     @Test
     fun test31_tutorialStepsDisplayed() {
