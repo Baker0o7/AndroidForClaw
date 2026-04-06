@@ -158,7 +158,7 @@ fun TelegramchannelScreen(
                 horizontalArrangement = Arrangement.Spacebetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("群聊need @mentions")
+                 Text("Group chat requires @mentions")
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
@@ -168,15 +168,15 @@ fun TelegramchannelScreen(
             OutlinedTextField(
                 value = historyLimitText,
                 onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
-                label = { Text("历史Messagecount数Limit(Optional)") },
-                placeholder = { Text("留Null = notLimit, such as 50") },
+                                 label = { Text("History Message Count Limit (Optional)") },
+                                 placeholder = { Text("Set Null = no limit, such as 50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
-            // ── Streaming ──
-            Text("流式return复schema", style = MaterialTheme.typography.titleSmall)
+             // ── Streaming ──
+             Text("Streaming return complex schema", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("off", "partial", "block", "progress").forEach { value ->
                     FilterChip(

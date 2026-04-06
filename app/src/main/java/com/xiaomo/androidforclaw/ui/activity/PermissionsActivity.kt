@@ -10,7 +10,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * Permission页Proxy: 直接跳转toMergeintomain app  observer Permission页, 避免userseeto两layerPermission页. 
+ * Permission page proxy: Directly jump to main app's permission page, avoiding users seeing two layers of permission pages.
  */
 class PermissionsActivity : AppCompatActivity() {
 

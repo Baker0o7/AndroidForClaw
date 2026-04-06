@@ -13,29 +13,29 @@ import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
- * cut板Input助手
+ * Clipboard Input Helper
  *
- * throughcut板implementationTextInput, 避免 ClawIME Key盘各种Issue. 
- * 流程: Writecut板 → 找toFocusInput field → executionpasteAction
+ * Through clipboard implementation of text input, to avoid various issues with ClawIME keyboard.
+ * Process: Write to clipboard → Find focused input field → Execute paste action
  *
- * 优势: 
- * - notneedswitchInput method
- * - SupportAllcharacters(中文、emoji 等)
- * - 比 ClawIME moreStable
+ * Advantages:
+ * - No need to switch input method
+ * - Support all characters (Chinese, emoji, etc.)
+ * - More stable than ClawIME
  *
- * Limit: 
- * - android 10+ backgroundappaccesscut板受限
- * - needAccessibilityserviceto executeRowpasteAction
+ * Limitations:
+ * - Android 10+ background app access to clipboard is restricted
+ * - Need accessibility service to execute paste action
  */
 object ClipboardInputhelper {
     private const val TAG = "ClipboardInputhelper"
 
     /**
-     * throughcut板 + AccessibilitypasteInputText
+     * Input text via clipboard + accessibility paste
      *
      * @param context app context
-     * @param text needInputText
-     * @return whetherSuccess
+     * @param text text to input
+     * @return whether successful
      */
     fun inputTextViaClipboard(context: context, text: String): Boolean {
         try {
@@ -46,7 +46,7 @@ object ClipboardInputhelper {
                 return false
             }
 
-            // Saveoldcut板content, Action完backresume
+            // Save old clipboard content, restore after action completes
             val oldClip = try {
                 clipboardmanager.primaryClip
             } catch (e: exception) {
@@ -59,7 +59,7 @@ object ClipboardInputhelper {
             clipboardmanager.setPrimaryClip(clip)
             Log.d(TAG, "✓ Clipboard set: ${text.take(50)}${if (text.length > 50) "..." else ""}")
 
-            // 3. throughAccessibilityservice找FocusNodeexecutionpaste
+            // 3. Through accessibility service find focus node and execute paste
             val pasted = performPasteViaAccessibility()
             if (!pasted) {
                 Log.e(TAG, "Paste via accessibility failed")
@@ -68,7 +68,7 @@ object ClipboardInputhelper {
                 return false
             }
 
-            // 4. short暂Delaybackresumeoldcut板content
+            // 4. Short delay then restore old clipboard content
             android.os.Handler(android.os.looper.getMainlooper()).postDelayed({
                 restoreClipboard(clipboardmanager, oldClip)
             }, 500)
@@ -116,7 +116,7 @@ object ClipboardInputhelper {
     }
 
     /**
-     * resumeoldcut板content
+     * Restore old clipboard content
      */
     private fun restoreClipboard(clipboardmanager: Clipboardmanager, oldClip: ClipData?) {
         try {
@@ -124,7 +124,7 @@ object ClipboardInputhelper {
                 clipboardmanager.setPrimaryClip(oldClip)
                 Log.d(TAG, "old clipboard restored")
             } else {
-                // 清Nullcut板, 避免泄露Inputcontent
+                // Clear clipboard to avoid leaking input content
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     clipboardmanager.clearPrimaryClip()
                 } else {

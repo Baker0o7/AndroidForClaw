@@ -116,7 +116,7 @@ fun whatsAppchannelScreen(
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("手机号 (E.164 format)") },
+                label = { Text("Phone Number (E.164 format)") },
                 placeholder = { Text("+8613800138000") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -155,7 +155,7 @@ fun whatsAppchannelScreen(
                 horizontalArrangement = Arrangement.Spacebetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("群聊need @mentions")
+                Text("Group chat requires @mentions")
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
@@ -165,8 +165,8 @@ fun whatsAppchannelScreen(
             OutlinedTextField(
                 value = historyLimitText,
                 onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
-                label = { Text("历史Messagecount数Limit(Optional)") },
-                placeholder = { Text("留Null = notLimit, such as 50") },
+                label = { Text("History Message Count Limit (Optional)") },
+                placeholder = { Text("Set Null = no limit, such as 50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -184,12 +184,12 @@ fun whatsAppchannelScreen(
 
             if (showSaveSuccess) {
                 Spacer(Modifier.height(4.dp))
-                Text("[OK] configalreadySave", color = MaterialTheme.colorScheme.primary)
+                Text("[OK] Config saved successfully", color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "configSavebackneedRestartapp生效. \nwhatsApp 接入need配合 whatsApp Business API use. ",
+                text = "Config save requires app restart to take effect. \nWhatsApp integration requires WhatsApp Business API usage.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

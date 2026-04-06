@@ -17,12 +17,12 @@ import java.util.UUID
 
 /**
  * JSONL session Storage
- * Aligned with OpenClaw  agents/main/sessions/ 架构
+ * Aligned with OpenClaw agents/main/sessions/ architecture
  *
  * JSONL format:
- * - 每messagesoneRow JSON
- * - 增量追加, notoverride整countfiles
- * - 易于Parseand流式Read
+ * - Each message is one row JSON
+ * - Incremental append, not override entire count files
+ * - Easy to parse and stream read
  */
 class JsonlsessionStorage(private val context: context) {
 
@@ -68,7 +68,7 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * 追加Messagetosession (JSONL format)
+     * Append message to session (JSONL format)
      */
     fun appendMessage(sessionId: String, message: sessionMessage) {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -89,11 +89,11 @@ class JsonlsessionStorage(private val context: context) {
             )
         }
 
-        Log.d(TAG, "追加Messagetosession $sessionId: ${message.role}")
+        Log.d(TAG, "Appended message to session $sessionId: ${message.role}")
     }
 
     /**
-     * ReadsessionAllMessage
+     * Read session all messages
      */
     fun loadsession(sessionId: String): List<sessionMessage> {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -120,21 +120,21 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * GetAllsessionList
+     * Get all sessions list
      */
     fun listsessions(): Map<String, sessionMetadata> {
         return loadsessionsIndex()
     }
 
     /**
-     * Getsession元Data
+     * Get session metadata
      */
     fun getsessionMetadata(sessionId: String): sessionMetadata? {
         return loadsessionsIndex()[sessionId]
     }
 
     /**
-     * UpdatesessionTitle
+     * Update session title
      */
     fun updatesessionTitle(sessionId: String, newTitle: String) {
         updatesessionMetadata(sessionId) { metadata ->
@@ -143,7 +143,7 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * Deletesession
+     * Delete session
      */
     fun deletesession(sessionId: String): Boolean {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -161,7 +161,7 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * 清Nullsession(保留filesbut清Nullcontent)
+     * Clear session (keep files but clear content)
      */
     fun clearsession(sessionId: String) {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -173,12 +173,12 @@ class JsonlsessionStorage(private val context: context) {
                     lastMessageAt = Instant.now().toString()
                 )
             }
-            Log.i(TAG, "清Nullsession: $sessionId")
+            Log.i(TAG, "Cleared session: $sessionId")
         }
     }
 
     /**
-     * Exportsessionfor JSONL files
+     * Export session for JSONL files
      */
     fun exportsession(sessionId: String, outputPath: String): Boolean {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -195,7 +195,7 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * Import JSONL sessionfiles
+     * Import JSONL session files
      */
     fun importsession(inputPath: String, title: String? = null): String? {
         val inputFile = File(inputPath)
@@ -232,7 +232,7 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * GetsessionStatistics info
+     * Get session statistics info
      */
     fun getsessionStats(sessionId: String): sessionStats? {
         val messages = loadsession(sessionId)
@@ -267,7 +267,7 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * Load sessions.json Index
+     * Load sessions.json index
      */
     private fun loadsessionsIndex(): Map<String, sessionMetadata> {
         val indexFile = File(SESSIONS_INDEX_FILE)
@@ -286,7 +286,7 @@ class JsonlsessionStorage(private val context: context) {
     }
 
     /**
-     * Save sessions.json Index
+     * Save sessions.json index
      */
     private fun savesessionsIndex(sessions: Map<String, sessionMetadata>) {
         val indexFile = File(SESSIONS_INDEX_FILE)
