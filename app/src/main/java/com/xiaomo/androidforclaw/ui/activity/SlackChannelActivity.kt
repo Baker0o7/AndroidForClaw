@@ -120,10 +120,10 @@ fun SlackchannelScreen(
 
             Divider()
 
-            // ── Connectschema ──
-            Text("Connectschema", style = MaterialTheme.typography.titleSmall)
+            // ── Connection Schema ──
+            Text("Connection Schema", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("socket" to "Socket Mode(recommend)", "http" to "HTTP Mode").forEach { (value, label) ->
+                listOf("socket" to "Socket Mode (recommended)", "http" to "HTTP Mode").forEach { (value, label) ->
                     FilterChip(
                         selected = mode == value,
                         onClick = { mode = value },
@@ -133,9 +133,9 @@ fun SlackchannelScreen(
             }
             Text(
                 text = if (mode == "socket")
-                    "Socket Mode: need Bot Token + App-Level Token, Noneneed公网 IP"
+                    "Socket Mode: requires Bot Token + App-Level Token, no public IP needed"
                 else
-                    "HTTP Mode: need Bot Token + Signing Secret + 公网 Webhook URL",
+                    "HTTP Mode: requires Bot Token + Signing Secret + public Webhook URL",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -154,7 +154,7 @@ fun SlackchannelScreen(
                     value = appToken,
                     onValueChange = { appToken = it },
                     label = { Text("App-Level Token (xapp-...)") },
-                    placeholder = { Text("from Slack App → Basic Info → App-Level Token Get") },
+                    placeholder = { Text("From Slack App → Basic Info → Get App-Level Token") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -163,7 +163,7 @@ fun SlackchannelScreen(
                     value = signingSecret,
                     onValueChange = { signingSecret = it },
                     label = { Text("Signing Secret") },
-                    placeholder = { Text("from Slack App → Basic Info → Signing Secret Get") },
+                    placeholder = { Text("From Slack App → Basic Info → Get Signing Secret") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -198,10 +198,10 @@ fun SlackchannelScreen(
             // ── Require Mention ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Spacebetween,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("群聊need @mentions")
+                Text("Group chat requires @mentions")
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
@@ -211,15 +211,15 @@ fun SlackchannelScreen(
             OutlinedTextField(
                 value = historyLimitText,
                 onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
-                label = { Text("历史Messagecount数Limit(Optional)") },
-                placeholder = { Text("留Null = notLimit, such as 50") },
+                label = { Text("History Message Count Limit (Optional)") },
+                placeholder = { Text("Leave empty = no limit, e.g., 50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             // ── Streaming ──
-            Text("流式return复schema", style = MaterialTheme.typography.titleSmall)
+            Text("Streaming Response Schema", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("off", "partial", "block", "progress").forEach { value ->
                     FilterChip(
@@ -242,12 +242,12 @@ fun SlackchannelScreen(
 
             if (showSaveSuccess) {
                 Spacer(Modifier.height(4.dp))
-                Text("[OK] configalreadySave", color = MaterialTheme.colorScheme.primary)
+                Text("[OK] Config Saved", color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "configSavebackneedRestartapp生效. \n详细Document参见 OpenClaw Slack 接入指南. ",
+                text = "Config changes require app restart to take effect.\nFor detailed documentation see OpenClaw Slack integration guide.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

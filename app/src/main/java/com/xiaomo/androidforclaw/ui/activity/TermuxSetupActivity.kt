@@ -92,51 +92,51 @@ fun TermuxSetupScreen(onback: () -> Unit) {
         } catch (_: exception) {}
         refreshStatus()
 
-        // into入config页hour: Connect池alreadyConnectthenSkip, Nothenon-demand start
-        val initStatus = withcontext(Dispatchers.IO) { bridge.getStatus() }
+        // into config page hour: If connected then skip, otherwise start on-demand
+        val initStatus = withContext(Dispatchers.IO) { bridge.getStatus() }
         val alreadyConnected = com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.isConnected
         if (!alreadyConnected && initStatus.keypairPresent && !initStatus.sshReachable && initStatus.termuxInstalled) {
             launchingSshd = true
-            sshdLaunchMessage = "currentlyAutoStart sshd..."
+            sshdLaunchMessage = "Auto starting sshd..."
             try {
-                withcontext(Dispatchers.IO) {
-                    com.xiaomo.androidforclaw.core.TermuxSshdLauncher.ensureandLaunch(context)
+                withContext(Dispatchers.IO) {
+                    com.xiaomo.androidforclaw.core.TermuxSshdLauncher.ensureAndLaunch(context)
                 }
-                // Termux 被拉upback, 切returnwhenFront Activity(notYes首页)
+                // Termux was launched, return when front activity is shown
                 val backIntent = android.content.Intent(context, TermuxSetupActivity::class.java)
-                backIntent.aFlags(android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                backIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 context.startActivity(backIntent)
-                // 轮询Wait + Auto注入公钥
+                // Poll and auto inject public key
                 var keyInjected = false
                 for (attempt in 1..15) {
                     delay(1000)
-                    val s = withcontext(Dispatchers.IO) { bridge.getStatus() }
+                    val s = withContext(Dispatchers.IO) { bridge.getStatus() }
                     refreshStatus()
                     if (s.ready) {
-                        sshdLaunchMessage = "[OK] sshd alreadyReady"
+                        sshdLaunchMessage = "[OK] sshd Ready"
                         com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(context)
                         break
                     }
                     if (s.sshReachable && !s.sshAuthOk && !keyInjected) {
-                        val pubKey = withcontext(Dispatchers.IO) { bridge.getPublicKey() }
+                        val pubKey = withContext(Dispatchers.IO) { bridge.getPublicKey() }
                         if (pubKey != null) {
                             com.xiaomo.androidforclaw.core.TermuxSshdLauncher.injectPublicKey(context, pubKey)
                             keyInjected = true
-                            sshdLaunchMessage = "currentlyconfig SSH Key..."
+                            sshdLaunchMessage = "Configuring SSH Key..."
                         }
                     }
                 }
-            } catch (e: exception) {
-                sshdLaunchMessage = "AutoStartFailed: ${e.message}"
+            } catch (e: Exception) {
+                sshdLaunchMessage = "Auto Start Failed: ${e.message}"
             } finally {
                 launchingSshd = false
                 refreshStatus()
             }
         } else if (alreadyConnected) {
-            sshdLaunchMessage = null // alreadyConnect, notShow任何Hint
+            sshdLaunchMessage = null // Already connected, don't show any hint
         }
 
-        // 持续RefreshStatus
+        // Keep refreshing status
         while (true) {
             delay(3000)
             refreshStatus()
@@ -153,10 +153,10 @@ fun TermuxSetupScreen(onback: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Termux \u914d\u7f6e") },
+                title = { Text("Termux Setup") },
                 navigationIcon = {
-                    Iconbutton(onClick = onback) {
-                        Icon(Icons.Filled.Arrowback, "\u8fd4\u56de")
+                    IconButton(onClick = onback) {
+                        Icon(Icons.Filled.Arrowback, "Back")
                     }
                 }
             )
@@ -174,7 +174,7 @@ fun TermuxSetupScreen(onback: () -> Unit) {
 
             // Header
             Text(
-                "\u6309\u4ee5\u4e0b\u6b65\u9aa4\u914d\u7f6e Termux\uff0c\u8ba9 AI \u80fd\u5728\u624b\u673a\u4e0a\u6267\u884c\u547d\u4ee4\u3002",
+                "Follow the steps below to set up Termux so AI can execute commands on your phone.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -182,25 +182,25 @@ fun TermuxSetupScreen(onback: () -> Unit) {
             // ============ Step 1: Install Termux ============
             SetupStepCard(
                 step = 1,
-                title = "\u5b89\u88c5 Termux",
+                title = "Install Termux",
                 done = termuxInstalled,
             ) {
                 Text(
-                    "\u4ece F-Droid \u4e0b\u8f7d\u5b89\u88c5 Termux\uff08\u4e0d\u8981\u7528 Play Store \u7248\u672c\uff09",
+                    "Download and install Termux from F-Droid (do not use Play Store version)",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (!termuxInstalled) {
                     Spacer(Modifier.height(8.dp))
-                    button(onClick = {
+                    Button(onClick = {
                         try {
                             context.startActivity(Intent(Intent.ACTION_VIEW,
                                 Uri.parse("https://f-droid.org/packages/com.termux/")))
-                        } catch (_: exception) {
-                            Toast.makeText(context, "\u8bf7\u624b\u52a8\u641c\u7d22\u5b89\u88c5 Termux", Toast.LENGTH_SHORT).show()
+                        } catch (_: Exception) {
+                            Toast.makeText(context, "Please manually search for Termux", Toast.LENGTH_SHORT).show()
                         }
                     }) {
-                        Text("\u53bb\u4e0b\u8f7d")
+                        Text("Download")
                     }
                 }
             }
@@ -208,23 +208,23 @@ fun TermuxSetupScreen(onback: () -> Unit) {
             // ============ Step 2: Generate keypair ============
             SetupStepCard(
                 step = 2,
-                title = "\u751f\u6210 SSH \u5bc6\u94a5",
+                title = "Generate SSH Key",
                 done = keypairReady,
             ) {
                 Text(
-                    "\u70b9\u51fb\u4e0b\u65b9\u6309\u94ae\u81ea\u52a8\u751f\u6210\u5bc6\u94a5\u5bf9\uff08\u4ec5\u9700\u4e00\u6b21\uff09",
+                    "Click the button below to automatically generate a key pair (only needed once)",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (!keypairReady) {
                     Spacer(Modifier.height(8.dp))
-                    button(onClick = {
+                    Button(onClick = {
                         scope.launch {
-                            withcontext(Dispatchers.IO) { bridge.ensureKeypair() }
+                            withContext(Dispatchers.IO) { bridge.ensureKeypair() }
                             refreshStatus()
                         }
                     }) {
-                        Text("\u751f\u6210\u5bc6\u94a5")
+                        Text("Generate Key")
                     }
                 }
             }
@@ -232,11 +232,11 @@ fun TermuxSetupScreen(onback: () -> Unit) {
             // ============ Step 3: termux-setup-storage ============
             SetupStepCard(
                 step = 3,
-                title = "\u6388\u6743 Termux \u8bbf\u95ee\u5b58\u50a8",
+                title = "Grant Termux Storage Access",
                 done = sshAuthOk, // we know storage works if auth succeeded
             ) {
                 Text(
-                    "\u6253\u5f00 Termux\uff0c\u8f93\u5165\u4ee5\u4e0b\u547d\u4ee4\u5e76\u56de\u8f66\uff0c\u7136\u540e\u70b9\u300c\u5141\u8bb8\u300d\uff1a",
+                    "Open Termux, enter the following command and tap \"Allow\":",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -250,11 +250,11 @@ fun TermuxSetupScreen(onback: () -> Unit) {
             // ============ Step 4: Install openssh ============
             SetupStepCard(
                 step = 4,
-                title = "\u5b89\u88c5 SSH \u670d\u52a1",
+                title = "Install SSH Service",
                 done = sshAuthOk,
             ) {
                 Text(
-                    "\u5728 Termux \u4e2d\u6267\u884c\uff08\u9700\u7b49\u5f85\u5b89\u88c5\u5b8c\u6210\uff09\uff1a",
+                    "Run in Termux (wait for installation to complete):",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -265,15 +265,15 @@ fun TermuxSetupScreen(onback: () -> Unit) {
                 )
             }
 
-            // ============ Step 5: configure key ============
+            // ============ Step 5: Configure Key ============
             SetupStepCard(
                 step = 5,
-                title = "\u914d\u7f6e SSH \u5bc6\u94a5",
+                title = "Configure SSH Key",
                 done = sshAuthOk,
             ) {
                 if (keySetupCommand != null) {
                     Text(
-                        "\u5728 Termux \u4e2d\u6267\u884c\u4ee5\u4e0b\u547d\u4ee4\uff0c\u5c06\u5bc6\u94a5\u6dfb\u52a0\u5230 SSH\uff1a",
+                        "Run the following command in Termux to add the key to SSH:",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -284,7 +284,7 @@ fun TermuxSetupScreen(onback: () -> Unit) {
                     )
                 } else {
                     Text(
-                        "\u8bf7\u5148\u5b8c\u6210\u7b2c 2 \u6b65\u751f\u6210\u5bc6\u94a5",
+                        "Please complete Step 2 to generate a key first",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -294,11 +294,11 @@ fun TermuxSetupScreen(onback: () -> Unit) {
             // ============ Step 6: Start sshd ============
             SetupStepCard(
                 step = 6,
-                title = "\u542f\u52a8 SSH \u670d\u52a1",
+                title = "Start SSH Service",
                 done = sshReachable,
             ) {
                 Text(
-                    "\u5728 Termux \u4e2d\u6267\u884c\uff1a",
+                    "Run in Termux:",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -308,20 +308,20 @@ fun TermuxSetupScreen(onback: () -> Unit) {
                     context = context
                 )
                 Spacer(Modifier.height(8.dp))
-                // oneKeyStart sshd button
-                button(
+                // One-click start sshd button
+                Button(
                     onClick = {
                         launchingSshd = true
                         sshdLaunchMessage = null
                         scope.launch {
                             try {
-                                TermuxSshdLauncher.ensureandLaunch(context)
-                                sshdLaunchMessage = "\u5df2\u53d1\u9001\u542f\u52a8\u547d\u4ee4\uff0c\u7b49\u5f85 sshd \u542f\u52a8..."
-                                // Wait sshd StartbackRefreshStatus
+                                TermuxSshdLauncher.ensureAndLaunch(context)
+                                sshdLaunchMessage = "Start command sent, waiting for sshd to start..."
+                                // Wait for sshd to start then refresh status
                                 delay(3000)
                                 refreshStatus()
-                            } catch (e: exception) {
-                                sshdLaunchMessage = "\u542f\u52a8\u5931\u8d25: ${e.message}\n\u8bf7\u624b\u52a8\u5728 Termux \u4e2d\u6267\u884c sshd"
+                            } catch (e: Exception) {
+                                sshdLaunchMessage = "Start failed: ${e.message}\nPlease manually run sshd in Termux"
                             } finally {
                                 launchingSshd = false
                             }
@@ -337,9 +337,9 @@ fun TermuxSetupScreen(onback: () -> Unit) {
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("\u542f\u52a8\u4e2d...")
+                        Text("Starting...")
                     } else {
-                        Text("\u4e00\u952e\u542f\u52a8 sshd")
+                        Text("One-click Start sshd")
                     }
                 }
                 if (sshdLaunchMessage != null) {
@@ -347,7 +347,7 @@ fun TermuxSetupScreen(onback: () -> Unit) {
                     Text(
                         text = sshdLaunchMessage!!,
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (sshdLaunchMessage!!.startswith("\u542f\u52a8\u5931\u8d25"))
+                        color = if (sshdLaunchMessage!!.startsWith("Start failed"))
                             MaterialTheme.colorScheme.error
                         else
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -355,7 +355,7 @@ fun TermuxSetupScreen(onback: () -> Unit) {
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "\u63d0\u793a\uff1a\u6bcf\u6b21\u91cd\u542f Termux \u540e\u9700\u91cd\u65b0\u8fd0\u884c sshd",
+                    "Note: sshd needs to be run again after each Termux restart",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -364,28 +364,39 @@ fun TermuxSetupScreen(onback: () -> Unit) {
             // ============ Step 7: Verify ============
             SetupStepCard(
                 step = 7,
-                title = "\u9a8c\u8bc1\u8fde\u63a5",
+                title = "Verify Connection",
                 done = sshAuthOk,
             ) {
                 if (sshAuthOk) {
                     Text(
-                        "SSH \u8fde\u63a5\u6b63\u5e38\uff0c\u914d\u7f6e\u5b8c\u6210\uff01",
+                        "SSH connection successful, setup complete!",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF2E7D32)
                     )
                 } else if (sshReachable) {
                     Text(
-                        "SSH \u7aef\u53e3\u53ef\u8fbe\uff0c\u4f46\u8ba4\u8bc1\u5931\u8d25\u3002\u8bf7\u786e\u8ba4\u7b2c 5 \u6b65\u7684\u5bc6\u94a5\u547d\u4ee4\u5df2\u6267\u884c\u3002",
+                        "SSH port reachable but authentication failed. Please verify Step 5 key command was executed.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
                 } else {
                     Text(
-                        "\u7b49\u5f85\u8fde\u63a5... \u8bf7\u786e\u4f Termux \u5df2\u6253\u5f00\u4e14 sshd \u5df2\u8fd0\u884c\u3002",
+                        "Waiting for connection... Make sure Termux is open and sshd is running.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        checking = true
+                        refreshStatus()
+                    },
+                    enabled = !checking
+                ) {
+                    Text("Retry")
+                }
+            }
                 Spacer(Modifier.height(8.dp))
                 Outlinedbutton(
                     onClick = {
@@ -405,30 +416,33 @@ fun TermuxSetupScreen(onback: () -> Unit) {
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
                 ) {
                     Column(
-                        modifier = Modifier.paing(20.dp).fillMaxWidth(),
+                        modifier = Modifier.padding(20.dp).fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
                             Icons.Default.CheckCircle,
-                            "\u5b8c\u6210",
+                            "Complete",
                             tint = Color(0xFF4CAF50),
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Termux \u914d\u7f6e\u5b8c\u6210\uff01",
+                            "Termux Setup Complete!",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "AI \u73b0\u5728\u53ef\u4ee5\u901a\u8fc7 exec \u547d\u4ee4\u6267\u884c Shell \u811a\u672c\u4e86\u3002",
+                            "AI can now execute shell scripts via exec commands.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(Modifier.height(12.dp))
-                        button(onClick = onback) {
-                            Text("\u5b8c\u6210")
+                        Button(onClick = onback) {
+                            Text("Done")
                         }
+                    }
+                }
+            }
                     }
                 }
             }
@@ -461,7 +475,7 @@ private fun SetupStepCard(
             if (done) {
                 Icon(
                     Icons.Default.CheckCircle,
-                    "\u5b8c\u6210",
+                    "Complete",
                     tint = Color(0xFF4CAF50),
                     modifier = Modifier.size(28.dp)
                 )
@@ -516,17 +530,17 @@ private fun CommandBox(command: String, context: context) {
                 lineHeight = 18.sp,
                 modifier = Modifier.weight(1f)
             )
-            Iconbutton(
+            IconButton(
                 onClick = {
-                    val clipboard = context.getSystemservice(context.CLIPBOARD_SERVICE) as Clipboardmanager
+                    val clipboard = context.getSystemService(context.CLIPBOARD_SERVICE) as ClipboardManager
                     clipboard.setPrimaryClip(ClipData.newPlainText("command", command))
-                    Toast.makeText(context, "\u5df2\u590d\u5236", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     Icons.Default.ContentCopy,
-                    "\u590d\u5236",
+                    "Copy",
                     tint = Color(0xFF888888),
                     modifier = Modifier.size(16.dp)
                 )

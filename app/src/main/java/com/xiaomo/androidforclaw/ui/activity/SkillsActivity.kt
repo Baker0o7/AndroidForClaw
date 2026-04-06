@@ -11,16 +11,16 @@ import com.xiaomo.androidforclaw.ui.skills.skillsMarketScreen
 import ai.openclaw.app.ui.OpenClawTheme
 
 /**
- * skills 市场页面
+ * Skills market page
  *
- * 布局: 
- * 1. Search栏
- * 2. minuteClassFilter(All/Auto化/Efficiency/开发工具...)
- * 3. 热门 skills List(from awesome-openclaw-skills)
- * 4. 精选合集卡片(Voltagent/中文精选/阿in云榜等)
- * 5. 底partAggregateResourceList(ClawHub/AI agent Store 等)
+ * Layout:
+ * 1. Search bar
+ * 2. Category filter (All/Automation/Efficiency/Dev Tools...)
+ * 3. Popular skills list (from awesome-openclaw-skills)
+ * 4. Featured collections (Voltagent/Chinese Picks/AI Cloud Rankings, etc.)
+ * 5. Bottom aggregated resource list (ClawHub/AI Agent Store, etc.)
  */
-class skillsActivity : AppCompatActivity() {
+class SkillsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -62,8 +62,8 @@ fun WeixinchannelScreen(onback: () -> Unit) {
         val account = WeixinAccountStore.loadAccount()
         if (account != null && !account.token.isNullorBlank()) {
             isLoggedIn = true
-            accountInfo = "Account: ${account.accountId ?: "Unknown"}\nuser: ${account.userId ?: "Unknown"}"
-            statusText = "[OK] alreadyLogin"
+            accountInfo = "Account: ${account.accountId ?: "Unknown"}\nUser: ${account.userId ?: "Unknown"}"
+            statusText = "[OK] Already Logged In"
         }
     }
 
@@ -88,7 +88,7 @@ fun WeixinchannelScreen(onback: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "through微信 ClawBot 插件接入",
+                text = "Connect via WeChat ClawBot plugin",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -104,11 +104,11 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Enable微信 channel",
+                            text = "Enable WeChat Channel",
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
-                            text = "openbackwill receive微信Message",
+                            text = "Enable to receive WeChat messages",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -117,24 +117,24 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                         checked = enabled,
                         onCheckedChange = { newValue ->
                             enabled = newValue
-                            // Savetoconfig
+                            // Save to config
                             val currentconfig = configLoader.loadOpenClawconfig()
-                            val updatedWeixin = (currentconfig.channels.weixin ?: com.xiaomo.androidforclaw.config.Weixinchannelconfig())
+                            val updatedWeixin = (currentconfig.channels.weixin ?: com.xiaomo.androidforclaw.config.WeixinChannelConfig())
                                 .copy(enabled = newValue)
                             val updatedconfig = currentconfig.copy(
                                 channels = currentconfig.channels.copy(weixin = updatedWeixin)
                             )
-                            configLoader.saveOpenClawconfig(updatedconfig)
+                            configLoader.saveOpenClawConfig(updatedconfig)
 
                             if (newValue) {
-                                // Enable: TryStartchannel
-                                (context.applicationcontext as? com.xiaomo.androidforclaw.core.MyApplication)
-                                    ?.restartWeixinchannel()
-                                statusText = "[OK] alreadyEnable"
+                                // Enable: Try Start Channel
+                                (context.applicationContext as? com.xiaomo.androidforclaw.core.MyApplication)
+                                    ?.restartWeixinChannel()
+                                statusText = "[OK] Already Enabled"
                             } else {
-                                // Disabled: Stopchannel
-                                com.xiaomo.androidforclaw.core.MyApplication.getWeixinchannel()?.stop()
-                                statusText = "alreadyDisabled"
+                                // Disabled: Stop Channel
+                                com.xiaomo.androidforclaw.core.MyApplication.getWeixinChannel()?.stop()
+                                statusText = "Already Disabled"
                             }
                         },
                     )
@@ -149,11 +149,28 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
-                    Column(modifier = Modifier.paing(16.dp)) {
-                        Text("[OK] alreadyConnect微信", style = MaterialTheme.typography.titleMedium)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("[OK] Connected to WeChat", style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(accountInfo, style = MaterialTheme.typography.bodySmall)
                     }
+                }
+
+                // Logout button
+                OutlinedButton(
+                    onClick = {
+                        // Stop WeChat message listener
+                        com.xiaomo.androidforclaw.core.MyApplication.getWeixinChannel()?.stop()
+                        WeixinAccountStore.clearAccount()
+                        isLoggedIn = false
+                        accountInfo = ""
+                        statusText = "Logged Out"
+                        qrBitmap = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Log Out")
+                }
                 }
 
                 // Logout button
@@ -176,75 +193,77 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                 qrBitmap?.let { bmp ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(
-                            modifier = Modifier.paing(16.dp),
+                            modifier = Modifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text("use微信扫描two维码", style = MaterialTheme.typography.titleSmall)
+                            Text("Scan with WeChat to login", style = MaterialTheme.typography.titleSmall)
                             Spacer(modifier = Modifier.height(12.dp))
                             Image(
                                 bitmap = bmp.asImageBitmap(),
-                                contentDescription = "微信Logintwo维码",
+                                contentDescription = "WeChat Login QR Code",
                                 modifier = Modifier.size(250.dp),
                             )
                         }
                     }
                 }
+                    }
+                }
 
                 // Login button
-                button(
+                Button(
                     onClick = {
                         isLoggingIn = true
-                        statusText = "currentlyGettwo维码..."
+                        statusText = "Getting QR Code..."
                         qrBitmap = null
 
                         scope.launch {
                             try {
                                 val baseUrl = weixinCfg?.baseUrl
-                                    ?.takeif { it.isnotBlank() }
-                                    ?: Weixinconfig.DEFAULT_BASE_URL
+                                    ?.takeIf { it.isNotBlank() }
+                                    ?: WeixinConfig.DEFAULT_BASE_URL
 
-                                val channel = Weixinchannel(
-                                    Weixinconfig(baseUrl = baseUrl, routeTag = weixinCfg?.routeTag)
+                                val channel = WeixinChannel(
+                                    WeixinConfig(baseUrl = baseUrl, routeTag = weixinCfg?.routeTag)
                                 )
                                 val qrLogin = channel.createQRLogin()
 
                                 // Fetch QR code
-                                val qrresult = qrLogin.fetchQRCode()
-                                if (qrresult == null) {
-                                    statusText = "[ERROR] Gettwo维码Failed"
+                                val qrResult = qrLogin.fetchQRCode()
+                                if (qrResult == null) {
+                                    statusText = "[ERROR] Failed to get QR Code"
                                     isLoggingIn = false
                                     return@launch
                                 }
 
-                                val (qrcodeUrl, qrcode) = qrresult
+                                val (qrCodeUrl, qrCode) = qrResult
 
                                 // Generate QR image locally from qrcode_img_content (URL for WeChat scanning)
-                                statusText = "currently生成two维码..."
-                                Log.i("WeixinLogin", "QR bitmap content: ${qrcodeUrl.take(80)}")
-                                Log.i("WeixinLogin", "Poll qrcode: ${qrcode.take(30)}")
-                                val bitmap = QRCodeGenerator.generate(qrcodeUrl, 512)
+                                statusText = "Generating QR Code..."
+                                Log.i("WeixinLogin", "QR bitmap content: ${qrCodeUrl.take(80)}")
+                                Log.i("WeixinLogin", "Poll qrcode: ${qrCode.take(30)}")
+                                val bitmap = QRCodeGenerator.generate(qrCodeUrl, 512)
                                 if (bitmap != null) {
                                     qrBitmap = bitmap
-                                    statusText = "pleaseuse微信扫描two维码"
+                                    statusText = "Please scan with WeChat"
                                 } else {
-                                    statusText = "[WARN] two维码生成Failed, pleaseretry"
+                                    statusText = "[WARN] QR Code generation failed, please retry"
                                     isLoggingIn = false
                                     return@launch
                                 }
 
                                 // Wait for login
-                                val loginresult = qrLogin.waitforLogin(
-                                    qrcode = qrcode,
+                                val loginResult = qrLogin.waitForLogin(
+                                    qrCode = qrCode,
                                     onStatusUpdate = { status ->
                                         statusText = when (status) {
-                                            "wait" -> "Wait扫码..."
-                                            "scaned" -> "👀 already扫码, pleasein微信UpConfirm"
-                                            "expired" -> "two维码alreadyover期, currentlyRefresh..."
-                                            "confirmed" -> "[OK] LoginSuccess!"
+                                            "wait" -> "Waiting for scan..."
+                                            "scaned" -> "Scanned, please confirm in WeChat"
+                                            "expired" -> "QR Code expired, refreshing..."
+                                            "confirmed" -> "[OK] Login Success!"
                                             else -> status
                                         }
                                     },
-                                    onQRRefreshed = { newUrl, newQrcode ->
+                                    onQRRefreshed = { newUrl, newQrCode ->
                                         val newBitmap = QRCodeGenerator.generate(newUrl, 512)
                                         if (newBitmap != null) {
                                             qrBitmap = newBitmap
@@ -252,21 +271,21 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                                     }
                                 )
 
-                                if (loginresult.connected) {
+                                if (loginResult.connected) {
                                     isLoggedIn = true
-                                    accountInfo = "Account: ${loginresult.accountId ?: "Unknown"}\nuser: ${loginresult.userId ?: "Unknown"}"
-                                    statusText = loginresult.message
+                                    accountInfo = "Account: ${loginResult.accountId ?: "Unknown"}\nUser: ${loginResult.userId ?: "Unknown"}"
+                                    statusText = loginResult.message
                                     qrBitmap = null
 
-                                    // notification MyApplication reStart微信Message监听
-                                    (context.applicationcontext as? com.xiaomo.androidforclaw.core.MyApplication)
-                                        ?.restartWeixinchannel()
+                                    // Notify MyApplication to restart WeChat message listener
+                                    (context.applicationContext as? com.xiaomo.androidforclaw.core.MyApplication)
+                                        ?.restartWeixinChannel()
                                 } else {
-                                    statusText = "[ERROR] ${loginresult.message}"
+                                    statusText = "[ERROR] ${loginResult.message}"
                                 }
-                            } catch (e: exception) {
+                            } catch (e: Exception) {
                                 Log.e("WeixinLogin", "Login error", e)
-                                statusText = "[ERROR] LoginFailed: ${e.message}"
+                                statusText = "[ERROR] Login Failed: ${e.message}"
                             } finally {
                                 isLoggingIn = false
                             }
@@ -282,7 +301,7 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Text(if (isLoggingIn) "Login中..." else "扫码Login")
+                    Text(if (isLoggingIn) "Logging in..." else "Scan to Login")
                 }
             }
 
@@ -310,17 +329,18 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             ) {
-                Column(modifier = Modifier.paing(12.dp)) {
-                    Text("illustrate", style = MaterialTheme.typography.titleSmall)
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text("Instructions", style = MaterialTheme.typography.titleSmall)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "基于微信 ClawBot 插件Protocol, 扫码backcan via WeChat AI Conversation. \n" +
-                                "• 仅Support私聊Message\n" +
-                                "• Support文字、image、语音、files\n" +
-                                "• Login凭证Savein本地",
+                        "Based on WeChat ClawBot plugin protocol, scan to login to enable AI conversation via WeChat.\n" +
+                                "• Only supports private chat messages\n" +
+                                "• Supports text, images, voice, files\n" +
+                                "• Login credentials stored locally",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
+            }
             }
         }
     }

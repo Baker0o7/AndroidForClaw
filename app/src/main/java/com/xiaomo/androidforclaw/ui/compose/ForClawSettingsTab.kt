@@ -154,7 +154,7 @@ fun forClawSettingsTab() {
         if (editingGateway) {
             AlertDialog(
                 onDismissRequest = { editingGateway = false },
-                title = { Text("Modify Gateway aress") },
+                title = { Text("Modify Gateway Address") },
                 text = {
                     OutlinedTextField(
                         value = editGatewayUrl,
@@ -170,9 +170,9 @@ fun forClawSettingsTab() {
                         gatewayUrl = editGatewayUrl
                         mmkv.encode(MMKVKeys.GATEWAY_URL.key, editGatewayUrl)
                         editingGateway = false
-                        // needRestartapp才can生效
+                        // saved, restart app to take effect
                         android.widget.Toast.makeText(context,
-                            "alreadySave, Restartappback生效", android.widget.Toast.LENGTH_SHORT).show()
+                            "Saved, restart app to take effect", android.widget.Toast.LENGTH_SHORT).show()
                     }) {
                         Text("Save")
                     }
@@ -191,7 +191,7 @@ fun forClawSettingsTab() {
                 java.net.NetworkInterface.getNetworkInterfaces()?.toList()
                     ?.flatMap { it.inetAresses.toList() }
                     ?.firstorNull { !it.isloopbackAress && it is java.net.Inet4Aress }
-                    ?.hostAress ?: "not connected WiFi"
+                    ?.hostAddress ?: "not connected to WiFi"
             } catch (_: exception) { "GetFailed" }
         }
         val clipboardUrl = if (localIp.contains(".")) "http://$localIp:19789/clipboard" else localIp
@@ -199,8 +199,8 @@ fun forClawSettingsTab() {
             title = "Web Clipboard",
             icon = Icons.Default.ContentPaste,
             rows = listOf(
-                StatusRow("aress", clipboardUrl),
-                StatusRow("用途", "电脑Input → 手机cut板"),
+                StatusRow("Address", clipboardUrl),
+                StatusRow("Usage", "Computer Input → Mobile Clipboard"),
             ),
             onClick = {
                 if (clipboardUrl.startswith("http")) {
@@ -525,9 +525,9 @@ private fun AvatarToggleItem() {
                 modifier = Modifier.size(20.dp),
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text("化身", style = MaterialTheme.typography.bodyMedium)
+                Text("Avatar", style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    "agent 虚拟化身悬浮窗",
+                    "Agent virtual avatar floating window",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -577,9 +577,9 @@ private fun RiveAvatarToggleItem() {
                 modifier = Modifier.size(20.dp),
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text("Rive \u5316\u8eab", style = MaterialTheme.typography.bodyMedium)
+                Text("Rive Avatar", style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    "Rive \u52a8\u753b\u89d2\u8272\u60ac\u6d6e\u7a97",
+                    "Rive animated character floating window",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -679,17 +679,17 @@ private fun CheckUpdateItem() {
                         // backgroundnextload
                         val success = updater.downloadUpdate(info.downloadUrl, info.latestVersion)
                         if (success) {
-                            // InstallConfirm
-                            androidx.appcompat.app.AlertDialog.Builder(context)
-                                .setTitle("UpdatealreadyReady")
-                                .setMessage("v${info.latestVersion} alreadynextloadComplete, whetherInstall?")
-                                .setPositivebutton("Install") { _, _ ->
-                                    updater.installUpdate()
-                                }
-                                .setNegativebutton("稍back", null)
-                                .show()
-                        } else {
-                            android.widget.Toast.makeText(context, "nextloadFailed, pleaseretry", android.widget.Toast.LENGTH_SHORT).show()
+                        // InstallConfirm
+                        androidx.appcompat.app.AlertDialog.Builder(context)
+                            .setTitle("Update Ready")
+                            .setMessage("v${info.latestVersion} already downloaded, install now?")
+                            .setPositiveButton("Install") { _, _ ->
+                                updater.installUpdate()
+                            }
+                            .setNegativeButton("Later", null)
+                            .show()
+                    } else {
+                        android.widget.Toast.makeText(context, "Download failed, please retry", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         android.widget.Toast.makeText(context, context.getString(R.string.settings_up_to_date, info.currentVersion), android.widget.Toast.LENGTH_SHORT).show()
