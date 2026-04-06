@@ -209,10 +209,10 @@ class MainActivityCompose : ComponentActivity() {
                 mutableStateOf(legalPrefs.getBoolean("legal.accepted", false))
             }
 
-            // 本地直连: 同Process, Noneneed WebSocket 握手
+            // Local direct connection: Same Process, no WebSocket handshake needed
             LaunchedEffect(Unit) {
                 openClawViewmodel.connectLocal()
-                // 让 canvastool 走 Screen tab inside嵌 WebView 而notYes独立 Activity
+                // Let CanvasTool use the Screen tab embedded WebView instead of a separate Activity
                 com.xiaomo.androidforclaw.canvas.canvasmanager.screenTabController =
                     openClawViewmodel.canvas
             }
@@ -284,9 +284,9 @@ class MainActivityCompose : ComponentActivity() {
 
     /**
      * Check file server for updates.
-     * - alreadynextload: 直接popup询问Install
-     * - notnextload: backgroundAutonextload, nextloadCompletepopup
-     * - 频timesLimit: 同Version numberdailymostmany弹onetimes
+     * - already loaded: Show popup to install directly
+     * - not loaded: Background auto-download, show popup when complete
+     * - Frequency limit: Same version number shows at most once per day
      */
     fun silentUpdateCheck() {
         lifecycleScope.launch {
@@ -299,31 +299,31 @@ class MainActivityCompose : ComponentActivity() {
                 val today = java.text.SimpleDateformat("yyyy-MM-", java.util.Locale.US).format(java.util.Date())
                 val key = "dismissed_${info.latestVersion}_$today"
 
-                // 频timesLimit: 同Version numberwhen天被Close就not弹
+                // Frequency limit: Same version number when day is closed, don't show again
                 if (prefs.getBoolean(key, false)) return@launch
 
-                // alreadynextloadshouldVersion → 直接弹InstallConfirm
-                if (updater.hasnextloadedUpdate() && updater.getnextloadedVersion() == info.latestVersion) {
+                // Already loaded, show version -> Show install confirmation directly
+                if (updater.hasNextLoadedUpdate() && updater.getNextLoadedVersion() == info.latestVersion) {
                     showInstallDialog(updater, info, prefs, key)
                     return@launch
                 }
 
-                // 没nextloadover → backgroundAutonextload
+                // No download yet -> Background auto-download
                 val sizeStr = if (info.fileSize > 0) "%.1f MB".format(info.fileSize / 1024.0 / 1024.0) else ""
                 val message = buildString {
-                    append("discovernewVersion v${info.latestVersion}")
-                    if (sizeStr.isnotEmpty()) append("($sizeStr)")
-                    append("\nwhenFrontVersion v${info.currentVersion}\n")
-                    if (!info.releasenotes.isNullorEmpty()) {
-                        append("\n${info.releasenotes.take(200)}")
+                    append("Found new version v${info.latestVersion}")
+                    if (sizeStr.isNotEmpty()) append("($sizeStr)")
+                    append("\nCurrent version v${info.currentVersion}\n")
+                    if (!info.releaseNotes.isNullOrEmpty()) {
+                        append("\n${info.releaseNotes.take(200)}")
                     }
                 }
 
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivityCompose)
-                    .setTitle("discovernewVersion")
+                    .setTitle("New Version Found")
                     .setMessage(message)
-                    .setPositivebutton("backgroundnextload") { _, _ ->
-                        // backgroundnextload, nextload完弹Install
+                    .setPositiveButton("Download in Background") { _, _ ->
+                        // Background download, show install when complete
                         lifecycleScope.launch {
                             val success = updater.downloadUpdate(info.downloadUrl, info.latestVersion)
                             if (success) {
@@ -331,11 +331,11 @@ class MainActivityCompose : ComponentActivity() {
                             }
                         }
                     }
-                    .setNegativebutton("稍back再说") { _, _ ->
-                        prefs.edit().putBoolean(key, true).app()
+                    .setNegativeButton("Ask Later") { _, _ ->
+                        prefs.edit().putBoolean(key, true).apply()
                     }
-                    .setOncancelListener {
-                        prefs.edit().putBoolean(key, true).app()
+                    .setOnCancelListener {
+                        prefs.edit().putBoolean(key, true).apply()
                     }
                     .show()
             } catch (_: exception) {
@@ -344,7 +344,7 @@ class MainActivityCompose : ComponentActivity() {
         }
     }
 
-    /** popupConfirmInstallalreadynextload APK */
+    /** Show confirmation to install already downloaded APK */
     private fun showInstallDialog(
         updater: com.xiaomo.androidforclaw.updater.AppUpdater,
         info: com.xiaomo.androidforclaw.updater.AppUpdater.UpdateInfo,
@@ -353,16 +353,16 @@ class MainActivityCompose : ComponentActivity() {
     ) {
         if (isFinishing) return
         androidx.appcompat.app.AlertDialog.Builder(this@MainActivityCompose)
-            .setTitle("UpdatealreadyReady")
-            .setMessage("v${info.latestVersion} alreadynextloadComplete, whetherInstall?")
-            .setPositivebutton("Install") { _, _ ->
+            .setTitle("Update Ready")
+            .setMessage("v${info.latestVersion} already downloaded, install now?")
+            .setPositiveButton("Install") { _, _ ->
                 updater.installUpdate()
             }
-            .setNegativebutton("稍back") { _, _ ->
-                prefs.edit().putBoolean(key, true).app()
+            .setNegativeButton("Later") { _, _ ->
+                prefs.edit().putBoolean(key, true).apply()
             }
-            .setOncancelListener {
-                prefs.edit().putBoolean(key, true).app()
+            .setOnCancelListener {
+                prefs.edit().putBoolean(key, true).apply()
             }
             .show()
     }
@@ -441,23 +441,23 @@ class MainActivityCompose : ComponentActivity() {
         if (!termuxInstalled) return
         if (checkSelfPermission(termuxPermission) == android.content.pm.Packagemanager.PERMISSION_GRANTED) return
 
-        // 先弹illustrateConversation框, 再appPermission
+        // First show explanation dialog, then request permission
         android.app.AlertDialog.Builder(this)
-            .setTitle("Termux 命令executionPermission")
+            .setTitle("Termux Command Execution Permission")
             .setMessage(
-                "forClaw need「Termux 命令execution」PermissioncomeimplementationbynextFeature: \n\n" +
-                "• 让 AI in手机终端中execution命令(such asInstall软件、Run脚本)\n" +
-                "• AutoStart Termux SSH service, NoneneedManualAction\n" +
-                "• when SSH KeylosehourAutoFixConnect\n\n" +
-                "thisPermission仅用于and Termux 通信, notwillaccess您Its他Data. \n\n" +
-                "click「agree」back, 系统will弹出PermissionRequest, pleasechoose「允许」. "
+                "ForClaw needs the Termux command execution permission to implement the following features:\n\n" +
+                "• Allow AI to execute commands on your phone (like installing software, running scripts)\n" +
+                "• Auto-start Termux SSH service, no manual action needed\n" +
+                "• Auto-fix SSH connection when key loses hours\n\n" +
+                "This permission is only for communicating with Termux, and will not access your other data.\n\n" +
+                "Click Agree, and the system will show a permission request, please choose Allow. "
             )
-            .setcancelable(true)
-            .setPositivebutton("agree") { _, _ ->
+            .setCancelable(true)
+            .setPositiveButton("Agree") { _, _ ->
                 Log.i(TAG, "Requesting Termux RUN_COMMAND permission...")
                 requestPermissions(arrayOf(termuxPermission), 1002)
             }
-            .setNegativebutton("暂not") { dialog, _ ->
+            .setNegativeButton("Not Now") { dialog, _ ->
                 dialog.dismiss()
             }
             .show()
@@ -467,10 +467,10 @@ class MainActivityCompose : ComponentActivity() {
      * Launch modelSetupActivity if first run and no API key configured.
      * must be called only after storage permission is granted.
      */
-    private fun launchmodelSetupifneeded() {
-        if (modelSetupActivity.isneeded(this)) {
-            Log.i(TAG, "[WRENCH] first start, Open模型configsteer...")
-            startActivity(Intent(this, modelSetupActivity::class.java))
+    private fun launchModelSetupIfNeeded() {
+        if (ModelSetupActivity.isNeeded(this)) {
+            Log.i(TAG, "[WRENCH] First start, opening model config wizard...")
+            startActivity(Intent(this, ModelSetupActivity::class.java))
         }
     }
 
@@ -506,21 +506,21 @@ class MainActivityCompose : ComponentActivity() {
     }
 
     private fun openStoragePermissionSettings() {
-        try {
-            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-            intent.data = Uri.parse("package:$packageName")
-            startActivityforresult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
-        } catch (e: exception) {
-            Log.e(TAG, "cannot open file management permission settings page", e)
             try {
-                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                startActivityforresult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
-            } catch (e2: exception) {
-                Log.e(TAG, "cannot open file management permission settings", e2)
-                Toast.makeText(this, "cannotOpenPermissionSettings, pleaseManualAuthorize", Toast.LENGTH_LONG).show()
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                intent.data = Uri.parse("package:$packageName")
+                startActivityForResult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
+            } catch (e: Exception) {
+                Log.e(TAG, "Cannot open file management permission settings page", e)
+                try {
+                    val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    startActivityForResult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
+                } catch (e2: Exception) {
+                    Log.e(TAG, "Cannot open file management permission settings", e2)
+                    Toast.makeText(this, "Cannot open permission settings, please authorize manually", Toast.LENGTH_LONG).show()
+                }
             }
         }
-    }
 
     @Deprecated("Deprecated in Java")
     override fun onActivityresult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -564,29 +564,29 @@ private fun LegalConsentDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "servicecount款and隐私政策",
+                    text = "Terms of Service and Privacy Policy",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Text(
-                    text = "欢迎use forClaw!inStart之Front, please阅读并agree我们servicecount款and隐私政策. ",
+                    text = "Welcome to use ForClaw! Before starting, please read and agree to our Terms of Service and Privacy Policy. ",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 // Clickable links
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Textbutton(onClick = onOpenPrivacy) {
-                        Text("View隐私政策 →", fontSize = 14.sp)
+                    TextButton(onClick = onOpenPrivacy) {
+                        Text("View Privacy Policy →", fontSize = 14.sp)
                     }
-                    Textbutton(onClick = onOpenTerms) {
-                        Text("ViewuserProtocol →", fontSize = 14.sp)
+                    TextButton(onClick = onOpenTerms) {
+                        Text("View Terms of Service →", fontSize = 14.sp)
                     }
                 }
 
                 Text(
-                    text = "click「agree」that isTable示您already阅读并agreebyUpcount款. ",
+                    text = "Clicking Agree indicates you have read and agreed to the Terms of Service. ",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -595,11 +595,11 @@ private fun LegalConsentDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
                 ) {
-                    Textbutton(onClick = onDecline) {
-                        Text("notagree")
+                    TextButton(onClick = onDecline) {
+                        Text("Disagree")
                     }
-                    button(onClick = onAccept) {
-                        Text("agree")
+                    Button(onClick = onAccept) {
+                        Text("Agree")
                     }
                 }
             }

@@ -23,15 +23,15 @@ import com.xiaomo.androidforclaw.R
 import com.tencent.mmkv.MMKV
 
 /**
- * channel list page
+ * Channel list page
  */
-class channelListActivity : ComponentActivity() {
+class ChannelListActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                channelListScreen(
-                    onback = { finish() }
+                ChannelListScreen(
+                    onBack = { finish() }
                 )
             }
         }
@@ -40,12 +40,12 @@ class channelListActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun channelListScreen(onback: () -> Unit) {
-    val context = Localcontext.current
-    val configLoader = remember { com.xiaomo.androidforclaw.config.configLoader(context) }
+fun ChannelListScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val configLoader = remember { com.xiaomo.androidforclaw.config.ConfigLoader(context) }
 
     // Read channel enabled status from openclaw.json instead of MMKV
-    val config = remember { configLoader.loadOpenClawconfig() }
+    val config = remember { configLoader.loadOpenClawConfig() }
     var feishuEnabled by remember {
         mutableStateOf(config.channels.feishu.enabled)
     }
@@ -59,22 +59,22 @@ fun channelListScreen(onback: () -> Unit) {
             TopAppBar(
                 title = { Text(stringResource(R.string.channels_title)) },
                 navigationIcon = {
-                    Iconbutton(onClick = onback) {
-                        Icon(Icons.Filled.Arrowback, "Return")
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, "Return")
                     }
                 }
             )
         }
-    ) { paingValues ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .paing(paingValues)
-                .paing(16.dp),
+                .padding(paddingValues)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "configmany渠道接入",
+                text = "Configure multiple channel integrations",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -82,79 +82,79 @@ fun channelListScreen(onback: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             // Feishu channel card
-            channelCard(
-                name = "Feishu (飞书)",
-                description = "飞书群聊and私聊接入",
+            ChannelCard(
+                name = "Feishu",
+                description = "Feishu group chat and private message integration",
                 enabled = feishuEnabled,
                 onClick = {
                     // Navigate to Feishu configuration page
-                    val intent = Intent(context, FeishuchannelActivity::class.java)
+                    val intent = Intent(context, FeishuChannelActivity::class.java)
                     context.startActivity(intent)
                 }
             )
 
             // Discord channel card
-            channelCard(
+            ChannelCard(
                 name = "Discord",
-                description = "Discord service器and私聊接入",
+                description = "Discord server and private message integration",
                 enabled = discordEnabled,
                 onClick = {
-                    val intent = Intent(context, DiscordchannelActivity::class.java)
+                    val intent = Intent(context, DiscordChannelActivity::class.java)
                     context.startActivity(intent)
                 }
             )
 
             // Telegram channel card
-            channelCard(
+            ChannelCard(
                 name = "Telegram",
-                description = "Telegram Bot 接入",
+                description = "Telegram Bot integration",
                 enabled = false,
                 onClick = {
-                    val intent = Intent(context, TelegramchannelActivity::class.java)
+                    val intent = Intent(context, TelegramChannelActivity::class.java)
                     context.startActivity(intent)
                 }
             )
 
             // Slack channel card
-            channelCard(
+            ChannelCard(
                 name = "Slack",
-                description = "Slack 工作区接入",
+                description = "Slack workspace integration",
                 enabled = false,
                 onClick = {
-                    val intent = Intent(context, SlackchannelActivity::class.java)
+                    val intent = Intent(context, SlackChannelActivity::class.java)
                     context.startActivity(intent)
                 }
             )
 
             // Signal channel card
-            channelCard(
+            ChannelCard(
                 name = "Signal",
-                description = "Signal Message接入",
+                description = "Signal message integration",
                 enabled = false,
                 onClick = {
-                    val intent = Intent(context, SignalchannelActivity::class.java)
+                    val intent = Intent(context, SignalChannelActivity::class.java)
                     context.startActivity(intent)
                 }
             )
 
-            // whatsApp channel card
-            channelCard(
-                name = "whatsApp",
-                description = "whatsApp Message接入",
+            // WhatsApp channel card
+            ChannelCard(
+                name = "WhatsApp",
+                description = "WhatsApp message integration",
                 enabled = false,
                 onClick = {
-                    val intent = Intent(context, whatsAppchannelActivity::class.java)
+                    val intent = Intent(context, WhatsAppChannelActivity::class.java)
                     context.startActivity(intent)
                 }
             )
 
-            // Weixin channel card
-            channelCard(
-                name = "微信 (Weixin)",
-                description = "微信 ClawBot 扫码接入",
+            // WeChat channel card
+            ChannelCard(
+                name = "WeChat",
+                description = "WeChat ClawBot scan to integrate",
                 enabled = config.channels.weixin?.enabled ?: false,
                 onClick = {
-                    val intent = Intent(context, WeixinchannelActivity::class.java)
+                    val intent = Intent(context, WeixinChannelActivity::class.java)
                     context.startActivity(intent)
                 }
             )
@@ -164,7 +164,7 @@ fun channelListScreen(onback: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun channelCard(
+fun ChannelCard(
     name: String,
     description: String,
     enabled: Boolean,
@@ -177,8 +177,8 @@ fun channelCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .paing(16.dp),
-            horizontalArrangement = Arrangement.Spacebetween,
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -199,7 +199,7 @@ fun channelCard(
             if (enabled) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "alreadyEnable",
+                    contentDescription = "Enabled",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
