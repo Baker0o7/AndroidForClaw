@@ -150,7 +150,7 @@ object ClipboardInputhelper {
                 // TryWriteTestcontent
                 val testClip = ClipData.newPlainText("claw_test", "test")
                 clipboardmanager.setPrimaryClip(testClip)
-                // 清理
+                  // Clean up clipboard
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     clipboardmanager.clearPrimaryClip()
                 } else {

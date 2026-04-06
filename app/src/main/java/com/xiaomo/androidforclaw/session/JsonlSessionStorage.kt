@@ -338,7 +338,7 @@ data class sessionMetadata(
 )
 
 /**
- * sessions.json Package装器
+ * sessions.json Wrapper
  */
 private data class sessionsIndexWrapper(
     val sessions: Map<String, sessionMetadata>

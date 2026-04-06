@@ -150,7 +150,7 @@ data class TokenUsage(
 // ============= helper Extensions =============
 
 /**
- * will Message Convertfor适用于Log简shortDescription
+ * Convert Message for log short description
  */
 fun Message.toLogString(): String {
     val preview = content.take(50) + if (content.length > 50) "..." else ""
@@ -160,7 +160,7 @@ fun Message.toLogString(): String {
 }
 
 /**
- * Create系统Message
+ * Create system Message
  */
 fun systemMessage(content: String) = Message(
     role = "system",
@@ -176,7 +176,7 @@ fun userMessage(content: String) = Message(
 )
 
 /**
- * Create带imageuserMessage (multimodal)
+ * Create user message with image (multimodal)
  */
 fun userMessage(content: String, images: List<ImageBlock>) = Message(
     role = "user",
@@ -185,7 +185,7 @@ fun userMessage(content: String, images: List<ImageBlock>) = Message(
 )
 
 /**
- * Create助手Message
+ * Create assistant Message
  */
 fun assistantMessage(
     content: String? = null,
@@ -197,7 +197,7 @@ fun assistantMessage(
 )
 
 /**
- * Create工具resultMessage
+ * Create tool result Message
  */
 fun toolMessage(
     toolCallId: String,

@@ -634,7 +634,7 @@ class UnifiedLLMprovider(private val context: context) {
     }
 
     /**
-     * TryParse模型引用, Return when not found null 而notYes抛exception
+      * TryParse model reference, return null when not found rather than throwing exception
      */
     private fun tryParsemodelRef(modelRef: String): Pair<String, String>? {
         // Step 1: Try to find complete modelRef as model ID
