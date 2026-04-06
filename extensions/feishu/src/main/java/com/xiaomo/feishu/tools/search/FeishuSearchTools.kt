@@ -167,11 +167,11 @@ private fun normalizeSearchresultTimeFields(value: JsonElement?, counter: IntArr
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_search_doc_wiki"
-    override val description = "【As user】飞书Document与 Wiki 统一Search工具. at the same timeSearch云SpaceDocument和Knowledge Base Wiki. Actions: search. " +
-        "[Important]query ParametersYesSearch关Key词(Optional), filter ParametersOptional. " +
-        "[Important]filter 不传时, SearchAllDocument和 Wiki；传了则at the same time对Document和 Wiki apply相同的FilterCondition. " +
-        "[Important]Support按DocumentType、Create者、CreateTime、Open time and other dimensionsFilter. " +
-        "[Important]ReturnresultContainsTitle和摘要高亮(<h>标签Package裹match关Key词). "
+    override val description = "[As user] Feishu Document and Wiki unified search tool. Searches both Cloud Space Documents and Knowledge Base Wiki. Actions: search. " +
+        "[Important] query parameter is the search keyword (optional), filter parameter is optional. " +
+        "[Important] When filter is not provided, searches all Documents and Wiki; when provided, applies the same filter condition to both Document and Wiki. " +
+        "[Important] Supports filtering by Document Type, Creator, Create Time, Open time and other dimensions. " +
+        "[Important] Return result contains Title and highlighted summary (<h> tags wrap matched keywords). "
 
     override fun isEnabledd() = config.enableSearchTools
 
@@ -262,22 +262,22 @@ class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : Feis
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "action" to PropertySchema("string", "Action type(目Front仅Support search)", enum = listOf("search")),
-                    "query" to PropertySchema("string", "Search关Key词(Optional, most多 50 字符). 不传或传NullStringTable示Null搜, AlsoCanSupportSortRule与Filter, Defaultaccording tomost近浏览TimeReturnresult"),
-                    "filter" to PropertySchema("object", "SearchFilterCondition(Optional). 不传则SearchAllDocument和 Wiki；传了则at the same time对Document和 Wiki apply相同的FilterCondition. ", properties = mapOf(
-                        "creator_ids" to PropertySchema("array", "Create者 OpenID List(most多 20 个)",
-                            items = PropertySchema("string", "Create者 open_id")),
-                        "doc_types" to PropertySchema("array", "DocumentTypeList: DOC(Document)、SHEET(Table)、BITABLE(Multi-dimensional table格)、MINDNOTE(思维导Graph)、FILE(文件)、WIKI(维基)、DOCX(New版Document)、FOLDER(space文件夹)、CATALOG(wiki2.0文件夹)、SLIDES(New版幻灯片)、SHORTCUT(快捷方式)",
-                            items = PropertySchema("string", "DocumentType",
+                    "action" to PropertySchema("string", "Action type (currently only supports search)", enum = listOf("search")),
+                    "query" to PropertySchema("string", "Search keyword (optional, max 50 characters). If not provided or null, means null search. Also supports sort rules and filters, default returns results sorted by most recent viewing time"),
+                    "filter" to PropertySchema("object", "Search filter condition (optional). If not provided, searches all Documents and Wiki; if provided, applies the same filter condition to both Document and Wiki. ", properties = mapOf(
+                        "creator_ids" to PropertySchema("array", "Creator OpenID list (max 20)",
+                            items = PropertySchema("string", "Creator open_id")),
+                        "doc_types" to PropertySchema("array", "Document type list: DOC(Document), SHEET(Spreadsheet), BITABLE(Multi-dimensional table), MINDNOTE(Mind Note), FILE(File), WIKI(Wiki), DOCX(New Document), FOLDER(Space folder), CATALOG(Wiki 2.0 folder), SLIDES(New Slides), SHORTCUT(Shortcut)",
+                            items = PropertySchema("string", "Document type",
                                 enum = listOf("DOC", "SHEET", "BITABLE", "MINDNOTE", "FILE", "WIKI", "DOCX", "FOLDER", "CATALOG", "SLIDES", "SHORTCUT"))),
-                        "only_title" to PropertySchema("boolean", "仅SearchTitle(Default false, SearchTitle和正文)"),
-                        "sort_type" to PropertySchema("string", "Sort方式. EDIT_TIME=EditTimeDescending(mostNewDocument在Front, recommend), EDIT_TIME_ASC=EditTimeAscending, CREATE_TIME=按DocumentCreateTimeSort, OPEN_TIME=OpenTime, DEFAULT_TYPE=DefaultSort",
+                        "only_title" to PropertySchema("boolean", "Search only title (default false, searches title and body)"),
+                        "sort_type" to PropertySchema("string", "Sort method. EDIT_TIME=Edit time descending (newest first, recommended), EDIT_TIME_ASC=Edit time ascending, CREATE_TIME=Sort by document create time, OPEN_TIME=Open time, DEFAULT_TYPE=Default sort",
                             enum = listOf("DEFAULT_TYPE", "OPEN_TIME", "EDIT_TIME", "EDIT_TIME_ASC", "CREATE_TIME")),
-                        "open_time" to PropertySchema("object", "OpenTimeRange {start, end}(ISO 8601 格式)"),
-                        "create_time" to PropertySchema("object", "CreateTimeRange {start, end}(ISO 8601 格式)")
+                        "open_time" to PropertySchema("object", "Open time range {start, end} (ISO 8601 format)"),
+                        "create_time" to PropertySchema("object", "Create time range {start, end} (ISO 8601 format)")
                     )),
-                    "page_token" to PropertySchema("string", "Page token. 首次Request不填；当Returnresult中 has_more 为 true 时, 可传入Return的 page_token ContinueRequestDown一页"),
-                    "page_size" to PropertySchema("integer", "Page size(Default 15, Max 20)")
+                    "page_token" to PropertySchema("string", "Page token. Not required for first request; when has_more is true in return results, can use the returned page_token to request the next page"),
+                    "page_size" to PropertySchema("integer", "Page size (default 15, max 20)")
                 ),
                 required = emptyList()
             )

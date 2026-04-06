@@ -24,13 +24,13 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * 飞书Graph片Upload工具 (Kotlin Implementation,Stable版)
+ * Feishu image upload tool (Kotlin Implementation, Stable version)
  *
- * Stable性Improve:
- * 1. use Kotlin 协程 + Sync HTTP call
- * 2. 详细的ErrorLog和Retry机制
- * 3. 完整的Request/ResponseValidate
- * 4. 文件格式和SizeCheck
+ * Stability improvements:
+ * 1. Use Kotlin coroutines + sync HTTP call
+ * 2. Detailed error logs and retry mechanism
+ * 3. Complete request/response validation
+ * 4. File format and size check
  */
 class FeishuImageUploadTool(
     config: FeishuConfig,
@@ -54,7 +54,7 @@ class FeishuImageUploadTool(
 
     override val name = "feishu_upload_image"
 
-    override val description = "UploadGraph片到飞书并Return image_key,Available于Back续sendMessage"
+    override val description = "Upload image to Feishu and return image_key, available for sending messages later"
 
     override fun isEnabledd() = true
 
@@ -69,7 +69,7 @@ class FeishuImageUploadTool(
                     properties = mapOf(
                         "image_path" to PropertySchema(
                             type = "string",
-                            description = "Graph片文件的absolutelyPath (Support PNG, JPG, JPEG, GIF, BMP)"
+                            description = "Image file absolute path (supports PNG, JPG, JPEG, GIF, BMP)"
                         )
                     ),
                     required = listOf("image_path")
@@ -80,25 +80,25 @@ class FeishuImageUploadTool(
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val imagePath = args["image_path"] as? String
-            ?: return Toolresult.error("缺少Parameters: image_path")
+            ?: return Toolresult.error("Missing parameter: image_path")
 
-        Log.i(TAG, "StartUploadGraph片: $imagePath")
+        Log.i(TAG, "Start uploading image: $imagePath")
 
-        // Validate文件
+        // Validate file
         val imageFile = File(imagePath)
-        val validationresult = validateImageFile(imageFile)
-        if (!validationresult.success) {
-            return validationresult
+        val validationResult = validateImageFile(imageFile)
+        if (!validationResult.success) {
+            return validationResult
         }
 
-        // UploadGraph片 (带Retry) - 在 IO Thread执RowSync HTTP call
+        // Upload image (with retry) - run sync HTTP call in IO thread
         return withContext(Dispatchers.IO) {
             for (attempt in 1..MAX_RETRIES) {
-                Log.d(TAG, "UploadAttempt $attempt/$MAX_RETRIES")
+                Log.d(TAG, "Upload attempt $attempt/$MAX_RETRIES")
 
                 try {
                     val imageKey = uploadImageWithDetails(imageFile)
-                    Log.i(TAG, "✅ Graph片UploadSuccess: $imageKey")
+                    Log.i(TAG, "Image uploaded successfully: $imageKey")
 
                     return@withContext Toolresult.success(
                         data = imageKey,
@@ -111,53 +111,53 @@ class FeishuImageUploadTool(
                     )
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "❌ UploadFailed (Attempt $attempt/$MAX_RETRIES): ${e.message}", e)
+                    Log.e(TAG, "Upload failed (attempt $attempt/$MAX_RETRIES): ${e.message}", e)
 
                     if (attempt < MAX_RETRIES) {
-                        Thread.sleep(RETRY_DELAY_MS * attempt) // 递增Delay
+                        Thread.sleep(RETRY_DELAY_MS * attempt) // Incremental delay
                     } else {
                         return@withContext Toolresult.error(
-                            "Graph片UploadFailed (已Retry $MAX_RETRIES 次): ${e.message}"
+                            "Image upload failed (retried $MAX_RETRIES times): ${e.message}"
                         )
                     }
                 }
             }
 
-            Toolresult.error("Graph片UploadFailed: 超过MaxRetry次数")
+            Toolresult.error("Image upload failed: exceeded max retry count")
         }
     }
 
     /**
-     * ValidateGraph片文件
+     * Validate image file
      */
     private fun validateImageFile(file: File): Toolresult {
-        // Check文件YesNoExists
+        // Check if file exists
         if (!file.exists()) {
-            return Toolresult.error("文件不Exists: ${file.absolutePath}")
+            return Toolresult.error("File does not exist: ${file.absolutePath}")
         }
 
         if (!file.isFile) {
-            return Toolresult.error("不Yes文件: ${file.absolutePath}")
+            return Toolresult.error("Not a file: ${file.absolutePath}")
         }
 
         if (!file.canRead()) {
-            return Toolresult.error("文件不可读: ${file.absolutePath}")
+            return Toolresult.error("File not readable: ${file.absolutePath}")
         }
 
-        // Check文件Size
+        // Check file size
         val fileSizeBytes = file.length()
         if (fileSizeBytes == 0L) {
-            return Toolresult.error("文件为Null: ${file.absolutePath}")
+            return Toolresult.error("File is empty: ${file.absolutePath}")
         }
 
         val fileSizeMB = fileSizeBytes / (1024.0 * 1024.0)
         if (fileSizeMB > MAX_FILE_SIZE_MB) {
             return Toolresult.error(
-                "文件过大: %.2fMB > %dMB".format(fileSizeMB, MAX_FILE_SIZE_MB)
+                "File too large: %.2fMB > %dMB".format(fileSizeMB, MAX_FILE_SIZE_MB)
             )
         }
 
-        // Check文件扩展名
+        // Check file extension
         val fileName = file.name.lowercase()
         if (!fileName.endsWith(".png") &&
             !fileName.endsWith(".jpg") &&
@@ -166,33 +166,33 @@ class FeishuImageUploadTool(
             !fileName.endsWith(".bmp")
         ) {
             return Toolresult.error(
-                "不Support的Graph片格式,仅Support: PNG, JPG, JPEG, GIF, BMP"
+                "Unsupported image format. Supported: PNG, JPG, JPEG, GIF, BMP"
             )
         }
 
-        Log.d(TAG, "✅ 文件Validate通过: ${file.name} (%.2fMB)".format(fileSizeMB))
+        Log.d(TAG, "File validation passed: ${file.name} (%.2fMB)".format(fileSizeMB))
 
         return Toolresult.success()
     }
 
     /**
-     * UploadGraph片并Return image_key (详细LogVersion)
-     * 注意: 这YesSyncMethod,Need在 IO Threadcall
+     * Upload image and return image_key (detailed log version)
+     * Note: This is a sync method, need to call in IO thread
      */
     private fun uploadImageWithDetails(imageFile: File): String {
         // 1. Get access token
-        Log.d(TAG, "步骤 1: Get tenant_access_token")
+        Log.d(TAG, "Step 1: Get tenant_access_token")
         val token = client.getTenantAccessTokenSync()
-            ?: throw IOException("Get token Failed")
-        Log.d(TAG, "✅ Token GetSuccess")
+            ?: throw IOException("Get token failed")
+        Log.d(TAG, "Token obtained successfully")
 
-        // 2. BuildRequest
-        Log.d(TAG, "步骤 2: Build multipart Request")
+        // 2. Build request
+        Log.d(TAG, "Step 2: Build multipart request")
         val fileBody = imageFile.asRequestBody("image/png".toMediaType())
 
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("image_type", "message")  // 重要: use "message" 而不Yes "image"
+            .addFormDataPart("image_type", "message")  // Important: use "message" instead of "image"
             .addFormDataPart("image", imageFile.name, fileBody)
             .build()
 
@@ -204,46 +204,46 @@ class FeishuImageUploadTool(
             .build()
 
         Log.d(TAG, "Request URL: $url")
-        Log.d(TAG, "文件名: ${imageFile.name}")
-        Log.d(TAG, "文件Size: ${imageFile.length()} bytes")
+        Log.d(TAG, "File name: ${imageFile.name}")
+        Log.d(TAG, "File size: ${imageFile.length()} bytes")
 
-        // 3. 执RowRequest
-        Log.d(TAG, "步骤 3: send HTTP Request")
+        // 3. Execute request
+        Log.d(TAG, "Step 3: Send HTTP request")
         val response = httpClient.newCall(request).execute()
 
         response.use {
             val statusCode = response.code
             val responseBody = response.body?.string() ?: ""
 
-            Log.d(TAG, "ResponseStatus码: $statusCode")
-            Log.d(TAG, "ResponseInside容: $responseBody")
+            Log.d(TAG, "Response status code: $statusCode")
+            Log.d(TAG, "Response content: $responseBody")
 
-            // 4. Check HTTP Status码
+            // 4. Check HTTP status code
             if (!response.isSuccessful) {
-                throw IOException("HTTP RequestFailed [$statusCode]: $responseBody")
+                throw IOException("HTTP request failed [$statusCode]: $responseBody")
             }
 
-            // 5. ParseResponse
-            Log.d(TAG, "步骤 4: ParseResponse JSON")
+            // 5. Parse response
+            Log.d(TAG, "Step 4: Parse response JSON")
             val json = gson.fromJson(responseBody, JsonObject::class.java)
-                ?: throw IOException("Response JSON 为Null")
+                ?: throw IOException("Response JSON is null")
 
-            // Check code Field
+            // Check code field
             val code = json.get("code")?.asInt ?: -1
             if (code != 0) {
-                val msg = json.get("msg")?.asString ?: "UnknownError"
-                throw IOException("飞书 API Error [code=$code]: $msg")
+                val msg = json.get("msg")?.asString ?: "Unknown error"
+                throw IOException("Feishu API error [code=$code]: $msg")
             }
 
-            // 提取 image_key
+            // Extract image_key
             val data = json.getAsJsonObject("data")
-                ?: throw IOException("Response缺少 data Field")
+                ?: throw IOException("Response missing data field")
 
             val imageKey = data.get("image_key")?.asString
-                ?: throw IOException("Response缺少 image_key Field")
+                ?: throw IOException("Response missing image_key field")
 
             if (imageKey.isEmpty()) {
-                throw IOException("image_key 为Null")
+                throw IOException("image_key is null")
             }
 
             return imageKey

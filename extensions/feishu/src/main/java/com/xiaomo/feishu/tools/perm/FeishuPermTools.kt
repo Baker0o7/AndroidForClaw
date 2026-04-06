@@ -16,7 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书Permission工具集
+ * Feishu permission tools set.
  * Aligned with OpenClaw src/perm-tools
  */
 class FeishuPermTools(config: FeishuConfig, client: FeishuClient) {
@@ -34,11 +34,11 @@ class FeishuPermTools(config: FeishuConfig, client: FeishuClient) {
 }
 
 /**
- * CheckPermission工具
+ * Check permission tool
  */
 class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_check"
-    override val description = "Check飞书DocumentPermission"
+    override val description = "Check Feishu document permission"
 
     override fun isEnabledd() = config.enablePermTools
 
@@ -77,8 +77,8 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "Documenttoken"),
-                    "type" to PropertySchema("string", "DocumentType(doc/sheet/bitable等, Defaultdoc)")
+                    "token" to PropertySchema("string", "Document token"),
+                    "type" to PropertySchema("string", "Document type (doc/sheet/bitable etc., default doc)")
                 ),
                 required = listOf("token")
             )
@@ -87,11 +87,11 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * grantPermission工具
+ * Grant permission tool
  */
 class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_grant"
-    override val description = "grant飞书DocumentPermission"
+    override val description = "Grant Feishu document permission"
 
     override fun isEnabledd() = config.enablePermTools
 
@@ -135,11 +135,11 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "Documenttoken"),
-                    "type" to PropertySchema("string", "DocumentType(doc/sheet/bitable等, Defaultdoc)"),
-                    "member_type" to PropertySchema("string", "MemberType(user/chat等, Defaultuser)"),
-                    "member_id" to PropertySchema("string", "MemberID"),
-                    "perm" to PropertySchema("string", "Permission级别(view/edit/full_access, Defaultview)")
+                    "token" to PropertySchema("string", "Document token"),
+                    "type" to PropertySchema("string", "Document type (doc/sheet/bitable etc., default doc)"),
+                    "member_type" to PropertySchema("string", "Member type (user/chat etc., default user)"),
+                    "member_id" to PropertySchema("string", "Member ID"),
+                    "perm" to PropertySchema("string", "Permission level (view/edit/full_access, default view)")
                 ),
                 required = listOf("token", "member_id")
             )
@@ -148,11 +148,11 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * undoPermission工具
+ * Revoke permission tool
  */
 class PermRevokeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_revoke"
-    override val description = "undo飞书DocumentPermission"
+    override val description = "Revoke Feishu document permission"
 
     override fun isEnabledd() = config.enablePermTools
 
@@ -188,10 +188,10 @@ class PermRevokeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "Documenttoken"),
-                    "type" to PropertySchema("string", "DocumentType(doc/sheet/bitable等, Defaultdoc)"),
-                    "member_type" to PropertySchema("string", "MemberType(user/chat等, Defaultuser)"),
-                    "member_id" to PropertySchema("string", "MemberID")
+                    "token" to PropertySchema("string", "Document token"),
+                    "type" to PropertySchema("string", "Document type (doc/sheet/bitable etc., default doc)"),
+                    "member_type" to PropertySchema("string", "Member type (user/chat etc., default user)"),
+                    "member_id" to PropertySchema("string", "Member ID")
                 ),
                 required = listOf("token", "member_id")
             )

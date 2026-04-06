@@ -331,15 +331,15 @@ private fun formatMessageList(items: JsonArray): JsonArray {
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuImUserMessageTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_im_user_message"
-    override val description = "飞书User身份 IM Message工具. **Has且仅当User明确要求以自己身份发Message、回复Message时use, 当None明确要求时优先usemessage系统工具**. " +
+    override val description = "Feishu user identity IM message tool. **Use ONLY when user explicitly requests to send message or reply message as themselves; when not explicitly requested, prefer using message system tool**. " +
         "\n\nActions:" +
-        "\n- send(sendMessage): sendMessage到私聊或群聊. 私聊用 receive_id_type=open_id, 群聊用 receive_id_type=chat_id" +
-        "\n- reply(回复Message): 回复指定 message_id 的Message, Support话题回复(reply_in_thread=true)" +
-        "\n\n[Important]content MustYes合法 JSON String, 格式depend on msg_type. " +
-        "most常用: text Type content 为 '{\"text\":\"MessageInside容\"}'. " +
-        "\n\n【SecureConstraint】此工具As usersendMessage, 发出Back对方看到的send者YesUser本人. " +
-        "callFrontMust先向UserConfirm: 1) sendObject(哪个人或哪个群)2) MessageInside容. " +
-        "禁止在User未明确agree的情况Down自RowsendMessage. "
+        "\n- send: send message to private chat or group chat. Use receive_id_type=open_id for private chat, receive_id_type=chat_id for group chat" +
+        "\n- reply: reply to message with specified message_id, supports thread reply (reply_in_thread=true)" +
+        "\n\n[Important] content must be a valid JSON string, format depends on msg_type. " +
+        "Most common: text type content is '{\"text\":\"message content\"}'. " +
+        "\n\n[Security constraint] This tool sends message as user, the sender visible to the recipient is the user themselves. " +
+        "Must confirm with user before calling: 1) message target (which person or group) 2) message content. " +
+        "Do not autonomously send messages when user has not explicitly agreed. "
 
     override fun isEnabledd() = config.enableImTools
 
@@ -434,15 +434,15 @@ class FeishuImUserMessageTool(config: FeishuConfig, client: FeishuClient) : Feis
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action type", enum = listOf("send", "reply")),
-                    "receive_id_type" to PropertySchema("string", "receive者 ID Type: open_id(私聊, ou_xxx)、chat_id(群聊, oc_xxx)",
+                    "receive_id_type" to PropertySchema("string", "Receiver ID type: open_id (private chat, ou_xxx), chat_id (group chat, oc_xxx)",
                         enum = listOf("open_id", "chat_id")),
-                    "receive_id" to PropertySchema("string", "receive者 ID, 与 receive_id_type 对应. open_id 填 'ou_xxx', chat_id 填 'oc_xxx'"),
-                    "message_id" to PropertySchema("string", "被回复Message的 ID(om_xxx 格式)"),
-                    "msg_type" to PropertySchema("string", "MessageType",
+                    "receive_id" to PropertySchema("string", "Receiver ID, corresponding to receive_id_type. For open_id use 'ou_xxx', for chat_id use 'oc_xxx'"),
+                    "message_id" to PropertySchema("string", "ID of message being replied to (om_xxx format)"),
+                    "msg_type" to PropertySchema("string", "Message type",
                         enum = listOf("text", "post", "image", "file", "audio", "media", "interactive", "share_chat", "share_user")),
-                    "content" to PropertySchema("string", "MessageInside容(JSON String), 格式depend on msg_type. 示例: text -> '{\"text\":\"hello\"}'"),
-                    "reply_in_thread" to PropertySchema("boolean", "YesNo以话题形式回复(reply 时use)"),
-                    "uuid" to PropertySchema("string", "幂等Unique标识. 同一 uuid 在 1 小时Inside只会send一条Message")
+                    "content" to PropertySchema("string", "Message content (JSON string), format depends on msg_type. Example: text -> '{\"text\":\"hello\"}'"),
+                    "reply_in_thread" to PropertySchema("boolean", "Whether to reply as thread (use when replying)"),
+                    "uuid" to PropertySchema("string", "Idempotent unique identifier. Same uuid within 1 hour will only send one message")
                 ),
                 required = listOf("action")
             )
@@ -455,17 +455,17 @@ class FeishuImUserMessageTool(config: FeishuConfig, client: FeishuClient) : Feis
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuImUserGetMessagesTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_im_user_get_messages"
-    override val description = "【As user】Get群聊或单聊的历史Message. " +
-        "\n\n用法: " +
-        "\n- 通过 chat_id Get群聊/单聊Message" +
-        "\n- 通过 open_id Get与指定User的单聊Message(AutoParse chat_id)" +
-        "\n- SupportTimeRangeFilter: relative_time(such as today、last_3_days)或 start_time/end_time(ISO 8601 格式)" +
-        "\n- SupportPaginate: page_size + page_token" +
-        "\n\n【ParametersConstraint】" +
-        "\n- open_id 和 chat_id MustChoose one, cannotat the same time提供" +
-        "\n- relative_time 和 start_time/end_time cannotat the same timeuse" +
-        "\n- page_size Range 1-50, Default 50" +
-        "\n\nReturnMessageList, 每条MessageContains message_id、msg_type、content(AI 可读Text)、sender、create_time 等Field. "
+    override val description = "[As user] Get message history from group chat or private chat. " +
+        "\n\nUsage: " +
+        "\n- Get chat/group messages via chat_id" +
+        "\n- Get messages with specific user via open_id (auto parse chat_id)" +
+        "\n- Supports time range filter: relative_time (such as today, last_3_days) or start_time/end_time (ISO 8601 format)" +
+        "\n- Supports pagination: page_size + page_token" +
+        "\n\n[Parameters constraint]" +
+        "\n- open_id and chat_id must choose one, cannot provide both at the same time" +
+        "\n- relative_time and start_time/end_time cannot be used at the same time" +
+        "\n- page_size range 1-50, default 50" +
+        "\n\nReturns message list, each message contains message_id, msg_type, content (AI readable text), sender, create_time, etc. "
 
     override fun isEnabledd() = config.enableImTools
 
@@ -544,16 +544,16 @@ class FeishuImUserGetMessagesTool(config: FeishuConfig, client: FeishuClient) : 
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "open_id" to PropertySchema("string", "User open_id(ou_xxx), Get与该User的单聊Message. 与 chat_id Mutex"),
-                    "chat_id" to PropertySchema("string", "Session ID(oc_xxx), Support单聊和群聊. 与 open_id Mutex"),
-                    "sort_rule" to PropertySchema("string", "Sort方式, Default create_time_desc(mostNewMessage在Front)",
+                    "open_id" to PropertySchema("string", "User open_id (ou_xxx), get messages with this user. Mutually exclusive with chat_id"),
+                    "chat_id" to PropertySchema("string", "Session ID (oc_xxx), supports private chat and group chat. Mutually exclusive with open_id"),
+                    "sort_rule" to PropertySchema("string", "Sort method, default create_time_desc (newest message first)",
                         enum = listOf("create_time_asc", "create_time_desc")),
-                    "page_size" to PropertySchema("integer", "每页Message数(1-50), Default 50"),
-                    "page_token" to PropertySchema("string", "Page token, 用于GetDown一页"),
+                    "page_size" to PropertySchema("integer", "Messages per page (1-50), default 50"),
+                    "page_token" to PropertySchema("string", "Page token, used to get next page"),
                     "relative_time" to PropertySchema("string",
-                        "relativelyTimeRange: today / yesterday / day_before_yesterday / this_week / last_week / this_month / last_month / last_{N}_{unit}(unit: minutes/hours/days). 与 start_time/end_time Mutex"),
-                    "start_time" to PropertySchema("string", "起始Time(ISO 8601 格式, such as 2026-02-27T00:00:00+08:00). 与 relative_time Mutex"),
-                    "end_time" to PropertySchema("string", "EndTime(ISO 8601 格式, such as 2026-02-27T23:59:59+08:00). 与 relative_time Mutex")
+                        "Relative time range: today / yesterday / day_before_yesterday / this_week / last_week / this_month / last_month / last_{N}_{unit} (unit: minutes/hours/days). Mutually exclusive with start_time/end_time"),
+                    "start_time" to PropertySchema("string", "Start time (ISO 8601 format, such as 2026-02-27T00:00:00+08:00). Mutually exclusive with relative_time"),
+                    "end_time" to PropertySchema("string", "End time (ISO 8601 format, such as 2026-02-27T23:59:59+08:00). Mutually exclusive with relative_time")
                 ),
                 required = emptyList()
             )
@@ -566,12 +566,12 @@ class FeishuImUserGetMessagesTool(config: FeishuConfig, client: FeishuClient) : 
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuImUserGetThreadMessagesTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_im_user_get_thread_messages"
-    override val description = "【As user】Get话题(thread)Inside的MessageList. " +
-        "\n\n用法: " +
-        "\n- 通过 thread_id(omt_xxx)Get话题Inside的AllMessage" +
-        "\n- SupportPaginate: page_size + page_token" +
-        "\n\n【注意】话题Message不SupportTimeRangeFilter(飞书 API Limit)" +
-        "\n\nReturnMessageList, 格式同 feishu_im_user_get_messages. "
+    override val description = "[As user] Get message list in thread. " +
+        "\n\nUsage: " +
+        "\n- Get all messages in thread via thread_id (omt_xxx)" +
+        "\n- Supports pagination: page_size + page_token" +
+        "\n\n[Note] Thread messages do not support time range filter (Feishu API limit)" +
+        "\n\nReturns message list, same format as feishu_im_user_get_messages. "
 
     override fun isEnabledd() = config.enableImTools
 
@@ -625,11 +625,11 @@ class FeishuImUserGetThreadMessagesTool(config: FeishuConfig, client: FeishuClie
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "thread_id" to PropertySchema("string", "话题 ID(omt_xxx 格式)"),
-                    "sort_rule" to PropertySchema("string", "Sort方式, Default create_time_desc(mostNewMessage在Front)",
+                    "thread_id" to PropertySchema("string", "Thread ID (omt_xxx format)"),
+                    "sort_rule" to PropertySchema("string", "Sort method, default create_time_desc (newest message first)",
                         enum = listOf("create_time_asc", "create_time_desc")),
-                    "page_size" to PropertySchema("integer", "每页Message数(1-50), Default 50"),
-                    "page_token" to PropertySchema("string", "Page token, 用于GetDown一页")
+                    "page_size" to PropertySchema("integer", "Messages per page (1-50), default 50"),
+                    "page_token" to PropertySchema("string", "Page token, used to get next page")
                 ),
                 required = listOf("thread_id")
             )
@@ -642,21 +642,21 @@ class FeishuImUserGetThreadMessagesTool(config: FeishuConfig, client: FeishuClie
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuImUserSearchMessagesTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_im_user_search_messages"
-    override val description = "【As user】跨SessionSearch飞书Message. " +
-        "\n\n用法: " +
-        "\n- 按关Key词SearchMessageInside容" +
-        "\n- 按send者、被@User、MessageTypeFilter" +
-        "\n- Filter by time range: relative_time 或 start_time/end_time" +
-        "\n- 限定在某个SessionInsideSearch(chat_id)" +
-        "\n- SupportPaginate: page_size + page_token" +
-        "\n\n【ParametersConstraint】" +
-        "\n- AllParameters均Optional, 但至少应提供一个FilterCondition" +
-        "\n- relative_time 和 start_time/end_time cannotat the same timeuse" +
-        "\n- page_size Range 1-50, Default 50" +
-        "\n\nReturnMessageList, 每条MessageContains message_id、msg_type、content、sender、create_time 等Field. " +
-        "\n每条Message还Contains chat_id、chat_type(p2p/group)、chat_name(群名或单聊对方名字). " +
-        "\n单聊Message额OutsideContains chat_partner(对方 open_id 和名字). " +
-        "\nSearchresult中的 chat_id 和 thread_id 可配合 feishu_im_user_get_messages / feishu_im_user_get_thread_messages ViewUpDown文. "
+    override val description = "[As user] Search Feishu messages across chats. " +
+        "\n\nUsage: " +
+        "\n- Search message content by keyword" +
+        "\n- Filter by sender, mentioned user, message type" +
+        "\n- Filter by time range: relative_time or start_time/end_time" +
+        "\n- Limit search to specific chat (chat_id)" +
+        "\n- Supports pagination: page_size + page_token" +
+        "\n\n[Parameters constraint]" +
+        "\n- All parameters are optional, but at least one filter condition should be provided" +
+        "\n- relative_time and start_time/end_time cannot be used at the same time" +
+        "\n- page_size range 1-50, default 50" +
+        "\n\nReturns message list, each message contains message_id, msg_type, content, sender, create_time, etc. " +
+        "\nEach message also contains chat_id, chat_type (p2p/group), chat_name (group name or private chat partner name). " +
+        "\nPrivate chat messages additionally contain chat_partner (partner's open_id and name). " +
+        "\nThe chat_id and thread_id in search results can be used with feishu_im_user_get_messages / feishu_im_user_get_thread_messages to view context. "
 
     override fun isEnabledd() = config.enableImTools
 
@@ -857,24 +857,24 @@ class FeishuImUserSearchMessagesTool(config: FeishuConfig, client: FeishuClient)
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "query" to PropertySchema("string", "Search关Key词, matchMessageInside容. 可为NullStringTable示不按Inside容Filter"),
-                    "sender_ids" to PropertySchema("array", "send者 open_id List. such as需according toUser名Find open_id, 请先use search_user 工具",
-                        items = PropertySchema("string", "send者的 open_id(ou_xxx)")),
-                    "chat_id" to PropertySchema("string", "限定SearchRange的Session ID(oc_xxx)"),
-                    "mention_ids" to PropertySchema("array", "被@User的 open_id List",
-                        items = PropertySchema("string", "被@User的 open_id(ou_xxx)")),
-                    "message_type" to PropertySchema("string", "MessageTypeFilter: file / image / media. 为Null则SearchAllType",
+                    "query" to PropertySchema("string", "Search keyword, matches message content. Null means do not filter by content"),
+                    "sender_ids" to PropertySchema("array", "Sender open_id list. If you need to find open_id by user name, please use search_user tool first",
+                        items = PropertySchema("string", "Sender's open_id (ou_xxx)")),
+                    "chat_id" to PropertySchema("string", "Session ID to limit search range (oc_xxx)"),
+                    "mention_ids" to PropertySchema("array", "Mentioned user's open_id list",
+                        items = PropertySchema("string", "Mentioned user's open_id (ou_xxx)")),
+                    "message_type" to PropertySchema("string", "Message type filter: file / image / media. Null means search all types",
                         enum = listOf("file", "image", "media")),
-                    "sender_type" to PropertySchema("string", "send者Type: user / bot / all. Default user",
+                    "sender_type" to PropertySchema("string", "Sender type: user / bot / all. Default user",
                         enum = listOf("user", "bot", "all")),
-                    "chat_type" to PropertySchema("string", "SessionType: group(群聊)/ p2p(单聊)",
+                    "chat_type" to PropertySchema("string", "Session type: group (group chat) / p2p (private chat)",
                         enum = listOf("group", "p2p")),
                     "relative_time" to PropertySchema("string",
-                        "relativelyTimeRange: today / yesterday / day_before_yesterday / this_week / last_week / this_month / last_month / last_{N}_{unit}(unit: minutes/hours/days). 与 start_time/end_time Mutex"),
-                    "start_time" to PropertySchema("string", "起始Time(ISO 8601 格式, such as 2026-02-27T00:00:00+08:00). 与 relative_time Mutex"),
-                    "end_time" to PropertySchema("string", "EndTime(ISO 8601 格式, such as 2026-02-27T23:59:59+08:00). 与 relative_time Mutex"),
-                    "page_size" to PropertySchema("integer", "每页Message数(1-50), Default 50"),
-                    "page_token" to PropertySchema("string", "Page token, 用于GetDown一页")
+                        "Relative time range: today / yesterday / day_before_yesterday / this_week / last_week / this_month / last_month / last_{N}_{unit} (unit: minutes/hours/days). Mutually exclusive with start_time/end_time"),
+                    "start_time" to PropertySchema("string", "Start time (ISO 8601 format, such as 2026-02-27T00:00:00+08:00). Mutually exclusive with relative_time"),
+                    "end_time" to PropertySchema("string", "End time (ISO 8601 format, such as 2026-02-27T23:59:59+08:00). Mutually exclusive with relative_time"),
+                    "page_size" to PropertySchema("integer", "Messages per page (1-50), default 50"),
+                    "page_token" to PropertySchema("string", "Page token, used to get next page")
                 ),
                 required = emptyList()
             )
@@ -920,17 +920,17 @@ private val MIME_TO_EXT = mapOf(
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuImUserFetchResourceTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_im_user_fetch_resource"
-    override val description = "【As user】Download飞书 IM Message中的文件或Graph片Resource到本地文件. NeedUser OAuth Authorize. " +
-        "\n\n适用场景: 当你As usercall了MessageList/Search等 API Get到 message_id 和 file_key 时, " +
-        "应use本工具以同样的User身份DownloadResource. " +
-        "\n注意: if message_id from当FrontConversationUpDown文(User发给机器人的Message、引用的Message), " +
-        "请use feishu_im_bot_image 工具以机器人身份Download, None需UserAuthorize. " +
-        "\n\nParametersillustrate: " +
-        "\n- message_id: Message ID(om_xxx), 从MessageEvent或MessageList中Get" +
-        "\n- file_key: Resource Key, 从Message体中Get. Graph片用 image_key(img_xxx), 文件用 file_key(file_xxx)" +
-        "\n- type: Graph片用 image, 文件/音频/视频用 file" +
-        "\n\n文件AutoSave到Temporary目录Down, ReturnValue中的 saved_path 为实际SavePath. " +
-        "\nLimit: 文件Size不超过 100MB. 不SupportDownloadTable情Package、Merge转发Message、卡片中的Resource. "
+    override val description = "[As user] Download files or image resources from Feishu IM messages to local files. Requires user OAuth authorization. " +
+        "\n\nUse case: When you call message list/search API as user and get message_id and file_key, " +
+        "use this tool to download the resource with the same user identity. " +
+        "\nNote: If message_id is from current conversation context (message sent to bot by user, quoted message), " +
+        "please use feishu_im_bot_image tool to download as bot, no user authorization needed. " +
+        "\n\nParameter description: " +
+        "\n- message_id: Message ID (om_xxx), from message event or message list" +
+        "\n- file_key: Resource key, from message body. Use image_key (img_xxx) for images, file_key (file_xxx) for files" +
+        "\n- type: Use image for images, file for files/audio/video" +
+        "\n\nFile is auto saved to temp directory, saved_path in return value is the actual save path. " +
+        "\nLimit: File size must not exceed 100MB. Does not support downloading table cards, merged forwarded messages, or resources in cards. "
 
     override fun isEnabledd() = config.enableImTools
 
@@ -985,9 +985,9 @@ class FeishuImUserFetchResourceTool(config: FeishuConfig, client: FeishuClient) 
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "message_id" to PropertySchema("string", "Message ID(om_xxx 格式), 从MessageEvent或MessageList中Get"),
-                    "file_key" to PropertySchema("string", "Resource Key, 从Message体中Get. Graph片Message的 image_key(img_xxx)或文件Message的 file_key(file_xxx)"),
-                    "type" to PropertySchema("string", "ResourceType: image(Graph片Message中的Graph片)、file(文件/音频/视频Message中的文件)",
+                    "message_id" to PropertySchema("string", "Message ID (om_xxx format), from message event or message list"),
+                    "file_key" to PropertySchema("string", "Resource key, from message body. Image message's image_key (img_xxx) or file message's file_key (file_xxx)"),
+                    "type" to PropertySchema("string", "Resource type: image (image in image message), file (file in file/audio/video message)",
                         enum = listOf("image", "file"))
                 ),
                 required = listOf("message_id", "file_key")
@@ -1001,11 +1001,11 @@ class FeishuImUserFetchResourceTool(config: FeishuConfig, client: FeishuClient) 
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuImBotImageTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_im_bot_image"
-    override val description = "【以机器人身份】Download飞书 IM Image or file resources in message to local. " +
-        "\n\n适用场景: User直接send给机器人的Message、User引用的Message、机器人收到的群聊Message中的Graph片/文件. " +
-        "that is当FrontConversationUpDown文中出现的 message_id 和 image_key/file_key, 应use本工具Download. " +
-        "\n引用Message的 message_id 可从UpDown文中的 [message_id=om_xxx] 提取, None需向User询问. " +
-        "\n\n文件AutoSave到Temporary目录Down, ReturnValue中的 saved_path 为实际SavePath. "
+    override val description = "[As bot] Download Feishu IM image or file resources in message to local. " +
+        "\n\nUse case: Messages sent directly to bot by user, messages quoted by user, images/files in group chat messages received by bot. " +
+        "For message_id and image_key/file_key appearing in current conversation context, use this tool to download. " +
+        "\nThe message_id of quoted message can be extracted from context as [message_id=om_xxx], no need to ask user. " +
+        "\n\nFile is auto saved to temp directory, saved_path in return value is the actual save path. "
 
     override fun isEnabledd() = config.enableImTools
 
@@ -1059,9 +1059,9 @@ class FeishuImBotImageTool(config: FeishuConfig, client: FeishuClient) : FeishuT
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "message_id" to PropertySchema("string", "Message ID(om_xxx 格式), 引用Message可从UpDown文中的 [message_id=om_xxx] 提取"),
-                    "file_key" to PropertySchema("string", "Resource Key, Graph片Message的 image_key(img_xxx)或文件Message的 file_key(file_xxx)"),
-                    "type" to PropertySchema("string", "ResourceType: image(Graph片Message中的Graph片)、file(文件/音频/视频Message中的文件)",
+                    "message_id" to PropertySchema("string", "Message ID (om_xxx format), quoted message can be extracted from context as [message_id=om_xxx]"),
+                    "file_key" to PropertySchema("string", "Resource key, image message's image_key (img_xxx) or file message's file_key (file_xxx)"),
+                    "type" to PropertySchema("string", "Resource type: image (image in image message), file (file in file/audio/video message)",
                         enum = listOf("image", "file"))
                 ),
                 required = listOf("message_id", "file_key")
