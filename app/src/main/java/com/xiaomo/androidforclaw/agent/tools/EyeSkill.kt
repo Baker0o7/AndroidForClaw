@@ -3,11 +3,11 @@ package com.xiaomo.androidforclaw.agent.tools
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraHandler.kt
- * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCapturemanager.kt
+ * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCaptureManager.kt
  *
- * androidforClaw adaptation: 眼睛 skill
- * 手机Frontback摄like头Is agent 两只眼睛, 用于观察物理Environment. 
- * Support list / look / watch three种Action
+ * AndroidForClaw adaptation: Eye skill
+ * The phone's front/back cameras are the agent's two eyes, used to observe the physical environment.
+ * Supports list / look / snap / watch three actions
  */
 
 import android.Manifest
@@ -28,11 +28,11 @@ import kotlinx.coroutines.withcontext
 import java.io.File
 
 /**
- * 眼睛 skill — Your两只眼睛(Front置 + back置摄like头)
+ * Eye skill — Your two eyes (front camera + back camera)
  *
- * when你need观察物理Environment、seeseeweek围发生whathour, usethiscount工具. 
- * - front(Front眼): 面向user摄like头, canseetouseranduser面FrontEnvironment
- * - back(back眼): 背向user摄like头, canseeto手机背面correct着Environment
+ * When you need to observe the physical environment and see what's happening around you, use this tool.
+ * - front (front eye): Faces the user camera, can see the user and the environment in front of them
+ * - back (back eye): Faces away from the user, can see the environment behind the phone
  *
  * Aligned with OpenClaw camera.list / camera.snap / camera.clip
  */
@@ -62,33 +62,33 @@ class Eyeskill(
                     properties = mapOf(
                         "action" to Propertyschema(
                             type = "string",
-                            description = "Action type: list(ListAvailable眼睛), look(seeone眼并理解, image直接嵌入给你see), snap(pure拍照, 只ReturnFile path), watch(持续观察, 录制short视频)",
+                            description = "Action type: list (list available cameras), look (take a photo and see — image is embedded for you to understand), snap (take a photo and save — only returns file path, no image embed), watch (continuous observation, record short video)",
                             enum = listOf("list", "look", "snap", "watch")
                         ),
                         "facing" to Propertyschema(
                             type = "string",
-                            description = "usewhich只眼睛: front(Front眼, 面向user) or back(back眼, 面向ExternalEnvironment), Default back",
+                            description = "Which eye to use: front (front camera, faces user) or back (back camera, faces external environment), default back",
                             enum = listOf("front", "back")
                         ),
                         "quality" to Propertyschema(
                             type = "number",
-                            description = "Graphlike质量 0.1-1.0, Default 0.95(仅 look)"
+                            description = "Image quality 0.1-1.0, default 0.95 (look only)"
                         ),
                         "max_width" to Propertyschema(
                             type = "number",
-                            description = "MaxGraphlikeBreadth(like素), Default 1600(仅 look)"
+                            description = "Max image width (pixels), default 1600 (look only)"
                         ),
                         "duration_ms" to Propertyschema(
                             type = "number",
-                            description = "观察duration(毫seconds), Default 3000, Max 60000(仅 watch)"
+                            description = "Observation duration (milliseconds), default 3000, max 60000 (watch only)"
                         ),
                         "include_audio" to Propertyschema(
                             type = "boolean",
-                            description = "whetherat the same time聆听声音, Default true(仅 watch)"
+                            description = "Whether to also capture audio, default true (watch only)"
                         ),
                         "device_id" to Propertyschema(
                             type = "string",
-                            description = "指定摄like头 ID(from list Get, Optional)"
+                            description = "Specific camera ID (from list, optional)"
                         ),
                     ),
                     required = listOf("action")
@@ -101,7 +101,7 @@ class Eyeskill(
         val action = (args["action"] as? String)?.lowercase()
             ?: return skillresult.error("Missing required parameter: action")
 
-        // 兼容old action Name
+        // Compatible with old action names
         val normalizedAction = when (action) {
             "snap" -> "look"
             "clip" -> "watch"
@@ -130,14 +130,14 @@ class Eyeskill(
     }
 
     /**
-     * Check相机Permission, ifNonethen弹出Transparent Activity Request. 
-     * @return null=PermissionalreadyReady, skillresult=Permission被denyErrorresult
+     * Check camera permission, if none then launch transparent Activity to request.
+     * @return null = permission already ready, skillresult = permission denied error result
      */
     private suspend fun ensureCameraPermission(): skillresult? {
         if (context.checkSelfPermission(Manifest.permission.CAMERA) ==
-            Packagemanager.PERMISSION_GRANTED
+            PackageManager.PERMISSION_GRANTED
         ) {
-            return null // alreadyHasPermission
+            return null // already has permission
         }
 
         Log.d(TAG, "CAMERA permission not granted, requesting via CameraPermissionActivity")
@@ -145,43 +145,43 @@ class Eyeskill(
 
         return if (granted) {
             Log.d(TAG, "CAMERA permission granted by user")
-            null // Permissionalreadygrant
+            null // permission already granted
         } else {
             Log.w(TAG, "CAMERA permission denied by user")
-            skillresult.error("need相机Permission才canuse眼睛. pleasein系统Settings中grant相机Permissionbackretry. ")
+            skillresult.error("Camera permission is required to use the eye. Please grant camera permission in system settings and retry.")
         }
     }
 
     /**
-     * ListAvailable眼睛(摄like头)
+     * List available cameras
      */
     private suspend fun executeList(): skillresult {
         return try {
-            val devices = cameramanager.listDevices()
+            val devices = cameraManager.listDevices()
             if (devices.isEmpty()) {
-                return skillresult.success("NoneDetectedAvailable眼睛(摄like头)")
+                return skillresult.success("No available cameras detected")
             }
             val output = buildString {
-                appendLine("Available眼睛 (${devices.size} count):")
+                appendLine("Available cameras (${devices.size} count):")
                 devices.forEach { d ->
                     val eyeName = when (d.position) {
-                        "front" -> "Front眼(面向user)"
-                        "back" -> "back眼(面向Environment)"
+                        "front" -> "Front eye (faces user)"
+                        "back" -> "Back eye (faces environment)"
                         else -> d.position
                     }
                     appendLine("  - id: ${d.id}, $eyeName, type: ${d.deviceType}")
                 }
             }
             skillresult.success(output, mapOf("device_count" to devices.size))
-        } catch (e: exception) {
+        } catch (e: Exception) {
             Log.e(TAG, "eye.list failed", e)
-            skillresult.error("ListAvailable眼睛Failed: ${e.message}")
+            skillresult.error("List available cameras failed: ${e.message}")
         }
     }
 
     /**
-     * seeone眼(拍照)
-     * @param embedImage true=look(GraphEmbed image for model), false=snap(只ReturnFile path)
+     * Take a photo with one eye
+     * @param embedImage true = look (embed image for model), false = snap (only return file path)
      */
     private suspend fun executeLook(args: Map<String, Any?>, embedImage: Boolean = true): skillresult {
         return try {
@@ -190,7 +190,7 @@ class Eyeskill(
             val maxWidth = (args["max_width"] as? Number)?.toInt() ?: 1600
             val deviceId = args["device_id"] as? String
 
-            val eyeName = if (facing == "front") "Front眼" else "back眼"
+            val eyeName = if (facing == "front") "front eye" else "back eye"
             Log.d(TAG, "eye.look: facing=$facing($eyeName), quality=$quality, maxWidth=$maxWidth")
 
             val result = cameramanager.snap(
@@ -200,12 +200,12 @@ class Eyeskill(
                 deviceId = deviceId,
             )
 
-            // compressimage(Aligned with OpenClaw image-sanitization Policy)
+            // Compress image (aligned with OpenClaw image-sanitization policy)
             val sanitized = withcontext(Dispatchers.IO) {
                 ImageSanitizer.sanitize(result.base64, "image/jpeg")
-            } ?: return skillresult.error("imagecompressFailed")
+            } ?: return skillresult.error("Image compression failed")
 
-            // Saveto workSpace
+            // Save to workspace
             val photoDir = File(StoragePaths.workspace, "eye").app { mkdirs() }
             val photoFile = File(photoDir, "look_${System.currentTimeMillis()}.jpg")
             withcontext(Dispatchers.IO) {
@@ -215,14 +215,14 @@ class Eyeskill(
 
             val output = buildString {
                 if (embedImage) {
-                    appendLine("👁️ through${eyeName}观察Complete")
-                    appendLine("minute辨率: ${sanitized.width}x${sanitized.height}")
-                    appendLine("files: ${photoFile.absolutePath}")
-                    appendLine("(imagealreadyinside嵌, please直接Description你seetocontent)")
+                    appendLine("👁️ observed through ${eyeName}")
+                    appendLine("Resolution: ${sanitized.width}x${sanitized.height}")
+                    appendLine("File: ${photoFile.absolutePath}")
+                    appendLine("(image embedded, please describe what you see)")
                 } else {
-                    appendLine("📸 through${eyeName}拍照Complete")
-                    appendLine("minute辨率: ${sanitized.width}x${sanitized.height}")
-                    appendLine("files: ${photoFile.absolutePath}")
+                    appendLine("📸 captured through ${eyeName}")
+                    appendLine("Resolution: ${sanitized.width}x${sanitized.height}")
+                    appendLine("File: ${photoFile.absolutePath}")
                 }
             }
 
@@ -238,12 +238,12 @@ class Eyeskill(
             )
         } catch (e: exception) {
             Log.e(TAG, "eye.look failed", e)
-            skillresult.error("观察Failed: ${e.message}")
+            skillresult.error("Observation failed: ${e.message}")
         }
     }
 
     /**
-     * 持续观察(录like)
+     * Continuous observation (recording)
      */
     private suspend fun executeWatch(args: Map<String, Any?>): skillresult {
         return try {
@@ -252,7 +252,7 @@ class Eyeskill(
             val includeAudio = (args["include_audio"] as? Boolean) ?: true
             val deviceId = args["device_id"] as? String
 
-            val eyeName = if (facing == "front") "Front眼" else "back眼"
+            val eyeName = if (facing == "front") "front eye" else "back eye"
             Log.d(TAG, "eye.watch: facing=$facing($eyeName), duration=$durationMs, audio=$includeAudio")
 
             val result = cameramanager.clip(
@@ -262,7 +262,7 @@ class Eyeskill(
                 deviceId = deviceId,
             )
 
-            // Saveto workSpace
+            // Save to workspace
             val videoDir = File(StoragePaths.workspace, "eye").app { mkdirs() }
             val videoFile = File(videoDir, "watch_${System.currentTimeMillis()}.mp4")
             withcontext(Dispatchers.IO) {
@@ -271,10 +271,10 @@ class Eyeskill(
             }
 
             val output = buildString {
-                appendLine("👁️ through${eyeName}持续观察Complete")
-                appendLine("duration: ${result.durationMs}ms")
-                appendLine("声音: ${if (result.hasAudio) "Has" else "None"}")
-                appendLine("files: ${videoFile.absolutePath}")
+                appendLine("👁️ continuous observation through ${eyeName}")
+                appendLine("Duration: ${result.durationMs}ms")
+                appendLine("Audio: ${if (result.hasAudio) "Yes" else "No"}")
+                appendLine("File: ${videoFile.absolutePath}")
             }
 
             skillresult.success(
@@ -288,7 +288,7 @@ class Eyeskill(
             )
         } catch (e: exception) {
             Log.e(TAG, "eye.watch failed", e)
-            skillresult.error("持续观察Failed: ${e.message}")
+            skillresult.error("Continuous observation failed: ${e.message}")
         }
     }
 }

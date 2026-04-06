@@ -27,11 +27,11 @@ class Tapskill : skill {
         get() {
             val isAccessibilityEnabled = AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isserviceReady()
             val statusnote = if (!isAccessibilityEnabled) {
-                "\n\n[WARN] **whenFrontStatus: notAvailable** - Accessibilityservicenot connected"
+                "\n\n[WARN] **whenFrontStatus: notAvailable** - Accessibility service not connected"
             } else {
                 "\n[OK] **whenFrontStatus: Available**"
             }
-            return "clickScreenUp坐标position置. 用于clickbutton、Input field、List项等caninteractionElement. **note**: ActionScreenFrontuse get_view_tree() Get UI ElementInfothat iscan, notneed再call screenshot(). $statusnote"
+            return "Click on screen at specified X/Y coordinates. Used for clicking buttons, input fields, list items, or any interactive elements. **Note**: Actions in foreground use get_view_tree() to get UI element info which is available, no need to call screenshot(). $statusnote"
         }
 
     override fun gettoolDefinition(): toolDefinition {
@@ -43,8 +43,8 @@ class Tapskill : skill {
                 parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "x" to Propertyschema("integer", "X 坐标"),
-                        "y" to Propertyschema("integer", "Y 坐标")
+                        "x" to Propertyschema("integer", "X coordinate"),
+                        "y" to Propertyschema("integer", "Y coordinate")
                     ),
                     required = listOf("x", "y")
                 )
