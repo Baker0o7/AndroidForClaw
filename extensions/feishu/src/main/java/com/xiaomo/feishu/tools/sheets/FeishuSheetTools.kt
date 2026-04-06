@@ -113,7 +113,7 @@ private suspend fun resolveToken(
         throw IllegalArgumentException("url or spreadsheet_token is required")
     }
 
-    // 检测 wiki token 并Parse为Real的 spreadsheet_token
+    // Detect wiki token and parse to actual spreadsheet_token
     val tokenType = getTokenType(token)
     if (tokenType == "wik") {
         Log.i(TAG, "resolveToken: detected wiki token, resolving obj_token...")
@@ -248,17 +248,17 @@ private fun truncateRows(values: JsonArray?, maxRows: Int): Truncateresult {
 class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_sheet"
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "【As user】飞书Spreadsheet工具. SupportCreate、读写、Find、ExportSpreadsheet. " +
-        "\n\nSpreadsheet(Sheets)Class似 Excel/Google Sheets, 与Multi-dimensional table格(Bitable/Airtable)Yes不同产品. " +
-        "\n\nAll action(除 create Outside)均Support传入 url 或 spreadsheet_token, Tool willAutoParse. SupportKnowledge Base wiki URL, AutoParse为Spreadsheet token. " +
+    override val description = "【As user】Feishu spreadsheet tool. Supports create, read/write, find, export spreadsheet. " +
+        "\n\nSpreadsheet (Sheets) is similar to Excel/Google Sheets, different from multi-dimensional table (Bitable/Airtable). " +
+        "\n\nAll actions (except create) support passing url or spreadsheet_token, tool will auto-parse. Supports Knowledge Base wiki URL, auto-parse to spreadsheet token. " +
         "\n\nActions:" +
-        "\n- info: GetTableInfo + All工作TableList(一次call替代 get_info + list_sheets)" +
-        "\n- read: ReadData. 不填 range AutoReadFirst工作TableAllData" +
-        "\n- write: OverrideWrite,高危,请谨慎use该Action. 不填 range AutoWriteFirst工作Table(从 A1 Start)" +
-        "\n- append: 在已HasData末尾追加Row" +
-        "\n- find: 在工作Table中FindCell" +
-        "\n- create: CreateSpreadsheet. Support带 headers + data 一步Create含Data的Table" +
-        "\n- export: Export为 xlsx 或 csv(csv Must指定 sheet_id)"
+        "\n- info: Get table info + all worksheet list (one call replaces get_info + list_sheets)" +
+        "\n- read: Read data. If range not specified, auto-read first worksheet all data" +
+        "\n- write: Override write, high risk, use with caution. If range not specified, auto-write first worksheet (from A1)" +
+        "\n- append: Append row at end of existing data" +
+        "\n- find: Find cell in worksheet" +
+        "\n- create: Create spreadsheet. Supports creating table with headers + data in one step" +
+        "\n- export: Export to xlsx or csv (csv must specify sheet_id)"
 
     override fun isEnabledd() = config.enableSheetTools
 
@@ -285,7 +285,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
     }
 
     // -----------------------------------------------------------------
-    // INFO — TableInfo + All工作TableList
+    // INFO — TableInfo + All worksheet list
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     // Calls BOTH spreadsheet info AND sheets/query, merges results
     // -----------------------------------------------------------------
@@ -293,7 +293,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
         val (token, _) = resolveToken(args, client)
         Log.i(TAG, "info: token=$token")
 
-        // ParallelRequestTableInfo和工作TableList (sequential in Kotlin since we don't have Promise.all)
+        // Parallel request table info and worksheet list (sequential in Kotlin since we don't have Promise.all)
         val spreadsheetresult = client.get("/open-apis/sheets/v3/spreadsheets/$token")
         if (spreadsheetresult.isFailure) {
             return Toolresult.error(spreadsheetresult.exceptionOrNull()?.message ?: "Failed to get spreadsheet info")
@@ -331,7 +331,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
     }
 
     // -----------------------------------------------------------------
-    // READ — ReadData(SupportAutoProbeRange)
+    // READ — Read data (supports auto probe range)
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     // range is OPTIONAL, auto-resolves via resolveRange (getDefaultRange equivalent)
     // Has flattenCellValue() for rich text. Truncates to MAX_READ_ROWS=200
@@ -428,7 +428,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
     }
 
     // -----------------------------------------------------------------
-    // APPEND — 追加Row
+    // APPEND — Append row
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     // Validates MAX_WRITE_ROWS=5000
     // -----------------------------------------------------------------
@@ -477,7 +477,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
     }
 
     // -----------------------------------------------------------------
-    // FIND — FindCell
+    // FIND — Find cell
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     // wraps in find_condition, inverts match_case
     // -----------------------------------------------------------------
@@ -527,7 +527,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
     }
 
     // -----------------------------------------------------------------
-    // CREATE — CreateSpreadsheet(Support带初始Data)
+    // CREATE — Create spreadsheet (supports initial data)
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     // Supports headers + data for initial content
     // -----------------------------------------------------------------
@@ -558,14 +558,14 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
         val url = "https://feishu.cn/sheets/$newToken"
         Log.i(TAG, "create: token=$newToken")
 
-        // Step 2: ifHas headers 或 data, Write初始Data
+        // Step 2: if has headers or data, write initial data
         if (headers != null || initialData != null) {
             val allRows = mutableListOf<List<Any?>>()
             if (headers != null) allRows.add(headers)
             if (initialData != null) allRows.addAll(initialData)
 
             if (allRows.isNotEmpty()) {
-                // QueryDefault工作Table的 sheet_id
+                // Query default worksheet's sheet_id
                 val sheetsresult = client.get("/open-apis/sheets/v3/spreadsheets/$newToken/sheets/query")
                 if (sheetsresult.isSuccess) {
                     val sheetsArray = sheetsresult.getOrNull()?.getAsJsonObject("data")?.getAsJsonArray("sheets")
@@ -604,7 +604,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
     }
 
     // -----------------------------------------------------------------
-    // EXPORT — Export为 xlsx/csv
+    // EXPORT — Export to xlsx/csv
     // @aligned openclaw-lark v2026.3.30 — line-by-line
     // Uses Drive export API (POST /drive/v1/export_tasks -> poll -> download)
     // -----------------------------------------------------------------
@@ -639,7 +639,7 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
             ?: return Toolresult.success(mapOf("error" to "failed to create export task: no ticket returned"))
         Log.i(TAG, "export: ticket=$ticket")
 
-        // Step 2: 轮询WaitComplete
+        // Step 2: Poll for completion
         var fileToken: String? = null
         var fileName: String? = null
         var fileSize: Long? = null
@@ -692,25 +692,25 @@ class FeishuSheetTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
                         "Action type",
                         enum = listOf("info", "read", "write", "append", "find", "create", "export")
                     ),
-                    "spreadsheet_token" to PropertySchema("string", "Spreadsheet token(与 url Choose one)"),
-                    "url" to PropertySchema("string", "Spreadsheet URL, e.g. https://xxx.feishu.cn/sheets/TOKEN 或 https://xxx.feishu.cn/wiki/TOKEN(与 spreadsheet_token Choose one)"),
-                    "sheet_id" to PropertySchema("string", "工作Table ID(read/write/append 时Optional, 仅当不提供 range 时生效；find 时Required；export csv 时Required)"),
-                    "range" to PropertySchema("string", "DataRange(Optional). 格式: <sheetId>!A1:D10 或 <sheetId>. 不填则AutoReadFirst工作TableAllData"),
-                    "values" to PropertySchema("array", "二维Array, EachElementYes一Row. e.g. [[\"姓名\",\"年龄\"],[\"张三\",25]](write/append 时use)"),
-                    "find" to PropertySchema("string", "FindInside容(String或正则Table达式)(find 时use)"),
-                    "match_case" to PropertySchema("boolean", "YesNo区分Size写(find 时use, Default true)"),
-                    "match_entire_cell" to PropertySchema("boolean", "YesNocompletelymatch整个Cell(find 时use, Default false)"),
-                    "search_by_regex" to PropertySchema("boolean", "YesNouse正则Table达式(find 时use, Default false)"),
-                    "include_formulas" to PropertySchema("boolean", "YesNoSearch公式(find 时use, Default false)"),
-                    "title" to PropertySchema("string", "SpreadsheetTitle(create 时use)"),
-                    "folder_token" to PropertySchema("string", "文件夹 token(create 时Optional). 不填时Create到「我的Space」根目录"),
-                    "headers" to PropertySchema("array", "Table头Column名(create 时Optional). e.g. [\"姓名\", \"Department\", \"入职Date\"]. 提供Back会WriteFirstRow",
-                        items = PropertySchema("string", "Column名")),
-                    "data" to PropertySchema("array", "初始Data(create 时Optional). 二维Array, 写在Table头之Back. e.g. [[\"张三\", \"工程\", \"2026-01-01\"]]"),
-                    "file_extension" to PropertySchema("string", "Export格式: xlsx 或 csv(export 时use)", enum = listOf("xlsx", "csv")),
-                    "value_render_option" to PropertySchema("string", "Value渲染方式: ToString(Default)、FormattedValue(按格式)、Formula(公式)、UnformattedValue(原始Value)",
+                    "spreadsheet_token" to PropertySchema("string", "Spreadsheet token (choose one with url)"),
+                    "url" to PropertySchema("string", "Spreadsheet URL, e.g. https://xxx.feishu.cn/sheets/TOKEN or https://xxx.feishu.cn/wiki/TOKEN (choose one with spreadsheet_token)"),
+                    "sheet_id" to PropertySchema("string", "Worksheet ID (optional for read/write/append, only effective when range not provided; required for find; required for csv export)"),
+                    "range" to PropertySchema("string", "Data range (optional). Format: <sheetId>!A1:D10 or <sheetId>. If not specified, auto-read first worksheet all data"),
+                    "values" to PropertySchema("array", "2D array, each element is a row. e.g. [[\"Name\",\"Age\"],[\"John\",25]] (use for write/append)"),
+                    "find" to PropertySchema("string", "Find content (string or regex expression) (use for find)"),
+                    "match_case" to PropertySchema("boolean", "Whether to match case (use for find, default true)"),
+                    "match_entire_cell" to PropertySchema("boolean", "Whether to match entire cell (use for find, default false)"),
+                    "search_by_regex" to PropertySchema("boolean", "Whether to use regex expression (use for find, default false)"),
+                    "include_formulas" to PropertySchema("boolean", "Whether to search formulas (use for find, default false)"),
+                    "title" to PropertySchema("string", "Spreadsheet title (use for create)"),
+                    "folder_token" to PropertySchema("string", "Folder token (optional for create). If not specified, create in root of \"My Space\""),
+                    "headers" to PropertySchema("array", "Table header column names (optional for create). e.g. [\"Name\", \"Department\", \"HireDate\"]. If provided, will write as first row",
+                        items = PropertySchema("string", "Column name")),
+                    "data" to PropertySchema("array", "Initial data (optional for create). 2D array, written after table header. e.g. [[\"John\", \"Engineering\", \"2026-01-01\"]]"),
+                    "file_extension" to PropertySchema("string", "Export format: xlsx or csv (use for export)", enum = listOf("xlsx", "csv")),
+                    "value_render_option" to PropertySchema("string", "Value render option: ToString (default), FormattedValue (formatted), Formula, UnformattedValue (raw value)",
                         enum = listOf("ToString", "FormattedValue", "Formula", "UnformattedValue")),
-                    "output_path" to PropertySchema("string", "本地SavePath(含文件名). 不填则只Return文件Info(export 时Optional)")
+                    "output_path" to PropertySchema("string", "Local save path (with filename). If not specified, only returns file info (optional for export)")
                 ),
                 required = listOf("action")
             )
