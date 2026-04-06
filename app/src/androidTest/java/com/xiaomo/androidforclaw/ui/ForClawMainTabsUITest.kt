@@ -16,13 +16,13 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * ForClaw 主界面 UI 主线Test
+ * ForClaw Main UI Tab Test
  *
- * 关KeyPath:
- * 1. Settings tab Show ForClaw 卡片(LLM API / Gateway / Channels / Skills / Permissions)
- * 2. Settings tab Show模型Config等Settings项；模型Config可跳转
+ * Key Points:
+ * 1. Settings tab Show ForClaw cards (LLM API / Gateway / Channels / Skills / Permissions)
+ * 2. Settings tab shows model Config and other Settings; model Config can navigate
  *
- * 底部导航: Chat | Voice | Screen | Settings
+ * Bottom Navigation: Chat | Voice | Screen | Settings
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
