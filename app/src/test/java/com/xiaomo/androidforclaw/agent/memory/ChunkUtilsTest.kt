@@ -145,7 +145,7 @@ class ChunkUtilsTest {
 
     @Test
     fun `extractKeywords handles Chinese text`() {
-        val keywords = ChunkUtils.extractKeywords("Android 开发 MemoryManage")
+        val keywords = ChunkUtils.extractKeywords("Android Development Memory Management")
         assertTrue("Should have keywords", keywords.isNotEmpty())
     }
 

@@ -43,7 +43,7 @@ class ApiAdapterToolCallFormatTest {
     fun `assistant tool call with visible text keeps string content`() {
         val message = Message(
             role = "assistant",
-            content = "我先帮你查一Down",
+            content = "Let me check that for you",
             toolCalls = listOf(
                 ToolCall(
                     id = "call_123",

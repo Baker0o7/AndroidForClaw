@@ -25,17 +25,17 @@ import org.junit.runners.MethodSorters
 import java.io.File
 
 /**
- * Skill Feature端到端Test
+ * Skill Feature End-to-End Test
  *
- * TestReal的Android Skills执Row:
- * - screenshot: Screenshot
- * - tap: 点击
- * - swipe: 滑动
- * - type: Input
- * - home/back: 导航
- * - open_app: Open应用
+ * Test real Android Skills execution:
+ * - screenshot: Take screenshot
+ * - tap: Tap
+ * - swipe: Swipe
+ * - type: Input text
+ * - home/back: Navigation
+ * - open_app: Open app
  *
- * 按照Agent实际使用场景Test
+ * Test according to actual Agent usage scenarios
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -46,7 +46,7 @@ class SkillE2ETest {
         private const val TIMEOUT = 5000L
         private const val PACKAGE_NAME = "com.xiaomo.androidforclaw"
 
-        // StaticVariable,在AllTest间共享
+        // Static variables, shared across all tests
         lateinit var device: UiDevice
         lateinit var context: Context
         lateinit var toolRegistry: AndroidToolRegistry
@@ -60,8 +60,8 @@ class SkillE2ETest {
             taskDataManager = TaskDataManager.getInstance()
             toolRegistry = AndroidToolRegistry(context, taskDataManager)
 
-            // 只Start一次应用,供AllTest使用
-            println("\n🚀 Start应用 - StartSkillTest套件")
+            // Launch app only once, shared by all tests
+            println("\n🚀 Launching app - SkillTest suite")
             println("=" .repeat(60))
             launchApp()
             Thread.sleep(1500)
@@ -80,79 +80,79 @@ class SkillE2ETest {
     }
 
     /**
-     * 场景1: ScreenshotFeature
-     * AgentNeed观察Screen时使用
+     * Scenario 1: Screenshot Feature
+     * Used when Agent needs to observe the screen
      */
     @Test
     fun test01_skill_screenshot() = runBlocking {
-        println("🎯 TestSkill: screenshot")
+        println("🎯 Testing skill: screenshot")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        // 执RowScreenshot
+        // Execute screenshot
         val result = toolRegistry.execute("device", mapOf("action" to "screenshot"))
 
-        assumeTrue("ScreenshotNeed MediaProjection Permission, Skip", result.success)
+        assumeTrue("Screenshot needs MediaProjection permission, skipping", result.success)
         // Device screenshot may return base64 or file path
-        assertTrue("ScreenshotShouldHasInside容", result.content.isNotEmpty())
-        println("✅ Screenshot执RowComplete: ${result.content.take(100)}")
+        assertTrue("Screenshot should have content", result.content.isNotEmpty())
+        println("✅ Screenshot execution complete: ${result.content.take(100)}")
         println()
     }
 
     /**
-     * 场景2: Home导航
-     * AgentNeedReturn主Screen时使用
+     * Scenario 2: Home Navigation
+     * Used when Agent needs to return to the home screen
      */
     @Test
     fun test02_skill_home() = runBlocking {
-        println("🎯 TestSkill: home")
+        println("🎯 Testing skill: home")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        // 执RowHome
+        // Execute home
         val result = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "home"))
 
-        assumeTrue("HomeNeedAccessibilityService, Skip", result.success)
+        assumeTrue("Home needs Accessibility service, skipping", result.success)
         delay(500)
 
-        // Validate确实到了主Screen
+        // Verify actually reached home screen
         // Home press executed successfully
         device.wait(Until.hasObject(By.pkg("com.miui.home")), 2000)
 
-        println("✅ Return主ScreenSuccess")
+        println("✅ Returned to home screen successfully")
         println()
 
-        // Return到应用ContinueTest
-        println("  → Return应用ContinueTest...")
+        // Return to app to continue testing
+        println("  → Return to app to continue testing...")
         launchApp()
         Thread.sleep(500)
     }
 
     /**
-     * 场景3: Back导航
-     * AgentNeedReturnUp一页时使用
+     * Scenario 2: Home Navigation
+     * Used when Agent needs to return to the home screen
      */
     @Test
     fun test03_skill_back() = runBlocking {
-        println("🎯 TestSkill: back")
+        println("🎯 Testing skill: back")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        // 执RowBack
+        // Execute back
         val result = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "press", "key" to "BACK"))
 
-        assumeTrue("BackNeedAccessibilityService, Skip", result.success)
+        assumeTrue("Back needs Accessibility service, skipping", result.success)
         delay(500)
 
-        println("✅ ReturnUp一页Success")
+        println("✅ Went back one page successfully")
         println()
 
-        // Return到应用ContinueTest
-        println("  → Return应用ContinueTest...")
+        // Return to app to continue testing
+        println("  → Returning to app to continue testing...")
         launchApp()
         Thread.sleep(500)
     }
 
     /**
-     * 场景4: WaitWait
-     * AgentNeedWait页面Load时使用
+     * Scenario 4: Wait
+     * Used when Agent needs to wait for page load
      */
     @Test
     fun test04_skill_wait() = runBlocking {

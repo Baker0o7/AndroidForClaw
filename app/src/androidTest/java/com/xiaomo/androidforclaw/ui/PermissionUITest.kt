@@ -73,7 +73,7 @@ class PermissionUITest {
     fun testPackageName_correct() {
         val context = ApplicationProvider.getApplicationContext<MyApplication>()
 
-        // Debug 和 Release 统一使用相同Package name
+        // Debug and Release builds use the same package name
         assertEquals(
             "Package name Should be correct",
             "com.xiaomo.androidforclaw",

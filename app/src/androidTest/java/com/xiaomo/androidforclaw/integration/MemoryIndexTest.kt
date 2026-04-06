@@ -17,10 +17,10 @@ import org.junit.runner.RunWith
 import java.io.File
 
 /**
- * MemoryIndex Device集成Test
+ * MemoryIndex Device Integration Test
  *
- * Test SQLite + FTS5 + 向量Search的完整流程
- * NeedTrue机/Mock器Run
+ * Test complete flow of SQLite + FTS5 + Vector Search
+ * Needs real device/emulator to run
  *
  * Run: adb shell am instrument -w -e class com.xiaomo.androidforclaw.integration.MemoryIndexTest \
  *       com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner

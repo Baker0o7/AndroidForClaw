@@ -123,9 +123,9 @@ class PlaywrightStyleViewTreeTest {
     @Test
     fun contentDescUsedAsName() {
         val nodes = listOf(
-            makeNode(contentDesc = "Return button", className = "android.widget.ImageButton", clickable = true, top = 200)
+            makeNode(contentDesc = "Back button", className = "android.widget.ImageButton", clickable = true, top = 200)
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
-        assertTrue("contentDesc should be used as name", result.snapshot.contains("\"Return按钮\""))
+        assertTrue("contentDesc should be used as name", result.snapshot.contains("\"Back button\""))
     }
 }

@@ -153,10 +153,10 @@ class WebClipboardTest {
         // Mock serveClipboardPage HTML content
         val html = buildClipboardPageHtml()
         assertTrue("Missing Title", html.contains("Web Clipboard"))
-        assertTrue("Missing send button", html.contains("发送到手机"))
+        assertTrue("Missing send button", html.contains("Send to Phone"))
         assertTrue("Missing textarea", html.contains("<textarea"))
         assertTrue("Missing fetch API call", html.contains("/api/clipboard/send"))
-        assertTrue("Missing history record area", html.contains("历史Record"))
+        assertTrue("Missing history record area", html.contains("History Records"))
         assertTrue("Missing Ctrl+Enter shortcut", html.contains("ctrlKey") || html.contains("metaKey"))
     }
 

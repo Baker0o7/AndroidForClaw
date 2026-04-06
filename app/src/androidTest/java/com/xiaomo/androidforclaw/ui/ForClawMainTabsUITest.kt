@@ -102,7 +102,7 @@ class ForClawMainTabsUITest {
 
     // ── Tests ────────────────────────────────────────────────────────────
 
-    /** Settings tab Show ForClaw Connect卡片 (LLM API / Local Gateway / Channels / Skills) */
+    /** Settings tab shows ForClaw Connection cards (LLM API / Local Gateway / Channels / Skills) */
     @Test
     fun test01_settingsTab_connectionCards() {
         val settingsLabel = res.getString(OpenClawR.string.tab_settings)
@@ -131,7 +131,7 @@ class ForClawMainTabsUITest {
         }
     }
 
-    /** Settings tab ShowConfig项(Termux / openclaw.json / CheckUpdate)并可正常滚动 */
+    /** Settings tab shows Config items (Termux / openclaw.json / CheckUpdate) and scrolls normally */
     @Test
     fun test02_settingsTab_configItems() {
         val settingsLabel = res.getString(OpenClawR.string.tab_settings)

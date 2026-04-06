@@ -122,7 +122,7 @@ class CameraE2ETest {
 
         // Validate 4: output does not contain generic error
         val isError = result.finalContent.contains("UNAVAILABLE") &&
-            !result.finalContent.contains("拍") // exclude normal description that may occasionally contain this word
+            !result.finalContent.contains("photo") // exclude normal description that may occasionally contain this word
         assertFalse(
             "Photo taking should not fail: ${result.finalContent.take(200)}",
             isError

@@ -38,7 +38,7 @@ class ConfigActivityUITest {
     @Test
     fun testModelConfiguration_isVisible() {
         // Validate Feature toggle section is visible
-        onView(withText("Feature开关"))
+        onView(withText("Feature Toggles"))
             .check(matches(isDisplayed()))
     }
 

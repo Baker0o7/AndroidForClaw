@@ -38,7 +38,7 @@ class FirstInstallChatE2ETest {
         private const val PACKAGE_NAME = "com.xiaomo.androidforclaw"
         private const val TIMEOUT = 15_000L
         private const val RESPONSE_TIMEOUT = 45_000L
-        private const val TEST_PROMPT = "请只回复: ANDROIDFORCLAW_TEST_OK"
+        private const val TEST_PROMPT = "Reply only: ANDROIDFORCLAW_TEST_OK"
         private val ERROR_KEYWORDS = listOf(
             "Provider not found",
             "LLM request failed",
@@ -137,7 +137,7 @@ class FirstInstallChatE2ETest {
         input.text = message
         device.waitForIdle()
 
-        val sendButton = device.findObject(By.desc("发送"))
+        val sendButton = device.findObject(By.desc("Send"))
             ?: device.findObject(By.clazz("android.widget.ImageView"))
             ?: device.findObject(By.clazz("android.view.View"))
         assertNotNull("Send button should exist", sendButton)
