@@ -2,18 +2,18 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-payloads.ts
+ * - ../openclaw/src/agents/pi-embeed-payloads.ts
  *
- * AndroidForClaw adaptation: provider auth/header/body request shaping.
+ * androidforClaw adaptation: provider auth/header/body request shaping.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.config.ModelApi
-import com.xiaomo.androidforclaw.config.ModelDefinition
-import com.xiaomo.androidforclaw.config.ProviderConfig
+import com.xiaomo.androidforclaw.config.modelApi
+import com.xiaomo.androidforclaw.config.modelDefinition
+import com.xiaomo.androidforclaw.config.providerconfig
 import com.xiaomo.androidforclaw.providers.llm.Message
-import com.xiaomo.androidforclaw.providers.llm.ToolDefinition as NewToolDefinition
+import com.xiaomo.androidforclaw.providers.llm.toolDefinition as newtoolDefinition
 import okhttp3.Headers
 import org.json.JSONArray
 import org.json.JSONObject
@@ -26,9 +26,9 @@ import org.json.JSONObject
  */
 object ApiAdapter {
 
-    internal fun shouldUseNullContentForAssistantToolCall(message: Message): Boolean {
+    internal fun shoulduseNullContentforAssistanttoolCall(message: Message): Boolean {
         return message.role == "assistant" &&
-            !message.toolCalls.isNullOrEmpty() &&
+            !message.toolCalls.isNullorEmpty() &&
             message.content.isEmpty()
     }
 
@@ -36,40 +36,40 @@ object ApiAdapter {
      * BuildRequest体
      */
     fun buildRequestBody(
-        provider: ProviderConfig,
-        model: ModelDefinition,
+        provider: providerconfig,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<NewToolDefinition>?,
+        tools: List<newtoolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnableddd: Boolean,
+        reasoningEnabled: Boolean,
         stream: Boolean = false
     ): JSONObject {
         val api = model.api ?: provider.api
 
         return when (api) {
-            ModelApi.ANTHROPIC_MESSAGES -> buildAnthropicRequest(
-                model, messages, tools, temperature, maxTokens, reasoningEnableddd, stream
+            modelApi.ANTHROPIC_MESSAGES -> buildAnthropicRequest(
+                model, messages, tools, temperature, maxTokens, reasoningEnabled, stream
             )
-            ModelApi.OPENAI_COMPLETIONS -> buildOpenAIRequest(
-                model, messages, tools, temperature, maxTokens, reasoningEnableddd, stream
+            modelApi.OPENAI_COMPLETIONS -> buildOpenAIRequest(
+                model, messages, tools, temperature, maxTokens, reasoningEnabled, stream
             )
-            ModelApi.OPENAI_RESPONSES,
-            ModelApi.OPENAI_CODEX_RESPONSES -> buildOpenAIResponsesRequest(
-                model, messages, tools, temperature, maxTokens, reasoningEnableddd
+            modelApi.OPENAI_RESPONSES,
+            modelApi.OPENAI_CODEX_RESPONSES -> buildOpenAIResponsesRequest(
+                model, messages, tools, temperature, maxTokens, reasoningEnabled
             )
-            ModelApi.GOOGLE_GENERATIVE_AI -> buildGeminiRequest(
+            modelApi.GOOGLE_GENERATIVE_AI -> buildGeminiRequest(
                 model, messages, tools, temperature, maxTokens
             )
-            ModelApi.OLLAMA -> buildOllamaRequest(
+            modelApi.OLLAMA -> buildOllamaRequest(
                 provider, model, messages, tools, temperature, maxTokens, stream
             )
-            ModelApi.GITHUB_COPILOT -> buildCopilotRequest(
+            modelApi.GITHUB_COPILOT -> buildCopilotRequest(
                 model, messages, tools, temperature, maxTokens, stream
             )
             else -> {
-                // Defaultuse OpenAI 兼容格式
-                buildOpenAIRequest(model, messages, tools, temperature, maxTokens, reasoningEnableddd, stream)
+                // Defaultuse OpenAI 兼容format
+                buildOpenAIRequest(model, messages, tools, temperature, maxTokens, reasoningEnabled, stream)
             }
         }
     }
@@ -77,7 +77,7 @@ object ApiAdapter {
     /**
      * OpenRouter app attribution headers.
      * OpenRouter uses HTTP-Referer and X-Title to identify the calling app.
-     * When AppName=OpenClaw, certain models (e.g. MiMo) are free.
+     * when AppName=OpenClaw, certain models (e.g. MiMo) are free.
      *
      * Aligned with OpenClaw OPENROUTER_APP_HEADERS (proxy-stream-wrappers.ts).
      */
@@ -90,51 +90,51 @@ object ApiAdapter {
      * BuildRequest头
      */
     fun buildHeaders(
-        provider: ProviderConfig,
-        model: ModelDefinition
+        provider: providerconfig,
+        model: modelDefinition
     ): Headers {
         val builder = Headers.Builder()
 
         // OpenRouter app attribution headers (must be present on ALL requests
         // including compaction, image analysis, etc. to avoid "Unknown" app name
         // and unexpected billing). Aligned with OpenClaw createOpenRouterWrapper().
-        if (isOpenRouterProvider(provider)) {
+        if (isOpenRouterprovider(provider)) {
             OPENROUTER_APP_HEADERS.forEach { (key, value) ->
-                builder.add(key, value)
+                builder.a(key, value)
             }
         }
 
-        // Provider-level custom headers
+        // provider-level custom headers
         provider.headers?.forEach { (key, value) ->
-            builder.add(key, value)
+            builder.a(key, value)
         }
 
-        // Model-level custom headers (higher priority)
+        // model-level custom headers (higher priority)
         model.headers?.forEach { (key, value) ->
-            builder.add(key, value)
+            builder.a(key, value)
         }
 
-        // Add API Key (if authHeader is configured)
-        android.util.Log.d("ApiAdapter", "🔑 authHeader=${provider.authHeader}, apiKey=${provider.apiKey?.take(10)}")
+        // A API Key (if authHeader is configured)
+        android.util.Log.d("ApiAdapter", "[KEY] authHeader=${provider.authHeader}, apiKey=${provider.apiKey?.take(10)}")
         if (provider.authHeader && provider.apiKey != null) {
             val api = model.api ?: provider.api
             when (api) {
-                ModelApi.ANTHROPIC_MESSAGES -> {
-                    builder.add("x-api-key", provider.apiKey)
-                    builder.add("anthropic-version", "2023-06-01")
+                modelApi.ANTHROPIC_MESSAGES -> {
+                    builder.a("x-api-key", provider.apiKey)
+                    builder.a("anthropic-version", "2023-06-01")
                 }
-                ModelApi.GOOGLE_GENERATIVE_AI -> {
+                modelApi.GOOGLE_GENERATIVE_AI -> {
                     // Google uses ?key= query param, not Authorization header
                 }
                 else -> {
                     // OpenAI-style Authorization header
-                    builder.add("Authorization", "Bearer ${provider.apiKey}")
+                    builder.a("Authorization", "Bearer ${provider.apiKey}")
                 }
             }
         }
 
         // Set Content-Type
-        builder.add("Content-Type", "application/json")
+        builder.a("Content-Type", "application/json")
 
         return builder.build()
     }
@@ -142,7 +142,7 @@ object ApiAdapter {
     /**
      * Detect if a provider is OpenRouter based on its baseUrl.
      */
-    private fun isOpenRouterProvider(provider: ProviderConfig): Boolean {
+    private fun isOpenRouterprovider(provider: providerconfig): Boolean {
         return provider.baseUrl.contains("openrouter.ai", ignoreCase = true)
     }
 
@@ -154,13 +154,13 @@ object ApiAdapter {
         responseBody: String
     ): ParsedResponse {
         return when (api) {
-            ModelApi.ANTHROPIC_MESSAGES -> parseAnthropicResponse(responseBody)
-            ModelApi.OPENAI_COMPLETIONS,
-            ModelApi.GITHUB_COPILOT -> parseOpenAIResponse(responseBody)
-            ModelApi.OLLAMA -> parseOllamaResponse(responseBody)
-            ModelApi.OPENAI_RESPONSES,
-            ModelApi.OPENAI_CODEX_RESPONSES -> parseOpenAIResponsesResponse(responseBody)
-            ModelApi.GOOGLE_GENERATIVE_AI -> parseGeminiResponse(responseBody)
+            modelApi.ANTHROPIC_MESSAGES -> parseAnthropicResponse(responseBody)
+            modelApi.OPENAI_COMPLETIONS,
+            modelApi.GITHUB_COPILOT -> parseOpenAIResponse(responseBody)
+            modelApi.OLLAMA -> parseOllamaResponse(responseBody)
+            modelApi.OPENAI_RESPONSES,
+            modelApi.OPENAI_CODEX_RESPONSES -> parseOpenAIResponsesResponse(responseBody)
+            modelApi.GOOGLE_GENERATIVE_AI -> parseGeminiResponse(responseBody)
             else -> parseOpenAIResponse(responseBody)  // Parse as OpenAI format by default
         }
     }
@@ -168,12 +168,12 @@ object ApiAdapter {
     // ============ Anthropic Messages API ============
 
     private fun buildAnthropicRequest(
-        model: ModelDefinition,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<NewToolDefinition>?,
+        tools: List<newtoolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnableddd: Boolean,
+        reasoningEnabled: Boolean,
         stream: Boolean = false
     ): JSONObject {
         val json = JSONObject()
@@ -196,13 +196,13 @@ object ApiAdapter {
                     val msg = JSONObject()
                     msg.put("role", message.role)
                     // Multimodal: if user message has images, build content array
-                    if (message.role == "user" && !message.images.isNullOrEmpty()) {
+                    if (message.role == "user" && !message.images.isNullorEmpty()) {
                         val contentArray = JSONArray()
                         // Images first (aligned with Anthropic best practice)
                         for (img in message.images!!) {
-                            contentArray.put(JSONObject().apply {
+                            contentArray.put(JSONObject().app {
                                 put("type", "image")
-                                put("source", JSONObject().apply {
+                                put("source", JSONObject().app {
                                     put("type", "base64")
                                     put("media_type", img.mimeType)
                                     put("data", img.base64)
@@ -210,8 +210,8 @@ object ApiAdapter {
                             })
                         }
                         // Then text
-                        if (message.content.isNotBlank()) {
-                            contentArray.put(JSONObject().apply {
+                        if (message.content.isnotBlank()) {
+                            contentArray.put(JSONObject().app {
                                 put("type", "text")
                                 put("text", message.content)
                             })
@@ -223,18 +223,18 @@ object ApiAdapter {
                     anthropicMessages.put(msg)
                 }
                 "tool" -> {
-                    // Anthropic use tool_result 格式, Support多模态(Text+Graph片)
-                    val toolresultContent = if (!message.images.isNullOrEmpty()) {
+                    // Anthropic use tool_result format, Supportmany模态(Text+image)
+                    val toolresultContent = if (!message.images.isNullorEmpty()) {
                         // Multimodal tool result: text block + image blocks
-                        JSONArray().apply {
-                            put(JSONObject().apply {
+                        JSONArray().app {
+                            put(JSONObject().app {
                                 put("type", "text")
                                 put("text", message.content)
                             })
                             message.images.forEach { img ->
-                                put(JSONObject().apply {
+                                put(JSONObject().app {
                                     put("type", "image")
-                                    put("source", JSONObject().apply {
+                                    put("source", JSONObject().app {
                                         put("type", "base64")
                                         put("media_type", img.mimeType)
                                         put("data", img.base64)
@@ -248,8 +248,8 @@ object ApiAdapter {
                     }
                     val msg = JSONObject()
                     msg.put("role", "user")
-                    msg.put("content", JSONArray().apply {
-                        put(JSONObject().apply {
+                    msg.put("content", JSONArray().app {
+                        put(JSONObject().app {
                             put("type", "tool_result")
                             put("tool_use_id", message.toolCallId ?: "")
                             put("content", toolresultContent)
@@ -262,27 +262,27 @@ object ApiAdapter {
 
         json.put("messages", anthropicMessages)
 
-        // Add system message
+        // A system message
         if (systemMessage != null) {
             json.put("system", systemMessage)
         }
 
-        // Add tools (use buildToolJson for proper JSON escaping)
-        if (!tools.isNullOrEmpty()) {
-            val anthropicTools = JSONArray()
+        // A tools (use buildtoolJson for proper JSON escaping)
+        if (!tools.isNullorEmpty()) {
+            val anthropictools = JSONArray()
             tools.forEach { tool ->
                 val toolJson = JSONObject()
                 toolJson.put("name", tool.function.name)
                 toolJson.put("description", tool.function.description)
                 toolJson.put("input_schema", buildParametersJson(tool.function.parameters))
-                anthropicTools.put(toolJson)
+                anthropictools.put(toolJson)
             }
-            json.put("tools", anthropicTools)
+            json.put("tools", anthropictools)
         }
 
         // Extended Thinking support
-        if (reasoningEnableddd && model.reasoning) {
-            json.put("thinking", JSONObject().apply {
+        if (reasoningEnabled && model.reasoning) {
+            json.put("thinking", JSONObject().app {
                 put("type", "enabled")
                 put("budget_tokens", 10000)
             })
@@ -295,7 +295,7 @@ object ApiAdapter {
         val json = JSONObject(responseBody)
 
         var content: String? = null
-        val toolCalls = mutableListOf<ToolCall>()
+        val toolCalls = mutableListOf<toolCall>()
         var thinkingContent: String? = null
 
         // Parse content array
@@ -311,8 +311,8 @@ object ApiAdapter {
                         thinkingContent = block.getString("thinking")
                     }
                     "tool_use" -> {
-                        toolCalls.add(
-                            ToolCall(
+                        toolCalls.a(
+                            toolCall(
                                 id = block.getString("id"),
                                 name = block.getString("name"),
                                 arguments = block.getJSONObject("input").toString()
@@ -343,12 +343,12 @@ object ApiAdapter {
     // ============ OpenAI Chat Completions API ============
 
     private fun buildOpenAIRequest(
-        model: ModelDefinition,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<NewToolDefinition>?,
+        tools: List<newtoolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnableddd: Boolean,
+        reasoningEnabled: Boolean,
         stream: Boolean = false
     ): JSONObject {
         val json = JSONObject()
@@ -363,10 +363,10 @@ object ApiAdapter {
         // maxTokens field name (based on compatibility config + safe defaults)
         val modelIdLower = model.id.lowercase()
         val defaultMaxTokensField = when {
-            modelIdLower.startsWith("gpt-5") -> "max_completion_tokens"
-            modelIdLower.startsWith("o1") -> "max_completion_tokens"
-            modelIdLower.startsWith("o3") -> "max_completion_tokens"
-            modelIdLower.startsWith("gpt-4.1") -> "max_completion_tokens"
+            modelIdLower.startswith("gpt-5") -> "max_completion_tokens"
+            modelIdLower.startswith("o1") -> "max_completion_tokens"
+            modelIdLower.startswith("o3") -> "max_completion_tokens"
+            modelIdLower.startswith("gpt-4.1") -> "max_completion_tokens"
             else -> "max_tokens"
         }
         val maxTokensField = model.compat?.maxTokensField ?: defaultMaxTokensField
@@ -380,12 +380,12 @@ object ApiAdapter {
         val nonSystemMessages = mutableListOf<Message>()
         messages.forEach { message ->
             if (message.role == "system") {
-                systemContents.add(message.content ?: "")
+                systemContents.a(message.content ?: "")
             } else {
-                nonSystemMessages.add(message)
+                nonSystemMessages.a(message)
             }
         }
-        if (systemContents.isNotEmpty()) {
+        if (systemContents.isnotEmpty()) {
             val mergedMsg = JSONObject()
             mergedMsg.put("role", "system")
             mergedMsg.put("content", systemContents.joinToString("\n\n"))
@@ -395,27 +395,27 @@ object ApiAdapter {
             val msg = JSONObject()
             msg.put("role", message.role)
 
-            val hasToolCalls = !message.toolCalls.isNullOrEmpty()
-            if (shouldUseNullContentForAssistantToolCall(message)) {
+            val hastoolCalls = !message.toolCalls.isNullorEmpty()
+            if (shoulduseNullContentforAssistanttoolCall(message)) {
                 // OpenAI-compatible tool call turns should send content=null rather than empty string.
                 // Some providers reject the following tool result if the preceding assistant tool_calls
                 // message used content="", then report: tool result's tool id not found.
                 msg.put("content", JSONObject.NULL)
-            } else if (message.role == "user" && !message.images.isNullOrEmpty()) {
+            } else if (message.role == "user" && !message.images.isNullorEmpty()) {
                 // Multimodal: OpenAI vision format with image_url
                 val contentArray = JSONArray()
                 // Images first
                 for (img in message.images!!) {
-                    contentArray.put(JSONObject().apply {
+                    contentArray.put(JSONObject().app {
                         put("type", "image_url")
-                        put("image_url", JSONObject().apply {
+                        put("image_url", JSONObject().app {
                             put("url", "data:${img.mimeType};base64,${img.base64}")
                         })
                     })
                 }
                 // Then text
-                if (message.content.isNotBlank()) {
-                    contentArray.put(JSONObject().apply {
+                if (message.content.isnotBlank()) {
+                    contentArray.put(JSONObject().app {
                         put("type", "text")
                         put("text", message.content)
                     })
@@ -425,13 +425,13 @@ object ApiAdapter {
                 msg.put("content", message.content)
             }
 
-            if (hasToolCalls) {
+            if (hastoolCalls) {
                 val toolCallsArray = JSONArray()
                 message.toolCalls!!.forEach { toolCall ->
-                    toolCallsArray.put(JSONObject().apply {
+                    toolCallsArray.put(JSONObject().app {
                         put("id", toolCall.id)
                         put("type", "function")
-                        put("function", JSONObject().apply {
+                        put("function", JSONObject().app {
                             put("name", toolCall.name)
                             put("arguments", toolCall.arguments)
                         })
@@ -449,17 +449,17 @@ object ApiAdapter {
 
         json.put("messages", openaiMessages)
 
-        // Add tools (use Gson for proper JSON escaping — fixes description with special chars)
-        if (!tools.isNullOrEmpty()) {
-            val openaiTools = JSONArray()
+        // A tools (use Gson for proper JSON escaping — fixes description with special chars)
+        if (!tools.isNullorEmpty()) {
+            val openaitools = JSONArray()
             tools.forEach { tool ->
-                openaiTools.put(buildToolJson(tool))
+                openaitools.put(buildtoolJson(tool))
             }
-            json.put("tools", openaiTools)
+            json.put("tools", openaitools)
         }
 
         // Reasoning support (OpenAI o1/o3 models)
-        if (reasoningEnableddd && model.reasoning) {
+        if (reasoningEnabled && model.reasoning) {
             if (model.compat?.supportsReasoningEffort == true) {
                 json.put("reasoning_effort", "medium")
             }
@@ -478,12 +478,12 @@ object ApiAdapter {
                 val msg = error.optString("message", "Unknown API error")
                 val code = error.optString("code", "")
                 Log.e("ApiAdapter", "API returned error instead of choices: [$code] $msg")
-                throw LLMException("API error: $msg")
+                throw LLMexception("API error: $msg")
             }
             // Log raw response for debugging
             val truncated = if (responseBody.length > 500) responseBody.substring(0, 500) + "..." else responseBody
             Log.e("ApiAdapter", "API response missing 'choices': $truncated")
-            throw LLMException("API response missing 'choices' field")
+            throw LLMexception("API response missing 'choices' field")
         }
 
         val choices = json.getJSONArray("choices")
@@ -497,12 +497,12 @@ object ApiAdapter {
         val content = if (message.isNull("content")) null else message.optString("content")
         val toolCallsArray = message.optJSONArray("tool_calls")
         val toolCalls = if (toolCallsArray != null) {
-            mutableListOf<ToolCall>().apply {
+            mutableListOf<toolCall>().app {
                 for (i in 0 until toolCallsArray.length()) {
                     val tc = toolCallsArray.getJSONObject(i)
                     val function = tc.getJSONObject("function")
-                    add(
-                        ToolCall(
+                    a(
+                        toolCall(
                             id = tc.getString("id"),
                             name = function.getString("name"),
                             arguments = function.getString("arguments")
@@ -529,12 +529,12 @@ object ApiAdapter {
     }
 
     private fun buildOpenAIResponsesRequest(
-        model: ModelDefinition,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<NewToolDefinition>?,
+        tools: List<newtoolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnableddd: Boolean
+        reasoningEnabled: Boolean
     ): JSONObject {
         val json = JSONObject()
         json.put("model", model.id)
@@ -545,8 +545,8 @@ object ApiAdapter {
         messages.forEach { message ->
             when (message.role) {
                 "system" -> {
-                    if (message.content.isNotBlank()) {
-                        input.put(JSONObject().apply {
+                    if (message.content.isnotBlank()) {
+                        input.put(JSONObject().app {
                             put("type", "message")
                             put("role", "system")
                             put("content", message.content)
@@ -554,8 +554,8 @@ object ApiAdapter {
                     }
                 }
                 "user" -> {
-                    if (message.content.isNotBlank()) {
-                        input.put(JSONObject().apply {
+                    if (message.content.isnotBlank()) {
+                        input.put(JSONObject().app {
                             put("type", "message")
                             put("role", "user")
                             put("content", message.content)
@@ -563,8 +563,8 @@ object ApiAdapter {
                     }
                 }
                 "assistant" -> {
-                    if (message.content.isNotBlank()) {
-                        input.put(JSONObject().apply {
+                    if (message.content.isnotBlank()) {
+                        input.put(JSONObject().app {
                             put("type", "message")
                             put("role", "assistant")
                             put("content", message.content)
@@ -579,21 +579,21 @@ object ApiAdapter {
         }
         json.put("input", input)
 
-        if (!tools.isNullOrEmpty()) {
-            val responsesTools = JSONArray()
+        if (!tools.isNullorEmpty()) {
+            val responsestools = JSONArray()
             tools.forEach { tool ->
-                responsesTools.put(JSONObject().apply {
+                responsestools.put(JSONObject().app {
                     put("type", "function")
                     put("name", tool.function.name)
                     put("description", tool.function.description)
                     put("parameters", buildParametersJson(tool.function.parameters))
                 })
             }
-            json.put("tools", responsesTools)
+            json.put("tools", responsestools)
         }
 
-        if (reasoningEnableddd && model.reasoning && model.compat?.supportsReasoningEffort == true) {
-            json.put("reasoning", JSONObject().apply {
+        if (reasoningEnabled && model.reasoning && model.compat?.supportsReasoningEffort == true) {
+            json.put("reasoning", JSONObject().app {
                 put("effort", "medium")
             })
         }
@@ -626,7 +626,7 @@ object ApiAdapter {
     }
 
     internal fun buildResponsesFunctionCallOutputItemSpec(message: Message): ResponsesFunctionCallOutputItem? {
-        if (message.role != "tool" || message.toolCallId.isNullOrBlank()) return null
+        if (message.role != "tool" || message.toolCallId.isNullorBlank()) return null
         return ResponsesFunctionCallOutputItem(
             type = "function_call_output",
             callId = message.toolCallId,
@@ -636,7 +636,7 @@ object ApiAdapter {
 
     internal fun buildResponsesFunctionCallItems(message: Message): List<JSONObject> {
         return buildResponsesFunctionCallItemsSpec(message).map { item ->
-            JSONObject().apply {
+            JSONObject().app {
                 put("type", item.type)
                 put("call_id", item.callId)
                 put("name", item.name)
@@ -647,7 +647,7 @@ object ApiAdapter {
 
     internal fun buildResponsesFunctionCallOutputItem(message: Message): JSONObject? {
         val item = buildResponsesFunctionCallOutputItemSpec(message) ?: return null
-        return JSONObject().apply {
+        return JSONObject().app {
             put("type", item.type)
             put("call_id", item.callId)
             put("output", item.output)
@@ -660,12 +660,12 @@ object ApiAdapter {
         val error = json.optJSONObject("error")
         if (error != null) {
             val msg = error.optString("message", "Unknown API error")
-            throw LLMException("API error: $msg")
+            throw LLMexception("API error: $msg")
         }
 
         val output = json.optJSONArray("output") ?: JSONArray()
         var content: String? = null
-        val toolCalls = mutableListOf<ToolCall>()
+        val toolCalls = mutableListOf<toolCall>()
 
         for (i in 0 until output.length()) {
             val item = output.getJSONObject(i)
@@ -683,8 +683,8 @@ object ApiAdapter {
                                     }
                                 }
                             }.trim()
-                            if (text.isNotEmpty()) {
-                                content = if (content.isNullOrEmpty()) text else content + text
+                            if (text.isnotEmpty()) {
+                                content = if (content.isNullorEmpty()) text else content + text
                             }
                         }
                     }
@@ -693,9 +693,9 @@ object ApiAdapter {
                     val callId = item.optString("call_id")
                     val name = item.optString("name")
                     val arguments = item.optString("arguments", "{}")
-                    if (callId.isNotBlank() && name.isNotBlank()) {
-                        toolCalls.add(
-                            ToolCall(
+                    if (callId.isnotBlank() && name.isnotBlank()) {
+                        toolCalls.a(
+                            toolCall(
                                 id = callId,
                                 name = name,
                                 arguments = arguments
@@ -714,7 +714,7 @@ object ApiAdapter {
         }
 
         val finishReason = when {
-            toolCalls.isNotEmpty() -> "tool_calls"
+            toolCalls.isnotEmpty() -> "tool_calls"
             else -> json.optString("status")
         }
 
@@ -729,9 +729,9 @@ object ApiAdapter {
     // ============ Google Gemini API ============
 
     private fun buildGeminiRequest(
-        model: ModelDefinition,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<NewToolDefinition>?,
+        tools: List<newtoolDefinition>?,
         temperature: Double,
         maxTokens: Int?
     ): JSONObject {
@@ -741,11 +741,11 @@ object ApiAdapter {
         val systemMessage = messages
             .filter { it.role == "system" }
             .joinToString("\n") { it.content }
-            .takeIf { it.isNotBlank() }
+            .takeif { it.isnotBlank() }
         if (systemMessage != null) {
-            json.put("systemInstruction", JSONObject().apply {
-                put("parts", JSONArray().apply {
-                    put(JSONObject().apply { put("text", systemMessage) })
+            json.put("systemInstruction", JSONObject().app {
+                put("parts", JSONArray().app {
+                    put(JSONObject().app { put("text", systemMessage) })
                 })
             })
         }
@@ -758,10 +758,10 @@ object ApiAdapter {
             when (message.role) {
                 "assistant" -> {
                     // Assistant message with tool calls → functionCall parts
-                    if (!message.toolCalls.isNullOrEmpty()) {
+                    if (!message.toolCalls.isNullorEmpty()) {
                         message.toolCalls.forEach { toolCall ->
-                            parts.put(JSONObject().apply {
-                                put("functionCall", JSONObject().apply {
+                            parts.put(JSONObject().app {
+                                put("functionCall", JSONObject().app {
                                     put("name", toolCall.name)
                                     put("args", JSONObject(toolCall.arguments))
                                 })
@@ -769,47 +769,47 @@ object ApiAdapter {
                         }
                     }
                     // Text content
-                    if (message.content.isNotBlank()) {
-                        parts.put(JSONObject().apply { put("text", message.content) })
+                    if (message.content.isnotBlank()) {
+                        parts.put(JSONObject().app { put("text", message.content) })
                     }
-                    contents.put(JSONObject().apply {
+                    contents.put(JSONObject().app {
                         put("role", "model")
                         put("parts", parts)
                     })
                 }
                 "tool" -> {
-                    // Tool result → functionResponse part (role=user in Gemini)
+                    // tool result → functionResponse part (role=user in Gemini)
                     val toolName = message.name ?: message.toolCallId ?: "unknown"
-                    parts.put(JSONObject().apply {
-                        put("functionResponse", JSONObject().apply {
+                    parts.put(JSONObject().app {
+                        put("functionResponse", JSONObject().app {
                             put("name", toolName)
-                            put("response", JSONObject().apply {
+                            put("response", JSONObject().app {
                                 put("result", message.content)
                             })
                         })
                     })
-                    contents.put(JSONObject().apply {
+                    contents.put(JSONObject().app {
                         put("role", "user")
                         put("parts", parts)
                     })
                 }
                 else -> {
-                    // User message
-                    // Multimodal: add inline images
-                    if (!message.images.isNullOrEmpty()) {
+                    // user message
+                    // Multimodal: a inline images
+                    if (!message.images.isNullorEmpty()) {
                         for (img in message.images) {
-                            parts.put(JSONObject().apply {
-                                put("inline_data", JSONObject().apply {
+                            parts.put(JSONObject().app {
+                                put("inline_data", JSONObject().app {
                                     put("mime_type", img.mimeType)
                                     put("data", img.base64)
                                 })
                             })
                         }
                     }
-                    if (message.content.isNotBlank()) {
-                        parts.put(JSONObject().apply { put("text", message.content) })
+                    if (message.content.isnotBlank()) {
+                        parts.put(JSONObject().app { put("text", message.content) })
                     }
-                    contents.put(JSONObject().apply {
+                    contents.put(JSONObject().app {
                         put("role", "user")
                         put("parts", parts)
                     })
@@ -818,25 +818,25 @@ object ApiAdapter {
         }
         json.put("contents", contents)
 
-        // Tools → function_declarations
-        if (!tools.isNullOrEmpty()) {
+        // tools → function_declarations
+        if (!tools.isNullorEmpty()) {
             val declarations = JSONArray()
             tools.forEach { tool ->
-                declarations.put(JSONObject().apply {
+                declarations.put(JSONObject().app {
                     put("name", tool.function.name)
                     put("description", tool.function.description)
                     put("parameters", buildParametersJson(tool.function.parameters))
                 })
             }
-            json.put("tools", JSONArray().apply {
-                put(JSONObject().apply {
+            json.put("tools", JSONArray().app {
+                put(JSONObject().app {
                     put("function_declarations", declarations)
                 })
             })
         }
 
         // Generation config
-        json.put("generationConfig", JSONObject().apply {
+        json.put("generationconfig", JSONObject().app {
             put("temperature", temperature)
             put("maxOutputTokens", maxTokens ?: model.maxTokens)
         })
@@ -858,18 +858,18 @@ object ApiAdapter {
 
         // Parse all parts: text + functionCall
         val textParts = mutableListOf<String>()
-        val toolCalls = mutableListOf<ToolCall>()
+        val toolCalls = mutableListOf<toolCall>()
 
         if (parts != null) {
             for (i in 0 until parts.length()) {
                 val part = parts.getJSONObject(i)
                 // Text part
-                part.optString("text", "").takeIf { it.isNotEmpty() }?.let {
-                    textParts.add(it)
+                part.optString("text", "").takeif { it.isnotEmpty() }?.let {
+                    textParts.a(it)
                 }
                 // functionCall part
                 part.optJSONObject("functionCall")?.let { fc ->
-                    toolCalls.add(ToolCall(
+                    toolCalls.a(toolCall(
                         id = "call_${System.currentTimeMillis()}_$i",
                         name = fc.getString("name"),
                         arguments = fc.optJSONObject("args")?.toString() ?: "{}"
@@ -888,8 +888,8 @@ object ApiAdapter {
         } else null
 
         return ParsedResponse(
-            content = textParts.joinToString("").takeIf { it.isNotEmpty() },
-            toolCalls = toolCalls.takeIf { it.isNotEmpty() },
+            content = textParts.joinToString("").takeif { it.isnotEmpty() },
+            toolCalls = toolCalls.takeif { it.isnotEmpty() },
             usage = usage,
             finishReason = candidate.optString("finishReason")
         )
@@ -898,10 +898,10 @@ object ApiAdapter {
     // ============ Ollama API ============
 
     private fun buildOllamaRequest(
-        provider: ProviderConfig,
-        model: ModelDefinition,
+        provider: providerconfig,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<NewToolDefinition>?,
+        tools: List<newtoolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
         stream: Boolean = false
@@ -918,8 +918,8 @@ object ApiAdapter {
             msg.put("content", message.content)
 
             // Ollama multimodal: images as base64 array
-            if (message.role == "user" && !message.images.isNullOrEmpty()) {
-                msg.put("images", JSONArray().apply {
+            if (message.role == "user" && !message.images.isNullorEmpty()) {
+                msg.put("images", JSONArray().app {
                     for (img in message.images!!) {
                         put(img.base64)
                     }
@@ -932,13 +932,13 @@ object ApiAdapter {
             }
 
             // assistant tool_calls
-            if (!message.toolCalls.isNullOrEmpty()) {
+            if (!message.toolCalls.isNullorEmpty()) {
                 val toolCallsArray = JSONArray()
                 message.toolCalls.forEach { toolCall ->
-                    toolCallsArray.put(JSONObject().apply {
+                    toolCallsArray.put(JSONObject().app {
                         put("id", toolCall.id)
                         put("type", "function")
-                        put("function", JSONObject().apply {
+                        put("function", JSONObject().app {
                             put("name", toolCall.name)
                             put("arguments", JSONObject(toolCall.arguments))
                         })
@@ -951,13 +951,13 @@ object ApiAdapter {
         }
         json.put("messages", ollamaMessages)
 
-        // Tools
-        if (!tools.isNullOrEmpty()) {
-            val ollamaTools = JSONArray()
+        // tools
+        if (!tools.isNullorEmpty()) {
+            val ollamatools = JSONArray()
             tools.forEach { tool ->
-                ollamaTools.put(buildToolJson(tool))
+                ollamatools.put(buildtoolJson(tool))
             }
-            json.put("tools", ollamaTools)
+            json.put("tools", ollamatools)
         }
 
         // Options
@@ -968,7 +968,7 @@ object ApiAdapter {
         } else if (model.maxTokens > 0) {
             options.put("num_predict", model.maxTokens)
         }
-        if (provider.injectNumCtxForOpenAICompat == true && model.contextWindow > 0) {
+        if (provider.injectNumCtxforOpenAICompat == true && model.contextWindow > 0) {
             options.put("num_ctx", model.contextWindow)
         }
         json.put("options", options)
@@ -978,16 +978,16 @@ object ApiAdapter {
 
     /**
      * Parse Ollama /api/chat Response
-     * Ollama 格式: { "model": "...", "message": { "role": "assistant", "content": "...", "tool_calls": [...] }, "done": true }
+     * Ollama format: { "model": "...", "message": { "role": "assistant", "content": "...", "tool_calls": [...] }, "done": true }
      */
     private fun parseOllamaResponse(responseBody: String): ParsedResponse {
         val json = JSONObject(responseBody)
 
         // Check for error
         val error = json.optString("error", "")
-        if (error.isNotBlank()) {
+        if (error.isnotBlank()) {
             Log.e("ApiAdapter", "Ollama error: $error")
-            throw LLMException("Ollama error: $error")
+            throw LLMexception("Ollama error: $error")
         }
 
         // Ollama may also support OpenAI-compatible format (if using /v1/chat/completions)
@@ -1004,13 +1004,13 @@ object ApiAdapter {
         // Parse tool calls
         val toolCallsArray = message.optJSONArray("tool_calls")
         val toolCalls = if (toolCallsArray != null && toolCallsArray.length() > 0) {
-            mutableListOf<ToolCall>().apply {
+            mutableListOf<toolCall>().app {
                 for (i in 0 until toolCallsArray.length()) {
                     val tc = toolCallsArray.getJSONObject(i)
                     val function = tc.optJSONObject("function")
                     if (function != null) {
-                        add(
-                            ToolCall(
+                        a(
+                            toolCall(
                                 id = tc.optString("id", "call_${System.currentTimeMillis()}_$i"),
                                 name = function.getString("name"),
                                 arguments = function.optJSONObject("arguments")?.toString()
@@ -1030,7 +1030,7 @@ object ApiAdapter {
         } else null
 
         val finishReason = when {
-            toolCalls != null && toolCalls.isNotEmpty() -> "tool_calls"
+            toolCalls != null && toolCalls.isnotEmpty() -> "tool_calls"
             json.optBoolean("done", false) -> "stop"
             else -> null
         }
@@ -1046,9 +1046,9 @@ object ApiAdapter {
     // ============ GitHub Copilot API ============
 
     private fun buildCopilotRequest(
-        model: ModelDefinition,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<NewToolDefinition>?,
+        tools: List<newtoolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
         stream: Boolean = false
@@ -1061,7 +1061,7 @@ object ApiAdapter {
      * Build tool JSON with proper escaping (fixes description with special chars like quotes)
      * Replaces the broken tool.toString() → JSONObject approach
      */
-    private fun buildToolJson(tool: NewToolDefinition): JSONObject {
+    private fun buildtoolJson(tool: newtoolDefinition): JSONObject {
         val json = JSONObject()
         json.put("type", tool.type)
 
@@ -1078,7 +1078,7 @@ object ApiAdapter {
     /**
      * Build parameters schema JSON with proper escaping
      */
-    private fun buildParametersJson(params: com.xiaomo.androidforclaw.providers.llm.ParametersSchema): JSONObject {
+    private fun buildParametersJson(params: com.xiaomo.androidforclaw.providers.llm.Parametersschema): JSONObject {
         val json = JSONObject()
         json.put("type", params.type)
 
@@ -1112,7 +1112,7 @@ object ApiAdapter {
         }
         json.put("properties", propsJson)
 
-        if (params.required.isNotEmpty()) {
+        if (params.required.isnotEmpty()) {
             val reqArray = JSONArray()
             params.required.forEach { reqArray.put(it) }
             json.put("required", reqArray)
@@ -1127,13 +1127,13 @@ object ApiAdapter {
      * Parse a single SSE data line into a StreamChunk.
      * Anthropic SSE uses event types + JSON data; OpenAI uses data-only lines.
      *
-     * @param api The API type (ModelApi constant)
+     * @param api The API type (modelApi constant)
      * @param eventType The SSE event type (Anthropic sends this; null for OpenAI)
      * @param dataLine The JSON string from the "data: " line
      */
     fun parseStreamChunk(api: String, eventType: String?, dataLine: String): StreamChunk? {
         return when (api) {
-            ModelApi.ANTHROPIC_MESSAGES -> parseAnthropicStreamChunk(eventType, dataLine)
+            modelApi.ANTHROPIC_MESSAGES -> parseAnthropicStreamChunk(eventType, dataLine)
             else -> parseOpenAIStreamChunk(dataLine) // OpenAI, Ollama, Copilot all use same format
         }
     }
@@ -1177,7 +1177,7 @@ object ApiAdapter {
                 }
                 "message_delta" -> {
                     val delta = json.getJSONObject("delta")
-                    val stopReason = delta.optString("stop_reason", null)?.takeIf { it != "null" && it.isNotEmpty() }
+                    val stopReason = delta.optString("stop_reason", null)?.takeif { it != "null" && it.isnotEmpty() }
                     val usage = json.optJSONObject("usage")?.let {
                         Usage(
                             promptTokens = 0,
@@ -1203,7 +1203,7 @@ object ApiAdapter {
                 }
                 else -> null
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             android.util.Log.w("ApiAdapter", "Failed to parse Anthropic stream chunk: ${e.message}")
             return null
         }
@@ -1230,7 +1230,7 @@ object ApiAdapter {
 
             val choice = choices.getJSONObject(0)
             val finishReason = choice.optString("finish_reason", null)
-                ?.takeIf { it != "null" && it.isNotEmpty() }
+                ?.takeif { it != "null" && it.isnotEmpty() }
 
             if (finishReason != null) {
                 return StreamChunk(
@@ -1248,21 +1248,21 @@ object ApiAdapter {
             val delta = choice.optJSONObject("delta") ?: return null
 
             // Reasoning content (o1/o3 models)
-            // Note: Android org.json optString returns "null" string for JSON null values
+            // note: android org.json optString returns "null" string for JSON null values
             val reasoning = delta.optString("reasoning_content", null)
-                ?.takeIf { it.isNotEmpty() && it != "null" }
+                ?.takeif { it.isnotEmpty() && it != "null" }
             if (reasoning != null) {
                 return StreamChunk(type = ChunkType.THINKING_DELTA, text = reasoning)
             }
 
             // Text content
             val content = delta.optString("content", null)
-                ?.takeIf { it.isNotEmpty() && it != "null" }
+                ?.takeif { it.isnotEmpty() && it != "null" }
             if (content != null) {
                 return StreamChunk(type = ChunkType.TEXT_DELTA, text = content)
             }
 
-            // Tool calls
+            // tool calls
             val toolCalls = delta.optJSONArray("tool_calls")
             if (toolCalls != null && toolCalls.length() > 0) {
                 val tc = toolCalls.getJSONObject(0)
@@ -1270,14 +1270,14 @@ object ApiAdapter {
                 return StreamChunk(
                     type = ChunkType.TOOL_CALL_DELTA,
                     toolCallIndex = tc.optInt("index", 0),
-                    toolCallId = tc.optString("id", null)?.takeIf { it.isNotEmpty() && it != "null" },
-                    toolCallName = fn?.optString("name", null)?.takeIf { it.isNotEmpty() && it != "null" },
-                    toolCallArgs = fn?.optString("arguments", null)?.takeIf { it.isNotEmpty() && it != "null" }
+                    toolCallId = tc.optString("id", null)?.takeif { it.isnotEmpty() && it != "null" },
+                    toolCallName = fn?.optString("name", null)?.takeif { it.isnotEmpty() && it != "null" },
+                    toolCallArgs = fn?.optString("arguments", null)?.takeif { it.isnotEmpty() && it != "null" }
                 )
             }
 
             return null
-        } catch (e: Exception) {
+        } catch (e: exception) {
             android.util.Log.w("ApiAdapter", "Failed to parse OpenAI stream chunk: ${e.message}")
             return null
         }
@@ -1307,20 +1307,20 @@ data class StreamChunk(
 )
 
 /**
- * ParseBack的Response
+ * ParsebackResponse
  */
 data class ParsedResponse(
     val content: String?,
-    val toolCalls: List<ToolCall>? = null,
+    val toolCalls: List<toolCall>? = null,
     val thinkingContent: String? = null,
     val usage: Usage? = null,
     val finishReason: String? = null
 )
 
 /**
- * Tool Call
+ * tool Call
  */
-data class ToolCall(
+data class toolCall(
     val id: String,
     val name: String,
     val arguments: String

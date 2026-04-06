@@ -2,7 +2,7 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/cron/types.ts, types-shared.ts
  *
- * AndroidForClaw adaptation: cron scheduling.
+ * androidforClaw adaptation: cron scheduling.
  */
 package com.xiaomo.androidforclaw.cron
 
@@ -20,7 +20,7 @@ sealed class CronSchedule {
 // Payload Types
 sealed class CronPayload {
     data class SystemEvent(val text: String) : CronPayload()
-    data class AgentTurn(
+    data class agentTurn(
         val message: String,
         val model: String? = null,
         val fallbacks: List<String>? = null,
@@ -30,13 +30,13 @@ sealed class CronPayload {
         val channel: String? = null,
         val to: String? = null,
         val bestEffortDeliver: Boolean? = null,
-        val lightContext: Boolean? = null,
+        val lightcontext: Boolean? = null,
         val allowUnsafeExternalContent: Boolean? = null
     ) : CronPayload()
 }
 
 // Enums
-enum class SessionTarget { MAIN, ISOLATED }
+enum class sessionTarget { MAIN, ISOLATED }
 enum class WakeMode { NOW, NEXT_HEARTBEAT }
 enum class RunStatus { OK, ERROR, SKIPPED }
 enum class DeliveryStatus { DELIVERED, NOT_DELIVERED, UNKNOWN, NOT_REQUESTED }
@@ -98,13 +98,13 @@ data class CronJob(
     val name: String,
     val description: String? = null,
     val schedule: CronSchedule,
-    val sessionTarget: SessionTarget,
+    val sessionTarget: sessionTarget,
     val wakeMode: WakeMode,
     val payload: CronPayload,
     val delivery: CronDelivery? = null,
     val failureAlert: CronFailureAlert? = null,
     var enabled: Boolean,
-    val deleteAfterRun: Boolean? = null,
+    val deleteafterRun: Boolean? = null,
     val createdAtMs: Long,
     var updatedAtMs: Long,
     val state: CronJobState = CronJobState()
@@ -116,27 +116,27 @@ data class CronStoreFile(
     val jobs: List<CronJob> = emptyList()
 )
 
-// Config
-data class CronConfig(
+// config
+data class Cronconfig(
     val enabled: Boolean = true,
     val storePath: String,
     val maxConcurrentRuns: Int = 1,
-    val retry: CronRetryConfig = CronRetryConfig(),
+    val retry: Cronretryconfig = Cronretryconfig(),
     val sessionRetention: String = "24h",
-    val runLog: CronRunLogConfig = CronRunLogConfig(),
-    val failureAlert: CronFailureAlertConfig = CronFailureAlertConfig()
+    val runLog: CronRunLogconfig = CronRunLogconfig(),
+    val failureAlert: CronFailureAlertconfig = CronFailureAlertconfig()
 )
 
-data class CronRetryConfig(
+data class Cronretryconfig(
     val backoffMs: List<Long> = listOf(30000, 60000, 300000)  // aligned with OpenClaw default
 )
 
-data class CronRunLogConfig(
+data class CronRunLogconfig(
     val maxBytes: Long = 2 * 1024 * 1024,
     val keepLines: Int = 2000
 )
 
-data class CronFailureAlertConfig(
+data class CronFailureAlertconfig(
     val enabled: Boolean = true,
     val after: Int = 2,
     val cooldownMs: Long = 3600000,
@@ -158,13 +158,13 @@ data class CronJobPatch(
     val name: String? = null,
     val description: String? = null,
     val schedule: CronSchedule? = null,
-    val sessionTarget: SessionTarget? = null,
+    val sessionTarget: sessionTarget? = null,
     val wakeMode: WakeMode? = null,
     val payload: CronPayload? = null,
     val delivery: CronDelivery? = null,
     val failureAlert: CronFailureAlert? = null,
     val enabled: Boolean? = null,
-    val deleteAfterRun: Boolean? = null,
+    val deleteafterRun: Boolean? = null,
     val state: CronJobState? = null
 )
 

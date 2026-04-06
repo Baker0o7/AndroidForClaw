@@ -5,18 +5,18 @@ package com.xiaomo.androidforclaw.providers
  * - ../openclaw/src/agents/model-selection.ts
  * - ../openclaw/src/agents/model-alias-lines.ts
  *
- * AndroidForClaw adaptation: model reference parsing, alias resolution, and thinking level.
+ * androidforClaw adaptation: model reference parsing, alias resolution, and thinking level.
  */
 
-import com.xiaomo.androidforclaw.agent.AgentDefaults
-import com.xiaomo.androidforclaw.config.OpenClawConfig
-import com.xiaomo.androidforclaw.config.ProviderRegistry
+import com.xiaomo.androidforclaw.agent.agentDefaults
+import com.xiaomo.androidforclaw.config.OpenClawconfig
+import com.xiaomo.androidforclaw.config.providerRegistry
 
 /**
  * Universal model reference.
- * Aligned with OpenClaw ModelRef.
+ * Aligned with OpenClaw modelRef.
  */
-data class ModelRef(
+data class modelRef(
     val provider: String,
     val model: String
 )
@@ -46,30 +46,30 @@ enum class ThinkLevel {
 }
 
 /**
- * Model alias index entry.
- * Aligned with OpenClaw ModelAliasIndex.
+ * model alias index entry.
+ * Aligned with OpenClaw modelAliasIndex.
  */
-data class ModelAliasEntry(
+data class modelAliasEntry(
     val alias: String,
-    val ref: ModelRef
+    val ref: modelRef
 )
 
 /**
  * Bidirectional model alias index.
- * Aligned with OpenClaw ModelAliasIndex.
+ * Aligned with OpenClaw modelAliasIndex.
  */
-data class ModelAliasIndex(
+data class modelAliasIndex(
     /** alias → entry */
-    val byAlias: Map<String, ModelAliasEntry>,
+    val byAlias: Map<String, modelAliasEntry>,
     /** canonical key → list of aliases */
     val byKey: Map<String, List<String>>
 )
 
 /**
- * Model selection — reference parsing, alias resolution, thinking level.
+ * model selection — reference parsing, alias resolution, thinking level.
  * Aligned with OpenClaw model-selection.ts + model-alias-lines.ts.
  */
-object ModelSelection {
+object modelSelection {
 
     /**
      * Build canonical model key: "provider/model".
@@ -82,7 +82,7 @@ object ModelSelection {
         val modelId = model.trim()
         if (providerId.isEmpty()) return modelId
         if (modelId.isEmpty()) return providerId
-        return if (modelId.lowercase().startsWith("${providerId.lowercase()}/")) {
+        return if (modelId.lowercase().startswith("${providerId.lowercase()}/")) {
             modelId
         } else {
             "$providerId/$modelId"
@@ -91,28 +91,28 @@ object ModelSelection {
 
     /**
      * Parse a raw model reference string into provider + model.
-     * Format: "provider/model" or just "model" (uses defaultProvider).
+     * format: "provider/model" or just "model" (uses defaultprovider).
      *
-     * Aligned with OpenClaw parseModelRef.
+     * Aligned with OpenClaw parsemodelRef.
      */
-    fun parseModelRef(raw: String?, defaultProvider: String = AgentDefaults.DEFAULT_PROVIDER): ModelRef {
-        if (raw.isNullOrBlank()) {
-            return ModelRef(defaultProvider, AgentDefaults.DEFAULT_MODEL)
+    fun parsemodelRef(raw: String?, defaultprovider: String = agentDefaults.DEFAULT_PROVIDER): modelRef {
+        if (raw.isNullorBlank()) {
+            return modelRef(defaultprovider, agentDefaults.DEFAULT_MODEL)
         }
         val trimmed = raw.trim()
         val slashIndex = trimmed.indexOf('/')
         return if (slashIndex > 0) {
-            ModelRef(trimmed.substring(0, slashIndex), trimmed.substring(slashIndex + 1))
+            modelRef(trimmed.substring(0, slashIndex), trimmed.substring(slashIndex + 1))
         } else {
-            ModelRef(defaultProvider, trimmed)
+            modelRef(defaultprovider, trimmed)
         }
     }
 
     /**
      * Normalize Anthropic shorthand model IDs.
-     * Aligned with OpenClaw normalizeAnthropicModelId.
+     * Aligned with OpenClaw normalizeAnthropicmodelId.
      */
-    fun normalizeAnthropicModelId(model: String): String {
+    fun normalizeAnthropicmodelId(model: String): String {
         val trimmed = model.trim()
         if (trimmed.isEmpty()) return trimmed
         return when (trimmed.lowercase()) {
@@ -125,75 +125,75 @@ object ModelSelection {
     }
 
     /**
-     * Normalize a model reference: apply provider-specific ID normalization.
-     * Aligned with OpenClaw normalizeModelRef.
+     * Normalize a model reference: app provider-specific ID normalization.
+     * Aligned with OpenClaw normalizemodelRef.
      */
-    fun normalizeModelRef(provider: String, model: String): ModelRef {
-        val normalizedProvider = ProviderRegistry.normalizeProviderId(provider)
-        var normalizedModel = model
+    fun normalizemodelRef(provider: String, model: String): modelRef {
+        val normalizedprovider = providerRegistry.normalizeproviderId(provider)
+        var normalizedmodel = model
 
         // Anthropic shorthand aliases
-        if (normalizedProvider == "anthropic") {
-            normalizedModel = normalizeAnthropicModelId(normalizedModel)
+        if (normalizedprovider == "anthropic") {
+            normalizedmodel = normalizeAnthropicmodelId(normalizedmodel)
         }
 
-        // Provider-specific ID normalization (Google, xAI, etc.)
-        normalizedModel = ModelIdNormalization.normalizeModelId(normalizedProvider, normalizedModel)
+        // provider-specific ID normalization (Google, xAI, etc.)
+        normalizedmodel = modelIdNormalization.normalizemodelId(normalizedprovider, normalizedmodel)
 
-        return ModelRef(normalizedProvider, normalizedModel)
+        return modelRef(normalizedprovider, normalizedmodel)
     }
 
     /**
      * Resolve a model reference from a raw string, checking aliases first.
-     * Aligned with OpenClaw resolveModelRefFromString.
+     * Aligned with OpenClaw resolvemodelReffromString.
      */
-    fun resolveModelRefFromString(
+    fun resolvemodelReffromString(
         raw: String,
-        defaultProvider: String = AgentDefaults.DEFAULT_PROVIDER,
-        aliasIndex: ModelAliasIndex? = null
-    ): ModelRef {
+        defaultprovider: String = agentDefaults.DEFAULT_PROVIDER,
+        aliasIndex: modelAliasIndex? = null
+    ): modelRef {
         val trimmed = raw.trim()
 
         // Check alias index first
         if (aliasIndex != null) {
             val aliasEntry = aliasIndex.byAlias[trimmed.lowercase()]
             if (aliasEntry != null) {
-                return normalizeModelRef(aliasEntry.ref.provider, aliasEntry.ref.model)
+                return normalizemodelRef(aliasEntry.ref.provider, aliasEntry.ref.model)
             }
         }
 
         // Split off auth profile suffix
-        val (modelPart, _) = ModelRefProfile.splitTrailingAuthProfile(trimmed)
+        val (modelPart, _) = modelRefProfile.splitTrailingAuthProfile(trimmed)
 
         // Parse as provider/model
-        val ref = parseModelRef(modelPart, defaultProvider)
-        return normalizeModelRef(ref.provider, ref.model)
+        val ref = parsemodelRef(modelPart, defaultprovider)
+        return normalizemodelRef(ref.provider, ref.model)
     }
 
     /**
      * Resolve the configured default model reference.
-     * Aligned with OpenClaw resolveConfiguredModelRef.
+     * Aligned with OpenClaw resolveconfiguredmodelRef.
      */
-    fun resolveConfiguredModelRef(cfg: OpenClawConfig): ModelRef {
+    fun resolveconfiguredmodelRef(cfg: OpenClawconfig): modelRef {
         // 1. Explicit primary model from agents.defaults.model
         val primary = cfg.agents?.defaults?.model?.primary
-        if (!primary.isNullOrBlank()) {
-            val aliasIndex = buildModelAliasIndex(cfg)
-            return resolveModelRefFromString(primary, AgentDefaults.DEFAULT_PROVIDER, aliasIndex)
+        if (!primary.isNullorBlank()) {
+            val aliasIndex = buildmodelAliasIndex(cfg)
+            return resolvemodelReffromString(primary, agentDefaults.DEFAULT_PROVIDER, aliasIndex)
         }
 
         // 2. Fall back to first configured provider's first model
-        val providers = cfg.resolveProviders()
-        val first = providers.entries.firstOrNull()
+        val providers = cfg.resolveproviders()
+        val first = providers.entries.firstorNull()
         if (first != null) {
-            val modelId = first.value.models.firstOrNull()?.id
+            val modelId = first.value.models.firstorNull()?.id
             if (modelId != null) {
-                return normalizeModelRef(first.key, modelId)
+                return normalizemodelRef(first.key, modelId)
             }
         }
 
         // 3. Ultimate fallback
-        return ModelRef(AgentDefaults.DEFAULT_PROVIDER, AgentDefaults.DEFAULT_MODEL)
+        return modelRef(agentDefaults.DEFAULT_PROVIDER, agentDefaults.DEFAULT_MODEL)
     }
 
     /**
@@ -203,11 +203,11 @@ object ModelSelection {
      * Aligned with OpenClaw resolveThinkingDefault.
      */
     fun resolveThinkingDefault(
-        cfg: OpenClawConfig,
+        cfg: OpenClawconfig,
         provider: String,
         model: String
     ): ThinkLevel {
-        // Per-model thinking config (not yet in Android config, placeholder)
+        // Per-model thinking config (not yet in android config, placeholder)
         // OpenClaw checks agents.defaults.models[canonicalKey].params.thinking
 
         // Global thinkingDefault — use thinking.enabled as proxy
@@ -216,21 +216,21 @@ object ModelSelection {
         }
 
         // Default based on model capabilities
-        return resolveThinkingDefaultForModel(provider, model)
+        return resolveThinkingDefaultformodel(provider, model)
     }
 
     /**
      * Resolve thinking default based on model capabilities.
-     * Models known to support extended thinking get MEDIUM; others get OFF.
+     * models known to support extended thinking get MEDIUM; others get OFF.
      */
-    private fun resolveThinkingDefaultForModel(provider: String, model: String): ThinkLevel {
+    private fun resolveThinkingDefaultformodel(provider: String, model: String): ThinkLevel {
         val modelLower = model.lowercase()
         // Anthropic models with reasoning support
         if (modelLower.contains("claude") && (modelLower.contains("opus") || modelLower.contains("sonnet"))) {
             return ThinkLevel.MEDIUM
         }
         // OpenAI o-series reasoning models
-        if (modelLower.startsWith("o1") || modelLower.startsWith("o3") || modelLower.startsWith("o4")) {
+        if (modelLower.startswith("o1") || modelLower.startswith("o3") || modelLower.startswith("o4")) {
             return ThinkLevel.MEDIUM
         }
         // Google Gemini with thinking
@@ -246,33 +246,33 @@ object ModelSelection {
 
     /**
      * Build model alias index from config.
-     * Aligned with OpenClaw buildModelAliasIndex.
+     * Aligned with OpenClaw buildmodelAliasIndex.
      */
-    fun buildModelAliasIndex(
-        cfg: OpenClawConfig,
-        defaultProvider: String = AgentDefaults.DEFAULT_PROVIDER
-    ): ModelAliasIndex {
-        val byAlias = mutableMapOf<String, ModelAliasEntry>()
+    fun buildmodelAliasIndex(
+        cfg: OpenClawconfig,
+        defaultprovider: String = agentDefaults.DEFAULT_PROVIDER
+    ): modelAliasIndex {
+        val byAlias = mutableMapOf<String, modelAliasEntry>()
         val byKey = mutableMapOf<String, MutableList<String>>()
 
         for ((alias, target) in cfg.modelAliases) {
-            val ref = parseModelRef(target, defaultProvider)
-            val normalized = normalizeModelRef(ref.provider, ref.model)
-            val entry = ModelAliasEntry(alias = alias, ref = normalized)
+            val ref = parsemodelRef(target, defaultprovider)
+            val normalized = normalizemodelRef(ref.provider, ref.model)
+            val entry = modelAliasEntry(alias = alias, ref = normalized)
             byAlias[alias.lowercase()] = entry
 
             val key = modelKey(normalized.provider, normalized.model)
-            byKey.getOrPut(key) { mutableListOf() }.add(alias)
+            byKey.getorPut(key) { mutableListOf() }.a(alias)
         }
 
-        return ModelAliasIndex(byAlias = byAlias, byKey = byKey)
+        return modelAliasIndex(byAlias = byAlias, byKey = byKey)
     }
 
     /**
      * Build human-readable model alias lines for system prompt.
-     * Aligned with OpenClaw buildModelAliasLines (model-alias-lines.ts).
+     * Aligned with OpenClaw buildmodelAliasLines (model-alias-lines.ts).
      */
-    fun buildModelAliasLines(cfg: OpenClawConfig): List<String> {
+    fun buildmodelAliasLines(cfg: OpenClawconfig): List<String> {
         if (cfg.modelAliases.isEmpty()) return emptyList()
 
         return cfg.modelAliases.entries

@@ -2,17 +2,17 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/gateway/server.ts, server.impl.ts
  *
- * AndroidForClaw adaptation: gateway server and RPC methods.
+ * androidforClaw adaptation: gateway server and RPC methods.
  */
 package com.xiaomo.androidforclaw.gateway
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.channel.ChannelManager
+import com.xiaomo.androidforclaw.channel.channelmanager
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoWSD
 import org.json.JSONObject
-import java.io.IOException
+import java.io.IOexception
 import java.util.UUID
 
 /**
@@ -23,7 +23,7 @@ import java.util.UUID
  * - WebSocket: Real-time communication (RPC + Events)
  */
 class GatewayServer(
-    private val context: Context,
+    private val context: context,
     private val port: Int = 19789
 ) : NanoWSD(null, port) {  // null = listen on all network interfaces (0.0.0.0)
 
@@ -41,7 +41,7 @@ class GatewayServer(
          */
         fun broadcastChatMessage(sessionId: String, role: String, content: String) {
             instance?.let { server ->
-                val payload = JSONObject().apply {
+                val payload = JSONObject().app {
                     put("id", "msg-${System.currentTimeMillis()}")
                     put("sessionId", sessionId)
                     put("role", role)
@@ -49,12 +49,12 @@ class GatewayServer(
                     put("timestamp", System.currentTimeMillis())
                 }
                 server.broadcast("chat.message", payload)
-                Log.d(TAG, "📤 [Broadcast] Chat message: $sessionId, $role")
+                Log.d(TAG, "[SEND] [Broadcast] Chat message: $sessionId, $role")
             }
         }
     }
 
-    private val channelManager = ChannelManager(context)
+    private val channelmanager = channelmanager(context)
     private val activeConnections = mutableSetOf<GatewayWebSocket>()
 
     // Web Clipboard: PC → Phone text transfer
@@ -66,7 +66,7 @@ class GatewayServer(
         instance = this
     }
 
-    override fun serve(session: IHTTPSession): Response {
+    override fun serve(session: IHTTPsession): Response {
         val uri = session.uri
 
         Log.d(TAG, "HTTP Request: ${session.method} $uri")
@@ -78,7 +78,7 @@ class GatewayServer(
         }
 
         // HTTP API
-        if (uri.startsWith("/api/")) {
+        if (uri.startswith("/api/")) {
             return handleApiRequest(session)
         }
 
@@ -91,7 +91,7 @@ class GatewayServer(
         return serveWebUI(uri)
     }
 
-    override fun openWebSocket(handshake: IHTTPSession): WebSocket {
+    override fun openWebSocket(handshake: IHTTPsession): WebSocket {
         Log.d(TAG, "WebSocket connection opened")
         return GatewayWebSocket(handshake, this)
     }
@@ -99,12 +99,12 @@ class GatewayServer(
     /**
      * Handle API requests
      */
-    private fun handleApiRequest(session: IHTTPSession): Response {
+    private fun handleApiRequest(session: IHTTPsession): Response {
         val uri = session.uri.removePrefix("/api")
 
         return when {
             uri == "/health" -> {
-                val json = JSONObject().apply {
+                val json = JSONObject().app {
                     put("status", "ok")
                     put("version", "3.0.0")
                     put("timestamp", System.currentTimeMillis())
@@ -120,7 +120,7 @@ class GatewayServer(
                 val json = org.json.JSONArray()
                 synchronized(clipboardHistory) {
                     clipboardHistory.forEach { item ->
-                        json.put(JSONObject().apply {
+                        json.put(JSONObject().app {
                             put("text", item.first)
                             put("timestamp", item.second)
                         })
@@ -130,15 +130,15 @@ class GatewayServer(
             }
 
             uri == "/device/status" -> {
-                val status = channelManager.getCurrentAccount()
-                val json = JSONObject().apply {
+                val status = channelmanager.getCurrentAccount()
+                val json = JSONObject().app {
                     put("connected", status.connected)
                     put("deviceId", status.deviceId)
-                    put("deviceModel", status.deviceModel)
+                    put("devicemodel", status.devicemodel)
                     put("androidVersion", status.androidVersion)
                     put("apiLevel", status.apiLevel)
-                    put("permissions", JSONObject().apply {
-                        put("accessibility", status.accessibilityEnableddd)
+                    put("permissions", JSONObject().app {
+                        put("accessibility", status.accessibilityEnabled)
                         put("overlay", status.overlayPermission)
                         put("mediaProjection", status.mediaProjection)
                     })
@@ -155,9 +155,9 @@ class GatewayServer(
     /**
      * Handle clipboard send from PC
      */
-    private fun handleClipboardSend(session: IHTTPSession): Response {
+    private fun handleClipboardSend(session: IHTTPsession): Response {
         try {
-            val contentLength = session.headers["content-length"]?.toIntOrNull() ?: 0
+            val contentLength = session.headers["content-length"]?.tointorNull() ?: 0
             val body = mutableMapOf<String, String>()
             session.parseBody(body)
 
@@ -172,34 +172,34 @@ class GatewayServer(
 
             // Save to history
             synchronized(clipboardHistory) {
-                clipboardHistory.add(0, Pair(text, System.currentTimeMillis()))
+                clipboardHistory.a(0, Pair(text, System.currentTimeMillis()))
                 if (clipboardHistory.size > clipboardMaxHistory) {
                     clipboardHistory.removeAt(clipboardHistory.size - 1)
                 }
             }
 
             // Copy to system clipboard on main thread
-            android.os.Handler(android.os.Looper.getMainLooper()).post {
+            android.os.Handler(android.os.looper.getMainlooper()).post {
                 try {
-                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clipboardmanager = context.getSystemservice(context.CLIPBOARD_SERVICE) as android.content.Clipboardmanager
                     val clip = android.content.ClipData.newPlainText("web_clipboard", text)
-                    clipboardManager.setPrimaryClip(clip)
-                    Log.d(TAG, "📋 Web clipboard: copied ${text.length} chars to system clipboard")
-                } catch (e: Exception) {
+                    clipboardmanager.setPrimaryClip(clip)
+                    Log.d(TAG, "[CLIP] Web clipboard: copied ${text.length} chars to system clipboard")
+                } catch (e: exception) {
                     Log.e(TAG, "Failed to copy to clipboard", e)
                 }
             }
 
             // Broadcast to connected WebSocket clients
-            broadcast("clipboard.received", JSONObject().apply {
+            broadcast("clipboard.received", JSONObject().app {
                 put("text", text)
                 put("timestamp", System.currentTimeMillis())
             })
 
-            Log.d(TAG, "📋 Web clipboard received: ${text.take(50)}...")
+            Log.d(TAG, "[CLIP] Web clipboard received: ${text.take(50)}...")
             return newFixedLengthResponse(Response.Status.OK, "application/json",
                 """{"ok":true,"length":${text.length}}""")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Clipboard send failed", e)
             return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "application/json",
                 """{"error":"${e.message}"}""")
@@ -225,19 +225,19 @@ class GatewayServer(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AndroidForClaw - Web Clipboard</title>
+<title>androidforClaw - Web Clipboard</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; paing: 0; box-sizing: border-box; }
 body { font-family: -apple-system, system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
-.container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+.container { max-width: 640px; margin: 0 auto; paing: 24px 16px; }
 h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; color: #fff; }
 .subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
 .input-area { position: relative; margin-bottom: 16px; }
-textarea { width: 100%; min-height: 120px; padding: 14px; border: 1px solid #333; border-radius: 10px; background: #1a1a1a; color: #fff; font-size: 15px; font-family: 'SF Mono', monospace; resize: vertical; outline: none; transition: border-color 0.2s; }
+textarea { width: 100%; min-height: 120px; paing: 14px; border: 1px solid #333; border-radius: 10px; background: #1a1a1a; color: #fff; font-size: 15px; font-family: 'SF Mono', monospace; resize: vertical; outline: none; transition: border-color 0.2s; }
 textarea:focus { border-color: #4a9eff; }
 textarea::placeholder { color: #555; }
 .actions { display: flex; gap: 10px; margin-bottom: 24px; }
-button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+button { flex: 1; paing: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
 .btn-send { background: #4a9eff; color: #fff; }
 .btn-send:hover { background: #3a8eef; }
 .btn-send:active { transform: scale(0.98); }
@@ -249,25 +249,25 @@ button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 1
 .status.ok { color: #4aff8a; }
 h2 { font-size: 14px; color: #888; margin-bottom: 12px; font-weight: 500; }
 .history { list-style: none; }
-.history-item { background: #1a1a1a; border: 1px solid #222; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+.history-item { background: #1a1a1a; border: 1px solid #222; border-radius: 8px; paing: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
 .history-item:hover { border-color: #444; background: #222; }
-.history-text { font-size: 14px; font-family: 'SF Mono', monospace; word-break: break-all; white-space: pre-wrap; max-height: 80px; overflow: hidden; }
+.history-text { font-size: 14px; font-family: 'SF Mono', monospace; word-break: break-all; white-space: pre-wrap; max-height: 80px; overflow: hien; }
 .history-time { font-size: 11px; color: #555; margin-top: 6px; }
 .history-copied { position: absolute; top: 12px; right: 12px; font-size: 11px; color: #4aff8a; opacity: 0; transition: opacity 0.3s; }
 .history-item.copied .history-copied { opacity: 1; }
-.empty { text-align: center; color: #444; font-size: 14px; padding: 40px 0; }
+.empty { text-align: center; color: #444; font-size: 14px; paing: 40px 0; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>📋 Web Clipboard</h1>
-<p class="subtitle">在电脑UpInput, 手机UpAutoCopyto clipboard</p>
+<h1>[CLIP] Web Clipboard</h1>
+<p class="subtitle">in电脑UpInput, 手机UpAutoCopyto clipboard</p>
 
 <div class="input-area">
-<textarea id="text" placeholder="paste API Key、ConfigInside容或AnyText..." autofocus></textarea>
+<textarea id="text" placeholder="paste API Key、configcontentorAnyText..." autofocus></textarea>
 </div>
 <div class="actions">
-<button class="btn-send" id="sendBtn" onclick="send()">send到手机</button>
+<button class="btn-send" id="sendBtn" onclick="send()">sendto手机</button>
 <button class="btn-clear" onclick="clearInput()">清Null</button>
 </div>
 <div class="status" id="status"></div>
@@ -299,7 +299,7 @@ async function send() {
     const data = await res.json();
     if (data.ok) {
       statusEl.className = 'status ok';
-      statusEl.textContent = '✅ 已send到手机cut板 (' + data.length + ' 字符)';
+      statusEl.textContent = '[OK] alreadysendto手机cut板 (' + data.length + ' characters)';
       textarea.value = '';
       loadHistory();
     } else {
@@ -307,7 +307,7 @@ async function send() {
     }
   } catch (e) {
     statusEl.className = 'status error';
-    statusEl.textContent = '❌ sendFailed: ' + e.message;
+    statusEl.textContent = '[ERROR] sendFailed: ' + e.message;
   }
   sendBtn.disabled = false;
   setTimeout(() => { statusEl.textContent = ''; }, 3000);
@@ -315,7 +315,7 @@ async function send() {
 
 function clearInput() { textarea.value = ''; textarea.focus(); }
 
-textarea.addEventListener('keydown', function(e) {
+textarea.aEventListener('keydown', function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); send(); }
 });
 
@@ -335,7 +335,7 @@ async function loadHistory() {
       return '<li class="history-item" onclick="copyItem(this, ' + i + ')" data-text="' + escapeAttr(item.text) + '">'
         + '<div class="history-text">' + escapeHtml(preview) + '</div>'
         + '<div class="history-time">' + t + '</div>'
-        + '<div class="history-copied">已Copy</div></li>';
+        + '<div class="history-copied">alreadyCopy</div></li>';
     }).join('');
   } catch (e) {}
 }
@@ -343,7 +343,7 @@ async function loadHistory() {
 function copyItem(el, idx) {
   const text = el.getAttribute('data-text');
   navigator.clipboard.writeText(text).then(() => {
-    el.classList.add('copied');
+    el.classList.a('copied');
     setTimeout(() => el.classList.remove('copied'), 1500);
   });
 }
@@ -374,7 +374,7 @@ loadHistory();
             val mimeType = getMimeType(path)
 
             return newChunkedResponse(Response.Status.OK, mimeType, inputStream)
-        } catch (e: IOException) {
+        } catch (e: IOexception) {
             Log.w(TAG, "WebUI file not found: $path", e)
             return newFixedLengthResponse(
                 Response.Status.NOT_FOUND,
@@ -382,7 +382,7 @@ loadHistory();
                 """
                 <html>
                 <body>
-                    <h1>404 - File Not Found</h1>
+                    <h1>404 - File not Found</h1>
                     <p>File: $path</p>
                     <p>WebUI not built yet. Run: <code>cd ui && npm run build</code></p>
                 </body>
@@ -397,14 +397,14 @@ loadHistory();
      */
     private fun getMimeType(path: String): String {
         return when {
-            path.endsWith(".html") -> "text/html"
-            path.endsWith(".js") -> "application/javascript"
-            path.endsWith(".css") -> "text/css"
-            path.endsWith(".json") -> "application/json"
-            path.endsWith(".png") -> "image/png"
-            path.endsWith(".jpg") || path.endsWith(".jpeg") -> "image/jpeg"
-            path.endsWith(".svg") -> "image/svg+xml"
-            path.endsWith(".ico") -> "image/x-icon"
+            path.endswith(".html") -> "text/html"
+            path.endswith(".js") -> "application/javascript"
+            path.endswith(".css") -> "text/css"
+            path.endswith(".json") -> "application/json"
+            path.endswith(".png") -> "image/png"
+            path.endswith(".jpg") || path.endswith(".jpeg") -> "image/jpeg"
+            path.endswith(".svg") -> "image/svg+xml"
+            path.endswith(".ico") -> "image/x-icon"
             else -> "application/octet-stream"
         }
     }
@@ -413,7 +413,7 @@ loadHistory();
      * WebSocket connection
      */
     inner class GatewayWebSocket(
-        handshakeRequest: IHTTPSession,
+        handshakeRequest: IHTTPsession,
         private val server: GatewayServer
     ) : NanoWSD.WebSocket(handshakeRequest) {
 
@@ -422,24 +422,24 @@ loadHistory();
 
         override fun onOpen() {
             Log.d(TAG, "🔗 [Gateway] WebSocket opened: $connectionId")
-            activeConnections.add(this)
-            Log.d(TAG, "📊 [Gateway] Active connections: ${activeConnections.size}")
+            activeConnections.a(this)
+            Log.d(TAG, "[STATS] [Gateway] Active connections: ${activeConnections.size}")
 
             // Send hello message
-            val hello = JSONObject().apply {
+            val hello = JSONObject().app {
                 put("type", "event")
                 put("event", "hello")
-                put("payload", JSONObject().apply {
+                put("payload", JSONObject().app {
                     put("version", "3.0.0")
-                    put("agent", "AndroidForClaw")
+                    put("agent", "androidforClaw")
                     put("channel", "android-app")
-                    put("deviceId", channelManager.getCurrentAccount().deviceId)
+                    put("deviceId", channelmanager.getCurrentAccount().deviceId)
                     put("capabilities", listOf("screenshot", "tap", "swipe", "type"))
                 })
             }
             Log.d(TAG, "👋 [Gateway] Sending hello message: ${hello.toString()}")
             send(hello.toString())
-            Log.d(TAG, "✅ [Gateway] Hello message sent")
+            Log.d(TAG, "[OK] [Gateway] Hello message sent")
 
             // Start heartbeat - send ping every 30 seconds
             startHeartbeat()
@@ -454,8 +454,8 @@ loadHistory();
                             ping("ping".toByteArray())
                             Log.d(TAG, "💓 [Gateway] Heartbeat sent: $connectionId")
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ [Gateway] Heartbeat failed: $connectionId", e)
+                    } catch (e: exception) {
+                        Log.e(TAG, "[ERROR] [Gateway] Heartbeat failed: $connectionId", e)
                         cancel()
                     }
                 }
@@ -470,26 +470,26 @@ loadHistory();
         }
 
         override fun onClose(code: NanoWSD.WebSocketFrame.CloseCode, reason: String, initiatedByRemote: Boolean) {
-            Log.d(TAG, "🔌 [Gateway] WebSocket closed: $connectionId")
-            Log.d(TAG, "📊 [Gateway] Close info - code: $code, reason: $reason, initiatedByRemote: $initiatedByRemote")
+            Log.d(TAG, "[PLUG] [Gateway] WebSocket closed: $connectionId")
+            Log.d(TAG, "[STATS] [Gateway] Close info - code: $code, reason: $reason, initiatedByRemote: $initiatedByRemote")
             stopHeartbeat()
             activeConnections.remove(this)
-            Log.d(TAG, "📊 [Gateway] Active connections: ${activeConnections.size}")
+            Log.d(TAG, "[STATS] [Gateway] Active connections: ${activeConnections.size}")
         }
 
         override fun onMessage(message: NanoWSD.WebSocketFrame) {
             try {
                 val text = message.textPayload
-                Log.d(TAG, "📨 [Gateway] WebSocket message received")
-                Log.d(TAG, "📦 [Gateway] Message content: $text")
+                Log.d(TAG, "[MSG] [Gateway] WebSocket message received")
+                Log.d(TAG, "[PACKAGE] [Gateway] Message content: $text")
 
                 val frame = JSONObject(text)
                 val type = frame.optString("type")
-                Log.d(TAG, "🔍 [Gateway] Frame type: $type")
+                Log.d(TAG, "[SEARCH] [Gateway] Frame type: $type")
 
                 when (type) {
                     "req" -> {
-                        Log.d(TAG, "🎯 [Gateway] Handling request...")
+                        Log.d(TAG, "[TARGET] [Gateway] Handling request...")
                         handleRequest(frame)
                     }
                     "ping" -> {
@@ -498,12 +498,12 @@ loadHistory();
                         // NanoWSD will automatically send pong
                     }
                     else -> {
-                        Log.w(TAG, "⚠️ [Gateway] Unknown frame type: $type")
+                        Log.w(TAG, "[WARN] [Gateway] Unknown frame type: $type")
                     }
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ [Gateway] Failed to handle WebSocket message", e)
-                Log.e(TAG, "🔍 [Gateway] Error details: ${e.message}")
+            } catch (e: exception) {
+                Log.e(TAG, "[ERROR] [Gateway] Failed to handle WebSocket message", e)
+                Log.e(TAG, "[SEARCH] [Gateway] Error details: ${e.message}")
             }
         }
 
@@ -511,7 +511,7 @@ loadHistory();
             Log.d(TAG, "💓 [Gateway] Pong received: $connectionId")
         }
 
-        override fun onException(exception: IOException) {
+        override fun onexception(exception: IOexception) {
             Log.e(TAG, "WebSocket exception: $connectionId", exception)
         }
 
@@ -523,152 +523,152 @@ loadHistory();
             val method = frame.getString("method")
             val params = frame.optJSONObject("params")
 
-            Log.d(TAG, "🎯 [Gateway] RPC Request:")
-            Log.d(TAG, "  📋 ID: $id")
-            Log.d(TAG, "  🔧 Method: $method")
-            Log.d(TAG, "  📦 Params: $params")
+            Log.d(TAG, "[TARGET] [Gateway] RPC Request:")
+            Log.d(TAG, "  [CLIP] ID: $id")
+            Log.d(TAG, "  [WRENCH] Method: $method")
+            Log.d(TAG, "  [PACKAGE] Params: $params")
 
             try {
                 val result = when (method) {
                     "device.status" -> {
-                        Log.d(TAG, "📱 [Gateway] Handling device.status...")
+                        Log.d(TAG, "[APP] [Gateway] Handling device.status...")
                         handleDeviceStatus()
                     }
                     "channel.status" -> {
                         Log.d(TAG, "📡 [Gateway] Handling channel.status...")
-                        handleChannelStatus()
+                        handlechannelStatus()
                     }
                     "channel.restart" -> {
                         Log.d(TAG, "📡 [Gateway] Handling channel.restart...")
-                        handleChannelRestart()
+                        handlechannelRestart()
                     }
                     "sessions.list" -> {
-                        Log.d(TAG, "📋 [Gateway] Handling sessions.list...")
-                        handleSessionsList()
+                        Log.d(TAG, "[CLIP] [Gateway] Handling sessions.list...")
+                        handlesessionsList()
                     }
                     "sessions.history" -> {
-                        Log.d(TAG, "📋 [Gateway] Handling sessions.history...")
-                        handleSessionsHistory(params)
+                        Log.d(TAG, "[CLIP] [Gateway] Handling sessions.history...")
+                        handlesessionsHistory(params)
                     }
                     "chat.send" -> {
-                        Log.d(TAG, "💬 [Gateway] Handling chat.send...")
+                        Log.d(TAG, "[CHAT] [Gateway] Handling chat.send...")
                         handleChatSend(params)
                     }
                     else -> {
-                        Log.w(TAG, "⚠️ [Gateway] Unknown method: $method")
-                        throw IllegalArgumentException("Unknown method: $method")
+                        Log.w(TAG, "[WARN] [Gateway] Unknown method: $method")
+                        throw IllegalArgumentexception("Unknown method: $method")
                     }
                 }
 
-                Log.d(TAG, "✅ [Gateway] Request successful: $method")
-                Log.d(TAG, "📦 [Gateway] result: $result")
+                Log.d(TAG, "[OK] [Gateway] Request successful: $method")
+                Log.d(TAG, "[PACKAGE] [Gateway] result: $result")
 
-                val response = JSONObject().apply {
+                val response = JSONObject().app {
                     put("type", "res")
                     put("id", id)
                     put("ok", true)
                     put("payload", result)
                 }
-                Log.d(TAG, "📤 [Gateway] Sending response: ${response.toString()}")
+                Log.d(TAG, "[SEND] [Gateway] Sending response: ${response.toString()}")
                 send(response.toString())
-                Log.d(TAG, "✅ [Gateway] Response sent")
+                Log.d(TAG, "[OK] [Gateway] Response sent")
 
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ [Gateway] Request failed: $method", e)
-                Log.e(TAG, "🔍 [Gateway] Error details: ${e.message}")
+            } catch (e: exception) {
+                Log.e(TAG, "[ERROR] [Gateway] Request failed: $method", e)
+                Log.e(TAG, "[SEARCH] [Gateway] Error details: ${e.message}")
 
-                val response = JSONObject().apply {
+                val response = JSONObject().app {
                     put("type", "res")
                     put("id", id)
                     put("ok", false)
-                    put("error", JSONObject().apply {
+                    put("error", JSONObject().app {
                         put("code", "internal_error")
                         put("message", e.message ?: "Unknown error")
                     })
                 }
-                Log.d(TAG, "📤 [Gateway] Sending error response: ${response.toString()}")
+                Log.d(TAG, "[SEND] [Gateway] Sending error response: ${response.toString()}")
                 send(response.toString())
             }
         }
 
         private fun handleDeviceStatus(): JSONObject {
-            val account = channelManager.getCurrentAccount()
-            return JSONObject().apply {
+            val account = channelmanager.getCurrentAccount()
+            return JSONObject().app {
                 put("connected", account.connected)
                 put("deviceId", account.deviceId)
-                put("deviceModel", account.deviceModel)
+                put("devicemodel", account.devicemodel)
                 put("androidVersion", account.androidVersion)
                 put("apiLevel", account.apiLevel)
                 put("architecture", account.architecture)
-                put("permissions", JSONObject().apply {
-                    put("accessibility", account.accessibilityEnableddd)
+                put("permissions", JSONObject().app {
+                    put("accessibility", account.accessibilityEnabled)
                     put("overlay", account.overlayPermission)
                     put("mediaProjection", account.mediaProjection)
                 })
             }
         }
 
-        private fun handleChannelStatus(): JSONObject {
-            val status = channelManager.getChannelStatus()
-            return JSONObject().apply {
+        private fun handlechannelStatus(): JSONObject {
+            val status = channelmanager.getchannelStatus()
+            return JSONObject().app {
                 put("timestamp", status.timestamp)
                 put("channelId", status.channelId)
                 put("accounts", status.accounts.map { account ->
-                    JSONObject().apply {
+                    JSONObject().app {
                         put("accountId", account.accountId)
                         put("name", account.name)
                         put("connected", account.connected)
                         put("deviceId", account.deviceId)
-                        put("deviceModel", account.deviceModel)
+                        put("devicemodel", account.devicemodel)
                     }
                 })
             }
         }
 
-        private fun handleChannelRestart(): JSONObject {
-            val app = context.applicationContext as? com.xiaomo.androidforclaw.core.MyApplication
+        private fun handlechannelRestart(): JSONObject {
+            val app = context.applicationcontext as? com.xiaomo.androidforclaw.core.MyApplication
             if (app != null) {
-                app.restartAllChannels()
-                return JSONObject().apply {
+                app.restartAllchannels()
+                return JSONObject().app {
                     put("ok", true)
-                    put("message", "Channel restart triggered")
+                    put("message", "channel restart triggered")
                 }
             }
-            return JSONObject().apply {
+            return JSONObject().app {
                 put("ok", false)
                 put("message", "MyApplication not available")
             }
         }
 
-        private fun handleSessionsList(): JSONObject {
+        private fun handlesessionsList(): JSONObject {
             // Return all session list
-            return JSONObject().apply {
-                put("sessions", org.json.JSONArray().apply {
-                    put(JSONObject().apply {
+            return JSONObject().app {
+                put("sessions", org.json.JSONArray().app {
+                    put(JSONObject().app {
                         put("id", "default")
-                        put("name", "DefaultSession")
+                        put("name", "Defaultsession")
                         put("lastActivity", System.currentTimeMillis())
                     })
                 })
             }
         }
 
-        private fun handleSessionsHistory(params: JSONObject?): JSONObject {
+        private fun handlesessionsHistory(params: JSONObject?): JSONObject {
             val sessionId = params?.optString("sessionId") ?: "default"
-            Log.d(TAG, "📋 [Gateway] GetSession历史: $sessionId")
+            Log.d(TAG, "[CLIP] [Gateway] Getsession历史: $sessionId")
 
             try {
-                // Get SessionManager from MainEntryNew
-                val sessionManager = com.xiaomo.androidforclaw.core.MainEntryNew.getSessionManager()
-                val session = sessionManager?.get(sessionId)
+                // Get sessionmanager from MainEntrynew
+                val sessionmanager = com.xiaomo.androidforclaw.core.MainEntrynew.getsessionmanager()
+                val session = sessionmanager?.get(sessionId)
 
                 if (session != null) {
-                    Log.d(TAG, "✅ [Gateway] Found session: ${session.messageCount()} messages")
-                    return JSONObject().apply {
+                    Log.d(TAG, "[OK] [Gateway] Found session: ${session.messageCount()} messages")
+                    return JSONObject().app {
                         put("sessionId", sessionId)
-                        put("messages", org.json.JSONArray().apply {
+                        put("messages", org.json.JSONArray().app {
                             session.messages.forEach { msg ->
-                                put(JSONObject().apply {
+                                put(JSONObject().app {
                                     put("role", msg.role)
                                     put("content", msg.content ?: "")
                                     // Ignore complex fields like tool_calls, only return basic conversation
@@ -677,53 +677,53 @@ loadHistory();
                         })
                     }
                 } else {
-                    Log.w(TAG, "⚠️ [Gateway] Session not found: $sessionId")
-                    return JSONObject().apply {
+                    Log.w(TAG, "[WARN] [Gateway] session not found: $sessionId")
+                    return JSONObject().app {
                         put("sessionId", sessionId)
                         put("messages", org.json.JSONArray())
                     }
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ [Gateway] Failed to get session history", e)
+            } catch (e: exception) {
+                Log.e(TAG, "[ERROR] [Gateway] Failed to get session history", e)
                 throw e
             }
         }
 
         private fun handleChatSend(params: JSONObject?): JSONObject {
-            val message = params?.optString("message") ?: throw IllegalArgumentException("Missing message")
+            val message = params?.optString("message") ?: throw IllegalArgumentexception("Missing message")
             val sessionId = params.optString("sessionId")
 
-            Log.d(TAG, "💬 [Gateway] Chat message received:")
-            Log.d(TAG, "  📝 Message: $message")
-            Log.d(TAG, "  🆔 Session ID: $sessionId")
+            Log.d(TAG, "[CHAT] [Gateway] Chat message received:")
+            Log.d(TAG, "  [NOTE] Message: $message")
+            Log.d(TAG, "  🆔 session ID: $sessionId")
 
             // Send ADB command to trigger agent execution
-            val adbCommand = if (sessionId.isNotEmpty()) {
+            val adbCommand = if (sessionId.isnotEmpty()) {
                 "adb shell am broadcast -a com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT --es message \"$message\" --es sessionId \"$sessionId\""
             } else {
                 "adb shell am broadcast -a com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT --es message \"$message\""
             }
 
-            Log.d(TAG, "📤 [Gateway] Broadcasting intent to agent...")
-            Log.d(TAG, "🔧 [Gateway] ADB command: $adbCommand")
+            Log.d(TAG, "[SEND] [Gateway] Broadcasting intent to agent...")
+            Log.d(TAG, "[WRENCH] [Gateway] ADB command: $adbCommand")
 
             try {
                 // Broadcast to local app
-                val intent = android.content.Intent("com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT").apply {
+                val intent = android.content.Intent("com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT").app {
                     putExtra("message", message)
-                    if (sessionId.isNotEmpty()) {
+                    if (sessionId.isnotEmpty()) {
                         putExtra("sessionId", sessionId)
                     }
                 }
                 context.sendBroadcast(intent)
-                Log.d(TAG, "✅ [Gateway] Intent broadcast sent")
+                Log.d(TAG, "[OK] [Gateway] Intent broadcast sent")
 
-                return JSONObject().apply {
+                return JSONObject().app {
                     put("status", "queued")
                     put("message", "Message queued for processing")
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ [Gateway] Failed to broadcast intent", e)
+            } catch (e: exception) {
+                Log.e(TAG, "[ERROR] [Gateway] Failed to broadcast intent", e)
                 throw e
             }
         }
@@ -733,7 +733,7 @@ loadHistory();
      * Broadcast event to all connections
      */
     fun broadcast(event: String, payload: Any) {
-        val message = JSONObject().apply {
+        val message = JSONObject().app {
             put("type", "event")
             put("event", event)
             put("payload", payload)
@@ -743,14 +743,14 @@ loadHistory();
         activeConnections.forEach { connection ->
             try {
                 connection.send(text)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to broadcast to connection", e)
             }
         }
     }
 
     /**
-     * Get server address
+     * Get server aress
      */
     fun getServerUrl(): String {
         return "http://0.0.0.0:$port"

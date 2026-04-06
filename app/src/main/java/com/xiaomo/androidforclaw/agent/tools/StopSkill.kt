@@ -2,39 +2,39 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.data.model.TaskDataManager
+import com.xiaomo.androidforclaw.data.model.TaskDatamanager
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * Stop Skill
+ * Stop skill
  * Stop current task execution
  */
-class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
+class Stopskill(private val taskDatamanager: TaskDatamanager) : skill {
     companion object {
-        private const val TAG = "StopSkill"
+        private const val TAG = "Stopskill"
     }
 
     override val name = "stop"
     override val description = "Stop current task execution"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "reason" to PropertySchema("string", "Stop的Reason")
+                        "reason" to Propertyschema("string", "StopReason")
                     ),
                     required = emptyList()
                 )
@@ -42,21 +42,21 @@ class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         val reason = args["reason"] as? String ?: "Task completed"
 
         Log.d(TAG, "Stopping task: $reason")
         return try {
             // Set task status to stopped
-            val taskData = taskDataManager.getCurrentTaskData()
+            val taskData = taskDatamanager.getCurrentTaskData()
             taskData?.stopRunning(reason)
-            Skillresult.success(
+            skillresult.success(
                 "Task stopped: $reason",
                 mapOf("stopped" to true)
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Stop failed", e)
-            Skillresult.error("Stop failed: ${e.message}")
+            skillresult.error("Stop failed: ${e.message}")
         }
     }
 }

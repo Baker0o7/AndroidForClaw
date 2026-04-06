@@ -1,16 +1,16 @@
 package com.xiaomo.androidforclaw.agent.memory
 
-import android.content.Context
+import android.content.context
 import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+import android.database.sqlite.SQLiteOpenhelper
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import java.io.File
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import java.nio.Byteorder
 import kotlin.math.sqrt
 
 /**
@@ -18,11 +18,11 @@ import kotlin.math.sqrt
  * - ../openclaw/src/memory/sqlite.ts, sqlite-vec.ts, search-manager.ts, hybrid.ts
  *
  * Memory Index — SQLite + FTS5 + vector search.
- * Aligned with OpenClaw MemoryIndexManager.
+ * Aligned with OpenClaw MemoryIndexmanager.
  */
 class MemoryIndex(
-    context: Context,
-    private val embeddingProvider: EmbeddingProvider?
+    context: context,
+    private val embeingprovider: Embeingprovider?
 ) {
     companion object {
         private const val TAG = "MemoryIndex"
@@ -38,7 +38,7 @@ class MemoryIndex(
         const val SNIPPET_MAX_CHARS = 700
     }
 
-    private val dbHelper = MemoryDbHelper(context)
+    private val dbhelper = MemoryDbhelper(context)
     private val mutex = Mutex()
     var ftsAvailable = true
         private set
@@ -46,19 +46,19 @@ class MemoryIndex(
     init {
         // Trigger DB creation and check FTS5 availability
         try {
-            val db = dbHelper.writableDatabase
-            // If DB already existed, probe FTS5 availability
-            if (dbHelper.ftsCreated) {
+            val db = dbhelper.writableDatabase
+            // if DB already existed, probe FTS5 availability
+            if (dbhelper.ftsCreated) {
                 try {
                     db.rawQuery("SELECT * FROM chunks_fts LIMIT 0", null).close()
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     ftsAvailable = false
                     Log.w(TAG, "FTS5 table not available", e)
                 }
             } else {
                 ftsAvailable = false
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to initialize DB", e)
         }
     }
@@ -73,27 +73,27 @@ class MemoryIndex(
     )
 
     /**
-     * Index a single file: chunk it, compute embeddings, store in DB.
+     * Index a single file: chunk it, compute embeings, store in DB.
      * Skips unchanged files (by hash).
      */
     suspend fun indexFile(file: File, source: String = "memory") = mutex.withLock {
-        withContext(Dispatchers.IO) {
+        withcontext(Dispatchers.IO) {
             try {
                 val path = file.absolutePath
                 val content = file.readText()
                 val fileHash = ChunkUtils.hashText(content)
 
-                val db = dbHelper.writableDatabase
+                val db = dbhelper.writableDatabase
 
                 // Check if file unchanged
                 val cursor = db.rawQuery(
                     "SELECT hash FROM files WHERE path = ?", arrayOf(path)
                 )
-                val existingHash = if (cursor.moveToFirst()) cursor.getString(0) else null
+                val existingHash = if (cursor.moveTofirst()) cursor.getString(0) else null
                 cursor.close()
 
                 if (existingHash == fileHash) {
-                    return@withContext // File unchanged
+                    return@withcontext // File unchanged
                 }
 
                 // Delete old chunks for this file
@@ -104,14 +104,14 @@ class MemoryIndex(
 
                 // Chunk the file
                 val chunks = ChunkUtils.chunkMarkdown(content)
-                if (chunks.isEmpty()) return@withContext
+                if (chunks.isEmpty()) return@withcontext
 
-                // Get embeddings (batch)
-                val embeddings = embeddingProvider?.embedBatch(chunks.map { it.text })
+                // Get embeings (batch)
+                val embeings = embeingprovider?.embedBatch(chunks.map { it.text })
 
                 // Insert chunks
                 val stmt = db.compileStatement(
-                    "INSERT INTO chunks (source, path, start_line, end_line, text, hash, embedding, indexed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO chunks (source, path, start_line, end_line, text, hash, embeing, indexed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 )
 
                 db.beginTransaction()
@@ -125,9 +125,9 @@ class MemoryIndex(
                         stmt.bindString(5, chunk.text)
                         stmt.bindString(6, chunk.hash)
 
-                        val embedding = embeddings?.getOrNull(idx)
-                        if (embedding != null) {
-                            stmt.bindBlob(7, floatArrayToBlob(embedding))
+                        val embeing = embeings?.getorNull(idx)
+                        if (embeing != null) {
+                            stmt.bindBlob(7, floatArrayToBlob(embeing))
                         } else {
                             stmt.bindNull(7)
                         }
@@ -154,7 +154,7 @@ class MemoryIndex(
                 } finally {
                     db.endTransaction()
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to index file: ${file.absolutePath}", e)
             }
         }
@@ -164,8 +164,8 @@ class MemoryIndex(
      * Remove a file from the index.
      */
     suspend fun removeFile(path: String) = mutex.withLock {
-        withContext(Dispatchers.IO) {
-            val db = dbHelper.writableDatabase
+        withcontext(Dispatchers.IO) {
+            val db = dbhelper.writableDatabase
             if (ftsAvailable) {
                 db.execSQL("DELETE FROM chunks_fts WHERE rowid IN (SELECT rowid FROM chunks WHERE path = ?)", arrayOf(path))
             }
@@ -177,19 +177,19 @@ class MemoryIndex(
     /**
      * Vector search using cosine similarity.
      */
-    suspend fun searchVector(queryEmbedding: FloatArray, limit: Int): List<SearchResult> = withContext(Dispatchers.IO) {
-        val db = dbHelper.readableDatabase
+    suspend fun searchVector(queryEmbeing: FloatArray, limit: Int): List<SearchResult> = withcontext(Dispatchers.IO) {
+        val db = dbhelper.readableDatabase
         val results = mutableListOf<SearchResult>()
 
         val cursor = db.rawQuery(
-            "SELECT path, source, start_line, end_line, text, embedding FROM chunks WHERE embedding IS NOT NULL",
+            "SELECT path, source, start_line, end_line, text, embeing FROM chunks WHERE embeing IS NOT NULL",
             null
         )
 
         while (cursor.moveToNext()) {
-            val embedding = blobToFloatArray(cursor.getBlob(5))
-            val score = cosineSimilarity(queryEmbedding, embedding)
-            results.add(SearchResult(
+            val embeing = blobToFloatArray(cursor.getBlob(5))
+            val score = cosineSimilarity(queryEmbeing, embeing)
+            results.a(SearchResult(
                 path = cursor.getString(0),
                 source = cursor.getString(1),
                 startLine = cursor.getInt(2),
@@ -207,11 +207,11 @@ class MemoryIndex(
     /**
      * FTS5 keyword search.
      */
-    suspend fun searchKeyword(query: String, limit: Int): List<SearchResult> = withContext(Dispatchers.IO) {
+    suspend fun searchKeyword(query: String, limit: Int): List<SearchResult> = withcontext(Dispatchers.IO) {
         val keywords = ChunkUtils.extractKeywords(query)
-        if (keywords.isEmpty()) return@withContext emptyList()
+        if (keywords.isEmpty()) return@withcontext emptyList()
 
-        val db = dbHelper.readableDatabase
+        val db = dbhelper.readableDatabase
         val results = mutableListOf<SearchResult>()
 
         if (!ftsAvailable) {
@@ -227,7 +227,7 @@ class MemoryIndex(
                 while (cursor.moveToNext()) {
                     val text = cursor.getString(4)
                     val matchCount = keywords.count { text.contains(it, ignoreCase = true) }
-                    results.add(SearchResult(
+                    results.a(SearchResult(
                         path = cursor.getString(0),
                         source = cursor.getString(1),
                         startLine = cursor.getInt(2),
@@ -237,10 +237,10 @@ class MemoryIndex(
                     ))
                 }
                 cursor.close()
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "LIKE keyword search failed", e)
             }
-            return@withContext results.sortedByDescending { it.score }
+            return@withcontext results.sortedByDescending { it.score }
         }
 
         val ftsQuery = keywords.joinToString(" OR ")
@@ -261,7 +261,7 @@ class MemoryIndex(
             val rawResults = mutableListOf<Pair<SearchResult, Double>>()
             while (cursor.moveToNext()) {
                 val rank = cursor.getDouble(5) // BM25 returns negative scores (lower = better)
-                rawResults.add(Pair(
+                rawResults.a(Pair(
                     SearchResult(
                         path = cursor.getString(0),
                         source = cursor.getString(1),
@@ -274,7 +274,7 @@ class MemoryIndex(
             }
             cursor.close()
 
-            if (rawResults.isNotEmpty()) {
+            if (rawResults.isnotEmpty()) {
                 val minRank = rawResults.minOf { it.second }
                 val maxRank = rawResults.maxOf { it.second }
                 val range = if (maxRank - minRank > 0) maxRank - minRank else 1.0
@@ -283,10 +283,10 @@ class MemoryIndex(
                     // BM25: more negative = better match → invert to 0-1
                     val normalized = ((rank - minRank) / range).toFloat()
                     val score = 1f - normalized  // invert: best match → highest score
-                    results.add(result.copy(score = score))
+                    results.a(result.copy(score = score))
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "FTS5 search failed", e)
         }
 
@@ -305,17 +305,17 @@ class MemoryIndex(
         val candidateLimit = maxResults * DEFAULT_HYBRID_CANDIDATE_MULTIPLIER
 
         // Vector search
-        val vectorResults = if (embeddingProvider?.isAvailable == true) {
-            val queryEmbedding = embeddingProvider.embed(query)
-            if (queryEmbedding != null) {
-                searchVector(queryEmbedding, candidateLimit)
+        val vectorResults = if (embeingprovider?.isAvailable == true) {
+            val queryEmbeing = embeingprovider.embed(query)
+            if (queryEmbeing != null) {
+                searchVector(queryEmbeing, candidateLimit)
             } else emptyList()
         } else emptyList()
 
         // Keyword search
         val keywordResults = searchKeyword(query, candidateLimit)
 
-        // If no vector results, use keyword only
+        // if no vector results, use keyword only
         if (vectorResults.isEmpty()) {
             return keywordResults
                 .filter { it.score >= minScore }
@@ -367,12 +367,12 @@ class MemoryIndex(
         }
 
         // Remove stale files from index
-        withContext(Dispatchers.IO) {
-            val db = dbHelper.readableDatabase
+        withcontext(Dispatchers.IO) {
+            val db = dbhelper.readableDatabase
             val cursor = db.rawQuery("SELECT DISTINCT path FROM files WHERE source = ?", arrayOf(source))
             val indexedPaths = mutableListOf<String>()
             while (cursor.moveToNext()) {
-                indexedPaths.add(cursor.getString(0))
+                indexedPaths.a(cursor.getString(0))
             }
             cursor.close()
 
@@ -397,19 +397,19 @@ class MemoryIndex(
     }
 
     private fun floatArrayToBlob(arr: FloatArray): ByteArray {
-        val buf = ByteBuffer.allocate(arr.size * 4).order(ByteOrder.LITTLE_ENDIAN)
+        val buf = ByteBuffer.allocate(arr.size * 4).order(Byteorder.LITTLE_ENDIAN)
         for (v in arr) buf.putFloat(v)
         return buf.array()
     }
 
     private fun blobToFloatArray(blob: ByteArray): FloatArray {
-        val buf = ByteBuffer.wrap(blob).order(ByteOrder.LITTLE_ENDIAN)
+        val buf = ByteBuffer.wrap(blob).order(Byteorder.LITTLE_ENDIAN)
         return FloatArray(blob.size / 4) { buf.getFloat() }
     }
 
-    // ---- SQLite Helper ----
+    // ---- SQLite helper ----
 
-    private class MemoryDbHelper(context: Context) : SQLiteOpenHelper(
+    private class MemoryDbhelper(context: context) : SQLiteOpenhelper(
         context, DB_NAME, null, DB_VERSION
     ) {
         var ftsCreated = true
@@ -434,7 +434,7 @@ class MemoryIndex(
                     end_line INTEGER NOT NULL,
                     text TEXT NOT NULL,
                     hash TEXT NOT NULL,
-                    embedding BLOB,
+                    embeing BLOB,
                     indexed_at INTEGER NOT NULL
                 )
             """)
@@ -442,7 +442,7 @@ class MemoryIndex(
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_chunks_hash ON chunks(hash)")
             try {
                 db.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(text, content='')")
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "FTS5 not available on this device, falling back to LIKE search", e)
                 ftsCreated = false
             }

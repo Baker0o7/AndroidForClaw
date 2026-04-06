@@ -2,47 +2,47 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * Tool interface - Low-level tools (inspired by nanobot's Tool base class)
+ * tool interface - Low-level tools (inspired by nanobot's tool base class)
  *
- * Tools are low-level, universal capabilities, such as:
+ * tools are low-level, universal capabilities, such as:
  * - exec: Execute shell commands
  * - read_file: Read files
  * - write_file: Write files
  *
- * Difference from Skill:
- * - Tool: Code-level implementation, low-level operations (file, network, shell)
- * - Skill: Android-specific capabilities, business-level operations (tap, screenshot)
+ * Difference from skill:
+ * - tool: Code-level implementation, low-level operations (file, network, shell)
+ * - skill: android-specific capabilities, business-level operations (tap, screenshot)
  */
-interface Tool {
+interface tool {
     /**
-     * Tool name (corresponds to function name)
+     * tool name (corresponds to function name)
      */
     val name: String
 
     /**
-     * Tool description
+     * tool description
      */
     val description: String
 
     /**
-     * Get Tool Definition (for LLM function calling)
+     * Get tool Definition (for LLM function calling)
      */
-    fun getToolDefinition(): ToolDefinition
+    fun gettoolDefinition(): toolDefinition
 
     /**
      * Execute tool
      * @param args Parameter map
-     * @return ToolResult Execution result
+     * @return toolResult Execution result
      */
-    suspend fun execute(args: Map<String, Any?>): ToolResult
+    suspend fun execute(args: Map<String, Any?>): toolResult
 }
 
-// Tool and Skill share the same Result type
-typealias ToolResult = SkillResult
+// tool and skill share the same Result type
+typealias toolResult = skillResult

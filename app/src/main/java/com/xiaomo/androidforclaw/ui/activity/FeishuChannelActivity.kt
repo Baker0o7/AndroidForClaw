@@ -1,11 +1,11 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.os.Bundle
-import android.view.WindowManager
+import android.view.Windowmanager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -13,7 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Arrowback
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,27 +22,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.R
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.configLoader
 import kotlinx.coroutines.launch
 
 /**
- * 飞书 Channel Config页面
- * 对齐 clawdbot-feishu Config项
+ * 飞书 channel config页面
+ * correct齐 clawdbot-feishu config项
  */
-class FeishuChannelActivity : ComponentActivity() {
+class FeishuchannelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // 禁止截屏
         window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
+            Windowmanager.LayoutParams.FLAG_SECURE,
+            Windowmanager.LayoutParams.FLAG_SECURE
         )
 
         setContent {
             MaterialTheme {
-                FeishuChannelScreen(
-                    onBack = { finish() }
+                FeishuchannelScreen(
+                    onback = { finish() }
                 )
             }
         }
@@ -51,22 +51,22 @@ class FeishuChannelActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = androidx.compose.ui.platform.LocalContext.current) {
+fun FeishuchannelScreen(onback: () -> Unit, context: android.content.context = androidx.compose.ui.platform.Localcontext.current) {
     val scope = rememberCoroutineScope()
-    val configLoader = remember { ConfigLoader(context) }
+    val configLoader = remember { configLoader(context) }
 
-    // LoadConfig
-    val openClawConfig = remember { configLoader.loadOpenClawConfig() }
-    val savedConfig = remember { openClawConfig.channels.feishu }
+    // Loadconfig
+    val openClawconfig = remember { configLoader.loadOpenClawconfig() }
+    val savedconfig = remember { openClawconfig.channels.feishu }
 
-    // StatusVariable(对齐 clawdbot-feishu Config)
-    var enabled by remember { mutableStateOf(savedConfig.enabled) }
-    var appId by remember { mutableStateOf(savedConfig.appId) }
-    var appSecret by remember { mutableStateOf(savedConfig.appSecret) }
-    var dmPolicy by remember { mutableStateOf(savedConfig.dmPolicy) }
-    var groupPolicy by remember { mutableStateOf(savedConfig.groupPolicy) }
-    var requireMention by remember { mutableStateOf(savedConfig.requireMention ?: savedConfig.groupPolicy != "open") }
-    var groupAllowFrom by remember { mutableStateOf(savedConfig.groupAllowFrom.joinToString("\n")) }
+    // StatusVariable(correct齐 clawdbot-feishu config)
+    var enabled by remember { mutableStateOf(savedconfig.enabled) }
+    var appId by remember { mutableStateOf(savedconfig.appId) }
+    var appSecret by remember { mutableStateOf(savedconfig.appSecret) }
+    var dmPolicy by remember { mutableStateOf(savedconfig.dmPolicy) }
+    var groupPolicy by remember { mutableStateOf(savedconfig.groupPolicy) }
+    var requireMention by remember { mutableStateOf(savedconfig.requireMention ?: savedconfig.groupPolicy != "open") }
+    var groupAllowfrom by remember { mutableStateOf(savedconfig.groupAllowfrom.joinToString("\n")) }
 
     var showSaveSuccess by remember { mutableStateOf(false) }
 
@@ -75,41 +75,41 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
             TopAppBar(
                 title = { Text(stringResource(R.string.feishu_channel_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "Return")
+                    Iconbutton(onClick = onback) {
+                        Icon(Icons.Filled.Arrowback, "Return")
                     }
                 },
                 actions = {
-                    TextButton(
+                    Textbutton(
                         onClick = {
                             scope.launch {
-                                // Read当Front完整Config
-                                val currentConfig = configLoader.loadOpenClawConfig()
+                                // ReadwhenFront完整config
+                                val currentconfig = configLoader.loadOpenClawconfig()
 
-                                // Update feishu Config
-                                val updatedFeishuConfig = currentConfig.channels.feishu.copy(
+                                // Update feishu config
+                                val updatedFeishuconfig = currentconfig.channels.feishu.copy(
                                     enabled = enabled,
                                     appId = appId,
                                     appSecret = appSecret,
-                                    connectionMode = currentConfig.channels.feishu.connectionMode,
+                                    connectionMode = currentconfig.channels.feishu.connectionMode,
                                     dmPolicy = dmPolicy,
                                     groupPolicy = groupPolicy,
                                     requireMention = requireMention,
-                                    groupAllowFrom = groupAllowFrom.split("\n").filter { it.isNotBlank() },
-                                    historyLimit = currentConfig.channels.feishu.historyLimit,
-                                    dmHistoryLimit = currentConfig.channels.feishu.dmHistoryLimit
+                                    groupAllowfrom = groupAllowfrom.split("\n").filter { it.isnotBlank() },
+                                    historyLimit = currentconfig.channels.feishu.historyLimit,
+                                    dmHistoryLimit = currentconfig.channels.feishu.dmHistoryLimit
                                 )
 
-                                // Update完整Config
-                                val updatedChannelsConfig = currentConfig.channels.copy(
-                                    feishu = updatedFeishuConfig
+                                // Update完整config
+                                val updatedchannelsconfig = currentconfig.channels.copy(
+                                    feishu = updatedFeishuconfig
                                 )
-                                val updatedConfig = currentConfig.copy(
-                                    channels = updatedChannelsConfig
+                                val updatedconfig = currentconfig.copy(
+                                    channels = updatedchannelsconfig
                                 )
 
-                                // Save到 openclaw.json
-                                configLoader.saveOpenClawConfig(updatedConfig)
+                                // Saveto openclaw.json
+                                configLoader.saveOpenClawconfig(updatedconfig)
 
                                 showSaveSuccess = true
                             }
@@ -127,37 +127,37 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                     showSaveSuccess = false
                 }
                 Snackbar(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.paing(16.dp)
                 ) {
-                    Text("Config已Save")
+                    Text("configalreadySave")
                 }
             }
         }
-    ) { paddingValues ->
+    ) { paingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
+                .paing(paingValues)
+                .paing(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Enabledd开关
+            // Enable开关
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .paing(16.dp),
+                    horizontalArrangement = Arrangement.Spacebetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Enabledd Feishu Channel",
+                            text = "Enable Feishu channel",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = "开启BackWill receive飞书Message",
+                            text = "openbackwill receive飞书Message",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -169,9 +169,9 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 }
             }
 
-            // 基础Config
+            // 基础config
             Text(
-                text = "基础Config",
+                text = "基础config",
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -206,12 +206,12 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                         onClick = { dmPolicy = policy },
                         label = {
                             Column {
-                                Text(policy.replaceFirstChar { it.uppercase() })
+                                Text(policy.replacefirstChar { it.uppercase() })
                                 Text(
                                     text = when (policy) {
                                         "open" -> "acceptAll私聊"
-                                        "pairing" -> "Need配对Back才能use"
-                                        "allowlist" -> "仅白名单User"
+                                        "pairing" -> "need配correctback才canuse"
+                                        "allowlist" -> "仅白名单user"
                                         else -> "Its他Policy"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
@@ -237,7 +237,7 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                         onClick = { groupPolicy = policy },
                         label = {
                             Column {
-                                Text(policy.replaceFirstChar { it.uppercase() })
+                                Text(policy.replacefirstChar { it.uppercase() })
                                 Text(
                                     text = when (policy) {
                                         "open" -> "Accept all group chats"
@@ -258,10 +258,10 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
             // Group chat whitelist
             if (groupPolicy == "allowlist") {
                 OutlinedTextField(
-                    value = groupAllowFrom,
-                    onValueChange = { groupAllowFrom = it },
+                    value = groupAllowfrom,
+                    onValueChange = { groupAllowfrom = it },
                     label = { Text("Group chat whitelist") },
-                    placeholder = { Text("每Row一个群聊ID\noc_xxxxxx") },
+                    placeholder = { Text("每Rowone群聊ID\noc_xxxxxx") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp),
@@ -269,22 +269,22 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 )
             }
 
-            // 群聊 @ 提及
+            // 群聊 @ mentions
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .paing(16.dp),
+                    horizontalArrangement = Arrangement.Spacebetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "群聊Need @ 提及",
+                            text = "群聊need @ mentions",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = "开启Back仅Response @ 机器人的Message",
+                            text = "openback仅Response @ 机器人Message",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -296,12 +296,12 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 }
             }
 
-            // ConfigFile pathHint
+            // configFile pathHint
             Text(
-                text = "ConfigSave在:\n/sdcard/.androidforclaw/openclaw.json (channels.feishu)",
+                text = "configSavein:\n/sdcard/.androidforclaw/openclaw.json (channels.feishu)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.paing(vertical = 8.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))

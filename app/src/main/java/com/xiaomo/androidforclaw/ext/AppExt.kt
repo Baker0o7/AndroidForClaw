@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ext
 
@@ -11,7 +11,7 @@ import io.noties.markwon.Markwon
 
 
 val markwon by lazy {
-    Markwon.create(MyApplication.application) // Ensure你Has Application 的Instance
+    Markwon.create(MyApplication.application) // Ensure你Has Application Instance
 }
 
 
@@ -20,32 +20,32 @@ fun TextView.setMarkdownText(content: String) {
 }
 
 fun String.removeMarkdownMark(): String {
-    // CheckYesNo以 "```markdown" 开头
-    if (startsWith("```markdown")) {
-        // 移除头部的 "```markdown" 和尾部的 "```"
-        // Note: 这里False设尾部只Has一个 "```" and它位于String的末尾
+    // Checkwhetherby "```markdown" 开头
+    if (startswith("```markdown")) {
+        // remove头part "```markdown" and尾part "```"
+        // note: thisinFalse设尾part只Hasone "```" and它position于String末尾
         val startIndex = "```markdown".length
         val endIndex = lastIndexOf("```")
 
-        // Check endIndex YesNoValid, 以避免 IndexOutOfBoundsException
+        // Check endIndex whetherValid, by避免 IndexOutOfBoundsexception
         if (endIndex != -1 && endIndex > startIndex) {
-            // Return移除头部和尾部标记Back的String
+            // Returnremove头partand尾partmarkbackString
             return substring(startIndex, endIndex)
         } else {
-            // ifNone找到尾部标记or尾部标记位置不正确, 则possiblyillustrateString格式Has误
-            // 这里CanReturn原始Stringor抛出一个Exception, depend onYourRequirement
-            // 这里我们chooseReturn原始String并附带一个WarningInfo(实际开发中ShoulduseLog而不Yes打印)
+            // ifNone找to尾partmarkor尾partmarkposition置not正确, thenpossiblyillustrateStringformatHas误
+            // thisincanReturnoriginalStringor抛出oneexception, depend onYourRequirement
+            // thisin我们chooseReturnoriginalString并附带oneWarningInfo(实际开发中shoulduseLog而notYes打印)
             println("Warning: No valid closing '```' found in the instruction string.")
-            return this // or你Canchoose抛出Exception
+            return this // or你canchoose抛出exception
         }
     } else {
-        // if不以 "```markdown" 开头, 则直接Return原始String(oraccording toRequirementProcess)
-        return this // or你Canchoose抛出一个Exception, Table示Input格式不正确
+        // ifnotby "```markdown" 开头, then直接ReturnoriginalString(oraccording toRequirementProcess)
+        return this // or你canchoose抛出oneexception, Table示Inputformatnot正确
     }
 }
 
-fun AndroidForClawMMKV(): MMKV = MMKV.defaultMMKV(MMKV.MULTI_PROCESS_MODE, "AndroidForClaw")!!
+fun androidforClawMMKV(): MMKV = MMKV.defaultMMKV(MMKV.MULTI_PROCESS_MODE, "androidforClaw")!!
 
-val mmkv by lazy { AndroidForClawMMKV() }
+val mmkv by lazy { androidforClawMMKV() }
 
 

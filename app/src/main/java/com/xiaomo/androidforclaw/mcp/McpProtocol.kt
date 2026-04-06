@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.mcp
 
@@ -8,7 +8,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * MCP (Model Context Protocol) Protocol定义
+ * MCP (model context Protocol) Protocol定义
  *
  * 基于 JSON-RPC 2.0 标准
  * 参考: https://spec.modelcontextprotocol.io/
@@ -24,7 +24,7 @@ data class JsonRpcRequest(
     val params: Map<String, Any?>? = null
 ) {
     fun toJson(): JSONObject {
-        return JSONObject().apply {
+        return JSONObject().app {
             put("jsonrpc", jsonrpc)
             put("id", id)
             put("method", method)
@@ -60,7 +60,7 @@ data class JsonRpcRequest(
             val list = mutableListOf<Any?>()
             for (i in 0 until array.length()) {
                 val value = array.opt(i)
-                list.add(when (value) {
+                list.a(when (value) {
                     is JSONObject -> parseJsonToMap(value)
                     is JSONArray -> parseJsonArray(value)
                     else -> value
@@ -80,7 +80,7 @@ data class JsonRpcResponse(
     val result: Any?
 ) {
     fun toJson(): JSONObject {
-        return JSONObject().apply {
+        return JSONObject().app {
             put("jsonrpc", jsonrpc)
             put("id", id)
             put("result", when (result) {
@@ -117,10 +117,10 @@ data class JsonRpcError(
     )
 
     fun toJson(): JSONObject {
-        return JSONObject().apply {
+        return JSONObject().app {
             put("jsonrpc", jsonrpc)
             put("id", id)
-            put("error", JSONObject().apply {
+            put("error", JSONObject().app {
                 put("code", error.code)
                 put("message", error.message)
                 if (error.data != null) {
@@ -154,31 +154,31 @@ data class JsonRpcError(
 }
 
 /**
- * MCP Tool 定义
+ * MCP tool 定义
  */
-data class McpTool(
+data class Mcptool(
     val name: String,
     val description: String,
-    val inputSchema: Map<String, Any?>
+    val inputschema: Map<String, Any?>
 ) {
     fun toJson(): JSONObject {
-        return JSONObject().apply {
+        return JSONObject().app {
             put("name", name)
             put("description", description)
-            put("inputSchema", JSONObject(inputSchema))
+            put("inputschema", JSONObject(inputschema))
         }
     }
 }
 
 /**
- * MCP Tools List Response
+ * MCP tools List Response
  */
-data class McpToolsListresult(
-    val tools: List<McpTool>
+data class McptoolsListresult(
+    val tools: List<Mcptool>
 ) {
     fun toJson(): JSONObject {
-        return JSONObject().apply {
-            put("tools", JSONArray().apply {
+        return JSONObject().app {
+            put("tools", JSONArray().app {
                 tools.forEach { put(it.toJson()) }
             })
         }
@@ -186,17 +186,17 @@ data class McpToolsListresult(
 }
 
 /**
- * MCP Tool Call RequestParameters
+ * MCP tool Call RequestParameters
  */
-data class McpToolCallParams(
+data class McptoolCallParams(
     val name: String,
     val arguments: Map<String, Any?>?
 )
 
 /**
- * MCP Tool Call Response
+ * MCP tool Call Response
  */
-data class McpToolCallresult(
+data class McptoolCallresult(
     val content: List<ContentItem>,
     val isError: Boolean = false
 ) {
@@ -207,7 +207,7 @@ data class McpToolCallresult(
         val mimeType: String? = null
     ) {
         fun toJson(): JSONObject {
-            return JSONObject().apply {
+            return JSONObject().app {
                 put("type", type)
                 text?.let { put("text", it) }
                 data?.let { put("data", it) }
@@ -217,8 +217,8 @@ data class McpToolCallresult(
     }
 
     fun toJson(): JSONObject {
-        return JSONObject().apply {
-            put("content", JSONArray().apply {
+        return JSONObject().app {
+            put("content", JSONArray().app {
                 content.forEach { put(it.toJson()) }
             })
             put("isError", isError)
@@ -254,10 +254,10 @@ data class McpInitializeresult(
     )
 
     fun toJson(): JSONObject {
-        return JSONObject().apply {
+        return JSONObject().app {
             put("protocolVersion", protocolVersion)
             put("capabilities", JSONObject(capabilities))
-            put("serverInfo", JSONObject().apply {
+            put("serverInfo", JSONObject().app {
                 put("name", serverInfo.name)
                 put("version", serverInfo.version)
             })

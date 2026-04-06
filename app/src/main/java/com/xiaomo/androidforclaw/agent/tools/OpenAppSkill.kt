@@ -2,45 +2,45 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
 import android.app.PendingIntent
-import android.content.Context
+import android.content.context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.pm.Packagemanager
 import android.os.Build
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.Timeoutcancellationexception
 
 /**
- * Open App Skill
+ * Open App skill
  * Open a specified app
  */
-class OpenAppSkill(private val context: Context) : Skill {
+class OpenAppskill(private val context: context) : skill {
     companion object {
-        private const val TAG = "OpenAppSkill"
+        private const val TAG = "OpenAppskill"
     }
 
     override val name = "open_app"
-    override val description = "Open指定的apply程序. Need提供apply的Package name. "
+    override val description = "Open指定app程序. need提供appPackage name. "
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "package_name" to PropertySchema("string", "apply的Package name, e.g. 'com.android.settings'")
+                        "package_name" to Propertyschema("string", "appPackage name, e.g. 'com.android.settings'")
                     ),
                     required = listOf("package_name")
                 )
@@ -48,36 +48,36 @@ class OpenAppSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         val packageName = args["package_name"] as? String
 
         if (packageName == null) {
-            return Skillresult.error("Missing required parameter: package_name")
+            return skillresult.error("Missing required parameter: package_name")
         }
 
         Log.d(TAG, "Opening app: $packageName")
         return try {
-            val packageManager = context.packageManager
-            val intent = packageManager.getLaunchIntentForPackage(packageName)
+            val packagemanager = context.packagemanager
+            val intent = packagemanager.getLaunchIntentforPackage(packageName)
 
             if (intent != null) {
-                // Add flags to handle background launch restrictions
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                // A flags to handle background launch restrictions
+                intent.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.aFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                intent.aFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
-                // Use withTimeout to prevent blocking indefinitely
+                // use withTimeout to prevent blocking indefinitely
                 try {
                     withTimeout(5000L) { // 5 second timeout
                         try {
                             context.startActivity(intent)
                             Log.d(TAG, "Activity started successfully")
-                        } catch (e: SecurityException) {
-                            Log.w(TAG, "Background launch blocked: ${e.message}")
-                            // If blocked by BAL restrictions, return error with guidance
-                            return@withTimeout Skillresult.error(
-                                "Cannot launch app from background due to Android restrictions. " +
-                                "Suggestion: Use 'home' tool first to go to launcher, then use 'tap' to click the app icon."
+                        } catch (e: Securityexception) {
+                            Log.w(TAG, "background launch blocked: ${e.message}")
+                            // if blocked by BAL restrictions, return error with guidance
+                            return@withTimeout skillresult.error(
+                                "cannot launch app from background due to android restrictions. " +
+                                "Suggestion: use 'home' tool first to go to launcher, then use 'tap' to click the app icon."
                             )
                         }
 
@@ -85,24 +85,24 @@ class OpenAppSkill(private val context: Context) : Skill {
                         Log.d(TAG, "Waiting for app to launch...")
                         kotlinx.coroutines.delay(1000)
 
-                        Skillresult.success(
+                        skillresult.success(
                             "App opened: $packageName (waited 1s for launch)",
                             mapOf("package" to packageName, "wait_time_ms" to 1000)
                         )
                     }
-                } catch (e: TimeoutCancellationException) {
+                } catch (e: Timeoutcancellationexception) {
                     Log.e(TAG, "App launch timeout after 5s")
-                    Skillresult.error("App launch timeout after 5s. The app might be slow to start or blocked.")
+                    skillresult.error("App launch timeout after 5s. The app might be slow to start or blocked.")
                 }
             } else {
-                Skillresult.error("App not found: $packageName")
+                skillresult.error("App not found: $packageName")
             }
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (e: Packagemanager.NamenotFoundexception) {
             Log.e(TAG, "Package not found: $packageName", e)
-            Skillresult.error("Package not found: $packageName")
-        } catch (e: Exception) {
+            skillresult.error("Package not found: $packageName")
+        } catch (e: exception) {
             Log.e(TAG, "Open app failed", e)
-            Skillresult.error("Open app failed: ${e.message}")
+            skillresult.error("Open app failed: ${e.message}")
         }
     }
 }

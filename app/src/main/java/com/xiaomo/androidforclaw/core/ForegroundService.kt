@@ -2,39 +2,39 @@ package com.xiaomo.androidforclaw.core
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.app.notification
+import android.app.notificationchannel
+import android.app.notificationmanager
 import android.app.PendingIntent
-import android.app.Service
+import android.app.service
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import com.xiaomo.androidforclaw.logging.Log
-import androidx.core.app.NotificationCompat
+import androidx.core.app.notificationCompat
 import com.xiaomo.androidforclaw.R
 
 
 /**
- * Foreground Service - For process keep-alive
+ * foreground service - for process keep-alive
  *
  * Keep-alive mechanisms:
- * 1. Foreground service notification (reduces kill risk)
+ * 1. foreground service notification (reduces kill risk)
  * 2. START_STICKY restart policy
- * 3. Notification tap redirects to app
+ * 3. notification tap redirects to app
  * 4. Auto-restart on onDestroy
  */
-class ForegroundService : Service() {
+class foregroundservice : service() {
     companion object {
-        private const val TAG = "ForegroundService"
+        private const val TAG = "foregroundservice"
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "androidforclaw_service"
-        private const val CHANNEL_NAME = "AndroidForClaw Back台Service"
+        private const val CHANNEL_NAME = "androidforClaw backgroundservice"
         const val ACTION_START_ACTIVITY = "START_ACTIVITY"
         const val EXTRA_PACKAGE_NAME = "package_name"
         const val EXTRA_ACTIVITY_NAME = "activity_name"
@@ -42,33 +42,33 @@ class ForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.i(TAG, "ForegroundService onCreate")
-        createNotificationChannel()
+        Log.i(TAG, "foregroundservice onCreate")
+        createnotificationchannel()
 
         try {
-            // Android 10+ supports explicit foregroundServiceType, but some ROMs are picky.
+            // android 10+ supports explicit foregroundserviceType, but some ROMs are picky.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
+                startforeground(
                     NOTIFICATION_ID,
-                    createNotification(),
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    createnotification(),
+                    android.content.pm.serviceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                 )
             } else {
-                startForeground(NOTIFICATION_ID, createNotification())
+                startforeground(NOTIFICATION_ID, createnotification())
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "startForeground with type failed, fallback to basic startForeground", e)
-            startForeground(NOTIFICATION_ID, createNotification())
+        } catch (e: exception) {
+            Log.w(TAG, "startforeground with type failed, fallback to basic startforeground", e)
+            startforeground(NOTIFICATION_ID, createnotification())
         }
     }
 
     /**
-     * Called when Service is started
+     * Called when service is started
      *
-     * Returns START_STICKY: After service is killed, system will try to recreate it
+     * Returns START_STICKY: after service is killed, system will try to recreate it
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.i(TAG, "ForegroundService onStartCommand")
+        Log.i(TAG, "foregroundservice onStartCommand")
 
         when (intent?.action) {
             ACTION_START_ACTIVITY -> {
@@ -83,68 +83,68 @@ class ForegroundService : Service() {
                     try {
                         startActivity(activityIntent)
                         Log.i(TAG, "Start Activity: $packageName/$activityName")
-                    } catch (e: Exception) {
+                    } catch (e: exception) {
                         Log.e(TAG, "Start Activity Failed", e)
                     }
                 }
             }
         }
 
-        // START_STICKY: Service will be restarted after being killed, intent may be null
+        // START_STICKY: service will be restarted after being killed, intent may be null
         return START_STICKY
     }
 
     /**
-     * Returns null if this Service doesn't provide binding.
+     * Returns null if this service doesn't provide binding.
      */
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.w(TAG, "ForegroundService onDestroy - Service destroyed")
+        Log.w(TAG, "foregroundservice onDestroy - service destroyed")
 
         // Keep-alive mechanism: Try to restart service when destroyed
         try {
-            val restartIntent = Intent(applicationContext, ForegroundService::class.java)
+            val restartIntent = Intent(applicationcontext, foregroundservice::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                applicationContext.startForegroundService(restartIntent)
+                applicationcontext.startforegroundservice(restartIntent)
             } else {
-                applicationContext.startService(restartIntent)
+                applicationcontext.startservice(restartIntent)
             }
-            Log.i(TAG, "已触发ServiceRestart")
-        } catch (e: Exception) {
-            Log.e(TAG, "ServiceRestartFailed", e)
+            Log.i(TAG, "already触发serviceRestart")
+        } catch (e: exception) {
+            Log.e(TAG, "serviceRestartFailed", e)
         }
     }
 
     /**
-     * Create notification channel (required for Android 8.0+)
+     * Create notification channel (required for android 8.0+)
      */
-    private fun createNotificationChannel() {
+    private fun createnotificationchannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val channel = notificationchannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "保持 AndroidForClaw Back台Run"
+                notificationmanager.IMPORTANCE_LOW
+            ).app {
+                description = "保持 androidforClaw backgroundRun"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
             }
 
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-            Log.d(TAG, "Notification渠道已Create")
+            val notificationmanager = getSystemservice(notificationmanager::class.java)
+            notificationmanager.createnotificationchannel(channel)
+            Log.d(TAG, "notification渠道alreadyCreate")
         }
     }
 
     /**
      * Create foreground service notification
      */
-    private fun createNotification(): Notification {
+    private fun createnotification(): notification {
         // Create PendingIntent for notification tap (jump to app)
-        val notificationIntent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+        val notificationIntent = packagemanager.getLaunchIntentforPackage(packageName)?.app {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         } ?: Intent()
 
@@ -161,15 +161,15 @@ class ForegroundService : Service() {
             pendingIntentFlags
         )
 
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("AndroidForClaw 正在Run")
-            .setContentText("clickOpenapply")
+        return notificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("androidforClaw currentlyRun")
+            .setContentText("clickOpenapp")
             .setSmallIcon(R.drawable.ic_baseline_adb_24)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setShowWhen(true)
+            .setPriority(notificationCompat.PRIORITY_LOW)
+            .setShowwhen(true)
             .setOngoing(true) // Set as ongoing notification, user cannot swipe to dismiss
             .setContentIntent(pendingIntent)
-            .setAutoCancel(false) // Don't auto-cancel after tap
+            .setAutocancel(false) // Don't auto-cancel after tap
             .build()
     }
 }

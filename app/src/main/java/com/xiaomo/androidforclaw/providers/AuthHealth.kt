@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.providers
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/auth-health.ts
  *
- * AndroidForClaw adaptation: auth profile health evaluation.
+ * androidforClaw adaptation: auth profile health evaluation.
  */
 
 /**
@@ -32,9 +32,9 @@ data class AuthProfileHealth(
 
 /**
  * Health info for a provider (aggregated across profiles).
- * Aligned with OpenClaw AuthProviderHealth.
+ * Aligned with OpenClaw AuthproviderHealth.
  */
-data class AuthProviderHealth(
+data class AuthproviderHealth(
     val provider: String,
     val profiles: List<AuthProfileHealth>,
     val hasHealthy: Boolean,
@@ -43,11 +43,11 @@ data class AuthProviderHealth(
 )
 
 /**
- * Overall auth health summary.
+ * overall auth health summary.
  * Aligned with OpenClaw AuthHealthSummary.
  */
 data class AuthHealthSummary(
-    val providers: List<AuthProviderHealth>,
+    val providers: List<AuthproviderHealth>,
     val totalProfiles: Int,
     val healthyCount: Int,
     val expiringCount: Int,
@@ -77,13 +77,13 @@ object AuthHealth {
 
         for ((profileId, credential) in store.profiles) {
             val health = evaluateProfileHealth(profileId, credential, now, warnMs)
-            profileHealths.add(health)
+            profileHealths.a(health)
         }
 
         // Group by provider
-        val byProvider = profileHealths.groupBy { it.provider }
-        val providerHealths = byProvider.map { (provider, profiles) ->
-            AuthProviderHealth(
+        val byprovider = profileHealths.groupBy { it.provider }
+        val providerHealths = byprovider.map { (provider, profiles) ->
+            AuthproviderHealth(
                 provider = provider,
                 profiles = profiles,
                 hasHealthy = profiles.any { it.status == AuthProfileHealthStatus.OK || it.status == AuthProfileHealthStatus.STATIC },
@@ -103,7 +103,7 @@ object AuthHealth {
     }
 
     /**
-     * Format remaining time as human-readable short string.
+     * format remaining time as human-readable short string.
      * Aligned with OpenClaw formatRemainingShort.
      */
     fun formatRemainingShort(ms: Long): String {
@@ -129,7 +129,7 @@ object AuthHealth {
             profileId == CODEX_CLI_PROFILE_ID -> "Codex CLI"
             profileId == QWEN_CLI_PROFILE_ID -> "Qwen CLI"
             profileId == MINIMAX_CLI_PROFILE_ID -> "MiniMax CLI"
-            profileId.contains(":") -> profileId.substringAfter(":")
+            profileId.contains(":") -> profileId.substringafter(":")
             else -> profileId
         }
     }
@@ -146,14 +146,14 @@ object AuthHealth {
 
         return when (credential) {
             is AuthProfileCredential.ApiKey -> {
-                if (credential.key.isNullOrBlank() && credential.keyRef == null) {
+                if (credential.key.isNullorBlank() && credential.keyRef == null) {
                     AuthProfileHealth(profileId, provider, AuthProfileHealthStatus.MISSING)
                 } else {
                     AuthProfileHealth(profileId, provider, AuthProfileHealthStatus.STATIC, email = credential.email)
                 }
             }
             is AuthProfileCredential.Token -> {
-                if (credential.token.isNullOrBlank() && credential.tokenRef == null) {
+                if (credential.token.isNullorBlank() && credential.tokenRef == null) {
                     return AuthProfileHealth(profileId, provider, AuthProfileHealthStatus.MISSING)
                 }
                 val expires = credential.expires
@@ -168,11 +168,11 @@ object AuthHealth {
                 }
             }
             is AuthProfileCredential.OAuth -> {
-                if (credential.accessToken.isNullOrBlank() && credential.refreshToken.isNullOrBlank()) {
+                if (credential.accessToken.isNullorBlank() && credential.refreshToken.isNullorBlank()) {
                     return AuthProfileHealth(profileId, provider, AuthProfileHealthStatus.MISSING)
                 }
                 // OAuth with valid refresh token is OK even if access token expired
-                if (!credential.refreshToken.isNullOrBlank()) {
+                if (!credential.refreshToken.isNullorBlank()) {
                     val expiresAt = credential.expiresAt
                     if (expiresAt != null) {
                         val remaining = expiresAt - now

@@ -5,7 +5,7 @@
  * - ../openclaw/src/agents/subagent-lifecycle-events.ts (target kinds, ended reasons/outcomes)
  * - ../openclaw/src/agents/subagent-registry-completion.ts (emitSubagentEndedHookOnce)
  *
- * AndroidForClaw adaptation: lifecycle hook system for subagent events.
+ * androidforClaw adaptation: lifecycle hook system for subagent events.
  * Provides extensible hook points aligned with OpenClaw's plugin hook architecture.
  */
 package com.xiaomo.androidforclaw.agent.subagent
@@ -32,10 +32,10 @@ enum class SubagentHookPoint {
  * Aligned with OpenClaw PluginHookSubagentSpawningEvent.
  */
 data class SubagentSpawningEvent(
-    val childSessionKey: String,
+    val childsessionKey: String,
     val label: String?,
     val mode: SpawnMode,
-    val requesterSessionKey: String,
+    val requestersessionKey: String,
     val threadRequested: Boolean = false,
 )
 
@@ -55,10 +55,10 @@ sealed class SubagentSpawningResult {
  */
 data class SubagentSpawnedEvent(
     val runId: String,
-    val childSessionKey: String,
+    val childsessionKey: String,
     val label: String?,
     val mode: SpawnMode,
-    val requesterSessionKey: String,
+    val requestersessionKey: String,
 )
 
 /**
@@ -66,7 +66,7 @@ data class SubagentSpawnedEvent(
  * Aligned with OpenClaw PluginHookSubagentEndedEvent.
  */
 data class SubagentEndedEvent(
-    val targetSessionKey: String,
+    val targetsessionKey: String,
     val targetKind: SubagentLifecycleTargetKind,
     val reason: String,
     val sendFarewell: Boolean = false,
@@ -81,15 +81,15 @@ data class SubagentEndedEvent(
  * Aligned with OpenClaw PluginHookSubagentDeliveryTargetEvent.
  */
 data class SubagentDeliveryTargetEvent(
-    val childSessionKey: String,
-    val requesterSessionKey: String,
+    val childsessionKey: String,
+    val requestersessionKey: String,
     val childRunId: String? = null,
     val spawnMode: SpawnMode? = null,
     val expectsCompletionMessage: Boolean = true,
 )
 
 /**
- * Result of SUBAGENT_DELIVERY_TARGET hook. First-origin-wins semantics.
+ * Result of SUBAGENT_DELIVERY_TARGET hook. first-origin-wins semantics.
  * Aligned with OpenClaw PluginHookSubagentDeliveryTargetResult.
  */
 data class SubagentDeliveryTargetResult(
@@ -108,7 +108,7 @@ interface SubagentHookHandler {
     val priority: Int get() = 0
 
     /**
-     * Called before a subagent is spawned. Can deny the spawn.
+     * Called before a subagent is spawned. can deny the spawn.
      * Returning null means "no opinion" (allow).
      */
     suspend fun onSpawning(event: SubagentSpawningEvent): SubagentSpawningResult? = null
@@ -137,7 +137,7 @@ class SubagentHooks {
 
     /** Register a hook handler. */
     fun register(handler: SubagentHookHandler) {
-        handlers.add(handler)
+        handlers.a(handler)
         handlers.sortByDescending { it.priority }
     }
 
@@ -147,7 +147,7 @@ class SubagentHooks {
     }
 
     /**
-     * Run SUBAGENT_SPAWNING hooks. Uses deny-wins merge semantics.
+     * Run SUBAGENT_SPAWNING hooks. uses deny-wins merge semantics.
      * Aligned with OpenClaw mergeSubagentSpawningResult.
      * Returns Ok if all handlers allow (or have no opinion), Error if any denies.
      */
@@ -163,7 +163,7 @@ class SubagentHooks {
                 if (result != null) {
                     accumulated = mergeSpawningResult(accumulated, result)
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Hook handler error in onSpawning: ${e.message}")
             }
         }
@@ -178,7 +178,7 @@ class SubagentHooks {
         for (handler in handlers) {
             try {
                 handler.onSpawned(event)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Hook handler error in onSpawned: ${e.message}")
             }
         }
@@ -191,14 +191,14 @@ class SubagentHooks {
         for (handler in handlers) {
             try {
                 handler.onEnded(event)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Hook handler error in onEnded: ${e.message}")
             }
         }
     }
 
     /**
-     * Run SUBAGENT_DELIVERY_TARGET hooks. First-origin-wins merge semantics.
+     * Run SUBAGENT_DELIVERY_TARGET hooks. first-origin-wins merge semantics.
      * Aligned with OpenClaw mergeSubagentDeliveryTargetResult.
      */
     suspend fun runDeliveryTarget(event: SubagentDeliveryTargetEvent): SubagentDeliveryTargetResult? {
@@ -208,10 +208,10 @@ class SubagentHooks {
             try {
                 val handlerResult = handler.onDeliveryTarget(event)
                 if (handlerResult != null && result == null) {
-                    // First-origin-wins
+                    // first-origin-wins
                     result = handlerResult
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Hook handler error in onDeliveryTarget: ${e.message}")
             }
         }
@@ -227,9 +227,9 @@ class SubagentHooks {
         acc: SubagentSpawningResult,
         next: SubagentSpawningResult,
     ): SubagentSpawningResult {
-        // If accumulated is already an error, it wins (deny-wins)
+        // if accumulated is already an error, it wins (deny-wins)
         if (acc is SubagentSpawningResult.Error) return acc
-        // If next is error, it wins
+        // if next is error, it wins
         if (next is SubagentSpawningResult.Error) return next
         // Both Ok — merge threadBindingReady
         val accOk = acc as SubagentSpawningResult.Ok

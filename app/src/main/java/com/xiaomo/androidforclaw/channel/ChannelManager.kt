@@ -4,34 +4,34 @@
  */
 package com.xiaomo.androidforclaw.channel
 
-import android.content.Context
+import android.content.context
 import android.provider.Settings
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
-import com.xiaomo.androidforclaw.accessibility.MediaProjectionHelper
+import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderservice
+import com.xiaomo.androidforclaw.accessibility.MediaProjectionhelper
 import java.util.UUID
 
 /**
- * Channel Manager - Manage Android App Channel 的生命周期和Status
+ * channel manager - Manage android App channel 生命week期andStatus
  *
  * 职责:
  * - AccountManage(Create、Update、Delete)
  * - StatusTrace(Connect、Run、Error)
  * - PermissionCheck(Accessibility、悬浮窗、录屏)
- * - 系统Hint词集成(Channel Hints)
+ * - 系统Hint词集成(channel Hints)
  */
-class ChannelManager(private val context: Context) {
+class channelmanager(private val context: context) {
 
     companion object {
-        private const val TAG = "ChannelManager"
+        private const val TAG = "channelmanager"
         private const val DEFAULT_ACCOUNT_ID = "android-device-default"
     }
 
-    // 当FrontAccount(单DeviceSchema)
-    private var currentAccount: ChannelAccount? = null
+    // whenFrontAccount(单Deviceschema)
+    private var currentAccount: channelAccount? = null
 
-    // 渠道Config
-    private var channelConfig = ChannelConfig()
+    // 渠道config
+    private var channelconfig = channelconfig()
 
     init {
         // InitializeDefaultAccount
@@ -39,43 +39,43 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * InitializeDefaultAccount(单DeviceSchema)
+     * InitializeDefaultAccount(单Deviceschema)
      */
     private fun initializeDefaultAccount() {
         val deviceId = getDeviceId()
-        val account = ChannelAccount(
+        val account = channelAccount(
             accountId = DEFAULT_ACCOUNT_ID,
             name = "${android.os.Build.MODEL} (${android.os.Build.DEVICE})",
             enabled = true,
-            configured = true,  // Android App None需额OutsideConfig
+            configured = true,  // android App Noneneed额outsideconfig
             deviceId = deviceId,
-            deviceModel = android.os.Build.MODEL,
+            devicemodel = android.os.Build.MODEL,
             androidVersion = android.os.Build.VERSION.RELEASE,
             apiLevel = android.os.Build.VERSION.SDK_INT,
-            architecture = android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown"
+            architecture = android.os.Build.SUPPORTED_ABIS.firstorNull() ?: "unknown"
         )
 
         currentAccount = account
-        channelConfig = ChannelConfig(
+        channelconfig = channelconfig(
             enabled = true,
             defaultAccount = DEFAULT_ACCOUNT_ID,
             accounts = mapOf(DEFAULT_ACCOUNT_ID to account)
         )
 
-        Log.d(TAG, "✅ Initialized Android App Channel")
+        Log.d(TAG, "[OK] Initialized android App channel")
         Log.d(TAG, "  - Account ID: ${account.accountId}")
         Log.d(TAG, "  - Device: ${account.name}")
-        Log.d(TAG, "  - Android: ${account.androidVersion} (API ${account.apiLevel})")
+        Log.d(TAG, "  - android: ${account.androidVersion} (API ${account.apiLevel})")
     }
 
     /**
-     * GetDevice ID(Unique标识)
+     * GetDevice ID(Uniqueid)
      */
     private fun getDeviceId(): String {
         return try {
             Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
                 ?: "android-${UUID.randomUUID()}"
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to get device ID, using random UUID", e)
             "android-${UUID.randomUUID()}"
         }
@@ -84,19 +84,19 @@ class ChannelManager(private val context: Context) {
     /**
      * UpdateAccountStatus(Permission、Connect等)
      */
-    fun updateAccountStatus(): ChannelAccount {
+    fun updateAccountStatus(): channelAccount {
         val current = currentAccount ?: return currentAccount!!
 
-        val accessibilityEnableddd = AccessibilityBinderService.serviceInstance != null
-        val overlayPermission = Settings.canDrawOverlays(context)
-        val mediaProjection = MediaProjectionHelper.isMediaProjectionGranted()
+        val accessibilityEnabled = AccessibilityBinderservice.serviceInstance != null
+        val overlayPermission = Settings.canDrawoverlays(context)
+        val mediaProjection = MediaProjectionhelper.isMediaProjectionGranted()
 
-        // 悬浮窗YesOptionalFeature, 不影响核心ConnectStatus
-        val connected = accessibilityEnableddd && mediaProjection
-        val running = accessibilityEnableddd  // 至少NeedAccessibilityService
+        // 悬浮窗YesOptionalFeature, not影响核心ConnectStatus
+        val connected = accessibilityEnabled && mediaProjection
+        val running = accessibilityEnabled  // 至fewneedAccessibilityservice
 
         val updatedAccount = current.copy(
-            accessibilityEnableddd = accessibilityEnableddd,
+            accessibilityEnabled = accessibilityEnabled,
             overlayPermission = overlayPermission,
             mediaProjection = mediaProjection,
             connected = connected,
@@ -106,13 +106,13 @@ class ChannelManager(private val context: Context) {
         )
 
         currentAccount = updatedAccount
-        channelConfig = channelConfig.copy(
+        channelconfig = channelconfig.copy(
             accounts = mapOf(DEFAULT_ACCOUNT_ID to updatedAccount)
         )
 
-        Log.d(TAG, "📊 Account status updated:")
-        Log.d(TAG, "  - Accessibility: $accessibilityEnableddd")
-        Log.d(TAG, "  - Overlay: $overlayPermission")
+        Log.d(TAG, "[STATS] Account status updated:")
+        Log.d(TAG, "  - Accessibility: $accessibilityEnabled")
+        Log.d(TAG, "  - overlay: $overlayPermission")
         Log.d(TAG, "  - Media Projection: $mediaProjection")
         Log.d(TAG, "  - Connected: $connected")
         Log.d(TAG, "  - Running: $running")
@@ -121,7 +121,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * Record入站Message(Usersend)
+     * Record入站Message(usersend)
      */
     fun recordInbound() {
         currentAccount = currentAccount?.copy(
@@ -130,7 +130,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * Record出站Message(Agent Response)
+     * Record出站Message(agent Response)
      */
     fun recordOutbound() {
         currentAccount = currentAccount?.copy(
@@ -145,7 +145,7 @@ class ChannelManager(private val context: Context) {
         currentAccount = currentAccount?.copy(
             lastError = error
         )
-        Log.e(TAG, "Channel error: $error")
+        Log.e(TAG, "channel error: $error")
     }
 
     /**
@@ -169,12 +169,12 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * Get当Front渠道Status
+     * GetwhenFront渠道Status
      */
-    fun getChannelStatus(): ChannelStatus {
+    fun getchannelStatus(): channelStatus {
         updateAccountStatus()  // RefreshStatus
 
-        return ChannelStatus(
+        return channelStatus(
             timestamp = System.currentTimeMillis(),
             channelId = CHANNEL_ID,
             meta = CHANNEL_META,
@@ -185,50 +185,50 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * Get当FrontAccount
+     * GetwhenFrontAccount
      */
-    fun getCurrentAccount(): ChannelAccount {
-        return currentAccount ?: throw IllegalStateException("No current account")
+    fun getCurrentAccount(): channelAccount {
+        return currentAccount ?: throw IllegalStateexception("No current account")
     }
 
     /**
-     * Check渠道YesNoAvailable(AllPermission已grant)
+     * Check渠道whetherAvailable(AllPermissionalreadygrant)
      */
-    fun isChannelReady(): Boolean {
+    fun ischannelReady(): Boolean {
         val account = currentAccount ?: return false
-        return account.accessibilityEnableddd &&
+        return account.accessibilityEnabled &&
                account.overlayPermission &&
                account.mediaProjection
     }
 
     /**
-     * Get缺失的PermissionList
+     * Get缺失PermissionList
      */
     fun getMissingPermissions(): List<String> {
         val account = currentAccount ?: return emptyList()
         val missing = mutableListOf<String>()
 
-        if (!account.accessibilityEnableddd) missing.add("Accessibility Service")
-        if (!account.overlayPermission) missing.add("Display Over Apps")
-        if (!account.mediaProjection) missing.add("Screen Capture")
+        if (!account.accessibilityEnabled) missing.a("Accessibility service")
+        if (!account.overlayPermission) missing.a("Display over Apps")
+        if (!account.mediaProjection) missing.a("Screen Capture")
 
         return missing
     }
 
     /**
-     * Get Agent Prompt Hints(系统Hint词集成)
+     * Get agent Prompt Hints(系统Hint词集成)
      */
-    fun getAgentPromptHints(): List<String> {
+    fun getagentPromptHints(): List<String> {
         val account = currentAccount
-        return AndroidChannelPromptHints.getMessageToolHints(account)
+        return androidchannelPromptHints.getMessagetoolHints(account)
     }
 
     /**
-     * Get Runtime Channel Info(Runtime Section 集成)
+     * Get Runtime channel Info(Runtime Section 集成)
      */
-    fun getRuntimeChannelInfo(): String {
+    fun getRuntimechannelInfo(): String {
         val account = currentAccount
-        return AndroidChannelPromptHints.getRuntimeChannelInfo(account)
+        return androidchannelPromptHints.getRuntimechannelInfo(account)
     }
 
     /**
@@ -236,7 +236,7 @@ class ChannelManager(private val context: Context) {
      */
     fun getCapabilitiesDescription(): String {
         return buildString {
-            appendLine("Channel Capabilities:")
+            appendLine("channel Capabilities:")
             appendLine("  - Chat Types: ${ANDROID_CHANNEL_CAPABILITIES.chatTypes.joinToString()}")
             appendLine("  - Media: ${ANDROID_CHANNEL_CAPABILITIES.media}")
             appendLine("  - Native Commands: ${ANDROID_CHANNEL_CAPABILITIES.nativeCommands}")

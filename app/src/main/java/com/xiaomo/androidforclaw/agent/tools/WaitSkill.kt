@@ -2,39 +2,39 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import kotlinx.coroutines.delay
 
 /**
- * Wait Skill
+ * Wait skill
  * Wait for specified duration
  */
-class WaitSkill : Skill {
+class Waitskill : skill {
     companion object {
-        private const val TAG = "WaitSkill"
+        private const val TAG = "Waitskill"
     }
 
     override val name = "wait"
     override val description = "Wait for specified duration in seconds"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "seconds" to PropertySchema("number", "Wait的秒数")
+                        "seconds" to Propertyschema("number", "Waitseconds数")
                     ),
                     required = listOf("seconds")
                 )
@@ -42,21 +42,21 @@ class WaitSkill : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         val seconds = (args["seconds"] as? Number)?.toDouble()
 
         if (seconds == null) {
-            return Skillresult.error("Missing required parameter: seconds")
+            return skillresult.error("Missing required parameter: seconds")
         }
 
         val milliseconds = (seconds * 1000).toLong()
         Log.d(TAG, "Waiting for $seconds seconds")
         return try {
             delay(milliseconds)
-            Skillresult.success("Waited for $seconds seconds")
-        } catch (e: Exception) {
+            skillresult.success("Waited for $seconds seconds")
+        } catch (e: exception) {
             Log.e(TAG, "Wait failed", e)
-            Skillresult.error("Wait failed: ${e.message}")
+            skillresult.error("Wait failed: ${e.message}")
         }
     }
 }

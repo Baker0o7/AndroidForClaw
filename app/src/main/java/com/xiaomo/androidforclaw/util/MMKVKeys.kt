@@ -1,12 +1,12 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
 /**
  * MMKV configuration keys
- * New architecture focus: AgentLoop + Tools
+ * new architecture focus: agentloop + tools
  */
 enum class MMKVKeys(val key: String) {
     BUG_SWITCH("bug_switch"),
@@ -18,6 +18,6 @@ enum class MMKVKeys(val key: String) {
     // Exploration mode switch (false: Planning mode, true: Exploration mode)
     EXPLORATION_MODE("exploration_mode"),
 
-    // Gateway URL (可Custom, Default ws://127.0.0.1:8765)
+    // Gateway URL (canCustom, Default ws://127.0.0.1:8765)
     GATEWAY_URL("gateway_url")
 }

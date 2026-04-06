@@ -4,16 +4,16 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.google.gson.JsonObject
 import com.xiaomo.androidforclaw.agent.skills.*
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.configLoader
 import com.xiaomo.androidforclaw.gateway.protocol.GatewayError
 import kotlinx.coroutines.runBlocking
 
 /**
- * Skills Gateway Methods
+ * skills Gateway Methods
  *
  * Fully aligned with OpenClaw Gateway Protocol
  *
@@ -23,14 +23,14 @@ import kotlinx.coroutines.runBlocking
  * - skills.install - Install skill
  * - skills.update  - Update skill configuration
  */
-class SkillsMethods(private val context: Context) {
+class skillsMethods(private val context: context) {
     companion object {
-        private const val TAG = "SkillsMethods"
+        private const val TAG = "skillsMethods"
     }
 
-    private val statusBuilder = SkillStatusBuilder(context)
-    private val installer = SkillInstaller(context)
-    private val configLoader = ConfigLoader(context)
+    private val statusBuilder = skillStatusBuilder(context)
+    private val installer = skillInstaller(context)
+    private val configLoader = configLoader(context)
 
     /**
      * skills.status - Get skill status report
@@ -40,7 +40,7 @@ class SkillsMethods(private val context: Context) {
      *   agentId?: string  // Optional, defaults to main agent
      * }
      *
-     * Returns: SkillStatusReport
+     * Returns: skillStatusReport
      */
     fun status(params: JsonObject): Result<JsonObject> {
         return try {
@@ -49,7 +49,7 @@ class SkillsMethods(private val context: Context) {
             // 1. Parse parameters
             val agentId = params.get("agentId")?.asString
 
-            // 2. Validate agent (skip for now, single-agent mode)
+            // 2. validation agent (skip for now, single-agent mode)
             if (agentId != null) {
                 Log.d(TAG, "  agentId: $agentId (ignored, single-agent mode)")
             }
@@ -58,16 +58,16 @@ class SkillsMethods(private val context: Context) {
             val report = statusBuilder.buildStatus()
 
             // 4. Convert to JSON
-            val result = JsonObject().apply {
-                addProperty("workspaceDir", report.workspaceDir)
-                addProperty("managedSkillsDir", report.managedSkillsDir)
-                add("skills", com.google.gson.Gson().toJsonTree(report.skills))
+            val result = JsonObject().app {
+                aProperty("workspaceDir", report.workspaceDir)
+                aProperty("managedskillsDir", report.managedskillsDir)
+                a("skills", com.google.gson.Gson().toJsonTree(report.skills))
             }
 
-            Log.i(TAG, "✅ skills.status: ${report.skills.size} skills")
+            Log.i(TAG, "[OK] skills.status: ${report.skills.size} skills")
             Result.success(result)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "skills.status failed", e)
             Result.failure(
                 GatewayError(
@@ -95,26 +95,26 @@ class SkillsMethods(private val context: Context) {
             // 1. Get all skills
             val report = statusBuilder.buildStatus()
 
-            // 2. Collect all binary dependencies
+            // 2. collect all binary dependencies
             val binsSet = mutableSetOf<String>()
             report.skills.forEach { skill ->
                 skill.requirements?.bins?.forEach { bin ->
-                    binsSet.add(bin)
+                    binsSet.a(bin)
                 }
                 skill.requirements?.anyBins?.forEach { bin ->
-                    binsSet.add(bin)
+                    binsSet.a(bin)
                 }
             }
 
             // 3. Return result
-            val result = JsonObject().apply {
-                add("bins", com.google.gson.Gson().toJsonTree(binsSet.sorted()))
+            val result = JsonObject().app {
+                a("bins", com.google.gson.Gson().toJsonTree(binsSet.sorted()))
             }
 
-            Log.i(TAG, "✅ skills.bins: ${binsSet.size} binaries")
+            Log.i(TAG, "[OK] skills.bins: ${binsSet.size} binaries")
             Result.success(result)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "skills.bins failed", e)
             Result.failure(
                 GatewayError(
@@ -130,7 +130,7 @@ class SkillsMethods(private val context: Context) {
      *
      * Parameters:
      * {
-     *   name: string;           // Skill name
+     *   name: string;           // skill name
      *   installId: string;      // Installer ID
      *   timeoutMs?: number;     // Timeout (default 300 sec, max 900 sec)
      * }
@@ -166,12 +166,12 @@ class SkillsMethods(private val context: Context) {
             Log.d(TAG, "  installId: $installId")
             Log.d(TAG, "  timeoutMs: $timeoutMs")
 
-            // 2. Validate installId (Android only supports "download" installation)
+            // 2. validation installId (android only supports "download" installation)
             if (installId != "download") {
                 return Result.failure(
                     GatewayError(
                         code = "INSTALL_ID_NOT_SUPPORTED",
-                        message = "Install ID not supported on Android: $installId (only 'download' is supported)"
+                        message = "Install ID not supported on android: $installId (only 'download' is supported)"
                     )
                 )
             }
@@ -180,7 +180,7 @@ class SkillsMethods(private val context: Context) {
             Log.i(TAG, "Installing skill from ClawHub: $name")
 
             val installResult = runBlocking {
-                installer.installFromClawHub(
+                installer.installfromClawHub(
                     slug = name,  // name parameter is actually slug
                     version = "latest"
                 ) { progress ->
@@ -189,7 +189,7 @@ class SkillsMethods(private val context: Context) {
             }
 
             if (installResult.isFailure) {
-                val error = installResult.exceptionOrNull()!!
+                val error = installResult.exceptionorNull()!!
                 Log.e(TAG, "Installation failed", error)
                 return Result.failure(
                     GatewayError(
@@ -199,28 +199,28 @@ class SkillsMethods(private val context: Context) {
                 )
             }
 
-            val installed = installResult.getOrNull()!!
+            val installed = installResult.getorNull()!!
 
             // 6. Return success result
-            val result = JsonObject().apply {
-                addProperty("ok", true)
-                addProperty("message", "Skill installed successfully")
-                addProperty("stdout", "Installed ${installed.name}@${installed.version} to ${installed.path}")
-                addProperty("stderr", "")
-                addProperty("code", 0)
-                add("details", JsonObject().apply {
-                    addProperty("slug", installed.slug)
-                    addProperty("name", installed.name)
-                    addProperty("version", installed.version)
-                    addProperty("path", installed.path)
-                    addProperty("hash", installed.hash)
+            val result = JsonObject().app {
+                aProperty("ok", true)
+                aProperty("message", "skill installed successfully")
+                aProperty("stdout", "Installed ${installed.name}@${installed.version} to ${installed.path}")
+                aProperty("stderr", "")
+                aProperty("code", 0)
+                a("details", JsonObject().app {
+                    aProperty("slug", installed.slug)
+                    aProperty("name", installed.name)
+                    aProperty("version", installed.version)
+                    aProperty("path", installed.path)
+                    aProperty("hash", installed.hash)
                 })
             }
 
-            Log.i(TAG, "✅ skills.install: $name@${installed.version}")
+            Log.i(TAG, "[OK] skills.install: $name@${installed.version}")
             Result.success(result)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "skills.install failed", e)
             Result.failure(
                 GatewayError(
@@ -271,28 +271,28 @@ class SkillsMethods(private val context: Context) {
             Log.d(TAG, "  env: $env")
 
             // 2. Load current configuration
-            val config = configLoader.loadOpenClawConfig()
+            val config = configLoader.loadOpenClawconfig()
 
             // 3. Update skill configuration
-            val existingConfig = config.skills.entries[skillKey] ?: com.xiaomo.androidforclaw.config.SkillConfig()
+            val existingconfig = config.skills.entries[skillKey] ?: com.xiaomo.androidforclaw.config.skillconfig()
 
-            val updatedConfig = existingConfig.copy(
-                enabled = enabled ?: existingConfig.enabled,
-                apiKey = apiKey ?: existingConfig.apiKey,
-                env = env ?: existingConfig.env
+            val updatedconfig = existingconfig.copy(
+                enabled = enabled ?: existingconfig.enabled,
+                apiKey = apiKey ?: existingconfig.apiKey,
+                env = env ?: existingconfig.env
             )
 
             // 4. Write back to configuration file
             val updatedEntries = config.skills.entries.toMutableMap()
-            updatedEntries[skillKey] = updatedConfig
+            updatedEntries[skillKey] = updatedconfig
 
-            val newConfig = config.copy(
+            val newconfig = config.copy(
                 skills = config.skills.copy(
                     entries = updatedEntries
                 )
             )
 
-            val saved = configLoader.saveOpenClawConfig(newConfig)
+            val saved = configLoader.saveOpenClawconfig(newconfig)
             if (!saved) {
                 return Result.failure(
                     GatewayError(
@@ -303,20 +303,20 @@ class SkillsMethods(private val context: Context) {
             }
 
             // 5. Return result
-            val result = JsonObject().apply {
-                addProperty("ok", true)
-                addProperty("skillKey", skillKey)
-                add("config", JsonObject().apply {
-                    addProperty("enabled", updatedConfig.enabled)
-                    updatedConfig.apiKey?.let { add("apiKey", com.google.gson.Gson().toJsonTree(it)) }
-                    updatedConfig.env?.let { add("env", com.google.gson.Gson().toJsonTree(it)) }
+            val result = JsonObject().app {
+                aProperty("ok", true)
+                aProperty("skillKey", skillKey)
+                a("config", JsonObject().app {
+                    aProperty("enabled", updatedconfig.enabled)
+                    updatedconfig.apiKey?.let { a("apiKey", com.google.gson.Gson().toJsonTree(it)) }
+                    updatedconfig.env?.let { a("env", com.google.gson.Gson().toJsonTree(it)) }
                 })
             }
 
-            Log.i(TAG, "✅ skills.update: $skillKey")
+            Log.i(TAG, "[OK] skills.update: $skillKey")
             Result.success(result)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "skills.update failed", e)
             Result.failure(
                 GatewayError(
@@ -344,27 +344,27 @@ class SkillsMethods(private val context: Context) {
             Log.d(TAG, "skills.reload called")
 
             // 1. Reload configuration
-            configLoader.reloadOpenClawConfig()
+            configLoader.reloadOpenClawconfig()
 
             // 2. Rebuild skill status
             val report = statusBuilder.buildStatus()
 
             // 3. Return result
-            val result = JsonObject().apply {
-                addProperty("ok", true)
-                addProperty("message", "Skills reloaded successfully")
-                addProperty("count", report.skills.size)
-                add("skills", com.google.gson.JsonArray().apply {
+            val result = JsonObject().app {
+                aProperty("ok", true)
+                aProperty("message", "skills reloaded successfully")
+                aProperty("count", report.skills.size)
+                a("skills", com.google.gson.JsonArray().app {
                     report.skills.forEach { skill ->
-                        add(skill.name)
+                        a(skill.name)
                     }
                 })
             }
 
-            Log.i(TAG, "✅ skills.reload: ${report.skills.size} skills")
+            Log.i(TAG, "[OK] skills.reload: ${report.skills.size} skills")
             Result.success(result)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "skills.reload failed", e)
             Result.failure(
                 GatewayError(
@@ -385,7 +385,7 @@ class SkillsMethods(private val context: Context) {
      *   offset?: number;
      * }
      *
-     * Returns: SkillSearchResult
+     * Returns: skillSearchResult
      */
     fun search(params: JsonObject): Result<JsonObject> {
         return try {
@@ -405,25 +405,25 @@ class SkillsMethods(private val context: Context) {
             // Call ClawHub API
             val clawHubClient = ClawHubClient(context)
             val searchResult = runBlocking {
-                clawHubClient.searchSkills(query, limit, offset)
+                clawHubClient.searchskills(query, limit, offset)
             }
 
             if (searchResult.isFailure) {
                 return Result.failure(
                     GatewayError(
                         code = "SEARCH_FAILED",
-                        message = "Failed to search skills: ${searchResult.exceptionOrNull()?.message}"
+                        message = "Failed to search skills: ${searchResult.exceptionorNull()?.message}"
                     )
                 )
             }
 
-            val result = searchResult.getOrNull()!!
+            val result = searchResult.getorNull()!!
             val json = com.google.gson.Gson().toJsonTree(result).asJsonObject
 
-            Log.i(TAG, "✅ skills.search: ${result.skills.size} results")
+            Log.i(TAG, "[OK] skills.search: ${result.skills.size} results")
             Result.success(json)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "skills.search failed", e)
             Result.failure(
                 GatewayError(
@@ -468,21 +468,21 @@ class SkillsMethods(private val context: Context) {
                 return Result.failure(
                     GatewayError(
                         code = "UNINSTALL_FAILED",
-                        message = "Failed to uninstall skill: ${uninstallResult.exceptionOrNull()?.message}"
+                        message = "Failed to uninstall skill: ${uninstallResult.exceptionorNull()?.message}"
                     )
                 )
             }
 
-            val result = JsonObject().apply {
-                addProperty("ok", true)
-                addProperty("message", "Skill uninstalled successfully")
-                addProperty("slug", slug)
+            val result = JsonObject().app {
+                aProperty("ok", true)
+                aProperty("message", "skill uninstalled successfully")
+                aProperty("slug", slug)
             }
 
-            Log.i(TAG, "✅ skills.uninstall: $slug")
+            Log.i(TAG, "[OK] skills.uninstall: $slug")
             Result.success(result)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "skills.uninstall failed", e)
             Result.failure(
                 GatewayError(

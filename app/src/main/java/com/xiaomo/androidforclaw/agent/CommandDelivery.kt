@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.agent
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/command/delivery.ts
  *
- * AndroidForClaw adaptation: unified outbound delivery of agent run output.
+ * androidforClaw adaptation: unified outbound delivery of agent run output.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
@@ -28,9 +28,9 @@ data class DeliveryResult(
 )
 
 /**
- * Agent output payload for delivery.
+ * agent output payload for delivery.
  */
-data class AgentOutputPayload(
+data class agentOutputPayload(
     val text: String? = null,
     val thinking: String? = null,
     val isNested: Boolean = false,
@@ -47,28 +47,28 @@ object CommandDelivery {
 
     /**
      * Deliver agent command result to the appropriate channel.
-     * Aligned with OpenClaw deliverAgentCommandResult.
+     * Aligned with OpenClaw deliveragentCommandResult.
      *
      * @param payload The agent output to deliver
      * @param target The delivery target (channel, conversation, thread)
-     * @param bestEffort If true, log errors instead of throwing
+     * @param bestEffort if true, log errors instead of throwing
      * @param sendFn The actual send function (provided by the channel plugin)
      */
-    suspend fun deliverAgentCommandResult(
-        payload: AgentOutputPayload,
+    suspend fun deliveragentCommandResult(
+        payload: agentOutputPayload,
         target: DeliveryTarget,
         bestEffort: Boolean = false,
         sendFn: suspend (channel: String, target: String?, text: String, threadId: String?) -> Unit
     ): DeliveryResult {
         val text = payload.text
-        if (text.isNullOrBlank()) {
+        if (text.isNullorBlank()) {
             Log.d(TAG, "No text to deliver, skipping")
             return DeliveryResult(delivered = false, error = "No content")
         }
 
-        // Format text for nested agents
+        // format text for nested agents
         val formattedText = if (payload.isNested) {
-            formatNestedAgentOutput(text, payload.model)
+            formatNestedagentOutput(text, payload.model)
         } else {
             text
         }
@@ -77,7 +77,7 @@ object CommandDelivery {
             sendFn(target.channel, target.target, formattedText, target.threadId)
             Log.d(TAG, "Delivered to ${target.channel}/${target.target}")
             DeliveryResult(delivered = true)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             val errorMsg = "Delivery failed: ${e.message}"
             if (bestEffort) {
                 Log.w(TAG, "[best-effort] $errorMsg")
@@ -90,10 +90,10 @@ object CommandDelivery {
     }
 
     /**
-     * Format output from a nested agent run.
+     * format output from a nested agent run.
      * Aligned with OpenClaw nested output formatting in delivery.ts.
      */
-    private fun formatNestedAgentOutput(text: String, model: String?): String {
+    private fun formatNestedagentOutput(text: String, model: String?): String {
         val prefix = if (model != null) "[agent:nested model=$model]" else "[agent:nested]"
         return "$prefix\n$text"
     }

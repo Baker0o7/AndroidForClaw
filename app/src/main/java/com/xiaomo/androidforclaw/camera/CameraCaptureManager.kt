@@ -2,16 +2,16 @@ package com.xiaomo.androidforclaw.camera
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCaptureManager.kt
+ * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCapturemanager.kt
  *
- * AndroidForClaw adaptation: 相机捕获Manage器
- * 基于 CameraX, Support拍照(snap)和录Like(clip)
+ * androidforClaw adaptation: 相机捕获Manage器
+ * 基于 CameraX, Support拍照(snap)and录like(clip)
  */
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
+import android.content.context
+import android.content.pm.Packagemanager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -22,9 +22,9 @@ import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageCaptureexception
 import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.lifecycle.ProcessCameraprovider
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.Quality
@@ -33,8 +33,8 @@ import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.content.contextCompat
+import androidx.core.content.contextCompat.checkSelfPermission
 import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.LifecycleOwner
@@ -43,26 +43,26 @@ import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendcancellableCoroutine
+import kotlinx.coroutines.withcontext
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.Executor
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.resumewithexception
 import kotlin.math.roundToInt
 
 /**
  * 相机捕获Manage器
- * Aligned with OpenClaw CameraCaptureManager
+ * Aligned with OpenClaw CameraCapturemanager
  */
-class CameraCaptureManager(private val context: Context) {
+class CameraCapturemanager(private val context: context) {
     companion object {
-        private const val TAG = "CameraCaptureManager"
+        private const val TAG = "CameraCapturemanager"
         /** base64 payload Up限 5MB */
         private const val MAX_PAYLOAD_BYTES = 5 * 1024 * 1024
-        /** clip 原始文件Up限 18MB */
+        /** clip originalfilesUp限 18MB */
         const val CLIP_MAX_RAW_BYTES: Long = 18L * 1024L * 1024L
     }
 
@@ -98,41 +98,41 @@ class CameraCaptureManager(private val context: Context) {
      * ListAvailable camera
      */
     suspend fun listDevices(): List<CameraDeviceInfo> =
-        withContext(Dispatchers.Main) {
-            val provider = context.cameraProvider()
+        withcontext(Dispatchers.Main) {
+            val provider = context.cameraprovider()
             provider.availableCameraInfos
-                .mapNotNull { info -> cameraDeviceInfoOrNull(info) }
+                .mapnotNull { info -> cameraDeviceInfoorNull(info) }
                 .sortedBy { it.id }
         }
 
     /**
      * 拍照
-     * @param facing "front" 或 "back", Default "back"
+     * @param facing "front" or "back", Default "back"
      * @param quality JPEG 质量 0.0-1.0, Default 0.95
      * @param maxWidth MaxBreadth, Default 1600
-     * @param deviceId 指定摄Like头 ID(Optional)
+     * @param deviceId 指定摄like头 ID(Optional)
      */
     suspend fun snap(
         facing: String = "back",
         quality: Double = 0.95,
         maxWidth: Int = 1600,
         deviceId: String? = null,
-    ): Snapresult = withContext(Dispatchers.Main) {
+    ): Snapresult = withcontext(Dispatchers.Main) {
         ensureCameraPermission()
         val owner = lifecycleOwner
-            ?: throw IllegalStateException("UNAVAILABLE: camera not ready, no LifecycleOwner attached")
+            ?: throw IllegalStateexception("UNAVAILABLE: camera not ready, no LifecycleOwner attached")
 
         val clampedQuality = quality.coerceIn(0.1, 1.0)
-        val provider = context.cameraProvider()
+        val provider = context.cameraprovider()
         val capture = ImageCapture.Builder().build()
         val selector = resolveCameraSelector(provider, facing, deviceId)
 
         provider.unbindAll()
         provider.bindToLifecycle(owner, selector, capture)
 
-        val (bytes, orientation) = capture.takeJpegWithExif(context.mainExecutor())
+        val (bytes, orientation) = capture.takeJpegwithExif(context.mainExecutor())
         val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-            ?: throw IllegalStateException("UNAVAILABLE: failed to decode captured image")
+            ?: throw IllegalStateexception("UNAVAILABLE: failed to decode captured image")
         val rotated = rotateBitmapByExif(decoded, orientation)
         val scaled = if (maxWidth > 0 && rotated.width > maxWidth) {
             val h = (rotated.height.toDouble() * (maxWidth.toDouble() / rotated.width.toDouble()))
@@ -158,9 +158,9 @@ class CameraCaptureManager(private val context: Context) {
                         scaled.scale(width, height)
                     }
                     val out = ByteArrayOutputStream()
-                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, q, out)) {
+                    if (!bitmap.compress(Bitmap.compressformat.JPEG, q, out)) {
                         if (bitmap !== scaled) bitmap.recycle()
-                        throw IllegalStateException("UNAVAILABLE: failed to encode JPEG")
+                        throw IllegalStateexception("UNAVAILABLE: failed to encode JPEG")
                     }
                     if (bitmap !== scaled) bitmap.recycle()
                     out.toByteArray()
@@ -180,11 +180,11 @@ class CameraCaptureManager(private val context: Context) {
     }
 
     /**
-     * 录Like
-     * @param facing "front" 或 "back", Default "back"
-     * @param durationMs 录制时长(毫秒), Default 3000, Max 60000
-     * @param includeAudio YesNo录制音频, Default true
-     * @param deviceId 指定摄Like头 ID(Optional)
+     * 录like
+     * @param facing "front" or "back", Default "back"
+     * @param durationMs 录制duration(毫seconds), Default 3000, Max 60000
+     * @param includeAudio whether录制音频, Default true
+     * @param deviceId 指定摄like头 ID(Optional)
      */
     @SuppressLint("MissingPermission")
     suspend fun clip(
@@ -192,29 +192,29 @@ class CameraCaptureManager(private val context: Context) {
         durationMs: Int = 3000,
         includeAudio: Boolean = true,
         deviceId: String? = null,
-    ): Clipresult = withContext(Dispatchers.Main) {
+    ): Clipresult = withcontext(Dispatchers.Main) {
         ensureCameraPermission()
         if (includeAudio) ensureMicPermission()
         val owner = lifecycleOwner
-            ?: throw IllegalStateException("UNAVAILABLE: camera not ready, no LifecycleOwner attached")
+            ?: throw IllegalStateexception("UNAVAILABLE: camera not ready, no LifecycleOwner attached")
 
         val clampedDuration = durationMs.coerceIn(200, 60_000)
         Log.d(TAG, "clip: start facing=$facing duration=$clampedDuration audio=$includeAudio")
 
-        val provider = context.cameraProvider()
+        val provider = context.cameraprovider()
         val recorder = Recorder.Builder()
             .setQualitySelector(
-                QualitySelector.from(Quality.LOWEST, FallbackStrategy.lowerQualityOrHigherThan(Quality.LOWEST))
+                QualitySelector.from(Quality.LOWEST, FallbackStrategy.lowerQualityorHigherThan(Quality.LOWEST))
             )
             .build()
         val videoCapture = VideoCapture.withOutput(recorder)
         val selector = resolveCameraSelector(provider, facing, deviceId)
 
-        // CameraX Need Preview use case 才能产生帧
+        // CameraX need Preview use case 才can产生帧
         val preview = Preview.Builder().build()
         val surfaceTexture = SurfaceTexture(0)
         surfaceTexture.setDefaultBufferSize(640, 480)
-        preview.setSurfaceProvider { request ->
+        preview.setSurfaceprovider { request ->
             val surface = Surface(surfaceTexture)
             request.provideSurface(surface, context.mainExecutor()) {
                 surface.release()
@@ -234,7 +234,7 @@ class CameraCaptureManager(private val context: Context) {
         val finalized = CompletableDeferred<VideoRecordEvent.Finalize>()
         val recording: Recording = videoCapture.output
             .prepareRecording(context, outputOptions)
-            .apply { if (includeAudio) withAudioEnableddd() }
+            .app { if (includeAudio) withAudioEnabled() }
             .start(context.mainExecutor()) { event ->
                 if (event is VideoRecordEvent.Finalize) {
                     finalized.complete(event)
@@ -250,25 +250,25 @@ class CameraCaptureManager(private val context: Context) {
         val finalizeEvent = try {
             withTimeout(15_000) { finalized.await() }
         } catch (err: Throwable) {
-            withContext(Dispatchers.IO) { file.delete() }
+            withcontext(Dispatchers.IO) { file.delete() }
             provider.unbindAll()
-            throw IllegalStateException("UNAVAILABLE: camera clip finalize timed out")
+            throw IllegalStateexception("UNAVAILABLE: camera clip finalize timed out")
         }
 
         if (finalizeEvent.hasError()) {
-            withContext(Dispatchers.IO) { file.delete() }
+            withcontext(Dispatchers.IO) { file.delete() }
             provider.unbindAll()
-            throw IllegalStateException("UNAVAILABLE: camera clip failed (error=${finalizeEvent.error})")
+            throw IllegalStateexception("UNAVAILABLE: camera clip failed (error=${finalizeEvent.error})")
         }
 
-        val rawBytes = withContext(Dispatchers.IO) { file.length() }
+        val rawBytes = withcontext(Dispatchers.IO) { file.length() }
         if (rawBytes > CLIP_MAX_RAW_BYTES) {
-            withContext(Dispatchers.IO) { file.delete() }
+            withcontext(Dispatchers.IO) { file.delete() }
             provider.unbindAll()
-            throw IllegalStateException("PAYLOAD_TOO_LARGE: camera clip is $rawBytes bytes; max is $CLIP_MAX_RAW_BYTES bytes")
+            throw IllegalStateexception("PAYLOAD_TOO_LARGE: camera clip is $rawBytes bytes; max is $CLIP_MAX_RAW_BYTES bytes")
         }
 
-        val bytes = withContext(Dispatchers.IO) {
+        val bytes = withcontext(Dispatchers.IO) {
             try {
                 file.readBytes()
             } finally {
@@ -290,14 +290,14 @@ class CameraCaptureManager(private val context: Context) {
     // ========== Private helpers ==========
 
     private fun ensureCameraPermission() {
-        if (checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            throw IllegalStateException("CAMERA_PERMISSION_REQUIRED: grant Camera permission in system settings")
+        if (checkSelfPermission(context, Manifest.permission.CAMERA) != Packagemanager.PERMISSION_GRANTED) {
+            throw IllegalStateexception("CAMERA_PERMISSION_REQUIRED: grant Camera permission in system settings")
         }
     }
 
     private fun ensureMicPermission() {
-        if (checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            throw IllegalStateException("MIC_PERMISSION_REQUIRED: grant Microphone permission in system settings")
+        if (checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != Packagemanager.PERMISSION_GRANTED) {
+            throw IllegalStateexception("MIC_PERMISSION_REQUIRED: grant Microphone permission in system settings")
         }
     }
 
@@ -323,29 +323,29 @@ class CameraCaptureManager(private val context: Context) {
     }
 
     private fun resolveCameraSelector(
-        provider: ProcessCameraProvider,
+        provider: ProcessCameraprovider,
         facing: String,
         deviceId: String?,
     ): CameraSelector {
-        if (deviceId.isNullOrEmpty()) {
+        if (deviceId.isNullorEmpty()) {
             return if (facing == "front") CameraSelector.DEFAULT_FRONT_CAMERA
             else CameraSelector.DEFAULT_BACK_CAMERA
         }
-        val availableIds = provider.availableCameraInfos.mapNotNull { cameraIdOrNull(it) }.toSet()
+        val availableIds = provider.availableCameraInfos.mapnotNull { cameraIdorNull(it) }.toSet()
         if (!availableIds.contains(deviceId)) {
-            throw IllegalStateException("INVALID_REQUEST: unknown camera deviceId '$deviceId'")
+            throw IllegalStateexception("INVALID_REQUEST: unknown camera deviceId '$deviceId'")
         }
         return CameraSelector.Builder()
-            .addCameraFilter { infos -> infos.filter { cameraIdOrNull(it) == deviceId } }
+            .aCameraFilter { infos -> infos.filter { cameraIdorNull(it) == deviceId } }
             .build()
     }
 
     @SuppressLint("UnsafeOptInUsageError")
-    private fun cameraDeviceInfoOrNull(info: CameraInfo): CameraDeviceInfo? {
-        val cameraId = cameraIdOrNull(info) ?: return null
+    private fun cameraDeviceInfoorNull(info: CameraInfo): CameraDeviceInfo? {
+        val cameraId = cameraIdorNull(info) ?: return null
         val lensFacing = runCatching {
             Camera2CameraInfo.from(info).getCameraCharacteristic(CameraCharacteristics.LENS_FACING)
-        }.getOrNull()
+        }.getorNull()
         val position = when (lensFacing) {
             CameraCharacteristics.LENS_FACING_FRONT -> "front"
             CameraCharacteristics.LENS_FACING_BACK -> "back"
@@ -355,7 +355,7 @@ class CameraCaptureManager(private val context: Context) {
         val deviceType = if (lensFacing == CameraCharacteristics.LENS_FACING_EXTERNAL) "external" else "builtIn"
         val name = when (position) {
             "front" -> "Front Camera"
-            "back" -> "Back Camera"
+            "back" -> "back Camera"
             "external" -> "External Camera"
             else -> "Camera $cameraId"
         }
@@ -363,40 +363,40 @@ class CameraCaptureManager(private val context: Context) {
     }
 
     @SuppressLint("UnsafeOptInUsageError")
-    private fun cameraIdOrNull(info: CameraInfo): String? =
-        runCatching { Camera2CameraInfo.from(info).cameraId }.getOrNull()
+    private fun cameraIdorNull(info: CameraInfo): String? =
+        runCatching { Camera2CameraInfo.from(info).cameraId }.getorNull()
 
-    private fun Context.mainExecutor(): Executor = ContextCompat.getMainExecutor(this)
+    private fun context.mainExecutor(): Executor = contextCompat.getMainExecutor(this)
 }
 
-/** 挂起Get CameraProvider */
-private suspend fun Context.cameraProvider(): ProcessCameraProvider =
-    suspendCancellableCoroutine { cont ->
-        val future = ProcessCameraProvider.getInstance(this)
-        future.addListener(
+/** 挂upGet Cameraprovider */
+private suspend fun context.cameraprovider(): ProcessCameraprovider =
+    suspendcancellableCoroutine { cont ->
+        val future = ProcessCameraprovider.getInstance(this)
+        future.aListener(
             {
                 try {
                     cont.resume(future.get())
-                } catch (e: Exception) {
-                    cont.resumeWithException(e)
+                } catch (e: exception) {
+                    cont.resumewithexception(e)
                 }
             },
-            ContextCompat.getMainExecutor(this),
+            contextCompat.getMainExecutor(this),
         )
     }
 
 /** 拍照并Get JPEG bytes + EXIF orientation */
-private suspend fun ImageCapture.takeJpegWithExif(executor: Executor): Pair<ByteArray, Int> =
-    suspendCancellableCoroutine { cont ->
+private suspend fun ImageCapture.takeJpegwithExif(executor: Executor): Pair<ByteArray, Int> =
+    suspendcancellableCoroutine { cont ->
         val file = File.createTempFile("claw-snap-", ".jpg")
         val options = ImageCapture.OutputFileOptions.Builder(file).build()
         takePicture(
             options,
             executor,
             object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exception: ImageCaptureException) {
+                override fun onError(exception: ImageCaptureexception) {
                     file.delete()
-                    cont.resumeWithException(exception)
+                    cont.resumewithexception(exception)
                 }
 
                 override fun onImageSaved(outputFileresults: ImageCapture.OutputFileresults) {
@@ -408,8 +408,8 @@ private suspend fun ImageCapture.takeJpegWithExif(executor: Executor): Pair<Byte
                         )
                         val bytes = file.readBytes()
                         cont.resume(Pair(bytes, orientation))
-                    } catch (e: Exception) {
-                        cont.resumeWithException(e)
+                    } catch (e: exception) {
+                        cont.resumewithexception(e)
                     } finally {
                         file.delete()
                     }

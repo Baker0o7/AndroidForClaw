@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
@@ -13,7 +13,7 @@ import com.google.gson.annotations.SerializedName
  * Supports Claude Opus 4.6 with Extended Thinking
  */
 
-// ============= Request Models =============
+// ============= Request models =============
 
 data class LegacyMessage(
     val role: String,  // "system", "user", "assistant", "tool"
@@ -22,7 +22,7 @@ data class LegacyMessage(
     @SerializedName("tool_call_id")
     val toolCallId: String? = null,  // for tool role
     @SerializedName("tool_calls")
-    val toolCalls: List<LegacyToolCall>? = null  // for assistant with tool calls
+    val toolCalls: List<LegacytoolCall>? = null  // for assistant with tool calls
 )
 
 data class ContentBlock(
@@ -36,7 +36,7 @@ data class ImageUrl(
     val url: String  // base64 data URL
 )
 
-data class LegacyToolCall(
+data class LegacytoolCall(
     val id: String,
     val type: String = "function",
     val function: LegacyFunction
@@ -50,7 +50,7 @@ data class LegacyFunction(
 data class LegacyRequest(
     val model: String = "ppio/pa/claude-opus-4-6",
     val messages: List<LegacyMessage>,
-    val tools: List<ToolDefinition>? = null,
+    val tools: List<toolDefinition>? = null,
     @SerializedName("max_tokens")
     val maxTokens: Int = 4096,
     val temperature: Double = 0.1,
@@ -64,9 +64,9 @@ data class LegacyThinking(
     val budgetTokens: Int = 10000  // Max tokens for reasoning
 )
 
-// ============= Tool Definition Models =============
+// ============= tool Definition models =============
 
-data class ToolDefinition(
+data class toolDefinition(
     val type: String = "function",
     val function: FunctionDefinition
 )
@@ -74,24 +74,24 @@ data class ToolDefinition(
 data class FunctionDefinition(
     val name: String,
     val description: String,
-    val parameters: ParametersSchema
+    val parameters: Parametersschema
 )
 
-data class ParametersSchema(
+data class Parametersschema(
     val type: String = "object",
-    val properties: Map<String, PropertySchema>,
+    val properties: Map<String, Propertyschema>,
     val required: List<String> = emptyList()
 )
 
-data class PropertySchema(
+data class Propertyschema(
     val type: String,  // "string", "number", "boolean", "array", "object"
     val description: String,
     val enum: List<String>? = null,
-    val items: PropertySchema? = null,  // for array type
-    val properties: Map<String, PropertySchema>? = null  // for object type
+    val items: Propertyschema? = null,  // for array type
+    val properties: Map<String, Propertyschema>? = null  // for object type
 )
 
-// ============= Response Models =============
+// ============= Response models =============
 
 data class LegacyResponse(
     val id: String,
@@ -114,9 +114,9 @@ data class LegacyResponseMessage(
     val role: String,
     val content: String?,
     @SerializedName("tool_calls")
-    val toolCalls: List<LegacyToolCall>? = null,
+    val toolCalls: List<LegacytoolCall>? = null,
     @SerializedName("reasoning_content")
-    val reasoningContent: String? = null  // Extended Thinking think过程
+    val reasoningContent: String? = null  // Extended Thinking thinkover程
 )
 
 data class LegacyUsage(
@@ -127,10 +127,10 @@ data class LegacyUsage(
     @SerializedName("total_tokens")
     val totalTokens: Int = 0,
     @SerializedName("reasoning_tokens")
-    val reasoningTokens: Int? = null  // Reasoning consume的 token 数
+    val reasoningTokens: Int? = null  // Reasoning consume token 数
 )
 
-// ============= Error Models =============
+// ============= Error models =============
 
 data class LegacyError(
     val error: ErrorDetail

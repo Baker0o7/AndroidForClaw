@@ -6,16 +6,16 @@ package com.xiaomo.androidforclaw.config
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
-import java.text.SimpleDateFormat
+import java.text.SimpleDateformat
 import java.util.Date
 import java.util.Locale
 
 /**
- * Config Backup Manager
+ * config backup manager
  * Aligned with OpenClaw's config fault-tolerance mechanism
  *
  * Features:
@@ -23,13 +23,13 @@ import java.util.Locale
  * 2. config-backups/ - Historical backups (with timestamps)
  * 3. Auto-recovery on startup failure
  */
-class ConfigBackupManager(private val context: Context) {
+class configbackupmanager(private val context: context) {
 
     companion object {
-        private const val TAG = "ConfigBackup"
+        private const val TAG = "configbackup"
 
-        private val CONFIG_FILE = StoragePaths.openclawConfig.absolutePath
-        private val BACKUPS_DIR = StoragePaths.configBackups.absolutePath
+        private val CONFIG_FILE = StoragePaths.openclawconfig.absolutePath
+        private val BACKUPS_DIR = StoragePaths.configbackups.absolutePath
         private val LAST_KNOWN_GOOD_FILE = "$BACKUPS_DIR/openclaw.last-known-good.json"
 
         private const val MAX_BACKUPS = 10 // Keep maximum 10 historical backups
@@ -40,7 +40,7 @@ class ConfigBackupManager(private val context: Context) {
     }
 
     /**
-     * Backup current config as last-known-good
+     * backup current config as last-known-good
      * Called after config is successfully loaded
      */
     fun backupAsLastKnownGood(): Boolean {
@@ -49,7 +49,7 @@ class ConfigBackupManager(private val context: Context) {
 
         return try {
             if (!configFile.exists()) {
-                Log.w(TAG, "Config file does not exist, cannot backup")
+                Log.w(TAG, "config file does not exist, cannot backup")
                 return false
             }
 
@@ -59,9 +59,9 @@ class ConfigBackupManager(private val context: Context) {
             }
 
             configFile.copyTo(lastKnownGoodFile, overwrite = false)
-            Log.i(TAG, "✅ Config backed up to last-known-good")
+            Log.i(TAG, "[OK] config backed up to last-known-good")
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to backup last-known-good", e)
             false
         }
@@ -70,20 +70,20 @@ class ConfigBackupManager(private val context: Context) {
     /**
      * Restore config from last-known-good
      */
-    fun restoreFromLastKnownGood(): Boolean {
+    fun restorefromLastKnownGood(): Boolean {
         val lastKnownGoodFile = File(LAST_KNOWN_GOOD_FILE)
         val configFile = File(CONFIG_FILE)
 
         return try {
             if (!lastKnownGoodFile.exists()) {
-                Log.e(TAG, "❌ No available last-known-good backup")
+                Log.e(TAG, "[ERROR] No available last-known-good backup")
                 return false
             }
 
             lastKnownGoodFile.copyTo(configFile, overwrite = true)
-            Log.i(TAG, "✅ Config restored from last-known-good")
+            Log.i(TAG, "[OK] config restored from last-known-good")
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to restore from last-known-good", e)
             false
         }
@@ -93,26 +93,26 @@ class ConfigBackupManager(private val context: Context) {
      * Create historical backup (with timestamp)
      * Called before user manually edits config
      */
-    fun createHistoricalBackup(): String? {
+    fun createHistoricalbackup(): String? {
         val configFile = File(CONFIG_FILE)
         if (!configFile.exists()) {
-            Log.w(TAG, "Config file does not exist, cannot create backup")
+            Log.w(TAG, "config file does not exist, cannot create backup")
             return null
         }
 
-        val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
+        val timestamp = SimpleDateformat("yyyyMM-HHmmss", Locale.US).format(Date())
         val backupName = "openclaw-$timestamp.json"
         val backupFile = File(BACKUPS_DIR, backupName)
 
         return try {
             configFile.copyTo(backupFile, overwrite = false)
-            Log.i(TAG, "✅ Config backed up: $backupName")
+            Log.i(TAG, "[OK] config backed up: $backupName")
 
             // Clean old backups
-            cleanOldBackups()
+            cleanoldbackups()
 
             backupName
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to create historical backup", e)
             null
         }
@@ -121,14 +121,14 @@ class ConfigBackupManager(private val context: Context) {
     /**
      * List all historical backups
      */
-    fun listBackups(): List<BackupInfo> {
+    fun listbackups(): List<backupInfo> {
         val backupsDir = File(BACKUPS_DIR)
         if (!backupsDir.exists()) return emptyList()
 
         return backupsDir.listFiles()
-            ?.filter { it.name.startsWith("openclaw-") && it.name.endsWith(".json") }
+            ?.filter { it.name.startswith("openclaw-") && it.name.endswith(".json") }
             ?.map { file ->
-                BackupInfo(
+                backupInfo(
                     name = file.name,
                     timestamp = extractTimestamp(file.name),
                     size = file.length(),
@@ -142,24 +142,24 @@ class ConfigBackupManager(private val context: Context) {
     /**
      * Restore from specified historical backup
      */
-    fun restoreFromHistoricalBackup(backupName: String): Boolean {
+    fun restorefromHistoricalbackup(backupName: String): Boolean {
         val backupFile = File(BACKUPS_DIR, backupName)
         val configFile = File(CONFIG_FILE)
 
         return try {
             if (!backupFile.exists()) {
-                Log.e(TAG, "❌ Backup file does not exist: $backupName")
+                Log.e(TAG, "[ERROR] backup file does not exist: $backupName")
                 return false
             }
 
-            // Backup current config first
-            createHistoricalBackup()
+            // backup current config first
+            createHistoricalbackup()
 
             // Restore specified backup
             backupFile.copyTo(configFile, overwrite = true)
-            Log.i(TAG, "✅ Backup restored: $backupName")
+            Log.i(TAG, "[OK] backup restored: $backupName")
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to restore backup: $backupName", e)
             false
         }
@@ -168,7 +168,7 @@ class ConfigBackupManager(private val context: Context) {
     /**
      * Delete specified backup
      */
-    fun deleteBackup(backupName: String): Boolean {
+    fun deletebackup(backupName: String): Boolean {
         val backupFile = File(BACKUPS_DIR, backupName)
         return try {
             val deleted = backupFile.delete()
@@ -176,7 +176,7 @@ class ConfigBackupManager(private val context: Context) {
                 Log.i(TAG, "Deleted backup: $backupName")
             }
             deleted
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to delete backup: $backupName", e)
             false
         }
@@ -184,33 +184,33 @@ class ConfigBackupManager(private val context: Context) {
 
     /**
      * Safely load config (with auto-recovery)
-     * Used in ConfigLoader
+     * used in configLoader
      */
-    fun <T> loadConfigSafely(loader: () -> T): T? {
+    fun <T> loadconfigSafely(loader: () -> T): T? {
         return try {
             // Try to load config
             val config = loader()
 
-            // If successful, backup as last-known-good
+            // if successful, backup as last-known-good
             backupAsLastKnownGood()
 
             config
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "========================================")
-            Log.e(TAG, "❌ Config loading failed: ${e.message}")
+            Log.e(TAG, "[ERROR] config loading failed: ${e.message}")
             Log.e(TAG, "========================================")
 
             // Try to restore from last-known-good
-            if (restoreFromLastKnownGood()) {
+            if (restorefromLastKnownGood()) {
                 try {
                     Log.i(TAG, "Trying to reload with last-known-good config...")
                     loader()
-                } catch (e2: Exception) {
-                    Log.e(TAG, "❌ last-known-good config also cannot be loaded", e2)
+                } catch (e2: exception) {
+                    Log.e(TAG, "[ERROR] last-known-good config also cannot be loaded", e2)
                     null
                 }
             } else {
-                Log.e(TAG, "❌ No available backup config")
+                Log.e(TAG, "[ERROR] No available backup config")
                 null
             }
         }
@@ -219,17 +219,17 @@ class ConfigBackupManager(private val context: Context) {
     /**
      * Get backup statistics
      */
-    fun getBackupStats(): BackupStats {
-        val backups = listBackups()
+    fun getbackupStats(): backupStats {
+        val backups = listbackups()
         val hasLastKnownGood = File(LAST_KNOWN_GOOD_FILE).exists()
         val totalSize = backups.sumOf { it.size }
 
-        return BackupStats(
-            historicalBackupCount = backups.size,
+        return backupStats(
+            historicalbackupCount = backups.size,
             hasLastKnownGood = hasLastKnownGood,
-            totalBackupSize = totalSize,
-            oldestBackup = backups.lastOrNull()?.timestamp,
-            newestBackup = backups.firstOrNull()?.timestamp
+            totalbackupSize = totalSize,
+            oldestbackup = backups.lastorNull()?.timestamp,
+            newestbackup = backups.firstorNull()?.timestamp
         )
     }
 
@@ -243,13 +243,13 @@ class ConfigBackupManager(private val context: Context) {
     /**
      * Clean old backups, keep only the most recent MAX_BACKUPS
      */
-    private fun cleanOldBackups() {
-        val backups = listBackups()
+    private fun cleanoldbackups() {
+        val backups = listbackups()
         if (backups.size <= MAX_BACKUPS) return
 
         val toDelete = backups.drop(MAX_BACKUPS)
         toDelete.forEach { backup ->
-            deleteBackup(backup.name)
+            deletebackup(backup.name)
         }
 
         Log.i(TAG, "Cleaned ${toDelete.size} old backups")
@@ -266,22 +266,22 @@ class ConfigBackupManager(private val context: Context) {
                 .removeSuffix(".json")
 
             // Parse as date
-            val dateFormat = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US)
-            val date = dateFormat.parse(timestampPart)
+            val dateformat = SimpleDateformat("yyyyMM-HHmmss", Locale.US)
+            val date = dateformat.parse(timestampPart)
 
             // Convert to ISO 8601
-            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-            isoFormat.format(date ?: Date())
-        } catch (e: Exception) {
+            val isoformat = SimpleDateformat("yyyy-MM-'T'HH:mm:ss'Z'", Locale.US)
+            isoformat.format(date ?: Date())
+        } catch (e: exception) {
             ""
         }
     }
 }
 
 /**
- * Backup information
+ * backup information
  */
-data class BackupInfo(
+data class backupInfo(
     val name: String,
     val timestamp: String,
     val size: Long,
@@ -289,12 +289,12 @@ data class BackupInfo(
 )
 
 /**
- * Backup statistics
+ * backup statistics
  */
-data class BackupStats(
-    val historicalBackupCount: Int,
+data class backupStats(
+    val historicalbackupCount: Int,
     val hasLastKnownGood: Boolean,
-    val totalBackupSize: Long,
-    val oldestBackup: String?,
-    val newestBackup: String?
+    val totalbackupSize: Long,
+    val oldestbackup: String?,
+    val newestbackup: String?
 )

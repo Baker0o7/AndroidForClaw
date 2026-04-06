@@ -7,18 +7,18 @@ package com.xiaomo.androidforclaw.agent.skills
 
 
 /**
- * Skill Document Data Model
- * Corresponds to AgentSkills.io format
+ * skill Document Data model
+ * Corresponds to agentskills.io format
  *
  * File format:
  * ---
  * name: skill-name
- * description: Skill description
+ * description: skill description
  * metadata:
  *   {
  *     "openclaw": {
  *       "always": true,
- *       "emoji": "📱",
+ *       "emoji": "[APP]",
  *       "skillKey": "custom-key",
  *       "primaryEnv": "API_KEY",
  *       "homepage": "https://...",
@@ -33,53 +33,53 @@ package com.xiaomo.androidforclaw.agent.skills
  *     }
  *   }
  * ---
- * # Skill Content
+ * # skill Content
  * ...
  */
-data class SkillDocument(
+data class skillDocument(
     /**
-     * Skill name (unique identifier)
+     * skill name (unique identifier)
      * e.g.: "mobile-operations", "app-testing"
      */
     val name: String,
 
     /**
-     * Skill description (1-2 sentences)
+     * skill description (1-2 sentences)
      * e.g.: "Core mobile device operation skills"
      */
     val description: String,
 
     /**
-     * Skill metadata (parsed from metadata.openclaw)
+     * skill metadata (parsed from metadata.openclaw)
      */
-    val metadata: SkillMetadata,
+    val metadata: skillMetadata,
 
     /**
-     * Skill body content (Markdown format)
+     * skill body content (Markdown format)
      * This part will be injected into system prompt
      */
     val content: String,
 
     /**
-     * Skill file path (for status reporting / debugging)
+     * skill file path (for status reporting / debugging)
      */
     val filePath: String = "",
 
     /**
-     * Skill source
+     * skill source
      * "bundled" - Built-in at assets/skills/
-     * "managed" - From /sdcard/.androidforclaw/skills/ (aligns with ~/.openclaw/skills/)
-     * "workspace" - From /sdcard/.androidforclaw/workspace/skills/ (aligns with ~/.openclaw/workspace/)
-     * "extra" - From extraDirs configuration
+     * "managed" - from /sdcard/.androidforclaw/skills/ (aligns with ~/.openclaw/skills/)
+     * "workspace" - from /sdcard/.androidforclaw/workspace/skills/ (aligns with ~/.openclaw/workspace/)
+     * "extra" - from extraDirs configuration
      */
-    val source: SkillSource = SkillSource.BUNDLED
+    val source: skillSource = skillSource.BUNDLED
 ) {
     /**
      * Get formatted content (with title)
      */
-    fun getFormattedContent(): String {
+    fun getformattedContent(): String {
         val emoji = metadata.emoji ?: ""
-        val title = if (emoji.isNotEmpty()) "$emoji $name" else name
+        val title = if (emoji.isnotEmpty()) "$emoji $name" else name
         return """
 # $title
 
@@ -98,16 +98,16 @@ $content
      * Get the effective skill key (skillKey from metadata, fallback to name)
      * Aligns with OpenClaw: entries.<skillKey> maps to skill
      */
-    fun effectiveSkillKey(): String {
+    fun effectiveskillKey(): String {
         return metadata.skillKey ?: name
     }
 }
 
 /**
- * Skill Metadata — unified model covering all metadata.openclaw fields.
- * Aligns with OpenClaw's OpenClawSkillMetadata.
+ * skill Metadata — unified model covering all metadata.openclaw fields.
+ * Aligns with OpenClaw's OpenClawskillMetadata.
  */
-data class SkillMetadata(
+data class skillMetadata(
     /**
      * Whether to always load (load at startup)
      * true: Load into all system prompts
@@ -123,13 +123,13 @@ data class SkillMetadata(
 
     /**
      * Primary environment variable name
-     * Used with apiKey convenience in config: entries.<key>.apiKey
+     * used with apiKey convenience in config: entries.<key>.apiKey
      */
     val primaryEnv: String? = null,
 
     /**
-     * Skill's emoji icon
-     * e.g.: "📱", "🧪", "🐛"
+     * skill's emoji icon
+     * e.g.: "[APP]", "[TEST]", "🐛"
      */
     val emoji: String? = null,
 
@@ -146,21 +146,21 @@ data class SkillMetadata(
     val os: List<String>? = null,
 
     /**
-     * Skill dependency requirements
+     * skill dependency requirements
      */
-    val requires: SkillRequires? = null,
+    val requires: skillRequires? = null,
 
     /**
      * Install specifications
      */
-    val install: List<SkillInstallSpec>? = null
+    val install: List<skillInstallSpec>? = null
 )
 
 /**
- * Skill Source Enum
+ * skill Source Enum
  * Aligns with OpenClaw's multi-tier architecture
  */
-enum class SkillSource(val displayName: String) {
+enum class skillSource(val displayName: String) {
     BUNDLED("bundled"),      // assets/skills/
     MANAGED("managed"),      // /sdcard/.androidforclaw/skills/ (aligns with ~/.openclaw/skills/)
     WORKSPACE("workspace"),  // /sdcard/.androidforclaw/workspace/skills/ (aligns with ~/.openclaw/workspace/)
@@ -169,10 +169,10 @@ enum class SkillSource(val displayName: String) {
 }
 
 /**
- * Skill Dependency Requirements
+ * skill Dependency Requirements
  * Aligns with OpenClaw's requires field
  */
-data class SkillRequires(
+data class skillRequires(
     /**
      * Required binary tools (all must exist)
      * e.g.: ["adb", "ffmpeg"]
@@ -201,6 +201,6 @@ data class SkillRequires(
      * Check if there are any dependencies
      */
     fun hasRequirements(): Boolean {
-        return bins.isNotEmpty() || anyBins.isNotEmpty() || env.isNotEmpty() || config.isNotEmpty()
+        return bins.isnotEmpty() || anyBins.isnotEmpty() || env.isnotEmpty() || config.isnotEmpty()
     }
 }

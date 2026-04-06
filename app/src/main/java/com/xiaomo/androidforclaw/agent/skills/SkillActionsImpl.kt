@@ -1,26 +1,26 @@
 package com.xiaomo.androidforclaw.agent.skills
 
-import ai.openclaw.app.skill.SkillActions
+import ai.openclaw.app.skill.skillActions
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
-import java.text.SimpleDateFormat
+import java.text.SimpleDateformat
 import java.util.Date
 import java.util.Locale
 
 /**
- * Concrete SkillActions backed by the existing SkillLockManager + filesystem.
- * Reuses the same paths and lock format as SkillInstaller / ClawHub.
+ * Concrete skillActions backed by the existing skillLockmanager + filesystem.
+ * Reuses the same paths and lock format as skillInstaller / ClawHub.
  */
-class SkillActionsImpl : SkillActions {
+class skillActionsImpl : skillActions {
 
     companion object {
-        private const val TAG = "SkillActionsImpl"
-        private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        private const val TAG = "skillActionsImpl"
+        private val DATE_FORMAT = SimpleDateformat("yyyy-MM-'T'HH:mm:ss'Z'", Locale.US)
     }
 
     private val managedDir: File get() = StoragePaths.skills
-    private val lockManager = SkillLockManager(StoragePaths.workspace.absolutePath)
+    private val lockmanager = skillLockmanager(StoragePaths.workspace.absolutePath)
 
     override fun isInstalled(slug: String): Boolean {
         return File(managedDir, "$slug/SKILL.md").exists()
@@ -42,9 +42,9 @@ class SkillActionsImpl : SkillActions {
             skillDir.mkdirs()
             File(skillDir, "SKILL.md").writeText(content)
 
-            // 2. Update lock file (same format as SkillInstaller)
-            lockManager.addOrUpdateSkill(
-                SkillLockEntry(
+            // 2. Update lock file (same format as skillInstaller)
+            lockmanager.aorUpdateskill(
+                skillLockEntry(
                     name = name,
                     slug = slug,
                     version = "online",
@@ -53,8 +53,8 @@ class SkillActionsImpl : SkillActions {
                     source = "agency-agents",
                 )
             )
-            Log.i(TAG, "✅ Skill installed: $slug → ${skillDir.absolutePath}")
-        } catch (e: Exception) {
+            Log.i(TAG, "[OK] skill installed: $slug → ${skillDir.absolutePath}")
+        } catch (e: exception) {
             Log.e(TAG, "Failed to install skill: $slug", e)
         }
     }
@@ -65,14 +65,14 @@ class SkillActionsImpl : SkillActions {
             val skillDir = File(managedDir, slug)
             if (skillDir.exists()) {
                 skillDir.deleteRecursively()
-                Log.i(TAG, "✅ Deleted skill directory: ${skillDir.absolutePath}")
+                Log.i(TAG, "[OK] Deleted skill directory: ${skillDir.absolutePath}")
             }
             // 2. Remove from lock
-            lockManager.removeSkill(slug)
-        } catch (e: Exception) {
+            lockmanager.removeskill(slug)
+        } catch (e: exception) {
             Log.e(TAG, "Failed to uninstall skill: $slug", e)
         }
     }
 
-    override fun getSkillDir(slug: String): File = File(managedDir, slug)
+    override fun getskillDir(slug: String): File = File(managedDir, slug)
 }

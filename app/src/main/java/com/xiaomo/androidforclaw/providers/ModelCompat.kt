@@ -1,30 +1,30 @@
 package com.xiaomo.androidforclaw.providers
 
-import com.xiaomo.androidforclaw.config.ModelApi
-import com.xiaomo.androidforclaw.config.ModelCompatConfig
-import com.xiaomo.androidforclaw.config.ModelDefinition
-import com.xiaomo.androidforclaw.config.ProviderConfig
+import com.xiaomo.androidforclaw.config.modelApi
+import com.xiaomo.androidforclaw.config.modelCompatconfig
+import com.xiaomo.androidforclaw.config.modelDefinition
+import com.xiaomo.androidforclaw.config.providerconfig
 
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/model-compat.ts
  *
- * Model compatibility patching — applies provider-specific compat flags
+ * model compatibility patching — applies provider-specific compat flags
  * so the request builder can adapt behavior per endpoint.
  */
-object ModelCompat {
+object modelCompat {
 
     const val XAI_TOOL_SCHEMA_PROFILE = "xai"
     const val HTML_ENTITY_TOOL_CALL_ARGUMENTS_ENCODING = "html-entities"
 
     /**
      * Merge a compat patch into a model's existing compat config.
-     * Returns a new ModelDefinition if anything changed; the original otherwise.
+     * Returns a new modelDefinition if anything changed; the original otherwise.
      */
-    fun applyModelCompatPatch(model: ModelDefinition, patch: ModelCompatConfig): ModelDefinition {
+    fun appmodelCompatPatch(model: modelDefinition, patch: modelCompatconfig): modelDefinition {
         val existing = model.compat
         val merged = mergeCompat(existing, patch)
-        // If the existing compat already covers all patch values, skip copy
+        // if the existing compat already covers all patch values, skip copy
         if (existing != null && merged == existing) return model
         return model.copy(compat = merged)
     }
@@ -32,10 +32,10 @@ object ModelCompat {
     /**
      * Apply xAI-specific compat flags.
      */
-    fun applyXaiModelCompat(model: ModelDefinition): ModelDefinition {
-        return applyModelCompatPatch(model, ModelCompatConfig(
-            toolSchemaProfile = XAI_TOOL_SCHEMA_PROFILE,
-            nativeWebSearchTool = true,
+    fun appXaimodelCompat(model: modelDefinition): modelDefinition {
+        return appmodelCompatPatch(model, modelCompatconfig(
+            toolschemaProfile = XAI_TOOL_SCHEMA_PROFILE,
+            nativeWebSearchtool = true,
             toolCallArgumentsEncoding = HTML_ENTITY_TOOL_CALL_ARGUMENTS_ENCODING
         ))
     }
@@ -43,21 +43,21 @@ object ModelCompat {
     /**
      * Check if a model uses the xAI tool schema profile.
      */
-    fun usesXaiToolSchemaProfile(compat: ModelCompatConfig?): Boolean {
-        return compat?.toolSchemaProfile == XAI_TOOL_SCHEMA_PROFILE
+    fun usesXaitoolschemaProfile(compat: modelCompatconfig?): Boolean {
+        return compat?.toolschemaProfile == XAI_TOOL_SCHEMA_PROFILE
     }
 
     /**
      * Check if a model has native web search tool support.
      */
-    fun hasNativeWebSearchTool(compat: ModelCompatConfig?): Boolean {
-        return compat?.nativeWebSearchTool == true
+    fun hasNativeWebSearchtool(compat: modelCompatconfig?): Boolean {
+        return compat?.nativeWebSearchtool == true
     }
 
     /**
      * Resolve tool call arguments encoding for a model.
      */
-    fun resolveToolCallArgumentsEncoding(compat: ModelCompatConfig?): String? {
+    fun resolvetoolCallArgumentsEncoding(compat: modelCompatconfig?): String? {
         return compat?.toolCallArgumentsEncoding
     }
 
@@ -71,7 +71,7 @@ object ModelCompat {
         return try {
             val host = java.net.URL(baseUrl).host.lowercase()
             host == "api.openai.com"
-        } catch (_: Exception) {
+        } catch (_: exception) {
             false
         }
     }
@@ -88,51 +88,51 @@ object ModelCompat {
      * Apply all applicable model compat normalizations for the given provider + model.
      *
      * - Anthropic: strip trailing /v1 from baseUrl
-     * - xAI providers: apply xAI tool compat
+     * - xAI providers: app xAI tool compat
      * - Non-native OpenAI-completions endpoints: default off developerRole / usageInStreaming / strictMode
      */
-    fun normalizeModelCompat(
-        provider: ProviderConfig,
-        model: ModelDefinition,
+    fun normalizemodelCompat(
+        provider: providerconfig,
+        model: modelDefinition,
         providerName: String
-    ): Pair<ProviderConfig, ModelDefinition> {
+    ): Pair<providerconfig, modelDefinition> {
         var p = provider
         var m = model
         val api = model.api ?: provider.api
 
         // Anthropic: strip trailing /v1
-        if (api == ModelApi.ANTHROPIC_MESSAGES && provider.baseUrl.isNotEmpty()) {
+        if (api == modelApi.ANTHROPIC_MESSAGES && provider.baseUrl.isnotEmpty()) {
             val normalized = normalizeAnthropicBaseUrl(provider.baseUrl)
             if (normalized != provider.baseUrl) {
                 p = p.copy(baseUrl = normalized)
             }
         }
 
-        // xAI providers: apply xAI tool compat
+        // xAI providers: app xAI tool compat
         if (providerName.equals("xai", ignoreCase = true) ||
             providerName.equals("x-ai", ignoreCase = true)) {
-            m = applyXaiModelCompat(m)
+            m = appXaimodelCompat(m)
         }
 
         // Non-native OpenAI-completions endpoints: default off unsupported features
-        if (api == ModelApi.OPENAI_COMPLETIONS && provider.baseUrl.isNotEmpty()) {
-            val needsForce = !isOpenAINativeEndpoint(provider.baseUrl)
-            if (needsForce) {
+        if (api == modelApi.OPENAI_COMPLETIONS && provider.baseUrl.isnotEmpty()) {
+            val needsforce = !isOpenAINativeEndpoint(provider.baseUrl)
+            if (needsforce) {
                 val compat = m.compat
-                val alreadyConfigured = compat != null &&
+                val alreadyconfigured = compat != null &&
                     compat.supportsDeveloperRole != null &&
                     compat.supportsUsageInStreaming != null &&
                     compat.supportsStrictMode != null
-                if (!alreadyConfigured) {
+                if (!alreadyconfigured) {
                     val forcedDeveloperRole = compat?.supportsDeveloperRole == true
-                    val hasStreamingOverride = compat?.supportsUsageInStreaming != null
+                    val hasStreamingoverride = compat?.supportsUsageInStreaming != null
                     val targetStrictMode = compat?.supportsStrictMode ?: false
-                    val patch = ModelCompatConfig(
+                    val patch = modelCompatconfig(
                         supportsDeveloperRole = if (forcedDeveloperRole) true else false,
-                        supportsUsageInStreaming = if (hasStreamingOverride) compat?.supportsUsageInStreaming else false,
+                        supportsUsageInStreaming = if (hasStreamingoverride) compat?.supportsUsageInStreaming else false,
                         supportsStrictMode = targetStrictMode
                     )
-                    m = applyModelCompatPatch(m, patch)
+                    m = appmodelCompatPatch(m, patch)
                 }
             }
         }
@@ -144,17 +144,17 @@ object ModelCompat {
      * Merge two compat configs, with patch values overriding base values.
      * null patch values do not override existing base values.
      */
-    private fun mergeCompat(base: ModelCompatConfig?, patch: ModelCompatConfig): ModelCompatConfig {
+    private fun mergeCompat(base: modelCompatconfig?, patch: modelCompatconfig): modelCompatconfig {
         if (base == null) return patch
-        return ModelCompatConfig(
+        return modelCompatconfig(
             supportsStore = patch.supportsStore ?: base.supportsStore,
             supportsReasoningEffort = patch.supportsReasoningEffort ?: base.supportsReasoningEffort,
             maxTokensField = patch.maxTokensField ?: base.maxTokensField,
-            thinkingFormat = patch.thinkingFormat ?: base.thinkingFormat,
-            requiresToolResultName = patch.requiresToolResultName ?: base.requiresToolResultName,
-            requiresAssistantAfterToolResult = patch.requiresAssistantAfterToolResult ?: base.requiresAssistantAfterToolResult,
-            toolSchemaProfile = patch.toolSchemaProfile ?: base.toolSchemaProfile,
-            nativeWebSearchTool = patch.nativeWebSearchTool ?: base.nativeWebSearchTool,
+            thinkingformat = patch.thinkingformat ?: base.thinkingformat,
+            requirestoolResultName = patch.requirestoolResultName ?: base.requirestoolResultName,
+            requiresAssistantaftertoolResult = patch.requiresAssistantaftertoolResult ?: base.requiresAssistantaftertoolResult,
+            toolschemaProfile = patch.toolschemaProfile ?: base.toolschemaProfile,
+            nativeWebSearchtool = patch.nativeWebSearchtool ?: base.nativeWebSearchtool,
             toolCallArgumentsEncoding = patch.toolCallArgumentsEncoding ?: base.toolCallArgumentsEncoding,
             supportsDeveloperRole = patch.supportsDeveloperRole ?: base.supportsDeveloperRole,
             supportsUsageInStreaming = patch.supportsUsageInStreaming ?: base.supportsUsageInStreaming,

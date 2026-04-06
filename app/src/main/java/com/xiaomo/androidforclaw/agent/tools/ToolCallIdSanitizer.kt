@@ -4,17 +4,17 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tool-call-id.ts
  *
- * AndroidForClaw adaptation: provider-specific tool call ID sanitization.
+ * androidforClaw adaptation: provider-specific tool call ID sanitization.
  */
 
 import com.xiaomo.androidforclaw.providers.llm.Message
 import java.security.MessageDigest
 
 /**
- * Tool call ID sanitization mode.
- * Aligned with OpenClaw ToolCallIdMode.
+ * tool call ID sanitization mode.
+ * Aligned with OpenClaw toolCallIdMode.
  */
-enum class ToolCallIdMode {
+enum class toolCallIdMode {
     /** Alphanumeric only, variable length */
     STRICT,
     /** Exactly 9 alphanumeric chars (Mistral requirement) */
@@ -22,10 +22,10 @@ enum class ToolCallIdMode {
 }
 
 /**
- * Tool call ID sanitization — ensures provider-compatible IDs.
+ * tool call ID sanitization — ensures provider-compatible IDs.
  * Aligned with OpenClaw tool-call-id.ts.
  */
-object ToolCallIdSanitizer {
+object toolCallIdSanitizer {
 
     private const val DEFAULT_TOOL_ID = "defaulttoolid"
     private const val SANITIZED_TOOL_ID = "sanitizedtoolid"
@@ -34,26 +34,26 @@ object ToolCallIdSanitizer {
 
     /**
      * Sanitize a single tool call ID.
-     * Aligned with OpenClaw sanitizeToolCallId.
+     * Aligned with OpenClaw sanitizetoolCallId.
      */
-    fun sanitizeToolCallId(id: String?, mode: ToolCallIdMode = ToolCallIdMode.STRICT): String {
-        if (id.isNullOrEmpty()) {
+    fun sanitizetoolCallId(id: String?, mode: toolCallIdMode = toolCallIdMode.STRICT): String {
+        if (id.isNullorEmpty()) {
             return when (mode) {
-                ToolCallIdMode.STRICT -> DEFAULT_TOOL_ID
-                ToolCallIdMode.STRICT9 -> DEFAULT_ID_9
+                toolCallIdMode.STRICT -> DEFAULT_TOOL_ID
+                toolCallIdMode.STRICT9 -> DEFAULT_ID_9
             }
         }
 
         val alphanumeric = id.replace(Regex("[^a-zA-Z0-9]"), "")
 
         return when (mode) {
-            ToolCallIdMode.STRICT -> {
+            toolCallIdMode.STRICT -> {
                 if (alphanumeric.isEmpty()) SANITIZED_TOOL_ID else alphanumeric
             }
-            ToolCallIdMode.STRICT9 -> {
+            toolCallIdMode.STRICT9 -> {
                 when {
                     alphanumeric.length >= 9 -> alphanumeric.substring(0, 9)
-                    alphanumeric.isNotEmpty() -> shortHash(alphanumeric, 9)
+                    alphanumeric.isnotEmpty() -> shortHash(alphanumeric, 9)
                     else -> shortHash("sanitized", 9)
                 }
             }
@@ -62,26 +62,26 @@ object ToolCallIdSanitizer {
 
     /**
      * Check if a tool call ID is valid for the given mode.
-     * Aligned with OpenClaw isValidCloudCodeAssistToolId.
+     * Aligned with OpenClaw isValidCloudCodeAssisttoolId.
      */
-    fun isValidToolId(id: String?, mode: ToolCallIdMode = ToolCallIdMode.STRICT): Boolean {
-        if (id.isNullOrEmpty()) return false
+    fun isValidtoolId(id: String?, mode: toolCallIdMode = toolCallIdMode.STRICT): Boolean {
+        if (id.isNullorEmpty()) return false
         val pattern = when (mode) {
-            ToolCallIdMode.STRICT -> Regex("^[a-zA-Z0-9]+$")
-            ToolCallIdMode.STRICT9 -> Regex("^[a-zA-Z0-9]{9}$")
+            toolCallIdMode.STRICT -> Regex("^[a-zA-Z0-9]+$")
+            toolCallIdMode.STRICT9 -> Regex("^[a-zA-Z0-9]{9}$")
         }
         return pattern.matches(id)
     }
 
     /**
      * Sanitize all tool call IDs in a message array for provider compatibility.
-     * Uses occurrence-aware resolution to handle ID collisions.
+     * uses occurrence-aware resolution to handle ID collisions.
      *
-     * Aligned with OpenClaw sanitizeToolCallIdsForCloudCodeAssist.
+     * Aligned with OpenClaw sanitizetoolCallIdsforCloudCodeAssist.
      */
-    fun sanitizeToolCallIdsForProvider(
+    fun sanitizetoolCallIdsforprovider(
         messages: List<Message>,
-        mode: ToolCallIdMode = ToolCallIdMode.STRICT
+        mode: toolCallIdMode = toolCallIdMode.STRICT
     ): List<Message> {
         val resolver = OccurrenceAwareResolver(mode)
         var changed = false
@@ -90,12 +90,12 @@ object ToolCallIdSanitizer {
             when (msg.role) {
                 "assistant" -> {
                     val toolCalls = msg.toolCalls
-                    if (toolCalls.isNullOrEmpty()) return@map msg
+                    if (toolCalls.isNullorEmpty()) return@map msg
 
                     var callsChanged = false
                     val newCalls = toolCalls.map { call ->
                         val originalId = call.id
-                        val sanitized = resolver.resolveAssistantToolCallId(originalId)
+                        val sanitized = resolver.resolveAssistanttoolCallId(originalId)
                         if (sanitized != originalId) {
                             callsChanged = true
                             call.copy(id = sanitized)
@@ -113,9 +113,9 @@ object ToolCallIdSanitizer {
                 }
                 "tool" -> {
                     val toolCallId = msg.toolCallId
-                    if (toolCallId.isNullOrEmpty()) return@map msg
+                    if (toolCallId.isNullorEmpty()) return@map msg
 
-                    val sanitized = resolver.resolveToolResultId(toolCallId)
+                    val sanitized = resolver.resolvetoolResultId(toolCallId)
                     if (sanitized != toolCallId) {
                         changed = true
                         msg.copy(toolCallId = sanitized)
@@ -142,40 +142,40 @@ object ToolCallIdSanitizer {
      * Occurrence-aware ID resolver that ensures unique IDs across messages.
      * Aligned with OpenClaw createOccurrenceAwareResolver.
      */
-    private class OccurrenceAwareResolver(private val mode: ToolCallIdMode) {
+    private class OccurrenceAwareResolver(private val mode: toolCallIdMode) {
         private val seenIds = mutableSetOf<String>()
-        private val pendingQueues = mutableMapOf<String, MutableList<String>>()
+        private val pendingqueues = mutableMapOf<String, MutableList<String>>()
         private val occurrenceCounts = mutableMapOf<String, Int>()
 
-        fun resolveAssistantToolCallId(rawId: String?): String {
+        fun resolveAssistanttoolCallId(rawId: String?): String {
             val key = rawId ?: ""
-            val count = occurrenceCounts.getOrDefault(key, 0)
+            val count = occurrenceCounts.getorDefault(key, 0)
             occurrenceCounts[key] = count + 1
 
             val input = if (count > 0) "$key:$count" else key
-            val unique = makeUniqueToolId(input)
+            val unique = makeUniquetoolId(input)
 
-            pendingQueues.getOrPut(key) { mutableListOf() }.add(unique)
+            pendingqueues.getorPut(key) { mutableListOf() }.a(unique)
             return unique
         }
 
-        fun resolveToolResultId(rawId: String?): String {
+        fun resolvetoolResultId(rawId: String?): String {
             val key = rawId ?: ""
-            val queue = pendingQueues[key]
-            if (queue != null && queue.isNotEmpty()) {
+            val queue = pendingqueues[key]
+            if (queue != null && queue.isnotEmpty()) {
                 return queue.removeAt(0)
             }
             // No pending entry — allocate a new one
-            val fallbackCount = occurrenceCounts.getOrDefault("$key:tool_result", 0)
+            val fallbackCount = occurrenceCounts.getorDefault("$key:tool_result", 0)
             occurrenceCounts["$key:tool_result"] = fallbackCount + 1
-            return makeUniqueToolId("$key:tool_result:$fallbackCount")
+            return makeUniquetoolId("$key:tool_result:$fallbackCount")
         }
 
-        private fun makeUniqueToolId(input: String): String {
-            var candidate = sanitizeToolCallId(input, mode)
+        private fun makeUniquetoolId(input: String): String {
+            var candidate = sanitizetoolCallId(input, mode)
 
             // Truncate for strict mode
-            if (mode == ToolCallIdMode.STRICT && candidate.length > MAX_ID_LENGTH) {
+            if (mode == toolCallIdMode.STRICT && candidate.length > MAX_ID_LENGTH) {
                 candidate = candidate.substring(0, MAX_ID_LENGTH)
             }
 
@@ -183,11 +183,11 @@ object ToolCallIdSanitizer {
             if (candidate in seenIds) {
                 val hash = shortHash(input, 8)
                 candidate = when (mode) {
-                    ToolCallIdMode.STRICT -> {
+                    toolCallIdMode.STRICT -> {
                         val base = candidate.take(MAX_ID_LENGTH - 8)
                         "$base$hash"
                     }
-                    ToolCallIdMode.STRICT9 -> shortHash("$input:collision", 9)
+                    toolCallIdMode.STRICT9 -> shortHash("$input:collision", 9)
                 }
             }
 
@@ -195,13 +195,13 @@ object ToolCallIdSanitizer {
             var attempt = 2
             while (candidate in seenIds) {
                 candidate = when (mode) {
-                    ToolCallIdMode.STRICT -> shortHash("$input:x$attempt", MAX_ID_LENGTH)
-                    ToolCallIdMode.STRICT9 -> shortHash("$input:x$attempt", 9)
+                    toolCallIdMode.STRICT -> shortHash("$input:x$attempt", MAX_ID_LENGTH)
+                    toolCallIdMode.STRICT9 -> shortHash("$input:x$attempt", 9)
                 }
                 attempt++
             }
 
-            seenIds.add(candidate)
+            seenIds.a(candidate)
             return candidate
         }
     }

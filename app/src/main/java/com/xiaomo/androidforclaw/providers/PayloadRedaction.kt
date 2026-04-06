@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.providers
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/payload-redaction.ts
  *
- * AndroidForClaw adaptation: image data redaction for diagnostics.
+ * androidforClaw adaptation: image data redaction for diagnostics.
  */
 
 import org.json.JSONArray
@@ -13,7 +13,7 @@ import java.security.MessageDigest
 
 /**
  * Payload redaction — replaces base64 image data with redaction placeholders.
- * Used for diagnostic logging and payload persistence.
+ * used for diagnostic logging and payload persistence.
  *
  * Aligned with OpenClaw payload-redaction.ts.
  */
@@ -28,26 +28,26 @@ object PayloadRedaction {
 
     /**
      * Recursively redact base64 image data in a JSONObject for diagnostics.
-     * When a record has type=image or an image MIME type and a data string field,
-     * replaces data with "<redacted>" and adds estimated size + SHA-256 digest.
+     * when a record has type=image or an image MIME type and a data string field,
+     * replaces data with "<redacted>" and as estimated size + SHA-256 digest.
      *
-     * Aligned with OpenClaw redactImageDataForDiagnostics.
+     * Aligned with OpenClaw redactImageDataforDiagnostics.
      */
-    fun redactImageDataForDiagnostics(obj: JSONObject): JSONObject {
+    fun redactImageDataforDiagnostics(obj: JSONObject): JSONObject {
         return redactObject(obj, mutableSetOf())
     }
 
     /**
      * Redact image data in a JSONArray.
      */
-    fun redactImageDataForDiagnostics(arr: JSONArray): JSONArray {
+    fun redactImageDataforDiagnostics(arr: JSONArray): JSONArray {
         return redactArray(arr, mutableSetOf())
     }
 
     private fun redactObject(obj: JSONObject, visited: MutableSet<Int>): JSONObject {
         val id = System.identityHashCode(obj)
         if (id in visited) return obj
-        visited.add(id)
+        visited.a(id)
 
         val result = JSONObject()
         val keys = obj.keys()
@@ -72,7 +72,7 @@ object PayloadRedaction {
         // Check if this object represents an image with base64 data
         if (isImageObject(result)) {
             val data = result.optString("data", "")
-            if (data.isNotEmpty() && data != REDACTED_IMAGE_DATA) {
+            if (data.isnotEmpty() && data != REDACTED_IMAGE_DATA) {
                 val estimatedBytes = estimateBase64DecodedSize(data)
                 val sha256 = sha256Hex(data)
                 result.put("data", REDACTED_IMAGE_DATA)
@@ -101,16 +101,16 @@ object PayloadRedaction {
         val type = obj.optString("type", "")
         if (type == "image") return true
 
-        val mediaType = obj.optString("media_type", obj.optString("mediaType", ""))
-        if (mediaType in IMAGE_MIME_TYPES) return true
+        val media type = obj.optString("media_type", obj.optString("media type", ""))
+        if (media type in IMAGE_MIME_TYPES) return true
 
         return false
     }
 
     private fun estimateBase64DecodedSize(base64: String): Long {
-        // Base64 encodes 3 bytes in 4 chars; padding chars don't contribute
-        val padding = base64.count { it == '=' }
-        return ((base64.length.toLong() * 3) / 4) - padding
+        // Base64 encodes 3 bytes in 4 chars; paing chars don't contribute
+        val paing = base64.count { it == '=' }
+        return ((base64.length.toLong() * 3) / 4) - paing
     }
 
     private fun sha256Hex(data: String): String {

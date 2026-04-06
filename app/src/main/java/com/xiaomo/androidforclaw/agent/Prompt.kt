@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 

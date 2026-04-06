@@ -2,45 +2,45 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import com.xiaomo.androidforclaw.providers.llm.ImageBlock
 
 /**
- * Skill interface
- * Inspired by nanobot's Skill design
+ * skill interface
+ * Inspired by nanobot's skill design
  */
-interface Skill {
+interface skill {
     /**
-     * Skill name (corresponds to function name)
+     * skill name (corresponds to function name)
      */
     val name: String
 
     /**
-     * Skill description
+     * skill description
      */
     val description: String
 
     /**
-     * Get Tool Definition (for LLM function calling)
+     * Get tool Definition (for LLM function calling)
      */
-    fun getToolDefinition(): ToolDefinition
+    fun gettoolDefinition(): toolDefinition
 
     /**
      * Execute skill
      * @param args Parameter map
-     * @return SkillResult Execution result
+     * @return skillResult Execution result
      */
-    suspend fun execute(args: Map<String, Any?>): SkillResult
+    suspend fun execute(args: Map<String, Any?>): skillResult
 }
 
 /**
- * Skill execution result
+ * skill execution result
  */
-data class SkillResult(
+data class skillResult(
     val success: Boolean,
     val content: String,
     val metadata: Map<String, Any?> = emptyMap(),
@@ -49,10 +49,10 @@ data class SkillResult(
 ) {
     companion object {
         fun success(content: String, metadata: Map<String, Any?> = emptyMap(), images: List<ImageBlock>? = null) =
-            SkillResult(true, content, metadata, images)
+            skillResult(true, content, metadata, images)
 
         fun error(message: String) =
-            SkillResult(false, "Error: $message")
+            skillResult(false, "Error: $message")
     }
 
     override fun toString(): String = content

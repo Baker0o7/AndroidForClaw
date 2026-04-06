@@ -1,11 +1,11 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
-import android.content.Context
-import android.content.res.Configuration
+import android.content.context
+import android.content.res.configuration
 import android.os.Build
 import android.os.LocaleList
 import java.util.Locale
@@ -18,16 +18,16 @@ import java.util.Locale
  * Usage example:
  * ```kotlin
  * // Switch to Chinese
- * LocaleHelper.setLocale(context, LocaleHelper.LANGUAGE_CHINESE)
+ * Localehelper.setLocale(context, Localehelper.LANGUAGE_CHINESE)
 
  * // Switch to English
- * LocaleHelper.setLocale(context, LocaleHelper.LANGUAGE_ENGLISH)
+ * Localehelper.setLocale(context, Localehelper.LANGUAGE_ENGLISH)
 
  * // Get current language
- * val currentLang = LocaleHelper.getLanguage(context)
+ * val currentLang = Localehelper.getLanguage(context)
  * ```
  */
-object LocaleHelper {
+object Localehelper {
     private const val PREF_LANGUAGE = "pref_language"
     private const val PREF_NAME = "locale_settings"
 
@@ -37,11 +37,11 @@ object LocaleHelper {
 
     /**
      * Set application language
-     * @param context Context
+     * @param context context
      * @param language Language code (zh/en/system)
-     * @return Updated Context
+     * @return Updated context
      */
-    fun setLocale(context: Context, language: String): Context {
+    fun setLocale(context: context, language: String): context {
         saveLanguage(context, language)
         return updateResources(context, language)
     }
@@ -49,23 +49,23 @@ object LocaleHelper {
     /**
      * Get saved language settings
      */
-    fun getLanguage(context: Context): String {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    fun getLanguage(context: context): String {
+        val prefs = context.getSharedPreferences(PREF_NAME, context.MODE_PRIVATE)
         return prefs.getString(PREF_LANGUAGE, LANGUAGE_SYSTEM) ?: LANGUAGE_SYSTEM
     }
 
     /**
      * Save language settings
      */
-    private fun saveLanguage(context: Context, language: String) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(PREF_LANGUAGE, language).apply()
+    private fun saveLanguage(context: context, language: String) {
+        val prefs = context.getSharedPreferences(PREF_NAME, context.MODE_PRIVATE)
+        prefs.edit().putString(PREF_LANGUAGE, language).app()
     }
 
     /**
      * Update resource configuration
      */
-    private fun updateResources(context: Context, language: String): Context {
+    private fun updateResources(context: context, language: String): context {
         val locale = when (language) {
             LANGUAGE_CHINESE -> Locale.CHINESE
             LANGUAGE_ENGLISH -> Locale.ENGLISH
@@ -75,7 +75,7 @@ object LocaleHelper {
 
         Locale.setDefault(locale)
 
-        val config = Configuration(context.resources.configuration)
+        val config = configuration(context.resources.configuration)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             config.setLocale(locale)
@@ -88,10 +88,10 @@ object LocaleHelper {
         }
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            context.createConfigurationContext(config)
+            context.createconfigurationcontext(config)
         } else {
             @Suppress("DEPRECATION")
-            context.resources.updateConfiguration(config, context.resources.displayMetrics)
+            context.resources.updateconfiguration(config, context.resources.displayMetrics)
             context
         }
     }
@@ -99,7 +99,7 @@ object LocaleHelper {
     /**
      * Apply saved language settings
      */
-    fun applyLanguage(context: Context): Context {
+    fun appLanguage(context: context): context {
         val language = getLanguage(context)
         return updateResources(context, language)
     }
@@ -107,7 +107,7 @@ object LocaleHelper {
     /**
      * Get current language display name
      */
-    fun getLanguageDisplayName(context: Context): String {
+    fun getLanguageDisplayName(context: context): String {
         return when (getLanguage(context)) {
             LANGUAGE_CHINESE -> "Chinese"
             LANGUAGE_ENGLISH -> "English"

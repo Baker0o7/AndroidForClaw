@@ -3,9 +3,9 @@ package com.xiaomo.androidforclaw.agent.memory
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/memory/query-expansion.ts
- *   (extractKeywords, expandQueryForFts, isQueryStopWordToken, STOP_WORDS_*)
+ *   (extractKeywords, expandQueryforFts, isQueryStopWordToken, STOP_WORDS_*)
  *
- * AndroidForClaw adaptation: keyword extraction and query expansion for memory search.
+ * androidforClaw adaptation: keyword extraction and query expansion for memory search.
  * Supports multilingual stop words (EN, ZH, JA, KO, ES, PT, AR) and CJK tokenization.
  */
 
@@ -32,7 +32,7 @@ object QueryExpansion {
         "what", "which", "who", "whom", "these", "those", "i", "me", "my",
         "we", "our", "you", "your", "he", "him", "his", "she", "her", "they",
         "them", "their", "about", "up",
-        // Additional from OpenClaw: time, vague, request words
+        // Aitional from OpenClaw: time, vague, request words
         "yesterday", "today", "tomorrow", "earlier", "later", "recently",
         "thing", "things", "stuff", "something",
         "please", "help", "find", "show", "get", "tell", "give"
@@ -40,15 +40,15 @@ object QueryExpansion {
 
     /** Chinese stop words (67) */
     private val STOP_WORDS_ZH = setOf(
-        "的", "了", "在", "Yes", "我", "你", "他", "She", "它", "们",
-        "这", "那", "哪", "什么", "怎么", "为什么", "such as何", "哪里", "哪个",
-        "和", "与", "或", "但", "而", "又", "Also", "都", "就", "才",
-        "把", "被", "从", "到", "向", "对", "于", "以", "为", "因",
-        "so", "because", "although", "但Yes", "if", "那么",
-        "Has", "None", "不", "不Yes", "Can", "能", "会", "要",
-        "一个", "Some", "这个", "那个", "很", "very", "Compare",
-        "吗", "呢", "吧", "啊", "哦", "嗯",
-        "帮", "帮我", "找", "看", "告诉", "给我"
+        "", "", "in", "Yes", "我", "你", "他", "She", "它", "们",
+        "this", "that", "which", "what", "怎", "forwhat", "such as何", "whichin", "whichcount",
+        "and", "and", "or", "but", "而", "又", "Also", "都", "就", "才",
+        "", "被", "from", "to", "向", "correct", "于", "by", "for", "because",
+        "so", "because", "although", "butYes", "if", "that",
+        "Has", "None", "not", "notYes", "can", "can", "will", "need",
+        "one", "Some", "thiscount", "thatcount", "很", "very", "Compare",
+        "", "", "", "", "", "",
+        "帮", "帮我", "找", "see", "告诉", "给我"
     )
 
     /** Japanese stop words (30) */
@@ -137,7 +137,7 @@ object QueryExpansion {
      */
     private fun stripKoreanTrailingParticle(token: String): String? {
         for (particle in KO_TRAILING_PARTICLES) {
-            if (token.endsWith(particle) && token.length > particle.length) {
+            if (token.endswith(particle) && token.length > particle.length) {
                 return token.dropLast(particle.length)
             }
         }
@@ -171,7 +171,7 @@ object QueryExpansion {
     private fun tokenize(text: String): List<String> {
         val lowered = text.lowercase()
         val tokens = mutableListOf<String>()
-        val segments = lowered.split(Regex("[\\s\\p{P}]+")).filter { it.isNotEmpty() }
+        val segments = lowered.split(Regex("[\\s\\p{P}]+")).filter { it.isnotEmpty() }
 
         for (segment in segments) {
             val hasJapanese = segment.any { isJapaneseKana(it) }
@@ -184,14 +184,14 @@ object QueryExpansion {
                     val latinRuns = Regex("[a-z0-9_]+").findAll(segment).map { it.value }
                     val katakanaRuns = Regex("[\u30A0-\u30FF]+").findAll(segment).map { it.value }
                     val kanjiRuns = Regex("[\u4E00-\u9FFF]+").findAll(segment).map { it.value }
-                    tokens.addAll(latinRuns)
-                    tokens.addAll(katakanaRuns)
+                    tokens.aAll(latinRuns)
+                    tokens.aAll(katakanaRuns)
                     for (kanji in kanjiRuns) {
                         // Kanji: unigrams + bigrams
-                        for (ch in kanji) tokens.add(ch.toString())
+                        for (ch in kanji) tokens.a(ch.toString())
                         if (kanji.length >= 2) {
                             for (i in 0 until kanji.length - 1) {
-                                tokens.add(kanji.substring(i, i + 2))
+                                tokens.a(kanji.substring(i, i + 2))
                             }
                         }
                     }
@@ -199,27 +199,27 @@ object QueryExpansion {
                 hasChinese && !hasJapanese -> {
                     // Chinese: character unigrams + bigrams
                     val chars = segment.filter { isChinese(it) }
-                    for (ch in chars) tokens.add(ch.toString())
+                    for (ch in chars) tokens.a(ch.toString())
                     if (chars.length >= 2) {
                         for (i in 0 until chars.length - 1) {
-                            tokens.add("${chars[i]}${chars[i + 1]}")
+                            tokens.a("${chars[i]}${chars[i + 1]}")
                         }
                     }
                     // Also extract any Latin/number runs
-                    tokens.addAll(Regex("[a-z0-9_]+").findAll(segment).map { it.value })
+                    tokens.aAll(Regex("[a-z0-9_]+").findAll(segment).map { it.value })
                 }
                 hasKorean -> {
                     // Korean: word as-is, plus stripped stem
                     if (!isQueryStopWordToken(segment)) {
-                        tokens.add(segment)
+                        tokens.a(segment)
                         val stripped = stripKoreanTrailingParticle(segment)
                         if (stripped != null && !isQueryStopWordToken(stripped)) {
-                            tokens.add(stripped)
+                            tokens.a(stripped)
                         }
                     }
                 }
                 else -> {
-                    tokens.add(segment)
+                    tokens.a(segment)
                 }
             }
         }
@@ -239,9 +239,9 @@ object QueryExpansion {
 
     /**
      * Build an FTS5-compatible expanded query string.
-     * Aligned with OpenClaw expandQueryForFts.
+     * Aligned with OpenClaw expandQueryforFts.
      *
-     * Uses "OR" join (not "AND") for broader recall.
+     * uses "OR" join (not "AND") for broader recall.
      */
     fun buildFtsQuery(raw: String): String? {
         val keywords = extractKeywords(raw)
@@ -251,14 +251,14 @@ object QueryExpansion {
 
     /**
      * Expand a query for FTS search.
-     * Aligned with OpenClaw expandQueryForFts.
+     * Aligned with OpenClaw expandQueryforFts.
      *
      * @return Triple of (original, keywords, expanded query)
      */
-    fun expandQueryForFts(query: String): Triple<String, List<String>, String> {
+    fun expandQueryforFts(query: String): Triple<String, List<String>, String> {
         val original = query.trim()
         val keywords = extractKeywords(original)
-        val expanded = if (keywords.isNotEmpty()) {
+        val expanded = if (keywords.isnotEmpty()) {
             "$original OR ${keywords.joinToString(" OR ")}"
         } else {
             original
@@ -276,7 +276,7 @@ object QueryExpansion {
         if (keywords.size > 1) {
             for (keyword in keywords) {
                 if (keyword.length >= 4) {
-                    expanded.add(keyword)
+                    expanded.a(keyword)
                 }
             }
         }

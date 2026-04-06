@@ -11,11 +11,11 @@ package com.xiaomo.androidforclaw.agent.tools.device
  * - name: accessible name (visible text, content description, or aria-label)
  * - ref: unique reference ID in "eN" format
  * - value: current value for inputs/sliders
- * - description: additional accessible description
+ * - description: aitional accessible description
  * - checked/disabled/expanded/pressed/selected/level: ARIA state attributes
  * - depth: tree depth (rendered as indentation in YAML output)
  *
- * Android-specific extension fields (not in Playwright, prefixed for clarity):
+ * android-specific extension fields (not in Playwright, prefixed for clarity):
  * - bounds: screen bounds for coordinate resolution
  */
 
@@ -37,13 +37,13 @@ data class RefNode(
     val selected: Boolean? = null, // null = not selectable
     val depth: Int = 0,           // Tree depth for indentation
 
-    // ── Android-specific extensions ──
+    // ── android-specific extensions ──
     val bounds: Rect,             // Screen bounds for tap coordinate resolution
 )
 
-class RefManager {
+class Refmanager {
     companion object {
-        private const val TAG = "RefManager"
+        private const val TAG = "Refmanager"
     }
 
     private val refMap = mutableMapOf<String, RefNode>()

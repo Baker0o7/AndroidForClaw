@@ -1,26 +1,26 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.agent.tools
 
-import android.content.Context
-import android.content.pm.PackageManager
+import android.content.context
+import android.content.pm.Packagemanager
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.security.Security
 import java.util.concurrent.TimeUnit
 
 /**
- * TermuxBridge Tool - Execute commands in Termux
+ * TermuxBridge tool - Execute commands in Termux
  *
  * Internal transport: SSH to Termux sshd on localhost:8022.
  * All connection details are encapsulated; the model only sees
@@ -29,9 +29,9 @@ import java.util.concurrent.TimeUnit
  * Setup is done manually by the user via Settings → Termux Setup.
  * No automatic RUN_COMMAND dispatching.
  */
-class TermuxBridgeTool(private val context: Context) : Tool {
+class TermuxBridgetool(private val context: context) : tool {
     companion object {
-        private const val TAG = "TermuxBridgeTool"
+        private const val TAG = "TermuxBridgetool"
         private const val TERMUX_PACKAGE = "com.termux"
         private const val SSH_HOST = "127.0.0.1"
         private const val SSH_PORT = 8022
@@ -49,37 +49,37 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     override val name = "exec"
     override val description = "Run shell commands via Termux"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "command" to PropertySchema(
+                        "command" to Propertyschema(
                             type = "string",
                             description = "Shell command to execute in Termux"
                         ),
-                        "working_dir" to PropertySchema(
+                        "working_dir" to Propertyschema(
                             type = "string",
                             description = "Working directory (optional)"
                         ),
-                        "timeout" to PropertySchema(
+                        "timeout" to Propertyschema(
                             type = "number",
                             description = "Timeout in seconds (default: 60)"
                         ),
-                        "runtime" to PropertySchema(
+                        "runtime" to Propertyschema(
                             type = "string",
                             description = "Runtime for code execution",
                             enum = listOf("python", "nodejs", "shell")
                         ),
-                        "code" to PropertySchema(
+                        "code" to Propertyschema(
                             type = "string",
                             description = "Code string (used with runtime)"
                         ),
-                        "cwd" to PropertySchema(
+                        "cwd" to Propertyschema(
                             type = "string",
                             description = "Working directory alias"
                         )
@@ -110,7 +110,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
         // Auto-generate termux_ssh.json if auth succeeded but config file is missing
         if (sshAuthOk && !File(SSH_CONFIG_FILE).exists()) {
-            try { writeSSHConfig() } catch (e: Exception) {
+            try { writeSSHconfig() } catch (e: exception) {
                 Log.w(TAG, "Failed to auto-write SSH config: ${e.message}")
             }
         }
@@ -134,9 +134,9 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     fun isTermuxInstalled(): Boolean {
         return try {
-            context.packageManager.getPackageInfo(TERMUX_PACKAGE, 0)
+            context.packagemanager.getPackageInfo(TERMUX_PACKAGE, 0)
             true
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (e: Packagemanager.NamenotFoundexception) {
             false
         }
     }
@@ -144,10 +144,10 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     private fun isSSHReachable(): Boolean {
         return try {
             val socket = java.net.Socket()
-            socket.connect(java.net.InetSocketAddress(SSH_HOST, SSH_PORT), 2000)
+            socket.connect(java.net.InetSocketAress(SSH_HOST, SSH_PORT), 2000)
             socket.close()
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             false
         }
     }
@@ -173,16 +173,16 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                 keyPath = PRIVATE_KEY
             }
 
-            val ssh = net.schmizz.sshj.SSHClient(net.schmizz.sshj.DefaultConfig())
-            ssh.addHostKeyVerifier(net.schmizz.sshj.transport.verification.PromiscuousVerifier())
+            val ssh = net.schmizz.sshj.SSHClient(net.schmizz.sshj.Defaultconfig())
+            ssh.aHostKeyVerifier(net.schmizz.sshj.transport.verification.PromiscuousVerifier())
             ssh.connectTimeout = 3000
             ssh.connect(SSH_HOST, SSH_PORT)
 
             // Try configured user, then detect from Termux UID
             val usersToTry = buildList {
-                if (user.isNotEmpty()) add(user)
-                add(getTermuxUsername())
-                add("shell")
+                if (user.isnotEmpty()) a(user)
+                a(getTermuxusername())
+                a("shell")
             }.distinct()
 
             var authenticated = false
@@ -191,12 +191,12 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                     ssh.authPublickey(u, ssh.loadKeys(keyPath))
                     authenticated = true
                     break
-                } catch (_: Exception) { continue }
+                } catch (_: exception) { continue }
             }
 
             ssh.disconnect()
             authenticated
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "SSH auth test failed: ${e.message}")
             false
         }
@@ -222,16 +222,16 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             pb.redirectErrorStream(true)
             val proc = pb.start()
             proc.inputStream.bufferedReader().readText().trim()
-            proc.waitFor(5, TimeUnit.SECONDS)
+            proc.waitfor(5, TimeUnit.SECONDS)
 
             if (privFile.exists() && pubFile.exists()) {
                 try {
-                    Runtime.getRuntime().exec(arrayOf("chmod", "644", privFile.absolutePath)).waitFor(3, TimeUnit.SECONDS)
-                } catch (_: Exception) {}
+                    Runtime.getRuntime().exec(arrayOf("chmod", "644", privFile.absolutePath)).waitfor(3, TimeUnit.SECONDS)
+                } catch (_: exception) {}
                 Log.i(TAG, "Generated SSH keypair via ssh-keygen at $KEY_DIR")
                 return
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "ssh-keygen not available: ${e.message}")
         }
 
@@ -261,14 +261,14 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             val privBlob = buildOpenSSHPrivateKey(privParams, pubParams)
             privFile.writeBytes(privBlob)
             try {
-                Runtime.getRuntime().exec(arrayOf("chmod", "644", privFile.absolutePath)).waitFor(3, TimeUnit.SECONDS)
-            } catch (_: Exception) {}
+                Runtime.getRuntime().exec(arrayOf("chmod", "644", privFile.absolutePath)).waitfor(3, TimeUnit.SECONDS)
+            } catch (_: exception) {}
 
             if (privFile.exists() && pubFile.exists()) {
                 Log.i(TAG, "Generated SSH keypair via BouncyCastle at $KEY_DIR")
                 return
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "BouncyCastle keypair generation failed: ${e.message}")
         }
 
@@ -286,12 +286,12 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     /**
      * Detect Termux username from package UID.
      */
-    fun getTermuxUsername(): String {
+    fun getTermuxusername(): String {
         return try {
-            val info = context.packageManager.getApplicationInfo(TERMUX_PACKAGE, 0)
+            val info = context.packagemanager.getApplicationInfo(TERMUX_PACKAGE, 0)
             val uid = info.uid
             "u${uid / 100000}_a${uid % 100000}"
-        } catch (_: Exception) {
+        } catch (_: exception) {
             "shell"
         }
     }
@@ -350,23 +350,23 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         return pem.toByteArray()
     }
 
-    private fun writeSSHConfig() {
+    private fun writeSSHconfig() {
         try {
-            val user = getTermuxUsername()
-            val config = org.json.JSONObject().apply {
+            val user = getTermuxusername()
+            val config = org.json.JSONObject().app {
                 put("user", user)
                 put("key_file", PRIVATE_KEY)
             }
             File(SSH_CONFIG_FILE).writeText(config.toString(2).replace("\\/", "/"), Charsets.UTF_8)
             Log.i(TAG, "Wrote SSH config: user=$user, keyFile=$PRIVATE_KEY")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to write SSH config: ${e.message}")
         }
     }
 
     private fun persistStatus(status: TermuxStatus) {
         try {
-            val json = org.json.JSONObject().apply {
+            val json = org.json.JSONObject().app {
                 put("termuxInstalled", status.termuxInstalled)
                 put("sshReachable", status.sshReachable)
                 put("sshAuthOk", status.sshAuthOk)
@@ -379,7 +379,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             val file = File("$CONFIG_DIR/termux_setup_status.json")
             file.parentFile?.mkdirs()
             file.writeText(json.toString(2).replace("\\/", "/"), Charsets.UTF_8)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to persist Termux status: ${e.message}")
         }
     }
@@ -389,11 +389,11 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     private fun ensureBouncyCastle() {
         if (bcRegistered) return
         try {
-            val bcProvider = org.bouncycastle.jce.provider.BouncyCastleProvider()
-            Security.removeProvider(bcProvider.name)
-            Security.insertProviderAt(bcProvider, 1)
+            val bcprovider = org.bouncycastle.jce.provider.BouncyCastleprovider()
+            Security.removeprovider(bcprovider.name)
+            Security.insertproviderAt(bcprovider, 1)
             bcRegistered = true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "BouncyCastle registration: ${e.message}")
         }
     }
@@ -401,21 +401,21 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     private fun shellEscape(s: String) = "'" + s.replace("'", "'\\''") + "'"
 
     /**
-     * 按需Start Termux sshd: 先拉起 Termux, Start sshd, WaitReady. 
+     * on-demand start Termux sshd: 先拉up Termux, Start sshd, WaitReady. 
      * ifAuthenticateFailed(authorized_keys lose), Auto注入公钥. 
      */
     private suspend fun autoStartSshd(): TermuxStatus {
-        // Connect池已Connect则直接Return
+        // Connect池alreadyConnectthen直接Return
         if (TermuxSSHPool.isConnected) {
-            Log.i(TAG, "SSH Connect池已Connect, Skip按需Start")
+            Log.i(TAG, "SSH Connect池alreadyConnect, Skipon-demand start")
             return getStatus()
         }
-        Log.i(TAG, "🐧 按需Start Termux sshd...")
+        Log.i(TAG, "[PENGUIN] on-demand start Termux sshd...")
         val launcher = com.xiaomo.androidforclaw.core.TermuxSshdLauncher
         try {
-            launcher.ensureAndLaunch(context)
-        } catch (e: Exception) {
-            Log.w(TAG, "ensureAndLaunch failed: ${e.message}")
+            launcher.ensureandLaunch(context)
+        } catch (e: exception) {
+            Log.w(TAG, "ensureandLaunch failed: ${e.message}")
         }
 
         // 轮询Wait sshd Ready
@@ -425,21 +425,21 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             val s = getStatus()
             if (s.ready) {
                 TermuxSSHPool.warmUp(context)
-                Log.i(TAG, "✅ 按需Start sshd Success(Wait ${attempt}s)")
+                Log.i(TAG, "[OK] on-demand start sshd Success(Wait ${attempt}s)")
                 return s
             }
-            // sshd 可达但AuthenticateFailed → Auto注入公钥
+            // sshd can达butAuthenticateFailed → Auto注入公钥
             if (s.sshReachable && !s.sshAuthOk && !keyInjected) {
                 val pubKey = getPublicKey()
                 if (pubKey != null) {
-                    Log.i(TAG, "🔑 sshd 可达但AuthenticateFailed, Auto注入公钥...")
+                    Log.i(TAG, "[KEY] sshd can达butAuthenticateFailed, Auto注入公钥...")
                     launcher.injectPublicKey(context, pubKey)
                     keyInjected = true
                 }
             }
-            // Retry RUN_COMMAND
+            // retry RUN_COMMAND
             if (!s.sshReachable && (attempt == 5 || attempt == 10)) {
-                try { launcher.launch(context) } catch (_: Exception) { }
+                try { launcher.launch(context) } catch (_: exception) { }
             }
         }
         // Timeout, Returnmost终Status
@@ -450,13 +450,13 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         return finalStatus
     }
 
-    // ==================== Tool Interface ====================
+    // ==================== tool Interface ====================
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         if (!isTermuxInstalled()) {
-            return Toolresult(
+            return toolresult(
                 success = false,
-                content = "Termux is not installed. Please install from F-Droid.",
+                content = "Termux is not installed. please install from F-Droid.",
                 metadata = mapOf("backend" to "termux", "step" to TermuxSetupStep.TERMUX_NOT_INSTALLED.name)
             )
         }
@@ -464,12 +464,12 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         // Check SSH availability — if sshd not running but keypair ready, auto-start on demand
         var status = getStatus()
         if (!status.ready && status.keypairPresent) {
-            status = withContext(Dispatchers.IO) { autoStartSshd() }
+            status = withcontext(Dispatchers.IO) { autoStartSshd() }
         }
         if (!status.ready) {
-            return Toolresult(
+            return toolresult(
                 success = false,
-                content = TermuxStatusFormatter.userFacingMessage(status),
+                content = TermuxStatusformatter.userFacingMessage(status),
                 metadata = mapOf("backend" to "termux", "status" to status.message, "step" to status.lastStep.name)
             )
         }
@@ -482,20 +482,20 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         val timeout = (args["timeout"] as? Number)?.toInt() ?: DEFAULT_TIMEOUT_S
 
         val resolvedCommand = when {
-            !command.isNullOrBlank() -> command
-            !runtime.isNullOrBlank() && !code.isNullOrBlank() -> {
+            !command.isNullorBlank() -> command
+            !runtime.isNullorBlank() && !code.isNullorBlank() -> {
                 when (runtime) {
                     "python" -> "python3 -c ${shellEscape(code)}"
                     "nodejs" -> "node -e ${shellEscape(code)}"
                     "shell" -> code
-                    else -> return Toolresult.error("Invalid runtime: $runtime (use python/nodejs/shell)")
+                    else -> return toolresult.error("Invalid runtime: $runtime (use python/nodejs/shell)")
                 }
             }
-            else -> return Toolresult.error("Missing required parameter: command")
+            else -> return toolresult.error("Missing required parameter: command")
         }
 
         // Execute via SSH pool
-        return withContext(Dispatchers.IO) {
+        return withcontext(Dispatchers.IO) {
             try {
                 // Outer timeout is a safety net only. The real timeout is the
                 // activity-based inactivity timeout inside TermuxSSHPool.execOnce().
@@ -505,17 +505,17 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                     val result = TermuxSSHPool.exec(resolvedCommand, cwd, timeout)
                     Log.d(TAG, "Exec completed: exitCode=${result.exitCode}, stdout=${result.stdout.length} chars")
 
-                    Toolresult(
+                    toolresult(
                         success = result.success,
                         content = buildString {
-                            if (result.stdout.isNotEmpty()) appendLine(result.stdout.trim())
-                            if (result.stderr.isNotEmpty()) {
-                                if (isNotEmpty()) appendLine()
+                            if (result.stdout.isnotEmpty()) appendLine(result.stdout.trim())
+                            if (result.stderr.isnotEmpty()) {
+                                if (isnotEmpty()) appendLine()
                                 appendLine("STDERR:")
                                 appendLine(result.stderr.trim())
                             }
                             if (result.exitCode != 0) {
-                                if (isNotEmpty()) appendLine()
+                                if (isnotEmpty()) appendLine()
                                 appendLine("Exit code: ${result.exitCode}")
                             }
                         }.ifEmpty { "(no output)" },
@@ -529,9 +529,9 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                         )
                     )
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Exec failed", e)
-                Toolresult(
+                toolresult(
                     success = false,
                     content = "Command execution failed: ${e.message}",
                     metadata = mapOf(

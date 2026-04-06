@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.agent.loop
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tool-loop-detection.ts
  *
- * AndroidForClaw adaptation: detect repetitive tool loops.
+ * androidforClaw adaptation: detect repetitive tool loops.
  * Aligned 1:1 with OpenClaw tool-loop-detection.ts.
  */
 
@@ -14,10 +14,10 @@ import com.google.gson.Gson
 import java.security.MessageDigest
 
 /**
- * Configuration for tool loop detection.
- * Aligned with OpenClaw ToolLoopDetectionConfig (config/types.tools.ts).
+ * configuration for tool loop detection.
+ * Aligned with OpenClaw toolloopDetectionconfig (config/types.tools.ts).
  */
-data class ToolLoopDetectionConfig(
+data class toolloopDetectionconfig(
     val enabled: Boolean? = null,
     val historySize: Int? = null,
     val warningThreshold: Int? = null,
@@ -34,9 +34,9 @@ data class ToolLoopDetectionConfig(
 
 /**
  * Resolved (validated) loop detection config.
- * Aligned with OpenClaw ResolvedLoopDetectionConfig.
+ * Aligned with OpenClaw ResolvedloopDetectionconfig.
  */
-internal data class ResolvedLoopDetectionConfig(
+internal data class ResolvedloopDetectionconfig(
     val enabled: Boolean,
     val historySize: Int,
     val warningThreshold: Int,
@@ -52,28 +52,28 @@ internal data class ResolvedLoopDetectionConfig(
 }
 
 /**
- * Loop detection result.
- * Aligned with OpenClaw LoopDetectionResult.
+ * loop detection result.
+ * Aligned with OpenClaw loopDetectionResult.
  */
-sealed class LoopDetectionResult {
-    data object NoLoop : LoopDetectionResult()
+sealed class loopDetectionResult {
+    data object Noloop : loopDetectionResult()
 
-    data class LoopDetected(
+    data class loopDetected(
         val level: Level,
-        val detector: LoopDetectorKind,
+        val detector: loopDetectorKind,
         val count: Int,
         val message: String,
-        val pairedToolName: String? = null,
+        val pairedtoolName: String? = null,
         val warningKey: String? = null,
-    ) : LoopDetectionResult()
+    ) : loopDetectionResult()
 
     enum class Level { WARNING, CRITICAL }
 }
 
 /**
- * Detector kinds. Aligned with OpenClaw LoopDetectorKind.
+ * Detector kinds. Aligned with OpenClaw loopDetectorKind.
  */
-enum class LoopDetectorKind {
+enum class loopDetectorKind {
     GENERIC_REPEAT,
     KNOWN_POLL_NO_PROGRESS,
     PING_PONG,
@@ -83,7 +83,7 @@ enum class LoopDetectorKind {
 }
 
 /**
- * Tool loop detector.
+ * tool loop detector.
  * Reference: OpenClaw's tool-loop-detection.ts implementation.
  *
  * Detects the following loop patterns:
@@ -92,8 +92,8 @@ enum class LoopDetectorKind {
  * 3. ping_pong - Two tools calling back and forth
  * 4. global_circuit_breaker - Global circuit breaker (critical loop)
  */
-object ToolLoopDetection {
-    private const val TAG = "ToolLoopDetection"
+object toolloopDetection {
+    private const val TAG = "toolloopDetection"
 
     // Default configuration (aligned with OpenClaw DEFAULT_LOOP_DETECTION_CONFIG)
     const val TOOL_CALL_HISTORY_SIZE = 30
@@ -104,10 +104,10 @@ object ToolLoopDetection {
     private val gson = Gson()
 
     /**
-     * Tool call history record.
-     * Aligned with OpenClaw SessionState.toolCallHistory entries.
+     * tool call history record.
+     * Aligned with OpenClaw sessionState.toolCallHistory entries.
      */
-    data class ToolCallRecord(
+    data class toolCallRecord(
         val toolName: String,
         val argsHash: String,
         var resultHash: String? = null,
@@ -116,19 +116,19 @@ object ToolLoopDetection {
     )
 
     /**
-     * Session state (stores tool call history).
-     * Aligned with OpenClaw SessionState (diagnostic-session-state.ts).
-     * Note: No reportedWarnings — OpenClaw returns warnings every time condition is met,
+     * session state (stores tool call history).
+     * Aligned with OpenClaw sessionState (diagnostic-session-state.ts).
+     * note: No reportedWarnings — OpenClaw returns warnings every time condition is met,
      * caller decides whether to act on duplicates.
      */
-    class SessionState {
-        var toolCallHistory: MutableList<ToolCallRecord> = mutableListOf()
+    class sessionState {
+        var toolCallHistory: MutableList<toolCallRecord> = mutableListOf()
     }
 
-    // ==================== Config Resolution ====================
+    // ==================== config Resolution ====================
 
     /**
-     * Validate positive integer, fallback if invalid.
+     * validation positive integer, fallback if invalid.
      * Aligned with OpenClaw asPositiveInt.
      */
     private fun asPositiveInt(value: Int?, fallback: Int): Int {
@@ -138,9 +138,9 @@ object ToolLoopDetection {
 
     /**
      * Resolve and validate loop detection config.
-     * Aligned with OpenClaw resolveLoopDetectionConfig.
+     * Aligned with OpenClaw resolveloopDetectionconfig.
      */
-    internal fun resolveLoopDetectionConfig(config: ToolLoopDetectionConfig?): ResolvedLoopDetectionConfig {
+    internal fun resolveloopDetectionconfig(config: toolloopDetectionconfig?): ResolvedloopDetectionconfig {
         var warningThreshold = asPositiveInt(config?.warningThreshold, WARNING_THRESHOLD)
         var criticalThreshold = asPositiveInt(config?.criticalThreshold, CRITICAL_THRESHOLD)
         var globalCircuitBreakerThreshold = asPositiveInt(
@@ -155,13 +155,13 @@ object ToolLoopDetection {
             globalCircuitBreakerThreshold = criticalThreshold + 1
         }
 
-        return ResolvedLoopDetectionConfig(
+        return ResolvedloopDetectionconfig(
             enabled = config?.enabled ?: false, // OpenClaw: default false
             historySize = asPositiveInt(config?.historySize, TOOL_CALL_HISTORY_SIZE),
             warningThreshold = warningThreshold,
             criticalThreshold = criticalThreshold,
             globalCircuitBreakerThreshold = globalCircuitBreakerThreshold,
-            detectors = ResolvedLoopDetectionConfig.ResolvedDetectorToggles(
+            detectors = ResolvedloopDetectionconfig.ResolvedDetectorToggles(
                 genericRepeat = config?.detectors?.genericRepeat ?: true,
                 knownPollNoProgress = config?.detectors?.knownPollNoProgress ?: true,
                 pingPong = config?.detectors?.pingPong ?: true,
@@ -173,9 +173,9 @@ object ToolLoopDetection {
 
     /**
      * Hash a tool call for pattern matching (toolName + params).
-     * Aligned with OpenClaw hashToolCall.
+     * Aligned with OpenClaw hashtoolCall.
      */
-    fun hashToolCall(toolName: String, params: Any?): String {
+    fun hashtoolCall(toolName: String, params: Any?): String {
         val paramsHash = digestStable(params)
         return "$toolName:$paramsHash"
     }
@@ -212,7 +212,7 @@ object ToolLoopDetection {
     private fun stableStringifyFallback(value: Any?): String {
         return try {
             stableStringify(value)
-        } catch (_: Exception) {
+        } catch (_: exception) {
             when {
                 value == null -> "null"
                 value is String -> value
@@ -234,7 +234,7 @@ object ToolLoopDetection {
         return hash.joinToString("") { "%02x".format(it) }
     }
 
-    // ==================== Tool Result Parsing ====================
+    // ==================== tool Result Parsing ====================
 
     /**
      * Extract text content from structured tool result.
@@ -252,10 +252,10 @@ object ToolLoopDetection {
     }
 
     /**
-     * Format error for hashing.
-     * Aligned with OpenClaw formatErrorForHash.
+     * format error for hashing.
+     * Aligned with OpenClaw formatErrorforHash.
      */
-    private fun formatErrorForHash(error: Any?): String {
+    private fun formatErrorforHash(error: Any?): String {
         return when (error) {
             is Throwable -> error.message ?: error.javaClass.simpleName
             is String -> error
@@ -266,17 +266,17 @@ object ToolLoopDetection {
 
     /**
      * Hash a tool call outcome (result or error).
-     * Aligned with OpenClaw hashToolOutcome — handles structured results with
+     * Aligned with OpenClaw hashtoolOutcome — handles structured results with
      * extractTextContent and details extraction for known poll tools.
      */
-    fun hashToolOutcome(
+    fun hashtoolOutcome(
         toolName: String,
         params: Any?,
         result: Any?,
         error: Any?,
     ): String? {
         if (error != null) {
-            return "error:${digestStable(formatErrorForHash(error))}"
+            return "error:${digestStable(formatErrorforHash(error))}"
         }
 
         if (result !is Map<*, *>) {
@@ -287,7 +287,7 @@ object ToolLoopDetection {
         val text = extractTextContent(result)
 
         // Known poll tool specific hashing (aligned with OpenClaw)
-        if (isKnownPollToolCall(toolName, params) && toolName == "process" && params is Map<*, *>) {
+        if (isKnownPolltoolCall(toolName, params) && toolName == "process" && params is Map<*, *>) {
             val action = params["action"]
             if (action == "poll") {
                 return digestStable(mapOf(
@@ -319,21 +319,21 @@ object ToolLoopDetection {
         ))
     }
 
-    // ==================== Known Poll Tools ====================
+    // ==================== Known Poll tools ====================
 
     /**
      * Check if it's a known polling tool.
-     * Aligned with OpenClaw isKnownPollToolCall.
-     * Android adaptation: includes Android-specific polling tools.
+     * Aligned with OpenClaw isKnownPolltoolCall.
+     * android adaptation: includes android-specific polling tools.
      */
-    private fun isKnownPollToolCall(toolName: String, params: Any?): Boolean {
+    private fun isKnownPolltoolCall(toolName: String, params: Any?): Boolean {
         // OpenClaw: command_status + process(action=poll/log)
         if (toolName == "command_status") return true
         if (toolName == "process" && params is Map<*, *>) {
             val action = params["action"]
             return action == "poll" || action == "log"
         }
-        // Android platform specific polling tools
+        // android platform specific polling tools
         if (toolName == "wait" || toolName == "wait_for_element") return true
         return false
     }
@@ -347,7 +347,7 @@ object ToolLoopDetection {
 
     private data class PingPongStreak(
         val count: Int,
-        val pairedToolName: String?,
+        val pairedtoolName: String?,
         val pairedSignature: String?,
         val noProgressEvidence: Boolean,
     )
@@ -357,7 +357,7 @@ object ToolLoopDetection {
      * Aligned with OpenClaw getNoProgressStreak.
      */
     private fun getNoProgressStreak(
-        history: List<ToolCallRecord>,
+        history: List<toolCallRecord>,
         toolName: String,
         argsHash: String,
     ): NoProgressStreak {
@@ -387,10 +387,10 @@ object ToolLoopDetection {
 
     /**
      * Get ping-pong streak count.
-     * Aligned with OpenClaw getPingPongStreak — includes pairedToolName.
+     * Aligned with OpenClaw getPingPongStreak — includes pairedtoolName.
      */
     private fun getPingPongStreak(
-        history: List<ToolCallRecord>,
+        history: List<toolCallRecord>,
         currentSignature: String,
     ): PingPongStreak {
         if (history.isEmpty()) {
@@ -401,17 +401,17 @@ object ToolLoopDetection {
 
         // Find most recent different signature
         var otherSignature: String? = null
-        var otherToolName: String? = null
+        var othertoolName: String? = null
         for (i in history.size - 2 downTo 0) {
             val call = history[i]
             if (call.argsHash != last.argsHash) {
                 otherSignature = call.argsHash
-                otherToolName = call.toolName
+                othertoolName = call.toolName
                 break
             }
         }
 
-        if (otherSignature == null || otherToolName == null) {
+        if (otherSignature == null || othertoolName == null) {
             return PingPongStreak(0, null, null, false)
         }
 
@@ -467,21 +467,21 @@ object ToolLoopDetection {
             }
         }
 
-        // Need repeated stable outcomes on both sides (aligned with OpenClaw)
+        // need repeated stable outcomes on both sides (aligned with OpenClaw)
         if (firstHashA == null || firstHashB == null) {
             noProgressEvidence = false
         }
 
         return PingPongStreak(
             count = alternatingTailCount + 1,
-            pairedToolName = last.toolName,
+            pairedtoolName = last.toolName,
             pairedSignature = last.argsHash,
             noProgressEvidence = noProgressEvidence,
         )
     }
 
     /**
-     * Canonical pair key for ping-pong warning key (sorted).
+     * canonical pair key for ping-pong warning key (sorted).
      * Aligned with OpenClaw canonicalPairKey.
      */
     private fun canonicalPairKey(signatureA: String, signatureB: String): String {
@@ -492,66 +492,66 @@ object ToolLoopDetection {
 
     /**
      * Detect if an agent is stuck in a repetitive tool call loop.
-     * Aligned with OpenClaw detectToolCallLoop.
+     * Aligned with OpenClaw detecttoolCallloop.
      *
-     * Returns NoLoop when detection is disabled (config.enabled=false, the default).
+     * Returns Noloop when detection is disabled (config.enabled=false, the default).
      */
-    fun detectToolCallLoop(
-        state: SessionState,
+    fun detecttoolCallloop(
+        state: sessionState,
         toolName: String,
         params: Any?,
-        config: ToolLoopDetectionConfig? = null,
-    ): LoopDetectionResult {
-        val resolvedConfig = resolveLoopDetectionConfig(config)
-        if (!resolvedConfig.enabled) {
-            return LoopDetectionResult.NoLoop
+        config: toolloopDetectionconfig? = null,
+    ): loopDetectionResult {
+        val resolvedconfig = resolveloopDetectionconfig(config)
+        if (!resolvedconfig.enabled) {
+            return loopDetectionResult.Noloop
         }
 
         val history = state.toolCallHistory
-        val currentHash = hashToolCall(toolName, params)
+        val currentHash = hashtoolCall(toolName, params)
         val noProgress = getNoProgressStreak(history, toolName, currentHash)
         val noProgressStreak = noProgress.count
-        val knownPollTool = isKnownPollToolCall(toolName, params)
+        val knownPolltool = isKnownPolltoolCall(toolName, params)
         val pingPong = getPingPongStreak(history, currentHash)
 
         // 1. Global circuit breaker (highest priority)
-        if (noProgressStreak >= resolvedConfig.globalCircuitBreakerThreshold) {
+        if (noProgressStreak >= resolvedconfig.globalCircuitBreakerThreshold) {
             Log.e(TAG, "Global circuit breaker triggered: $toolName repeated $noProgressStreak times with no progress")
-            return LoopDetectionResult.LoopDetected(
-                level = LoopDetectionResult.Level.CRITICAL,
-                detector = LoopDetectorKind.GLOBAL_CIRCUIT_BREAKER,
+            return loopDetectionResult.loopDetected(
+                level = loopDetectionResult.Level.CRITICAL,
+                detector = loopDetectorKind.GLOBAL_CIRCUIT_BREAKER,
                 count = noProgressStreak,
                 message = "CRITICAL: $toolName has repeated identical no-progress outcomes $noProgressStreak times. " +
-                    "Session execution blocked by global circuit breaker to prevent runaway loops.",
+                    "session execution blocked by global circuit breaker to prevent runaway loops.",
                 warningKey = "global:$toolName:$currentHash:${noProgress.latestResultHash ?: "none"}",
             )
         }
 
         // 2. Known poll no progress (critical)
-        if (knownPollTool &&
-            resolvedConfig.detectors.knownPollNoProgress &&
-            noProgressStreak >= resolvedConfig.criticalThreshold
+        if (knownPolltool &&
+            resolvedconfig.detectors.knownPollNoProgress &&
+            noProgressStreak >= resolvedconfig.criticalThreshold
         ) {
             Log.e(TAG, "Critical polling loop detected: $toolName repeated $noProgressStreak times")
-            return LoopDetectionResult.LoopDetected(
-                level = LoopDetectionResult.Level.CRITICAL,
-                detector = LoopDetectorKind.KNOWN_POLL_NO_PROGRESS,
+            return loopDetectionResult.loopDetected(
+                level = loopDetectionResult.Level.CRITICAL,
+                detector = loopDetectorKind.KNOWN_POLL_NO_PROGRESS,
                 count = noProgressStreak,
                 message = "CRITICAL: Called $toolName with identical arguments and no progress $noProgressStreak times. " +
-                    "This appears to be a stuck polling loop. Session execution blocked to prevent resource waste.",
+                    "This appears to be a stuck polling loop. session execution blocked to prevent resource waste.",
                 warningKey = "poll:$toolName:$currentHash:${noProgress.latestResultHash ?: "none"}",
             )
         }
 
         // 3. Known poll no progress (warning)
-        if (knownPollTool &&
-            resolvedConfig.detectors.knownPollNoProgress &&
-            noProgressStreak >= resolvedConfig.warningThreshold
+        if (knownPolltool &&
+            resolvedconfig.detectors.knownPollNoProgress &&
+            noProgressStreak >= resolvedconfig.warningThreshold
         ) {
             Log.w(TAG, "Polling loop warning: $toolName repeated $noProgressStreak times")
-            return LoopDetectionResult.LoopDetected(
-                level = LoopDetectionResult.Level.WARNING,
-                detector = LoopDetectorKind.KNOWN_POLL_NO_PROGRESS,
+            return loopDetectionResult.loopDetected(
+                level = loopDetectionResult.Level.WARNING,
+                detector = loopDetectorKind.KNOWN_POLL_NO_PROGRESS,
                 count = noProgressStreak,
                 message = "WARNING: You have called $toolName $noProgressStreak times with identical arguments and no progress. " +
                     "Stop polling and either (1) increase wait time between checks, or (2) report the task as failed if the process is stuck.",
@@ -566,33 +566,33 @@ object ToolLoopDetection {
             "pingpong:$toolName:$currentHash"
         }
 
-        if (resolvedConfig.detectors.pingPong &&
-            pingPong.count >= resolvedConfig.criticalThreshold &&
+        if (resolvedconfig.detectors.pingPong &&
+            pingPong.count >= resolvedconfig.criticalThreshold &&
             pingPong.noProgressEvidence
         ) {
-            Log.e(TAG, "Critical ping-pong loop detected: alternating calls count=${pingPong.count} currentTool=$toolName")
-            return LoopDetectionResult.LoopDetected(
-                level = LoopDetectionResult.Level.CRITICAL,
-                detector = LoopDetectorKind.PING_PONG,
+            Log.e(TAG, "Critical ping-pong loop detected: alternating calls count=${pingPong.count} currenttool=$toolName")
+            return loopDetectionResult.loopDetected(
+                level = loopDetectionResult.Level.CRITICAL,
+                detector = loopDetectorKind.PING_PONG,
                 count = pingPong.count,
                 message = "CRITICAL: You are alternating between repeated tool-call patterns (${pingPong.count} consecutive calls) with no progress. " +
-                    "This appears to be a stuck ping-pong loop. Session execution blocked to prevent resource waste.",
-                pairedToolName = pingPong.pairedToolName,
+                    "This appears to be a stuck ping-pong loop. session execution blocked to prevent resource waste.",
+                pairedtoolName = pingPong.pairedtoolName,
                 warningKey = pingPongWarningKey,
             )
         }
 
-        if (resolvedConfig.detectors.pingPong &&
-            pingPong.count >= resolvedConfig.warningThreshold
+        if (resolvedconfig.detectors.pingPong &&
+            pingPong.count >= resolvedconfig.warningThreshold
         ) {
-            Log.w(TAG, "Ping-pong loop warning: alternating calls count=${pingPong.count} currentTool=$toolName")
-            return LoopDetectionResult.LoopDetected(
-                level = LoopDetectionResult.Level.WARNING,
-                detector = LoopDetectorKind.PING_PONG,
+            Log.w(TAG, "Ping-pong loop warning: alternating calls count=${pingPong.count} currenttool=$toolName")
+            return loopDetectionResult.loopDetected(
+                level = loopDetectionResult.Level.WARNING,
+                detector = loopDetectorKind.PING_PONG,
                 count = pingPong.count,
                 message = "WARNING: You are alternating between repeated tool-call patterns (${pingPong.count} consecutive calls). " +
                     "This looks like a ping-pong loop; stop retrying and report the task as failed.",
-                pairedToolName = pingPong.pairedToolName,
+                pairedtoolName = pingPong.pairedtoolName,
                 warningKey = pingPongWarningKey,
             )
         }
@@ -600,22 +600,22 @@ object ToolLoopDetection {
         // 5. Generic repeat (last check, warn-only)
         val recentCount = history.count { it.toolName == toolName && it.argsHash == currentHash }
 
-        if (!knownPollTool &&
-            resolvedConfig.detectors.genericRepeat &&
-            recentCount >= resolvedConfig.warningThreshold
+        if (!knownPolltool &&
+            resolvedconfig.detectors.genericRepeat &&
+            recentCount >= resolvedconfig.warningThreshold
         ) {
-            Log.w(TAG, "Loop warning: $toolName called $recentCount times with identical arguments")
-            return LoopDetectionResult.LoopDetected(
-                level = LoopDetectionResult.Level.WARNING,
-                detector = LoopDetectorKind.GENERIC_REPEAT,
+            Log.w(TAG, "loop warning: $toolName called $recentCount times with identical arguments")
+            return loopDetectionResult.loopDetected(
+                level = loopDetectionResult.Level.WARNING,
+                detector = loopDetectorKind.GENERIC_REPEAT,
                 count = recentCount,
                 message = "WARNING: You have called $toolName $recentCount times with identical arguments. " +
-                    "If this is not making progress, stop retrying and report the task as failed.",
+                    "if this is not making progress, stop retrying and report the task as failed.",
                 warningKey = "generic:$toolName:$currentHash",
             )
         }
 
-        return LoopDetectionResult.NoLoop
+        return loopDetectionResult.Noloop
     }
 
     // ==================== Recording ====================
@@ -623,45 +623,45 @@ object ToolLoopDetection {
     /**
      * Record a tool call in the session's history for loop detection.
      * Maintains sliding window of last N calls.
-     * Aligned with OpenClaw recordToolCall.
+     * Aligned with OpenClaw recordtoolCall.
      */
-    fun recordToolCall(
-        state: SessionState,
+    fun recordtoolCall(
+        state: sessionState,
         toolName: String,
         params: Any?,
         toolCallId: String? = null,
-        config: ToolLoopDetectionConfig? = null,
+        config: toolloopDetectionconfig? = null,
     ) {
-        val resolvedConfig = resolveLoopDetectionConfig(config)
+        val resolvedconfig = resolveloopDetectionconfig(config)
 
-        state.toolCallHistory.add(ToolCallRecord(
+        state.toolCallHistory.a(toolCallRecord(
             toolName = toolName,
-            argsHash = hashToolCall(toolName, params),
+            argsHash = hashtoolCall(toolName, params),
             toolCallId = toolCallId,
         ))
 
-        if (state.toolCallHistory.size > resolvedConfig.historySize) {
+        if (state.toolCallHistory.size > resolvedconfig.historySize) {
             state.toolCallHistory.removeAt(0)
         }
     }
 
     /**
      * Record a completed tool call outcome so loop detection can identify no-progress repeats.
-     * Aligned with OpenClaw recordToolCallOutcome.
+     * Aligned with OpenClaw recordtoolCallOutcome.
      */
-    fun recordToolCallOutcome(
-        state: SessionState,
+    fun recordtoolCallOutcome(
+        state: sessionState,
         toolName: String,
         toolParams: Any?,
         result: Any? = null,
         error: Any? = null,
         toolCallId: String? = null,
-        config: ToolLoopDetectionConfig? = null,
+        config: toolloopDetectionconfig? = null,
     ) {
-        val resolvedConfig = resolveLoopDetectionConfig(config)
-        val resultHash = hashToolOutcome(toolName, toolParams, result, error) ?: return
+        val resolvedconfig = resolveloopDetectionconfig(config)
+        val resultHash = hashtoolOutcome(toolName, toolParams, result, error) ?: return
 
-        val argsHash = hashToolCall(toolName, toolParams)
+        val argsHash = hashtoolCall(toolName, toolParams)
         var matched = false
 
         for (i in state.toolCallHistory.size - 1 downTo 0) {
@@ -676,7 +676,7 @@ object ToolLoopDetection {
         }
 
         if (!matched) {
-            state.toolCallHistory.add(ToolCallRecord(
+            state.toolCallHistory.a(toolCallRecord(
                 toolName = toolName,
                 argsHash = argsHash,
                 resultHash = resultHash,
@@ -685,8 +685,8 @@ object ToolLoopDetection {
         }
 
         // Trim to history size (aligned with OpenClaw splice approach)
-        if (state.toolCallHistory.size > resolvedConfig.historySize) {
-            val excess = state.toolCallHistory.size - resolvedConfig.historySize
+        if (state.toolCallHistory.size > resolvedconfig.historySize) {
+            val excess = state.toolCallHistory.size - resolvedconfig.historySize
             repeat(excess) { state.toolCallHistory.removeAt(0) }
         }
     }
@@ -695,11 +695,11 @@ object ToolLoopDetection {
 
     /**
      * Get current tool call statistics for a session (for debugging/monitoring).
-     * Aligned with OpenClaw getToolCallStats.
+     * Aligned with OpenClaw gettoolCallStats.
      */
-    fun getToolCallStats(state: SessionState): ToolCallStats {
+    fun gettoolCallStats(state: sessionState): toolCallStats {
         val history = state.toolCallHistory
-        val patterns = mutableMapOf<String, ToolCallStatEntry>()
+        val patterns = mutableMapOf<String, toolCallStatEntry>()
 
         for (call in history) {
             val key = call.argsHash
@@ -707,32 +707,32 @@ object ToolLoopDetection {
             if (existing != null) {
                 patterns[key] = existing.copy(count = existing.count + 1)
             } else {
-                patterns[key] = ToolCallStatEntry(toolName = call.toolName, count = 1)
+                patterns[key] = toolCallStatEntry(toolName = call.toolName, count = 1)
             }
         }
 
-        var mostFrequent: ToolCallStatEntry? = null
+        var mostFrequent: toolCallStatEntry? = null
         for (pattern in patterns.values) {
             if (mostFrequent == null || pattern.count > mostFrequent.count) {
                 mostFrequent = pattern
             }
         }
 
-        return ToolCallStats(
+        return toolCallStats(
             totalCalls = history.size,
             uniquePatterns = patterns.size,
             mostFrequent = mostFrequent,
         )
     }
 
-    data class ToolCallStatEntry(
+    data class toolCallStatEntry(
         val toolName: String,
         val count: Int,
     )
 
-    data class ToolCallStats(
+    data class toolCallStats(
         val totalCalls: Int,
         val uniquePatterns: Int,
-        val mostFrequent: ToolCallStatEntry?,
+        val mostFrequent: toolCallStatEntry?,
     )
 }

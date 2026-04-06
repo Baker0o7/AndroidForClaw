@@ -6,36 +6,36 @@ package com.xiaomo.androidforclaw.agent.skills.browser
  */
 
 
-import android.content.Context
-import com.xiaomo.androidforclaw.agent.tools.Skill
-import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import android.content.context
+import com.xiaomo.androidforclaw.agent.tools.skill
+import com.xiaomo.androidforclaw.agent.tools.skillResult
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
-import com.xiaomo.androidforclaw.browser.BrowserToolClient
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
+import com.xiaomo.androidforclaw.browser.BrowsertoolClient
 
 /**
  * browser_click - Click element
  */
-class BrowserClickSkill(private val context: Context) : Skill {
+class BrowserClickskill(private val context: context) : skill {
     override val name = "browser_click"
     override val description = "Click an element in the browser"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = "Click an element in the browser using a CSS selector. Provide 'selector' (CSS selector like '#login-button' or '.submit-btn') and optional 'index' (index when multiple elements match, default: 0). Example: {\"selector\": \"#search-button\", \"index\": 0}",
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "selector" to PropertySchema(
+                        "selector" to Propertyschema(
                             "string",
                             "CSS selector for the element"
                         ),
-                        "index" to PropertySchema(
+                        "index" to Propertyschema(
                             "integer",
                             "Index when multiple elements match (default: 0)"
                         )
@@ -46,30 +46,30 @@ class BrowserClickSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): skillResult {
         val selector = args["selector"] as? String
-            ?: return SkillResult.error("Missing required parameter: selector")
+            ?: return skillResult.error("Missing required parameter: selector")
 
         val index = (args["index"] as? Number)?.toInt() ?: 0
 
         return try {
-            val browserClient = BrowserToolClient(context)
+            val browserClient = BrowsertoolClient(context)
             val toolArgs = mapOf(
                 "selector" to selector,
                 "index" to index
             )
-            val result = browserClient.executeToolAsync("browser_click", toolArgs)
+            val result = browserClient.executetoolAsync("browser_click", toolArgs)
 
             if (result.success) {
-                SkillResult.success(
+                skillResult.success(
                     "Successfully clicked element: $selector",
                     result.data ?: emptyMap()
                 )
             } else {
-                SkillResult.error(result.error ?: "Click failed")
+                skillResult.error(result.error ?: "Click failed")
             }
-        } catch (e: Exception) {
-            SkillResult.error("Failed to click: ${e.message}")
+        } catch (e: exception) {
+            skillResult.error("Failed to click: ${e.message}")
         }
     }
 }

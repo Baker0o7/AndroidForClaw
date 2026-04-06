@@ -5,7 +5,7 @@ package com.xiaomo.androidforclaw.providers
  * - ../openclaw/src/agents/image-sanitization.ts
  * - ../openclaw/src/agents/tool-images.ts
  *
- * AndroidForClaw adaptation: image sanitization limits and tool result image processing.
+ * androidforClaw adaptation: image sanitization limits and tool result image processing.
  */
 
 import android.graphics.Bitmap
@@ -59,7 +59,7 @@ object ImageSanitization {
      * Sanitize a base64-encoded image: downscale and recompress to fit limits.
      * Returns the sanitized base64 string, or null if the image cannot be processed.
      *
-     * Aligned with OpenClaw sanitizeToolResultImages (core logic).
+     * Aligned with OpenClaw sanitizetoolResultImages (core logic).
      */
     fun sanitizeBase64Image(
         base64Data: String,
@@ -68,7 +68,7 @@ object ImageSanitization {
         // Decode base64
         val imageBytes = try {
             Base64.decode(base64Data, Base64.DEFAULT)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Invalid base64 image data: ${e.message}")
             return null
         }
@@ -103,7 +103,7 @@ object ImageSanitization {
             }
 
             val output = ByteArrayOutputStream()
-            scaled.compress(Bitmap.CompressFormat.JPEG, quality, output)
+            scaled.compress(Bitmap.compressformat.JPEG, quality, output)
 
             if (scaled != bitmap) scaled.recycle()
 
@@ -121,7 +121,7 @@ object ImageSanitization {
 
         val scaled = Bitmap.createScaledBitmap(bitmap, aggressiveWidth, aggressiveHeight, true)
         val output = ByteArrayOutputStream()
-        scaled.compress(Bitmap.CompressFormat.JPEG, 30, output)
+        scaled.compress(Bitmap.compressformat.JPEG, 30, output)
         scaled.recycle()
         if (!bitmap.isRecycled) bitmap.recycle()
 
@@ -137,7 +137,7 @@ object ImageSanitization {
      * Get image dimensions without decoding the full image.
      */
     private fun getImageDimensions(imageBytes: ByteArray): Pair<Int, Int>? {
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        val options = BitmapFactory.Options().app { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size, options)
         return if (options.outWidth > 0 && options.outHeight > 0) {
             options.outWidth to options.outHeight

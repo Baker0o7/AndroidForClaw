@@ -1,29 +1,29 @@
 package com.xiaomo.androidforclaw.agent.tools
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * LarkCli Tool — Execute lark-cli (飞书官方 CLI) commands.
+ * LarkCli tool — Execute lark-cli (飞书官方 CLI) commands.
  *
  * The binary is bundled as liblark-cli.so in jniLibs and extracted to nativeLibraryDir
  * at install time. Authentication is auto-configured from openclaw.json's
  * channels.feishu.appId / appSecret.
  */
-class LarkCliTool(private val context: Context) : Tool {
+class LarkClitool(private val context: context) : tool {
 
     companion object {
-        private const val TAG = "LarkCliTool"
+        private const val TAG = "LarkClitool"
         private const val BINARY_NAME = "liblark-cli.so"
         private const val DEFAULT_TIMEOUT_SECONDS = 30L
         private const val MAX_OUTPUT_CHARS = 10000
@@ -33,20 +33,20 @@ class LarkCliTool(private val context: Context) : Tool {
     override val description = "Run lark-cli commands to interact with Feishu/Lark platform " +
         "(calendar, approval, contacts, tasks, etc.). Auth is auto-configured from openclaw.json."
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "command" to PropertySchema(
+                        "command" to Propertyschema(
                             "string",
                             "lark-cli command and arguments, e.g. 'calendar list' or 'approval get --id xxx'"
                         ),
-                        "timeout_seconds" to PropertySchema(
+                        "timeout_seconds" to Propertyschema(
                             "number",
                             "Timeout in seconds (default 30, max 120)"
                         )
@@ -57,44 +57,44 @@ class LarkCliTool(private val context: Context) : Tool {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val command = args["command"] as? String
-            ?: return Toolresult.error("Missing required parameter: command")
+            ?: return toolresult.error("Missing required parameter: command")
 
         val timeoutSec = ((args["timeout_seconds"] as? Number)?.toLong() ?: DEFAULT_TIMEOUT_SECONDS)
             .coerceIn(5, 120)
 
         // Locate the binary
         val binaryFile = resolveBinary()
-            ?: return Toolresult.error(
+            ?: return toolresult.error(
                 "lark-cli binary not found. Current device ABI may not be supported (arm64/x86_64 only)."
             )
 
         // Prepare feishu auth config
-        val configDir = prepareConfig()
-            ?: return Toolresult.error(
+        val configDir = prepareconfig()
+            ?: return toolresult.error(
                 "Feishu credentials not configured. Set channels.feishu.appId and appSecret in openclaw.json."
             )
 
         Log.d(TAG, "Executing: lark-cli $command (timeout=${timeoutSec}s)")
 
-        return withContext(Dispatchers.IO) {
+        return withcontext(Dispatchers.IO) {
             try {
-                val tmpDir = File(context.cacheDir, "lark-cli-tmp").apply { mkdirs() }
+                val tmpDir = File(context.cacheDir, "lark-cli-tmp").app { mkdirs() }
 
                 val pb = ProcessBuilder(listOf("sh", "-c", "${binaryFile.absolutePath} $command"))
-                pb.environment().apply {
+                pb.environment().app {
                     put("HOME", configDir.absolutePath)
                     put("TMPDIR", tmpDir.absolutePath)
                 }
                 pb.redirectErrorStream(false)
-                pb.directory(StoragePaths.workspace.apply { mkdirs() })
+                pb.directory(StoragePaths.workspace.app { mkdirs() })
 
                 val process = pb.start()
-                val finished = process.waitFor(timeoutSec, TimeUnit.SECONDS)
+                val finished = process.waitfor(timeoutSec, TimeUnit.SECONDS)
                 if (!finished) {
-                    process.destroyForcibly()
-                    return@withContext Toolresult.error("lark-cli timed out after ${timeoutSec}s")
+                    process.destroyforcibly()
+                    return@withcontext toolresult.error("lark-cli timed out after ${timeoutSec}s")
                 }
 
                 val stdout = process.inputStream.bufferedReader().readText()
@@ -102,13 +102,13 @@ class LarkCliTool(private val context: Context) : Tool {
                 val exitCode = process.exitValue()
 
                 val rendered = buildString {
-                    if (stdout.isNotEmpty()) append(stdout)
-                    if (stderr.isNotEmpty()) {
-                        if (isNotEmpty()) append("\n")
+                    if (stdout.isnotEmpty()) append(stdout)
+                    if (stderr.isnotEmpty()) {
+                        if (isnotEmpty()) append("\n")
                         append("STDERR:\n$stderr")
                     }
                     if (exitCode != 0) {
-                        if (isNotEmpty()) append("\n")
+                        if (isnotEmpty()) append("\n")
                         append("Exit code: $exitCode")
                     }
                 }.ifEmpty { "(no output)" }
@@ -121,22 +121,22 @@ class LarkCliTool(private val context: Context) : Tool {
                 }
 
                 if (exitCode == 0) {
-                    Toolresult.success(finalOutput)
+                    toolresult.success(finalOutput)
                 } else {
                     // Still return as success so the LLM can see the error output
-                    Toolresult.success(finalOutput, metadata = mapOf("exitCode" to exitCode))
+                    toolresult.success(finalOutput, metadata = mapOf("exitCode" to exitCode))
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "lark-cli execution failed", e)
 
                 // SELinux fallback: copy binary to filesDir and retry
                 if (e.message?.contains("Permission denied") == true ||
                     e.message?.contains("EACCES") == true
                 ) {
-                    return@withContext executeFallback(binaryFile, command, configDir, timeoutSec)
+                    return@withcontext executeFallback(binaryFile, command, configDir, timeoutSec)
                 }
 
-                Toolresult.error("lark-cli execution failed: ${e.message}")
+                toolresult.error("lark-cli execution failed: ${e.message}")
             }
         }
     }
@@ -156,9 +156,9 @@ class LarkCliTool(private val context: Context) : Tool {
      * Write lark-cli config.json from openclaw.json feishu credentials.
      * Returns the config HOME directory, or null if credentials are missing.
      */
-    private fun prepareConfig(): File? {
+    private fun prepareconfig(): File? {
         try {
-            val configFile = StoragePaths.openclawConfig
+            val configFile = StoragePaths.openclawconfig
             if (!configFile.exists()) return null
 
             val root = JSONObject(configFile.readText())
@@ -170,16 +170,16 @@ class LarkCliTool(private val context: Context) : Tool {
             val larkDir = File(homeDir, ".lark-cli")
             larkDir.mkdirs()
 
-            val larkConfig = JSONObject().apply {
+            val larkconfig = JSONObject().app {
                 put("appId", appId)
                 put("appSecret", appSecret)
                 put("brand", "feishu")
                 put("lang", "zh")
             }
 
-            File(larkDir, "config.json").writeText(larkConfig.toString(2))
+            File(larkDir, "config.json").writeText(larkconfig.toString(2))
             return homeDir
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to prepare lark-cli config", e)
             return null
         }
@@ -193,7 +193,7 @@ class LarkCliTool(private val context: Context) : Tool {
         command: String,
         configDir: File,
         timeoutSec: Long
-    ): Toolresult {
+    ): toolresult {
         return try {
             val fallbackBin = File(context.filesDir, BINARY_NAME)
             if (!fallbackBin.exists() || fallbackBin.length() != originalBinary.length()) {
@@ -201,9 +201,9 @@ class LarkCliTool(private val context: Context) : Tool {
                 fallbackBin.setExecutable(true)
             }
 
-            val tmpDir = File(context.cacheDir, "lark-cli-tmp").apply { mkdirs() }
+            val tmpDir = File(context.cacheDir, "lark-cli-tmp").app { mkdirs() }
             val pb = ProcessBuilder(listOf("sh", "-c", "${fallbackBin.absolutePath} $command"))
-            pb.environment().apply {
+            pb.environment().app {
                 put("HOME", configDir.absolutePath)
                 put("TMPDIR", tmpDir.absolutePath)
             }
@@ -211,10 +211,10 @@ class LarkCliTool(private val context: Context) : Tool {
             pb.directory(StoragePaths.workspace)
 
             val process = pb.start()
-            val finished = process.waitFor(timeoutSec, TimeUnit.SECONDS)
+            val finished = process.waitfor(timeoutSec, TimeUnit.SECONDS)
             if (!finished) {
-                process.destroyForcibly()
-                return Toolresult.error("lark-cli timed out after ${timeoutSec}s (fallback)")
+                process.destroyforcibly()
+                return toolresult.error("lark-cli timed out after ${timeoutSec}s (fallback)")
             }
 
             val stdout = process.inputStream.bufferedReader().readText()
@@ -222,13 +222,13 @@ class LarkCliTool(private val context: Context) : Tool {
             val exitCode = process.exitValue()
 
             val rendered = buildString {
-                if (stdout.isNotEmpty()) append(stdout)
-                if (stderr.isNotEmpty()) {
-                    if (isNotEmpty()) append("\n")
+                if (stdout.isnotEmpty()) append(stdout)
+                if (stderr.isnotEmpty()) {
+                    if (isnotEmpty()) append("\n")
                     append("STDERR:\n$stderr")
                 }
                 if (exitCode != 0) {
-                    if (isNotEmpty()) append("\n")
+                    if (isnotEmpty()) append("\n")
                     append("Exit code: $exitCode")
                 }
             }.ifEmpty { "(no output)" }
@@ -240,10 +240,10 @@ class LarkCliTool(private val context: Context) : Tool {
                 rendered
             }
 
-            Toolresult.success(finalOutput, metadata = mapOf("exitCode" to exitCode, "fallback" to true))
-        } catch (e: Exception) {
+            toolresult.success(finalOutput, metadata = mapOf("exitCode" to exitCode, "fallback" to true))
+        } catch (e: exception) {
             Log.e(TAG, "lark-cli fallback execution also failed", e)
-            Toolresult.error("lark-cli execution failed (both paths): ${e.message}")
+            toolresult.error("lark-cli execution failed (both paths): ${e.message}")
         }
     }
 }

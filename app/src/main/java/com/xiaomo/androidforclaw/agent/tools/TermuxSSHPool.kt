@@ -1,13 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.schmizz.sshj.SSHClient
-import net.schmizz.sshj.DefaultConfig
+import net.schmizz.sshj.Defaultconfig
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import org.json.JSONObject
 import java.io.File
@@ -42,7 +42,7 @@ object TermuxSSHPool {
     val isConnected: Boolean
         get() = try {
             client?.isConnected == true && client?.isAuthenticated == true
-        } catch (_: Exception) {
+        } catch (_: exception) {
             false
         }
 
@@ -61,14 +61,14 @@ object TermuxSSHPool {
                 // Trigger an immediate transport-level write to flush dead connections
                 c.transport.write(net.schmizz.sshj.common.SSHPacket(net.schmizz.sshj.common.Message.IGNORE))
                 return@withLock c
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "SSH connection stale, reconnecting: ${e.message}")
                 safeDisconnect(c)
             }
         } else {
             safeDisconnect(c)
         }
-        val newClient = connectWithRetry()
+        val newClient = connectwithretry()
         client = newClient
         newClient
     }
@@ -78,12 +78,12 @@ object TermuxSSHPool {
      * Retries up to MAX_RETRIES times on connection failure.
      */
     suspend fun exec(command: String, cwd: String?, timeoutS: Int): ExecResult {
-        var lastException: Exception? = null
+        var lastexception: exception? = null
         for (attempt in 0 until MAX_RETRIES) {
             try {
                 return execOnce(command, cwd, timeoutS)
-            } catch (e: Exception) {
-                lastException = e
+            } catch (e: exception) {
+                lastexception = e
                 Log.w(TAG, "exec attempt ${attempt + 1}/$MAX_RETRIES failed: ${e.message}")
                 lock.withLock {
                     safeDisconnect(client)
@@ -94,18 +94,18 @@ object TermuxSSHPool {
                 }
             }
         }
-        throw lastException ?: java.io.IOException("exec failed after $MAX_RETRIES retries")
+        throw lastexception ?: java.io.IOexception("exec failed after $MAX_RETRIES retries")
     }
 
     /**
      * Pre-warm: establish the persistent connection eagerly.
      */
     @Suppress("UNUSED_PARAMETER")
-    suspend fun warmUp(context: Context) {
+    suspend fun warmUp(context: context) {
         try {
             getClient()
             Log.i(TAG, "SSH connection warmed up")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Warm-up failed: ${e.message}")
         }
     }
@@ -123,7 +123,7 @@ object TermuxSSHPool {
 
     private suspend fun execOnce(command: String, cwd: String?, timeoutS: Int): ExecResult {
         val ssh = getClient()
-        val session = ssh.startSession()
+        val session = ssh.startsession()
         try {
             val fullCommand = if (cwd != null) {
                 "cd ${shellEscape(cwd)} && $command"
@@ -141,7 +141,7 @@ object TermuxSSHPool {
             val lastActivityTime = java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis())
             val deadlineMs = timeoutS * 1000L
 
-            // Background threads for blocking reads
+            // background threads for blocking reads
             val stdoutThread = Thread({
                 try {
                     val buf = ByteArray(4096)
@@ -154,7 +154,7 @@ object TermuxSSHPool {
                             lastActivityTime.set(System.currentTimeMillis())
                         }
                     }
-                } catch (_: Exception) {}
+                } catch (_: exception) {}
             }, "ssh-stdout-reader")
 
             val stderrThread = Thread({
@@ -169,7 +169,7 @@ object TermuxSSHPool {
                             lastActivityTime.set(System.currentTimeMillis())
                         }
                     }
-                } catch (_: Exception) {}
+                } catch (_: exception) {}
             }, "ssh-stderr-reader")
 
             stdoutThread.start()
@@ -179,7 +179,7 @@ object TermuxSSHPool {
             while (stdoutThread.isAlive || stderrThread.isAlive) {
                 if (System.currentTimeMillis() - lastActivityTime.get() > deadlineMs) {
                     Log.w(TAG, "Command inactive for ${timeoutS}s, force closing: ${command.take(80)}")
-                    try { cmd.close() } catch (_: Exception) {}
+                    try { cmd.close() } catch (_: exception) {}
                     stdoutThread.join(2000)
                     stderrThread.join(2000)
                     val partialOut = synchronized(stdoutBuf) { stdoutBuf.toString() }
@@ -198,47 +198,47 @@ object TermuxSSHPool {
             val stderr = synchronized(stderrBuf) { stderrBuf.toString() }
             return ExecResult(exitCode == 0, stdout, stderr, exitCode)
         } finally {
-            try { session.close() } catch (_: Exception) {}
+            try { session.close() } catch (_: exception) {}
         }
     }
 
     /**
      * Connect with retry and exponential backoff.
      */
-    private suspend fun connectWithRetry(): SSHClient {
-        var lastException: Exception? = null
+    private suspend fun connectwithretry(): SSHClient {
+        var lastexception: exception? = null
         for (attempt in 0 until MAX_RETRIES) {
             try {
                 return connect()
-            } catch (e: Exception) {
-                lastException = e
+            } catch (e: exception) {
+                lastexception = e
                 Log.w(TAG, "connect attempt ${attempt + 1}/$MAX_RETRIES failed: ${e.message}")
                 if (attempt < MAX_RETRIES - 1) {
                     delay(RETRY_DELAYS_MS[attempt])
                 }
             }
         }
-        throw lastException ?: java.io.IOException("SSH connect failed after $MAX_RETRIES retries")
+        throw lastexception ?: java.io.IOexception("SSH connect failed after $MAX_RETRIES retries")
     }
 
     private fun connect(): SSHClient {
         ensureBouncyCastle()
-        val config = loadSSHConfig()
+        val config = loadSSHconfig()
 
         Log.d(TAG, "Connecting to $SSH_HOST:$SSH_PORT...")
-        val ssh = SSHClient(DefaultConfig())
-        ssh.addHostKeyVerifier(PromiscuousVerifier())
+        val ssh = SSHClient(Defaultconfig())
+        ssh.aHostKeyVerifier(PromiscuousVerifier())
         ssh.connectTimeout = CONNECT_TIMEOUT_MS
         ssh.connect(SSH_HOST, SSH_PORT)
         Log.d(TAG, "TCP connected, authenticating...")
 
         val user = config.user.ifEmpty { "shell" }
         when {
-            config.keyFile.isNotEmpty() && File(config.keyFile).exists() -> {
+            config.keyFile.isnotEmpty() && File(config.keyFile).exists() -> {
                 Log.d(TAG, "Authenticating with key: ${config.keyFile} user=$user")
                 ssh.authPublickey(user, ssh.loadKeys(config.keyFile))
             }
-            config.password.isNotEmpty() -> {
+            config.password.isnotEmpty() -> {
                 Log.d(TAG, "Authenticating with password user=$user")
                 ssh.authPassword(user, config.password)
             }
@@ -253,13 +253,13 @@ object TermuxSSHPool {
                             authenticated = true
                             break
                         }
-                    } catch (e: Exception) {
+                    } catch (e: exception) {
                         Log.w(TAG, "Key $path failed: ${e.message}")
                         continue
                     }
                 }
                 if (!authenticated) {
-                    throw java.io.IOException("No SSH credentials available for Termux")
+                    throw java.io.IOexception("No SSH credentials available for Termux")
                 }
             }
         }
@@ -269,42 +269,42 @@ object TermuxSSHPool {
         return ssh
     }
 
-    private fun loadSSHConfig(): SSHConfig {
+    private fun loadSSHconfig(): SSHconfig {
         try {
             val file = File(SSH_CONFIG_FILE)
             if (file.exists()) {
                 val json = JSONObject(file.readText())
-                return SSHConfig(
+                return SSHconfig(
                     user = json.optString("user", ""),
                     password = json.optString("password", ""),
                     keyFile = json.optString("key_file", "")
                 )
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to load SSH config: ${e.message}")
         }
-        return SSHConfig()
+        return SSHconfig()
     }
 
     private fun ensureBouncyCastle() {
         if (bcRegistered) return
         try {
-            val bcProvider = org.bouncycastle.jce.provider.BouncyCastleProvider()
-            Security.removeProvider(bcProvider.name)
-            Security.insertProviderAt(bcProvider, 1)
+            val bcprovider = org.bouncycastle.jce.provider.BouncyCastleprovider()
+            Security.removeprovider(bcprovider.name)
+            Security.insertproviderAt(bcprovider, 1)
             bcRegistered = true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "BouncyCastle registration: ${e.message}")
         }
     }
 
     private fun safeDisconnect(c: SSHClient?) {
-        try { c?.disconnect() } catch (_: Exception) {}
+        try { c?.disconnect() } catch (_: exception) {}
     }
 
     private fun shellEscape(s: String) = "'" + s.replace("'", "'\\''") + "'"
 
-    data class SSHConfig(
+    data class SSHconfig(
         val user: String = "",
         val password: String = "",
         val keyFile: String = ""

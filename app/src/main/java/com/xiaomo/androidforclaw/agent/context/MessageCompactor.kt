@@ -4,18 +4,18 @@ package com.xiaomo.androidforclaw.agent.context
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/compaction.ts
  *
- * AndroidForClaw adaptation: compact prior conversation context.
+ * androidforClaw adaptation: compact prior conversation context.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.LegacyMessage
-import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
+import com.xiaomo.androidforclaw.providers.UnifiedLLMprovider
 import com.xiaomo.androidforclaw.providers.llm.Message
 import com.xiaomo.androidforclaw.providers.llm.systemMessage
 import com.xiaomo.androidforclaw.providers.llm.userMessage
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.Timeoutcancellationexception
 
 /**
  * Message Compactor — aligned with OpenClaw compaction-safeguard.ts
@@ -24,13 +24,13 @@ import kotlinx.coroutines.TimeoutCancellationException
  * - Structured summary with 5 required sections (Decisions / Open TODOs / Constraints / Pending asks / Exact identifiers)
  * - Quality guard: audit summary for missing sections, retry if needed
  * - Recent turn preservation (default 3 turns kept verbatim)
- * - Tool failure collection
+ * - tool failure collection
  * - Opaque identifier extraction from recent messages
  * - Compaction timeout + snapshot rollback (Gap 8)
  * - Fallback to structured skeleton on failure
  */
 class MessageCompactor(
-    private val llmProvider: UnifiedLLMProvider
+    private val llmprovider: UnifiedLLMprovider
 ) {
     companion object {
         private const val TAG = "MessageCompactor"
@@ -47,7 +47,7 @@ class MessageCompactor(
         const val DEFAULT_QUALITY_GUARD_MAX_RETRIES = 1
         const val MAX_QUALITY_GUARD_MAX_RETRIES = 3
 
-        // Tool failures
+        // tool failures
         private const val MAX_TOOL_FAILURES = 8
         private const val MAX_TOOL_FAILURE_CHARS = 240
 
@@ -70,7 +70,7 @@ class MessageCompactor(
     /**
      * Compact message history with full safeguard pipeline.
      *
-     * @param messages Original message list
+     * @param messages original message list
      * @param keepLastN Recent turns to preserve verbatim (default 3)
      * @param qualityGuardEnabled Enable quality audit + retry
      * @param qualityGuardMaxRetries Max retries for quality guard
@@ -96,11 +96,11 @@ class MessageCompactor(
                     qualityGuardMaxRetries = qualityGuardMaxRetries.coerceIn(0, MAX_QUALITY_GUARD_MAX_RETRIES)
                 )
             }
-        } catch (e: TimeoutCancellationException) {
+        } catch (e: Timeoutcancellationexception) {
             Log.e(TAG, "Compaction timed out after ${timeoutMs}ms, rolling back to snapshot")
             // Rollback: return original messages
             Result.success(snapshot)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Compaction failed, rolling back to snapshot", e)
             Result.success(snapshot)
         }
@@ -134,14 +134,14 @@ class MessageCompactor(
 
         Log.d(TAG, "To compact: ${toCompact.size}, to preserve: ${recentMessages.size}")
 
-        // Collect tool failures from messages to compact
-        val toolFailures = collectToolFailures(toCompact)
+        // collect tool failures from messages to compact
+        val toolFailures = collecttoolFailures(toCompact)
 
         // Extract opaque identifiers from recent messages
         val identifiers = extractOpaqueIdentifiers(recentMessages)
 
         // Find the latest user ask
-        val latestAsk = findLatestUserAsk(recentMessages) ?: findLatestUserAsk(toCompact)
+        val latestAsk = findLatestuserAsk(recentMessages) ?: findLatestuserAsk(toCompact)
 
         // Build structured compaction instructions
         val instructions = buildCompactionInstructions()
@@ -155,14 +155,14 @@ class MessageCompactor(
 
             val summary = try {
                 summarizeMessages(toCompact, instructions)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Summarization attempt $attempt failed", e)
                 null
             }
 
             if (summary == null) continue
 
-            // Append supplemental sections
+            // append supplemental sections
             val enrichedSummary = enrichSummary(summary, toolFailures, identifiers, recentMessages)
 
             if (!qualityGuardEnabled || attempt == totalAttempts) {
@@ -190,9 +190,9 @@ class MessageCompactor(
 
         // Build compacted message list
         val compacted = buildList {
-            addAll(systemMessages)
+            aAll(systemMessages)
 
-            add(LegacyMessage(
+            a(LegacyMessage(
                 role = "user",
                 content = buildString {
                     appendLine("The conversation history before this point was compacted into the following summary:")
@@ -202,12 +202,12 @@ class MessageCompactor(
                     appendLine("</summary>")
                 }
             ))
-            add(LegacyMessage(
+            a(LegacyMessage(
                 role = "assistant",
                 content = "I understand. I'll continue from where we left off, using the summary for context."
             ))
 
-            addAll(recentMessages)
+            aAll(recentMessages)
         }
 
         Log.d(TAG, "Compaction complete: ${messages.size} -> ${compacted.size} messages")
@@ -244,13 +244,13 @@ class MessageCompactor(
             userMessage("Summarize this conversation history:\n\n$textToSummarize")
         )
 
-        val response = llmProvider.chatWithTools(
+        val response = llmprovider.chatwithtools(
             messages = messagesToSend,
             tools = null,
             reasoningEnabled = false
         )
 
-        return response.content ?: throw IllegalStateException("LLM returned null content")
+        return response.content ?: throw IllegalStateexception("LLM returned null content")
     }
 
     /**
@@ -264,13 +264,13 @@ class MessageCompactor(
             appendLine("Produce a compact, factual summary with these exact section headings:")
             REQUIRED_SUMMARY_SECTIONS.forEach { appendLine(it) }
             appendLine()
-            appendLine("For ## Exact identifiers, preserve literal values exactly as seen (IDs, URLs, file paths, ports, hashes, dates, times).")
+            appendLine("for ## Exact identifiers, preserve literal values exactly as seen (IDs, URLs, file paths, ports, hashes, dates, times).")
             appendLine("Do not omit unresolved asks from the user.")
             appendLine()
             appendLine("Rules:")
             appendLine("1. Preserve ALL important facts, decisions, and outcomes")
             appendLine("2. Keep identifiers (UUIDs, IPs, file paths, package names, URLs)")
-            appendLine("3. Note errors, failures, and important observations")
+            appendLine("3. note errors, failures, and important observations")
             appendLine("4. Be concise but complete — capture what's needed to continue work")
             appendLine("5. Include tool names and their results when relevant")
         }
@@ -281,43 +281,43 @@ class MessageCompactor(
      */
     private fun enrichSummary(
         summary: String,
-        toolFailures: List<ToolFailure>,
+        toolFailures: List<toolFailure>,
         identifiers: List<String>,
         recentMessages: List<LegacyMessage>
     ): String {
         return buildString {
             append(summary)
 
-            // Append tool failures if not already in summary
-            if (toolFailures.isNotEmpty() && !summary.contains("tool failure", ignoreCase = true)) {
+            // append tool failures if not already in summary
+            if (toolFailures.isnotEmpty() && !summary.contains("tool failure", ignoreCase = true)) {
                 appendLine()
                 appendLine()
-                appendLine("### Tool Failures")
+                appendLine("### tool Failures")
                 toolFailures.take(MAX_TOOL_FAILURES).forEach { failure ->
                     appendLine("- ${failure.toolName}: ${failure.summary}")
                 }
             }
 
             // Ensure identifiers section has extracted identifiers
-            if (identifiers.isNotEmpty() && !hasAllIdentifiers(summary, identifiers)) {
+            if (identifiers.isnotEmpty() && !hasAllIdentifiers(summary, identifiers)) {
                 val missingIds = identifiers.filter { id -> !summary.contains(id) }
-                if (missingIds.isNotEmpty()) {
+                if (missingIds.isnotEmpty()) {
                     appendLine()
                     appendLine()
-                    appendLine("### Additional identifiers (auto-extracted)")
+                    appendLine("### Aitional identifiers (auto-extracted)")
                     missingIds.take(MAX_EXTRACTED_IDENTIFIERS).forEach { id ->
                         appendLine("- $id")
                     }
                 }
             }
 
-            // Append recent turns context
+            // append recent turns context
             appendLine()
             appendLine()
             appendLine("## Recent turns preserved verbatim")
             recentMessages.take(3).forEach { msg ->
                 val content = msg.content?.toString()?.take(600) ?: ""
-                appendLine("- ${msg.role.replaceFirstChar { it.uppercase() }}: $content")
+                appendLine("- ${msg.role.replacefirstChar { it.uppercase() }}: $content")
             }
         }
     }
@@ -334,24 +334,24 @@ class MessageCompactor(
         latestAsk: String?
     ): QualityAuditResult {
         val reasons = mutableListOf<String>()
-        val lines = summary.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+        val lines = summary.lines().map { it.trim() }.filter { it.isnotEmpty() }.toSet()
 
         // Check required sections
         for (section in REQUIRED_SUMMARY_SECTIONS) {
             if (section !in lines) {
-                reasons.add("missing_section:$section")
+                reasons.a("missing_section:$section")
             }
         }
 
         // Check identifiers present
         val missingIds = identifiers.filter { id -> !summary.contains(id) }
-        if (missingIds.isNotEmpty()) {
-            reasons.add("missing_identifiers:${missingIds.take(3).joinToString(",")}")
+        if (missingIds.isnotEmpty()) {
+            reasons.a("missing_identifiers:${missingIds.take(3).joinToString(",")}")
         }
 
         // Check latest ask overlap
-        if (latestAsk != null && !hasAskOverlap(summary, latestAsk)) {
-            reasons.add("latest_user_ask_not_reflected")
+        if (latestAsk != null && !hasAskoverlap(summary, latestAsk)) {
+            reasons.a("latest_user_ask_not_reflected")
         }
 
         return QualityAuditResult(ok = reasons.isEmpty(), reasons = reasons)
@@ -386,24 +386,24 @@ class MessageCompactor(
             appendLine("None captured.")
             appendLine()
             appendLine("## Statistics")
-            appendLine("- User messages: $userMsgCount")
+            appendLine("- user messages: $userMsgCount")
             appendLine("- Assistant messages: $assistantMsgCount")
-            if (toolNames.isNotEmpty()) {
-                appendLine("- Tools used: ${toolNames.joinToString(", ")}")
+            if (toolNames.isnotEmpty()) {
+                appendLine("- tools used: ${toolNames.joinToString(", ")}")
             }
         }
     }
 
-    // --- Helper functions ---
+    // --- helper functions ---
 
-    data class ToolFailure(
+    data class toolFailure(
         val toolCallId: String,
         val toolName: String,
         val summary: String
     )
 
-    private fun collectToolFailures(messages: List<LegacyMessage>): List<ToolFailure> {
-        val failures = mutableListOf<ToolFailure>()
+    private fun collecttoolFailures(messages: List<LegacyMessage>): List<toolFailure> {
+        val failures = mutableListOf<toolFailure>()
         for (msg in messages) {
             if (msg.role != "tool") continue
             val content = msg.content?.toString() ?: continue
@@ -415,7 +415,7 @@ class MessageCompactor(
                 content.contains("500") ||
                 content.contains("401") ||
                 content.contains("403")) {
-                failures.add(ToolFailure(
+                failures.a(toolFailure(
                     toolCallId = msg.toolCallId ?: "",
                     toolName = msg.name ?: "unknown",
                     summary = content.take(MAX_TOOL_FAILURE_CHARS).replace(Regex("\\s+"), " ").trim()
@@ -446,7 +446,7 @@ class MessageCompactor(
             Regex(":\\d{2,5}\\b"),
             // SHA hashes (short)
             Regex("\\b[0-9a-f]{7,12}\\b"),
-            // IP addresses
+            // IP aresses
             Regex("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b")
         )
 
@@ -458,7 +458,7 @@ class MessageCompactor(
                         .trimStart('(', '"', '\'', '`', '[', '{', '<')
                         .trimEnd(')', ']', '"', '\'', '`', ',', ';', ':', '.', '!', '?', '<', '>')
                     if (value.length >= 4) {
-                        identifiers.add(value)
+                        identifiers.a(value)
                     }
                 }
                 if (identifiers.size >= MAX_EXTRACTED_IDENTIFIERS * 2) break
@@ -468,15 +468,15 @@ class MessageCompactor(
         return identifiers.take(MAX_EXTRACTED_IDENTIFIERS).toList()
     }
 
-    private fun findLatestUserAsk(messages: List<LegacyMessage>): String? {
-        return messages.lastOrNull { it.role == "user" }?.content?.toString()
+    private fun findLatestuserAsk(messages: List<LegacyMessage>): String? {
+        return messages.lastorNull { it.role == "user" }?.content?.toString()
     }
 
     private fun hasAllIdentifiers(summary: String, identifiers: List<String>): Boolean {
         return identifiers.all { summary.contains(it) }
     }
 
-    private fun hasAskOverlap(summary: String, ask: String): Boolean {
+    private fun hasAskoverlap(summary: String, ask: String): Boolean {
         val summaryTokens = summary.lowercase().split(Regex("\\W+")).filter { it.length >= 3 }.toSet()
         val askTokens = ask.lowercase().split(Regex("\\W+"))
             .filter { it.length >= 3 && it !in STOP_WORDS }

@@ -5,76 +5,76 @@
  */
 package com.xiaomo.androidforclaw.config
 
-import android.content.Context
+import android.content.context
 import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * OpenClaw Provider Registry
+ * OpenClaw provider Registry
  *
- * 从 assets/providers.json Load provider 定义. 
- * providers.json by scripts/sync-providers.py 从 OpenClaw 源码生成. 
- * 保持与 OpenClaw 一致只需重NewRun脚本并Replace JSON. 
+ * from assets/providers.json Load provider 定义. 
+ * providers.json by scripts/sync-providers.py from OpenClaw 源码生成. 
+ * 保持and OpenClaw one致只needreRun脚本并Replace JSON. 
  *
- * at the same time保留硬Encode fallback, 在 JSON LoadFailed时use. 
+ * at the same time保留硬Encode fallback, in JSON LoadFailedhouruse. 
  */
-object ProviderRegistry {
+object providerRegistry {
 
     @Volatile
-    private var _providers: List<ProviderDefinition>? = null
+    private var _providers: List<providerDefinition>? = null
 
     /**
-     * 从 assets/providers.json Initialize(应在 Application.onCreate 中call)
+     * from assets/providers.json Initialize(shouldin Application.onCreate 中call)
      */
-    fun init(context: Context) {
+    fun init(context: context) {
         if (_providers != null) return
         try {
             val json = context.assets.open("providers.json").bufferedReader().use { it.readText() }
-            _providers = parseProviders(json)
-        } catch (e: Exception) {
-            android.util.Log.w("ProviderRegistry", "Failed to load providers.json, using fallback", e)
+            _providers = parseproviders(json)
+        } catch (e: exception) {
+            android.util.Log.w("providerRegistry", "Failed to load providers.json, using fallback", e)
             _providers = FALLBACK_PROVIDERS
         }
     }
 
     /**
-     * 从 JSON StringInitialize(用于单元Test, None需 Android Context)
+     * from JSON StringInitialize(用于单元Test, Noneneed android context)
      */
     @JvmStatic
-    fun initFromJson(json: String) {
-        _providers = parseProviders(json)
+    fun initfromJson(json: String) {
+        _providers = parseproviders(json)
     }
 
     /**
-     * Reset为未InitializeStatus(Test用)
+     * ResetfornotInitializeStatus(Test用)
      */
     @JvmStatic
     fun reset() {
         _providers = null
     }
 
-    /** All已Register Provider, 按 order Sort */
-    val ALL: List<ProviderDefinition>
+    /** Allregistered provider, 按 order Sort */
+    val ALL: List<providerDefinition>
         get() = _providers ?: FALLBACK_PROVIDERS
 
-    /** 按 group 分Group */
-    val PRIMARY_PROVIDERS: List<ProviderDefinition>
-        get() = ALL.filter { it.group == ProviderGroup.PRIMARY }
-    val MORE_PROVIDERS: List<ProviderDefinition>
-        get() = ALL.filter { it.group == ProviderGroup.MORE }
-    val CUSTOM_PROVIDERS: List<ProviderDefinition>
-        get() = ALL.filter { it.group == ProviderGroup.CUSTOM }
+    /** 按 group minuteGroup */
+    val PRIMARY_PROVIDERS: List<providerDefinition>
+        get() = ALL.filter { it.group == providerGroup.PRIMARY }
+    val MORE_PROVIDERS: List<providerDefinition>
+        get() = ALL.filter { it.group == providerGroup.MORE }
+    val CUSTOM_PROVIDERS: List<providerDefinition>
+        get() = ALL.filter { it.group == providerGroup.CUSTOM }
 
-    /** 按 ID Find Provider */
-    fun findById(id: String): ProviderDefinition? {
-        val normalized = normalizeProviderId(id)
-        return ALL.firstOrNull { it.id == normalized }
+    /** 按 ID Find provider */
+    fun findById(id: String): providerDefinition? {
+        val normalized = normalizeproviderId(id)
+        return ALL.firstorNull { it.id == normalized }
     }
 
     /**
-     * Aligned with OpenClaw normalizeProviderId()
+     * Aligned with OpenClaw normalizeproviderId()
      */
-    fun normalizeProviderId(provider: String): String {
+    fun normalizeproviderId(provider: String): String {
         val normalized = provider.trim().lowercase()
         return when (normalized) {
             "z.ai", "z-ai" -> "zai"
@@ -90,20 +90,20 @@ object ProviderRegistry {
     }
 
     /**
-     * according to ProviderDefinition 生成 ProviderConfig(用于Write openclaw.json)
+     * according to providerDefinition 生成 providerconfig(用于Write openclaw.json)
      */
-    fun buildProviderConfig(
-        definition: ProviderDefinition,
+    fun buildproviderconfig(
+        definition: providerDefinition,
         apiKey: String?,
         baseUrl: String? = null,
         apiType: String? = null,
-        selectedModels: List<PresetModel>? = null
-    ): ProviderConfig {
-        val effectiveBaseUrl = baseUrl?.takeIf { it.isNotBlank() } ?: definition.baseUrl
-        val effectiveApi = apiType?.takeIf { it.isNotBlank() } ?: definition.api
+        selectedmodels: List<Presetmodel>? = null
+    ): providerconfig {
+        val effectiveBaseUrl = baseUrl?.takeif { it.isnotBlank() } ?: definition.baseUrl
+        val effectiveApi = apiType?.takeif { it.isnotBlank() } ?: definition.api
 
-        val models = (selectedModels ?: definition.presetModels).map { preset ->
-            ModelDefinition(
+        val models = (selectedmodels ?: definition.presetmodels).map { preset ->
+            modelDefinition(
                 id = preset.id,
                 name = preset.name,
                 reasoning = preset.reasoning,
@@ -113,7 +113,7 @@ object ProviderRegistry {
             )
         }
 
-        return ProviderConfig(
+        return providerconfig(
             baseUrl = effectiveBaseUrl,
             apiKey = apiKey,
             api = effectiveApi,
@@ -123,44 +123,44 @@ object ProviderRegistry {
         )
     }
 
-    /** 生成 provider/modelId 格式引用 */
-    fun buildModelRef(providerId: String, modelId: String): String = "$providerId/$modelId"
+    /** 生成 provider/modelId format引用 */
+    fun buildmodelRef(providerId: String, modelId: String): String = "$providerId/$modelId"
 
     /** Custom API TypeList(Spinner 用) */
     val CUSTOM_API_TYPES = listOf(
-        ModelApi.OPENAI_COMPLETIONS to "OpenAI Compatible",
-        ModelApi.ANTHROPIC_MESSAGES to "Anthropic Compatible",
-        ModelApi.OLLAMA to "Ollama"
+        modelApi.OPENAI_COMPLETIONS to "OpenAI Compatible",
+        modelApi.ANTHROPIC_MESSAGES to "Anthropic Compatible",
+        modelApi.OLLAMA to "Ollama"
     )
 
     // ========== JSON Parse ==========
 
-    private fun parseProviders(json: String): List<ProviderDefinition> {
+    private fun parseproviders(json: String): List<providerDefinition> {
         val root = JSONObject(json)
         val arr = root.getJSONArray("providers")
-        val result = mutableListOf<ProviderDefinition>()
+        val result = mutableListOf<providerDefinition>()
         for (i in 0 until arr.length()) {
             val obj = arr.getJSONObject(i)
-            result.add(parseProvider(obj))
+            result.a(parseprovider(obj))
         }
         return result.sortedBy { it.order }
     }
 
-    private fun parseProvider(obj: JSONObject): ProviderDefinition {
+    private fun parseprovider(obj: JSONObject): providerDefinition {
         val id = obj.getString("id")
         val group = when (obj.optString("group", "more")) {
-            "primary" -> ProviderGroup.PRIMARY
-            "custom" -> ProviderGroup.CUSTOM
-            else -> ProviderGroup.MORE
+            "primary" -> providerGroup.PRIMARY
+            "custom" -> providerGroup.CUSTOM
+            else -> providerGroup.MORE
         }
 
         // Parse models
         val modelsArr = obj.optJSONArray("models") ?: JSONArray()
-        val models = mutableListOf<PresetModel>()
+        val models = mutableListOf<Presetmodel>()
         for (i in 0 until modelsArr.length()) {
             val m = modelsArr.getJSONObject(i)
-            models.add(
-                PresetModel(
+            models.a(
+                Presetmodel(
                     id = m.getString("id"),
                     name = m.optString("name", m.getString("id")),
                     free = m.optBoolean("free", false),
@@ -190,12 +190,12 @@ object ProviderRegistry {
             map
         }
 
-        return ProviderDefinition(
+        return providerDefinition(
             id = id,
             name = obj.getString("name"),
             description = obj.optString("description", ""),
             baseUrl = obj.optString("baseUrl", ""),
-            api = obj.optString("api", ModelApi.OPENAI_COMPLETIONS),
+            api = obj.optString("api", modelApi.OPENAI_COMPLETIONS),
             keyRequired = obj.optBoolean("keyRequired", true),
             keyHint = obj.optString("keyHint", "API Key"),
             envVarName = envVarName,
@@ -203,7 +203,7 @@ object ProviderRegistry {
             headers = headers,
             tutorialSteps = steps,
             tutorialUrl = obj.optString("tutorialUrl", ""),
-            presetModels = models,
+            presetmodels = models,
             supportsDiscovery = obj.optBoolean("supportsDiscovery", false),
             discoveryEndpoint = obj.optString("discoveryEndpoint", "/models"),
             group = group,
@@ -211,66 +211,66 @@ object ProviderRegistry {
         )
     }
 
-    // ========== Fallback(JSON LoadFailed时use) ==========
+    // ========== Fallback(JSON LoadFailedhouruse) ==========
 
     private val FALLBACK_PROVIDERS = listOf(
-        ProviderDefinition(
-            id = "openrouter", name = "OpenRouter", description = "Aggregate平台",
-            baseUrl = "https://openrouter.ai/api/v1", api = ModelApi.OPENAI_COMPLETIONS,
+        providerDefinition(
+            id = "openrouter", name = "OpenRouter", description = "Aggregateplatform",
+            baseUrl = "https://openrouter.ai/api/v1", api = modelApi.OPENAI_COMPLETIONS,
             keyRequired = false, keyHint = "OpenRouter API Key", envVarName = "OPENROUTER_API_KEY",
-            group = ProviderGroup.PRIMARY, order = 10, supportsDiscovery = true
+            group = providerGroup.PRIMARY, order = 10, supportsDiscovery = true
         ),
-        ProviderDefinition(
+        providerDefinition(
             id = "anthropic", name = "Anthropic", description = "Claude 系Column",
-            baseUrl = "https://api.anthropic.com", api = ModelApi.ANTHROPIC_MESSAGES,
+            baseUrl = "https://api.anthropic.com", api = modelApi.ANTHROPIC_MESSAGES,
             keyRequired = true, keyHint = "Anthropic API Key", envVarName = "ANTHROPIC_API_KEY",
-            authHeader = false, group = ProviderGroup.PRIMARY, order = 20
+            authHeader = false, group = providerGroup.PRIMARY, order = 20
         ),
-        ProviderDefinition(
+        providerDefinition(
             id = "openai", name = "OpenAI", description = "GPT 系Column",
-            baseUrl = "https://api.openai.com/v1", api = ModelApi.OPENAI_COMPLETIONS,
+            baseUrl = "https://api.openai.com/v1", api = modelApi.OPENAI_COMPLETIONS,
             keyRequired = true, keyHint = "OpenAI API Key", envVarName = "OPENAI_API_KEY",
-            group = ProviderGroup.PRIMARY, order = 30, supportsDiscovery = true
+            group = providerGroup.PRIMARY, order = 30, supportsDiscovery = true
         ),
-        ProviderDefinition(
+        providerDefinition(
             id = "google", name = "Google (Gemini)", description = "Gemini 系Column",
             baseUrl = "https://generativelanguage.googleapis.com/v1beta",
-            api = ModelApi.GOOGLE_GENERATIVE_AI,
+            api = modelApi.GOOGLE_GENERATIVE_AI,
             keyRequired = true, keyHint = "Gemini API Key", envVarName = "GEMINI_API_KEY",
-            group = ProviderGroup.PRIMARY, order = 40
+            group = providerGroup.PRIMARY, order = 40
         ),
-        ProviderDefinition(
+        providerDefinition(
             id = "ollama", name = "Ollama (本地)", description = "本地模型",
-            baseUrl = "http://127.0.0.1:11434", api = ModelApi.OLLAMA,
+            baseUrl = "http://127.0.0.1:11434", api = modelApi.OLLAMA,
             keyRequired = false, keyHint = "Optional", envVarName = "OLLAMA_API_KEY",
-            group = ProviderGroup.PRIMARY, order = 70, supportsDiscovery = true,
+            group = providerGroup.PRIMARY, order = 70, supportsDiscovery = true,
             discoveryEndpoint = "/api/tags"
         ),
-        ProviderDefinition(
+        providerDefinition(
             id = "nvidia", name = "NVIDIA NIM", description = "NVIDIA 托管模型",
-            baseUrl = "https://integrate.api.nvidia.com/v1", api = ModelApi.OPENAI_COMPLETIONS,
+            baseUrl = "https://integrate.api.nvidia.com/v1", api = modelApi.OPENAI_COMPLETIONS,
             keyRequired = true, keyHint = "NVIDIA API Key", envVarName = "NVIDIA_API_KEY",
-            group = ProviderGroup.PRIMARY, order = 60
+            group = providerGroup.PRIMARY, order = 60
         ),
-        ProviderDefinition(
+        providerDefinition(
             id = "minimax", name = "MiniMax", description = "MiniMax M2.7 系Column",
-            baseUrl = "https://api.minimax.io/anthropic", api = ModelApi.ANTHROPIC_MESSAGES,
+            baseUrl = "https://api.minimax.io/anthropic", api = modelApi.ANTHROPIC_MESSAGES,
             keyRequired = true, keyHint = "MiniMax API Key", envVarName = "MINIMAX_API_KEY",
-            group = ProviderGroup.PRIMARY, order = 55
+            group = providerGroup.PRIMARY, order = 55
         ),
-        ProviderDefinition(
+        providerDefinition(
             id = "custom", name = "Custom (OpenAI 兼容)", description = "Custom API",
-            baseUrl = "", api = ModelApi.OPENAI_COMPLETIONS,
+            baseUrl = "", api = modelApi.OPENAI_COMPLETIONS,
             keyRequired = false, keyHint = "API Key", envVarName = "",
-            group = ProviderGroup.CUSTOM, order = 999, supportsDiscovery = true
+            group = providerGroup.CUSTOM, order = 999, supportsDiscovery = true
         )
     )
 }
 
 /**
- * Provider 定义 — 从 providers.json Load
+ * provider 定义 — from providers.json Load
  */
-data class ProviderDefinition(
+data class providerDefinition(
     val id: String,
     val name: String,
     val description: String,
@@ -283,14 +283,14 @@ data class ProviderDefinition(
     val headers: Map<String, String>? = null,
     val tutorialSteps: List<String> = emptyList(),
     val tutorialUrl: String = "",
-    val presetModels: List<PresetModel> = emptyList(),
+    val presetmodels: List<Presetmodel> = emptyList(),
     val supportsDiscovery: Boolean = false,
     val discoveryEndpoint: String = "/models",
-    val group: ProviderGroup = ProviderGroup.PRIMARY,
+    val group: providerGroup = providerGroup.PRIMARY,
     val order: Int = 100
 )
 
-data class PresetModel(
+data class Presetmodel(
     val id: String,
     val name: String,
     val free: Boolean = false,
@@ -300,6 +300,6 @@ data class PresetModel(
     val input: List<String> = listOf("text")
 )
 
-enum class ProviderGroup {
+enum class providerGroup {
     PRIMARY, MORE, CUSTOM
 }

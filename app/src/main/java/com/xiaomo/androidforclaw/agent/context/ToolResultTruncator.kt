@@ -2,10 +2,10 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-runner/tool-result-truncation.ts (truncateOversizedToolresultsInSession)
- * - ../openclaw/src/agents/pi-embedded-runner/tool-result-char-estimator.ts (char estimation)
+ * - ../openclaw/src/agents/pi-embeed-runner/tool-result-truncation.ts (truncateoversizedtoolresultsInsession)
+ * - ../openclaw/src/agents/pi-embeed-runner/tool-result-char-estimator.ts (char estimation)
  *
- * AndroidForClaw adaptation: truncate tool outputs before prompt injection.
+ * androidforClaw adaptation: truncate tool outputs before prompt injection.
  */
 
 
@@ -13,13 +13,13 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 
 /**
- * Tool result Truncator
+ * tool result Truncator
  * Aligned with OpenClaw's tool-result-truncation.ts implementation
  */
-object ToolresultTruncator {
-    private const val TAG = "ToolresultTruncator"
+object toolresultTruncator {
+    private const val TAG = "toolresultTruncator"
 
-    // Configuration parameters
+    // configuration parameters
     private const val MAX_TOOL_RESULT_CHARS = 8000  // Aligned with OpenClaw TOOL_RESULT_MAX_CHARS  // Max characters for a single tool result
     private const val HEAD_CHARS = 1500  // Keep head characters count
     private const val TAIL_CHARS = 1500  // Keep tail characters count
@@ -28,7 +28,7 @@ object ToolresultTruncator {
     /**
      * Truncate oversized tool results in message list
      */
-    fun truncateToolresults(messages: List<LegacyMessage>): List<LegacyMessage> {
+    fun truncatetoolresults(messages: List<LegacyMessage>): List<LegacyMessage> {
         var truncatedCount = 0
 
         val result = messages.map { msg ->
@@ -55,7 +55,7 @@ object ToolresultTruncator {
 
     /**
      * Truncate single content
-     * Keep head and tail, replace middle with placeholder
+     * Keep head and tail, replace mile with placeholder
      */
     private fun truncateContent(content: String): String {
         if (content.length <= MAX_TOOL_RESULT_CHARS) {
@@ -71,7 +71,7 @@ object ToolresultTruncator {
         return buildString {
             append(head)
             append(PLACEHOLDER)
-            append("[Original: $originalSize chars, Truncated to: $truncatedSize chars]")
+            append("[original: $originalSize chars, Truncated to: $truncatedSize chars]")
             append(PLACEHOLDER)
             append(tail)
         }
@@ -80,7 +80,7 @@ object ToolresultTruncator {
     /**
      * Detect if there are oversized tool results in session
      */
-    fun hasOversizedToolresults(messages: List<LegacyMessage>): Boolean {
+    fun hasoversizedtoolresults(messages: List<LegacyMessage>): Boolean {
         return messages.any { msg ->
             msg.role == "tool" &&
             msg.content != null &&
@@ -91,7 +91,7 @@ object ToolresultTruncator {
     /**
      * Calculate total size of tool results
      */
-    fun calculateToolresultSize(messages: List<LegacyMessage>): Int {
+    fun calculatetoolresultSize(messages: List<LegacyMessage>): Int {
         return messages
             .filter { it.role == "tool" }
             .sumOf { it.content?.toString()?.length ?: 0 }

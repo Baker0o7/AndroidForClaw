@@ -6,43 +6,43 @@ package com.xiaomo.androidforclaw.agent.tools
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.core.MyApplication
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import java.io.File
 
 /**
- * Feishu Send Image Skill
+ * Feishu Send Image skill
  *
- * Purpose: Agent calls this tool to send images to current Feishu conversation
+ * Purpose: agent calls this tool to send images to current Feishu conversation
  * Scenario: Send screenshot to user
  *
- * Implementation: Use FeishuChannel's current conversation context to send images
+ * implementation: use Feishuchannel's current conversation context to send images
  */
-class FeishuSendImageSkill(private val context: Context) : Skill {
+class FeishuSendImageskill(private val context: context) : skill {
     companion object {
-        private const val TAG = "FeishuSendImageSkill"
+        private const val TAG = "FeishuSendImageskill"
     }
 
     override val name = "send_image"
     override val description = "Send image to user via Feishu"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "image_path" to PropertySchema(
+                        "image_path" to Propertyschema(
                             type = "string",
-                            description = "Path to the image file. Use the path returned by the screenshot tool."
+                            description = "Path to the image file. use the path returned by the screenshot tool."
                         )
                     ),
                     required = listOf("image_path")
@@ -51,9 +51,9 @@ class FeishuSendImageSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): skillResult {
         val imagePath = args["image_path"] as? String
-            ?: return SkillResult.error("Missing required parameter: image_path")
+            ?: return skillResult.error("Missing required parameter: image_path")
 
         Log.d(TAG, "Sending image: $imagePath")
 
@@ -61,28 +61,28 @@ class FeishuSendImageSkill(private val context: Context) : Skill {
             // Check file
             val imageFile = File(imagePath)
             if (!imageFile.exists()) {
-                return SkillResult.error("Image file not found: $imagePath")
+                return skillResult.error("Image file not found: $imagePath")
             }
 
             if (!imageFile.canRead()) {
-                return SkillResult.error("Cannot read image file: $imagePath")
+                return skillResult.error("cannot read image file: $imagePath")
             }
 
-            // Get FeishuChannel
-            val feishuChannel = MyApplication.getFeishuChannel()
-            if (feishuChannel == null) {
-                Log.e(TAG, "❌ Feishu channel not active")
-                return SkillResult.error("Feishu channel is not active. Make sure Feishu is enabled in config.")
+            // Get Feishuchannel
+            val feishuchannel = MyApplication.getFeishuchannel()
+            if (feishuchannel == null) {
+                Log.e(TAG, "[ERROR] Feishu channel not active")
+                return skillResult.error("Feishu channel is not active. Make sure Feishu is enabled in config.")
             }
 
             // Send image to current conversation
-            Log.i(TAG, "📤 Sending image to current chat: ${imageFile.name} (${imageFile.length()} bytes)")
-            val result = feishuChannel.sendImageToCurrentChat(imageFile)
+            Log.i(TAG, "[SEND] Sending image to current chat: ${imageFile.name} (${imageFile.length()} bytes)")
+            val result = feishuchannel.sendImageToCurrentChat(imageFile)
 
             if (result.isSuccess) {
-                val messageId = result.getOrNull()
-                Log.i(TAG, "✅ Image sent successfully. message_id: $messageId")
-                return SkillResult.success(
+                val messageId = result.getorNull()
+                Log.i(TAG, "[OK] Image sent successfully. message_id: $messageId")
+                return skillResult.success(
                     content = "Image sent successfully to Feishu. message_id: $messageId",
                     metadata = mapOf(
                         "message_id" to (messageId ?: "unknown"),
@@ -91,14 +91,14 @@ class FeishuSendImageSkill(private val context: Context) : Skill {
                     )
                 )
             } else {
-                val error = result.exceptionOrNull()
-                Log.e(TAG, "❌ Failed to send image", error)
-                return SkillResult.error("Failed to send image: ${error?.message ?: "Unknown error"}")
+                val error = result.exceptionorNull()
+                Log.e(TAG, "[ERROR] Failed to send image", error)
+                return skillResult.error("Failed to send image: ${error?.message ?: "Unknown error"}")
             }
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to send image", e)
-            return SkillResult.error("Failed to send image: ${e.message}")
+            return skillResult.error("Failed to send image: ${e.message}")
         }
     }
 }

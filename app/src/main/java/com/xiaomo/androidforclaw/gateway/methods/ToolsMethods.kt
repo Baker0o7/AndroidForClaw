@@ -4,30 +4,30 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
-import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
-import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
+import com.xiaomo.androidforclaw.agent.tools.androidtoolRegistry
+import com.xiaomo.androidforclaw.agent.tools.toolRegistry
 
 /**
- * Tools RPC methods implementation
+ * tools RPC methods implementation
  *
  * Provides tool catalog and information
  */
-class ToolsMethods(
-    private val toolRegistry: ToolRegistry,
-    private val androidToolRegistry: AndroidToolRegistry
+class toolsMethods(
+    private val toolRegistry: toolRegistry,
+    private val androidtoolRegistry: androidtoolRegistry
 ) {
     /**
      * tools.catalog() - List all available tools
      *
-     * Returns all tools from ToolRegistry and AndroidToolRegistry
+     * Returns all tools from toolRegistry and androidtoolRegistry
      */
-    fun toolsCatalog(): ToolsCatalogResult {
-        val allTools = mutableListOf<ToolInfo>()
+    fun toolsCatalog(): toolsCatalogResult {
+        val alltools = mutableListOf<toolInfo>()
 
-        // Get general tools from ToolRegistry
-        val toolDefinitions = toolRegistry.getToolDefinitions()
+        // Get general tools from toolRegistry
+        val toolDefinitions = toolRegistry.gettoolDefinitions()
         toolDefinitions.forEach { def ->
-            allTools.add(ToolInfo(
+            alltools.a(toolInfo(
                 name = def.function.name,
                 description = def.function.description ?: "",
                 category = "general",
@@ -35,10 +35,10 @@ class ToolsMethods(
             ))
         }
 
-        // Get Android tools from AndroidToolRegistry
-        val androidDefinitions = androidToolRegistry.getToolDefinitions()
+        // Get android tools from androidtoolRegistry
+        val androidDefinitions = androidtoolRegistry.gettoolDefinitions()
         androidDefinitions.forEach { def ->
-            allTools.add(ToolInfo(
+            alltools.a(toolInfo(
                 name = def.function.name,
                 description = def.function.description ?: "",
                 category = "android",
@@ -46,41 +46,41 @@ class ToolsMethods(
             ))
         }
 
-        return ToolsCatalogResult(
-            tools = allTools,
-            count = allTools.size
+        return toolsCatalogResult(
+            tools = alltools,
+            count = alltools.size
         )
     }
 
     /**
      * tools.list() - List tool names (simple)
      */
-    fun toolsList(): ToolsListResult {
+    fun toolsList(): toolsListResult {
         val toolNames = mutableListOf<String>()
 
-        toolRegistry.getToolDefinitions().forEach {
-            toolNames.add(it.function.name)
+        toolRegistry.gettoolDefinitions().forEach {
+            toolNames.a(it.function.name)
         }
-        androidToolRegistry.getToolDefinitions().forEach {
-            toolNames.add(it.function.name)
+        androidtoolRegistry.gettoolDefinitions().forEach {
+            toolNames.a(it.function.name)
         }
 
-        return ToolsListResult(tools = toolNames)
+        return toolsListResult(tools = toolNames)
     }
 }
 
 /**
- * Tools catalog result
+ * tools catalog result
  */
-data class ToolsCatalogResult(
-    val tools: List<ToolInfo>,
+data class toolsCatalogResult(
+    val tools: List<toolInfo>,
     val count: Int
 )
 
 /**
- * Tool information
+ * tool information
  */
-data class ToolInfo(
+data class toolInfo(
     val name: String,
     val description: String,
     val category: String,
@@ -88,8 +88,8 @@ data class ToolInfo(
 )
 
 /**
- * Tools list result (simple)
+ * tools list result (simple)
  */
-data class ToolsListResult(
+data class toolsListResult(
     val tools: List<String>
 )

@@ -7,17 +7,17 @@ package com.xiaomo.androidforclaw.agent.context
 
 
 /**
- * Context Error Detection Utilities
+ * context Error Detection Utilities
  * Aligned with OpenClaw's errors.ts implementation
  */
-object ContextErrors {
+object contextErrors {
 
     /**
      * Strict detection of context overflow errors
-     * Reference: OpenClaw/src/agents/pi-embedded-helpers/errors.ts isContextOverflowError()
+     * Reference: OpenClaw/src/agents/pi-embeed-helpers/errors.ts iscontextoverflowError()
      */
-    fun isContextOverflowError(errorMessage: String?): Boolean {
-        if (errorMessage.isNullOrBlank()) return false
+    fun iscontextoverflowError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullorBlank()) return false
 
         val msg = errorMessage.lowercase()
 
@@ -40,9 +40,9 @@ object ContextErrors {
         if (msg.contains("exceed context limit")) return true
 
         // Chinese error messages
-        if (msg.contains("UpDown文过长")) return true
-        if (msg.contains("UpDown文超出")) return true
-        if (msg.contains("请CompressUpDown文")) return true
+        if (msg.contains("contextoverlong")) return true
+        if (msg.contains("context超出")) return true
+        if (msg.contains("pleasecompresscontext")) return true
 
         // Token quantity related
         if (msg.contains("tokens") && (
@@ -59,15 +59,15 @@ object ContextErrors {
 
     /**
      * Heuristic detection of context overflow (more lenient)
-     * Reference: OpenClaw/src/agents/pi-embedded-helpers/errors.ts isLikelyContextOverflowError()
+     * Reference: OpenClaw/src/agents/pi-embeed-helpers/errors.ts islikelycontextoverflowError()
      */
-    fun isLikelyContextOverflowError(errorMessage: String?): Boolean {
-        if (errorMessage.isNullOrBlank()) return false
+    fun islikelycontextoverflowError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullorBlank()) return false
 
         val msg = errorMessage.lowercase()
 
-        // First check strict match
-        if (isContextOverflowError(errorMessage)) return true
+        // first check strict match
+        if (iscontextoverflowError(errorMessage)) return true
 
         // Exclude other error types
         if (isRateLimitError(msg)) return false
@@ -89,14 +89,14 @@ object ContextErrors {
      * Detect Compaction failure error
      */
     fun isCompactionFailureError(errorMessage: String?): Boolean {
-        if (errorMessage.isNullOrBlank()) return false
+        if (errorMessage.isNullorBlank()) return false
 
         val msg = errorMessage.lowercase()
 
         return (msg.contains("summarization failed") ||
                 msg.contains("auto-compaction") ||
                 msg.contains("compaction failed")) &&
-                isLikelyContextOverflowError(errorMessage)
+                islikelycontextoverflowError(errorMessage)
     }
 
     // ==================== Transient HTTP Error ====================
@@ -116,7 +116,7 @@ object ContextErrors {
 
     private fun extractLeadingHttpStatus(message: String): Int? {
         val match = HTTP_STATUS_CODE_PREFIX_RE.find(message.trim()) ?: return null
-        return match.groupValues[1].toIntOrNull()
+        return match.groupValues[1].tointorNull()
     }
 
     /**
@@ -124,7 +124,7 @@ object ContextErrors {
      * Aligned with OpenClaw isTransientHttpError.
      */
     fun isTransientHttpError(errorMessage: String?): Boolean {
-        if (errorMessage.isNullOrBlank()) return false
+        if (errorMessage.isNullorBlank()) return false
         val trimmed = errorMessage.trim()
         // HTTP status code check
         val status = extractLeadingHttpStatus(trimmed)
@@ -147,8 +147,8 @@ object ContextErrors {
      * - 529 always overloaded
      * - 503 with "overload" in message body
      */
-    fun isOverloadedError(errorMessage: String?): Boolean {
-        if (errorMessage.isNullOrBlank()) return false
+    fun isoverloadedError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullorBlank()) return false
         val trimmed = errorMessage.trim()
         val status = extractLeadingHttpStatus(trimmed) ?: return false
         return when (status) {
@@ -158,14 +158,14 @@ object ContextErrors {
         }
     }
 
-    // ==================== Role Ordering / Session Corruption ====================
+    // ==================== Role ordering / session Corruption ====================
 
     /**
      * Detect role ordering conflict errors.
      * Aligned with OpenClaw: /incorrect role information|roles must alternate/i
      */
-    fun isRoleOrderingError(errorMessage: String?): Boolean {
-        if (errorMessage.isNullOrBlank()) return false
+    fun isRoleorderingError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullorBlank()) return false
         return Regex("incorrect role information|roles must alternate", RegexOption.IGNORE_CASE)
             .containsMatchIn(errorMessage)
     }
@@ -174,8 +174,8 @@ object ContextErrors {
      * Detect Gemini session corruption errors.
      * Aligned with OpenClaw: /function call turn comes immediately after/i
      */
-    fun isSessionCorruptionError(errorMessage: String?): Boolean {
-        if (errorMessage.isNullOrBlank()) return false
+    fun issessionCorruptionError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullorBlank()) return false
         return Regex("function call turn comes immediately after", RegexOption.IGNORE_CASE)
             .containsMatchIn(errorMessage)
     }

@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -11,13 +11,13 @@ import com.xiaomo.androidforclaw.logging.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.RadioButton
+import android.widget.Radiobutton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.xiaomo.androidforclaw.R
-import com.xiaomo.androidforclaw.databinding.ActivityModelConfigBinding
+import com.xiaomo.androidforclaw.databinding.ActivitymodelconfigBinding
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -31,56 +31,56 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
- * 模型Config页面 — 两页式Design
+ * 模型config页面 — 两页式Design
  *
- * Page 1: choose AI Service商 (Provider)
- * Page 2: 填写Service商Parameters + choose模型
+ * Page 1: choose AI service商 (provider)
+ * Page 2: 填写service商Parameters + choose模型
  *
- * All Provider 定义from ProviderRegistry, 与 OpenClaw 保持一致. 
+ * All provider 定义from providerRegistry, and OpenClaw 保持one致. 
  */
-class ModelConfigActivity : AppCompatActivity() {
+class modelconfigActivity : AppCompatActivity() {
 
     companion object {
-        private const val TAG = "ModelConfigActivity"
+        private const val TAG = "modelconfigActivity"
     }
 
-    private lateinit var binding: ActivityModelConfigBinding
-    private val configLoader by lazy { ConfigLoader(this) }
+    private lateinit var binding: ActivitymodelconfigBinding
+    private val configLoader by lazy { configLoader(this) }
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     // State
-    private var selectedProvider: ProviderDefinition? = null
-    private var selectedModelId: String? = null
+    private var selectedprovider: providerDefinition? = null
+    private var selectedmodelId: String? = null
     private var moreExpanded = false
     private var advancedExpanded = false
-    private var configuredProviderIds = setOf<String>()
-    private var currentModelRef: String? = null // "provider/modelId"
+    private var configuredproviderIds = setOf<String>()
+    private var currentmodelRef: String? = null // "provider/modelId"
 
     // Discovered models (from /v1/models API)
-    private val discoveredModels = mutableListOf<PresetModel>()
+    private val discoveredmodels = mutableListOf<Presetmodel>()
     // All models for current provider (preset + discovered), used for search filtering
-    private var allCurrentModels = listOf<PresetModel>()
+    private var allCurrentmodels = listOf<Presetmodel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityModelConfigBinding.inflate(layoutInflater)
+        binding = ActivitymodelconfigBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        applySystemBarInsets()
-        loadCurrentConfig()
-        setupToolbar()
-        buildProviderList()
+        appSystemBarInsets()
+        loadCurrentconfig()
+        setuptoolbar()
+        buildproviderList()
     }
 
-    private fun applySystemBarInsets() {
+    private fun appSystemBarInsets() {
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val insets = windowInsets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
             val bottomInset = insets.bottom
             val dp16 = (16 * resources.displayMetrics.density).toInt()
-            // Page 1: provider list scroll view needs bottom padding for nav bar
-            binding.scrollProviderList.setPadding(0, 0, 0, bottomInset)
+            // Page 1: provider list scroll view needs bottom paing for nav bar
+            binding.scrollproviderList.setPaing(0, 0, 0, bottomInset)
             // Page 2: bottom buttons container sits above navigation bar
-            binding.containerBottomButtons.setPadding(dp16, (8 * resources.displayMetrics.density).toInt(), dp16, bottomInset + dp16)
+            binding.containerBottombuttons.setPaing(dp16, (8 * resources.displayMetrics.density).toInt(), dp16, bottomInset + dp16)
             windowInsets
         }
     }
@@ -90,36 +90,36 @@ class ModelConfigActivity : AppCompatActivity() {
         scope.cancel()
     }
 
-    // ========== Config Loading ==========
+    // ========== config Loading ==========
 
-    private fun loadCurrentConfig() {
+    private fun loadCurrentconfig() {
         try {
-            val config = configLoader.loadOpenClawConfig()
-            val providers = config.resolveProviders()
-            configuredProviderIds = providers.filter { (_, v) ->
-                !v.apiKey.isNullOrBlank() && !v.apiKey.startsWith("\${") && v.apiKey != "Not configured"
+            val config = configLoader.loadOpenClawconfig()
+            val providers = config.resolveproviders()
+            configuredproviderIds = providers.filter { (_, v) ->
+                !v.apiKey.isNullorBlank() && !v.apiKey.startswith("\${") && v.apiKey != "not configured"
             }.keys
 
             // Resolve current model ref
-            currentModelRef = config.agents?.defaults?.model?.primary
+            currentmodelRef = config.agents?.defaults?.model?.primary
 
-            binding.tvCurrentModel.text = currentModelRef ?: "Not configured"
-            binding.cardCurrentModel.visibility =
-                if (currentModelRef != null) View.VISIBLE else View.GONE
+            binding.tvCurrentmodel.text = currentmodelRef ?: "not configured"
+            binding.cardCurrentmodel.visibility =
+                if (currentmodelRef != null) View.VISIBLE else View.GONE
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to load config", e)
-            configuredProviderIds = emptySet()
-            currentModelRef = null
-            binding.cardCurrentModel.visibility = View.GONE
+            configuredproviderIds = emptySet()
+            currentmodelRef = null
+            binding.cardCurrentmodel.visibility = View.GONE
         }
     }
 
-    // ========== Toolbar ==========
+    // ========== toolbar ==========
 
-    private fun setupToolbar() {
+    private fun setuptoolbar() {
         binding.toolbar.setNavigationOnClickListener {
-            if (binding.pageProviderDetail.visibility == View.VISIBLE) {
+            if (binding.pageproviderDetail.visibility == View.VISIBLE) {
                 showPage1()
             } else {
                 finish()
@@ -130,55 +130,55 @@ class ModelConfigActivity : AppCompatActivity() {
     // ========== Page Navigation ==========
 
     private fun showPage1() {
-        binding.pageProviderList.visibility = View.VISIBLE
-        binding.pageProviderDetail.visibility = View.GONE
-        binding.toolbar.title = "模型Config"
+        binding.pageproviderList.visibility = View.VISIBLE
+        binding.pageproviderDetail.visibility = View.GONE
+        binding.toolbar.title = "模型config"
     }
 
-    private fun showPage2(provider: ProviderDefinition) {
-        selectedProvider = provider
-        selectedModelId = null
+    private fun showPage2(provider: providerDefinition) {
+        selectedprovider = provider
+        selectedmodelId = null
 
         // Pre-select current model if this is the active provider
-        val modelRef = currentModelRef
-        if (modelRef != null && modelRef.startsWith("${provider.id}/")) {
-            selectedModelId = modelRef.removePrefix("${provider.id}/")
+        val modelRef = currentmodelRef
+        if (modelRef != null && modelRef.startswith("${provider.id}/")) {
+            selectedmodelId = modelRef.removePrefix("${provider.id}/")
         }
 
-        binding.pageProviderList.visibility = View.GONE
-        binding.pageProviderDetail.visibility = View.VISIBLE
+        binding.pageproviderList.visibility = View.GONE
+        binding.pageproviderDetail.visibility = View.VISIBLE
         binding.toolbar.title = provider.name
 
         setupPage2(provider)
     }
 
-    // ========== Page 1: Provider List ==========
+    // ========== Page 1: provider List ==========
 
-    private fun buildProviderList() {
+    private fun buildproviderList() {
         val inflater = LayoutInflater.from(this)
 
         // Primary providers
-        binding.containerPrimaryProviders.removeAllViews()
-        for (provider in ProviderRegistry.PRIMARY_PROVIDERS) {
-            addProviderCard(inflater, binding.containerPrimaryProviders, provider)
+        binding.containerPrimaryproviders.removeAllViews()
+        for (provider in providerRegistry.PRIMARY_PROVIDERS) {
+            aproviderCard(inflater, binding.containerPrimaryproviders, provider)
         }
 
-        // More providers (hidden initially)
-        binding.containerMoreProviders.removeAllViews()
-        for (provider in ProviderRegistry.MORE_PROVIDERS) {
-            addProviderCard(inflater, binding.containerMoreProviders, provider)
+        // More providers (hien initially)
+        binding.containerMoreproviders.removeAllViews()
+        for (provider in providerRegistry.MORE_PROVIDERS) {
+            aproviderCard(inflater, binding.containerMoreproviders, provider)
         }
 
         // Custom provider
-        binding.containerCustomProviders.removeAllViews()
-        for (provider in ProviderRegistry.CUSTOM_PROVIDERS) {
-            addProviderCard(inflater, binding.containerCustomProviders, provider)
+        binding.containerCustomproviders.removeAllViews()
+        for (provider in providerRegistry.CUSTOM_PROVIDERS) {
+            aproviderCard(inflater, binding.containerCustomproviders, provider)
         }
 
         // Toggle "more"
         binding.cardMoreToggle.setOnClickListener {
             moreExpanded = !moreExpanded
-            binding.containerMoreProviders.visibility =
+            binding.containerMoreproviders.visibility =
                 if (moreExpanded) View.VISIBLE else View.GONE
             binding.ivMoreArrow.animate()
                 .rotation(if (moreExpanded) 180f else 0f)
@@ -187,10 +187,10 @@ class ModelConfigActivity : AppCompatActivity() {
         }
     }
 
-    private fun addProviderCard(
+    private fun aproviderCard(
         inflater: LayoutInflater,
         container: android.widget.LinearLayout,
-        provider: ProviderDefinition
+        provider: providerDefinition
     ) {
         val card = inflater.inflate(R.layout.item_provider_card, container, false)
 
@@ -199,87 +199,87 @@ class ModelConfigActivity : AppCompatActivity() {
 
         // Status indicator
         val statusView = card.findViewById<View>(R.id.view_status)
-        val isConfigured = configuredProviderIds.contains(provider.id)
-        val isCurrent = currentModelRef?.startsWith("${provider.id}/") == true
-        if (isConfigured || isCurrent) {
+        val isconfigured = configuredproviderIds.contains(provider.id)
+        val isCurrent = currentmodelRef?.startswith("${provider.id}/") == true
+        if (isconfigured || isCurrent) {
             statusView.visibility = View.VISIBLE
-            statusView.setBackgroundResource(R.drawable.bg_circle_green)
+            statusView.setbackgroundResource(R.drawable.bg_circle_green)
         }
 
         // Highlight current provider
         if (isCurrent) {
-            (card as? MaterialCardView)?.apply {
+            (card as? MaterialCardView)?.app {
                 strokeColor = getColor(android.R.color.holo_green_dark)
                 strokeWidth = 2
             }
         }
 
         card.setOnClickListener {
-            Log.i(TAG, "Provider card clicked: ${provider.id} / ${provider.name}")
+            Log.i(TAG, "provider card clicked: ${provider.id} / ${provider.name}")
             try {
                 showPage2(provider)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "showPage2 crashed", e)
             }
         }
 
-        container.addView(card)
+        container.aView(card)
     }
 
-    // ========== Page 2: Provider Detail ==========
+    // ========== Page 2: provider Detail ==========
 
-    private fun setupPage2(provider: ProviderDefinition) {
-        // Provider name
-        binding.tvProviderName.text = provider.name
+    private fun setupPage2(provider: providerDefinition) {
+        // provider name
+        binding.tvproviderName.text = provider.name
 
         // Status
-        val isConfigured = configuredProviderIds.contains(provider.id)
-        binding.tvProviderStatus.visibility = if (isConfigured) View.VISIBLE else View.GONE
+        val isconfigured = configuredproviderIds.contains(provider.id)
+        binding.tvproviderStatus.visibility = if (isconfigured) View.VISIBLE else View.GONE
 
         // API Key
         binding.tilApiKey.hint = provider.keyHint
         binding.etApiKey.setText("")
         if (!provider.keyRequired) {
-            binding.tilApiKey.helperText = "Optional(HasInside置 Key)"
+            binding.tilApiKey.helperText = "Optional(Hasinside置 Key)"
         } else {
             binding.tilApiKey.helperText = null
         }
 
         // Load existing key if configured
         try {
-            val config = configLoader.loadOpenClawConfig()
-            val existingProvider = config.resolveProviders()[provider.id]
-            if (existingProvider != null) {
-                val key = existingProvider.apiKey
-                if (!key.isNullOrBlank() && !key.startsWith("\${")) {
+            val config = configLoader.loadOpenClawconfig()
+            val existingprovider = config.resolveproviders()[provider.id]
+            if (existingprovider != null) {
+                val key = existingprovider.apiKey
+                if (!key.isNullorBlank() && !key.startswith("\${")) {
                     binding.etApiKey.setText(key)
                 }
             }
-        } catch (_: Exception) {}
+        } catch (_: exception) {}
 
         // Load saved config for this provider (if exists)
         var savedBaseUrl: String? = null
         var savedApi: String? = null
-        var savedModels: List<com.xiaomo.androidforclaw.config.ModelDefinition>? = null
+        var savedmodels: List<com.xiaomo.androidforclaw.config.modelDefinition>? = null
         try {
-            val config = configLoader.loadOpenClawConfig()
-            val existingProvider = config.resolveProviders()[provider.id]
-            if (existingProvider != null) {
-                savedBaseUrl = existingProvider.baseUrl
-                savedApi = existingProvider.api
-                savedModels = existingProvider.models
+            val config = configLoader.loadOpenClawconfig()
+            val existingprovider = config.resolveproviders()[provider.id]
+            if (existingprovider != null) {
+                savedBaseUrl = existingprovider.baseUrl
+                savedApi = existingprovider.api
+                savedmodels = existingprovider.models
             }
-        } catch (_: Exception) {}
+        } catch (_: exception) {}
 
         // Tutorial
-        if (provider.tutorialSteps.isNotEmpty()) {
+        if (provider.tutorialSteps.isnotEmpty()) {
             binding.cardTutorial.visibility = View.VISIBLE
             val steps = provider.tutorialSteps.mapIndexed { i, step ->
                 "${i + 1}. $step"
             }.joinToString("\n")
             binding.tvTutorialSteps.text = steps
 
-            if (provider.tutorialUrl.isNotBlank()) {
+            if (provider.tutorialUrl.isnotBlank()) {
                 binding.btnTutorialUrl.visibility = View.VISIBLE
                 binding.btnTutorialUrl.setOnClickListener {
                     startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(provider.tutorialUrl)))
@@ -292,19 +292,19 @@ class ModelConfigActivity : AppCompatActivity() {
         }
 
         // Preset models + saved models from config
-        discoveredModels.clear()
-        val allModels = provider.presetModels.toMutableList()
-        if (savedModels != null) {
-            val presetIds = allModels.map { it.id }.toSet()
-            for (m in savedModels) {
+        discoveredmodels.clear()
+        val allmodels = provider.presetmodels.toMutableList()
+        if (savedmodels != null) {
+            val presetIds = allmodels.map { it.id }.toSet()
+            for (m in savedmodels) {
                 if (m.id !in presetIds) {
-                    allModels.add(PresetModel(
+                    allmodels.a(Presetmodel(
                         id = m.id,
                         name = m.id,
                         reasoning = m.reasoning,
                         free = false
                     ))
-                    discoveredModels.add(PresetModel(
+                    discoveredmodels.a(Presetmodel(
                         id = m.id,
                         name = m.id,
                         reasoning = m.reasoning,
@@ -313,36 +313,36 @@ class ModelConfigActivity : AppCompatActivity() {
                 }
             }
         }
-        buildModelRadioGroup(allModels)
+        buildmodelRadioGroup(allmodels)
 
-        // Model search filter
-        binding.etModelSearch.addTextChangedListener(object : android.text.TextWatcher {
+        // model search filter
+        binding.etmodelSearch.aTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
                 val query = s?.toString()?.trim()?.lowercase() ?: ""
                 if (query.isEmpty()) {
-                    renderFilteredModels(allCurrentModels)
+                    renderFilteredmodels(allCurrentmodels)
                 } else {
-                    val filtered = allCurrentModels.filter { model ->
+                    val filtered = allCurrentmodels.filter { model ->
                         model.id.lowercase().contains(query) ||
                             model.name.lowercase().contains(query)
                     }
-                    renderFilteredModels(filtered)
+                    renderFilteredmodels(filtered)
                 }
             }
         })
 
         // Discovery button
         if (provider.supportsDiscovery) {
-            binding.btnDiscoverModels.visibility = View.VISIBLE
-            binding.btnDiscoverModels.setOnClickListener { discoverModels(provider) }
+            binding.btnDiscovermodels.visibility = View.VISIBLE
+            binding.btnDiscovermodels.setOnClickListener { discovermodels(provider) }
         } else {
-            binding.btnDiscoverModels.visibility = View.GONE
+            binding.btnDiscovermodels.visibility = View.GONE
         }
 
-        // Manual add button
-        binding.btnAddModel.setOnClickListener { showAddModelDialog() }
+        // Manual a button
+        binding.btnAmodel.setOnClickListener { showAmodelDialog() }
 
         // Advanced section — auto-expand if user customized baseUrl
         advancedExpanded = savedBaseUrl != null && savedBaseUrl != provider.baseUrl
@@ -363,58 +363,58 @@ class ModelConfigActivity : AppCompatActivity() {
         binding.etBaseUrl.setText(savedBaseUrl ?: provider.baseUrl)
 
         // API type dropdown: prefer saved config over preset
-        val apiTypeLabels = ProviderRegistry.CUSTOM_API_TYPES.map { it.second }
+        val apiTypeLabels = providerRegistry.CUSTOM_API_TYPES.map { it.second }
         val apiTypeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, apiTypeLabels)
         binding.dropdownApiType.setAdapter(apiTypeAdapter)
         val effectiveApi = savedApi ?: provider.api
-        val currentApiIndex = ProviderRegistry.CUSTOM_API_TYPES.indexOfFirst { it.first == effectiveApi }
+        val currentApiIndex = providerRegistry.CUSTOM_API_TYPES.indexOffirst { it.first == effectiveApi }
         if (currentApiIndex >= 0) {
             binding.dropdownApiType.setText(apiTypeLabels[currentApiIndex], false)
         }
 
         // Custom model ID field (only for custom provider)
-        binding.tilCustomModelId.visibility =
+        binding.tilCustommodelId.visibility =
             if (provider.id == "custom") View.VISIBLE else View.GONE
 
         // Save button
-        binding.btnSave.setOnClickListener { saveProviderConfig(provider) }
+        binding.btnSave.setOnClickListener { saveproviderconfig(provider) }
 
         // Test connection button
         binding.btnTestConnection.setOnClickListener { testConnection(provider) }
     }
 
-    private fun buildModelRadioGroup(models: List<PresetModel>) {
+    private fun buildmodelRadioGroup(models: List<Presetmodel>) {
         // Save full list for search filtering
-        allCurrentModels = models.toList()
+        allCurrentmodels = models.toList()
         // Clear search field when model list refreshes
-        binding.etModelSearch.setText("")
-        renderFilteredModels(models)
+        binding.etmodelSearch.setText("")
+        renderFilteredmodels(models)
     }
 
-    private fun renderFilteredModels(models: List<PresetModel>) {
-        binding.containerPresetModels.removeAllViews()
+    private fun renderFilteredmodels(models: List<Presetmodel>) {
+        binding.containerPresetmodels.removeAllViews()
         val inflater = LayoutInflater.from(this)
 
         // Auto-select first model if nothing selected
-        if (models.isNotEmpty() && selectedModelId == null) {
-            selectedModelId = models.first().id
+        if (models.isnotEmpty() && selectedmodelId == null) {
+            selectedmodelId = models.first().id
         }
 
-        if (models.isEmpty() && allCurrentModels.isNotEmpty()) {
-            val tv = TextView(this).apply {
+        if (models.isEmpty() && allCurrentmodels.isnotEmpty()) {
+            val tv = TextView(this).app {
                 text = "Nonematch模型"
                 setTextColor(getColor(android.R.color.darker_gray))
                 textSize = 13f
-                setPadding(0, 16, 0, 16)
+                setPaing(0, 16, 0, 16)
             }
-            binding.containerPresetModels.addView(tv)
+            binding.containerPresetmodels.aView(tv)
             return
         }
 
         for (model in models) {
-            val view = inflater.inflate(R.layout.item_model_radio, binding.containerPresetModels, false)
+            val view = inflater.inflate(R.layout.item_model_radio, binding.containerPresetmodels, false)
 
-            val radio = view.findViewById<RadioButton>(R.id.radio_model)
+            val radio = view.findViewById<Radiobutton>(R.id.radio_model)
             val tvName = view.findViewById<TextView>(R.id.tv_model_name)
             val tvId = view.findViewById<TextView>(R.id.tv_model_id)
             val tvBadge = view.findViewById<TextView>(R.id.tv_model_badge)
@@ -428,132 +428,132 @@ class ModelConfigActivity : AppCompatActivity() {
                 tvBadge.setTextColor(getColor(android.R.color.holo_blue_dark))
             }
 
-            radio.isChecked = model.id == selectedModelId
+            radio.isChecked = model.id == selectedmodelId
 
             // Click handler on entire row
             val clickHandler = View.OnClickListener {
-                selectedModelId = model.id
+                selectedmodelId = model.id
                 // Refresh all radios
-                for (i in 0 until binding.containerPresetModels.childCount) {
-                    val child = binding.containerPresetModels.getChildAt(i)
-                    child.findViewById<RadioButton>(R.id.radio_model)?.isChecked =
+                for (i in 0 until binding.containerPresetmodels.childCount) {
+                    val child = binding.containerPresetmodels.getChildAt(i)
+                    child.findViewById<Radiobutton>(R.id.radio_model)?.isChecked =
                         child.findViewById<TextView>(R.id.tv_model_id)?.text == model.id
                 }
             }
             radio.setOnClickListener(clickHandler)
             view.setOnClickListener(clickHandler)
 
-            binding.containerPresetModels.addView(view)
+            binding.containerPresetmodels.aView(view)
         }
     }
 
-    // ========== Model Discovery ==========
+    // ========== model Discovery ==========
 
-    private fun discoverModels(provider: ProviderDefinition) {
+    private fun discovermodels(provider: providerDefinition) {
         val apiKey = binding.etApiKey.text?.toString()?.trim()
         val baseUrl = if (advancedExpanded) {
-            binding.etBaseUrl.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+            binding.etBaseUrl.text?.toString()?.trim()?.takeif { it.isnotBlank() }
         } else null
         val effectiveBaseUrl = baseUrl ?: provider.baseUrl
 
         if (effectiveBaseUrl.isBlank()) {
-            Toast.makeText(this, "请填写 Base URL", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "please填写 Base URL", Toast.LENGTH_SHORT).show()
             return
         }
 
-        binding.btnDiscoverModels.isEnableddd = false
-        binding.btnDiscoverModels.text = "Get中..."
+        binding.btnDiscovermodels.isEnabled = false
+        binding.btnDiscovermodels.text = "Get中..."
 
         scope.launch {
             try {
-                val models = withContext(Dispatchers.IO) {
-                    fetchModels(effectiveBaseUrl, provider.discoveryEndpoint, apiKey)
+                val models = withcontext(Dispatchers.IO) {
+                    fetchmodels(effectiveBaseUrl, provider.discoveryEndpoint, apiKey)
                 }
-                discoveredModels.clear()
-                discoveredModels.addAll(models)
+                discoveredmodels.clear()
+                discoveredmodels.aAll(models)
 
                 // Merge with presets (presets first, then discovered)
-                val allModels = (provider.presetModels + models.filter { m ->
-                    provider.presetModels.none { it.id == m.id }
+                val allmodels = (provider.presetmodels + models.filter { m ->
+                    provider.presetmodels.none { it.id == m.id }
                 })
-                buildModelRadioGroup(allModels)
+                buildmodelRadioGroup(allmodels)
 
                 Toast.makeText(
-                    this@ModelConfigActivity,
-                    "discover ${models.size} 个模型",
+                    this@modelconfigActivity,
+                    "discover ${models.size} count模型",
                     Toast.LENGTH_SHORT
                 ).show()
-            } catch (e: Exception) {
-                Log.e(TAG, "Model discovery failed", e)
+            } catch (e: exception) {
+                Log.e(TAG, "model discovery failed", e)
                 Toast.makeText(
-                    this@ModelConfigActivity,
+                    this@modelconfigActivity,
                     "GetFailed: ${e.message}",
                     Toast.LENGTH_SHORT
                 ).show()
             } finally {
-                binding.btnDiscoverModels.isEnableddd = true
-                binding.btnDiscoverModels.text = "🔍 GetAvailable模型"
+                binding.btnDiscovermodels.isEnabled = true
+                binding.btnDiscovermodels.text = "[SEARCH] GetAvailable模型"
             }
         }
     }
 
     // ========== Connection Test ==========
 
-    private fun testConnection(provider: ProviderDefinition) {
+    private fun testConnection(provider: providerDefinition) {
         val apiKey = binding.etApiKey.text?.toString()?.trim()
-        if (provider.keyRequired && apiKey.isNullOrBlank()) {
-            Toast.makeText(this, "请先填写 API Key", Toast.LENGTH_SHORT).show()
+        if (provider.keyRequired && apiKey.isNullorBlank()) {
+            Toast.makeText(this, "please先填写 API Key", Toast.LENGTH_SHORT).show()
             return
         }
 
         // Determine model to test with
-        val modelId = selectedModelId
-        if (modelId.isNullOrBlank()) {
-            Toast.makeText(this, "请先choose一个模型", Toast.LENGTH_SHORT).show()
+        val modelId = selectedmodelId
+        if (modelId.isNullorBlank()) {
+            Toast.makeText(this, "please先chooseone模型", Toast.LENGTH_SHORT).show()
             return
         }
 
         val baseUrl = if (advancedExpanded) {
-            binding.etBaseUrl.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+            binding.etBaseUrl.text?.toString()?.trim()?.takeif { it.isnotBlank() }
         } else null
         val effectiveBaseUrl = (baseUrl ?: provider.baseUrl).trimEnd('/')
 
-        binding.btnTestConnection.isEnableddd = false
+        binding.btnTestConnection.isEnabled = false
         binding.btnTestConnection.text = "Test中..."
 
         scope.launch {
             try {
                 val result = kotlinx.coroutines.withTimeout(25_000L) {
-                    withContext(Dispatchers.IO) {
+                    withcontext(Dispatchers.IO) {
                         performConnectionTest(effectiveBaseUrl, provider, apiKey, modelId)
                     }
                 }
                 if (!isFinishing) {
-                    AlertDialog.Builder(this@ModelConfigActivity)
-                        .setTitle("✅ ConnectSuccess")
+                    AlertDialog.Builder(this@modelconfigActivity)
+                        .setTitle("[OK] ConnectSuccess")
                         .setMessage(result)
-                        .setPositiveButton("ok", null)
+                        .setPositivebutton("ok", null)
                         .show()
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Connection test failed", e)
                 if (!isFinishing) {
                     val errorMsg = when (e) {
-                        is kotlinx.coroutines.TimeoutCancellationException -> "RequestTimeout(25秒), 请CheckNetwork或ProxySettings"
-                        is java.net.SocketTimeoutException -> "ConnectTimeout, 请CheckNetwork或ProxySettings"
-                        is java.net.UnknownHostException -> "CannotParse域名 ${e.message}, 请CheckNetwork"
-                        is java.net.ConnectException -> "CannotConnectService器, 请CheckNetwork或Proxy"
-                        is javax.net.ssl.SSLException -> "SSL Error: ${e.message}"
+                        is kotlinx.coroutines.Timeoutcancellationexception -> "RequestTimeout(25seconds), pleaseCheckNetworkorProxySettings"
+                        is java.net.SocketTimeoutexception -> "ConnectTimeout, pleaseCheckNetworkorProxySettings"
+                        is java.net.UnknownHostexception -> "cannotParse域名 ${e.message}, pleaseCheckNetwork"
+                        is java.net.Connectexception -> "cannotConnectservice器, pleaseCheckNetworkorProxy"
+                        is javax.net.ssl.SSLexception -> "SSL Error: ${e.message}"
                         else -> "${e.message}"
                     }
-                    AlertDialog.Builder(this@ModelConfigActivity)
-                        .setTitle("❌ ConnectFailed")
+                    AlertDialog.Builder(this@modelconfigActivity)
+                        .setTitle("[ERROR] ConnectFailed")
                         .setMessage(errorMsg)
-                        .setPositiveButton("ok", null)
+                        .setPositivebutton("ok", null)
                         .show()
                 }
             } finally {
-                binding.btnTestConnection.isEnableddd = true
+                binding.btnTestConnection.isEnabled = true
                 binding.btnTestConnection.text = "🔗 TestConnect"
             }
         }
@@ -561,7 +561,7 @@ class ModelConfigActivity : AppCompatActivity() {
 
     private fun performConnectionTest(
         baseUrl: String,
-        provider: ProviderDefinition,
+        provider: providerDefinition,
         apiKey: String?,
         modelId: String
     ): String {
@@ -574,50 +574,50 @@ class ModelConfigActivity : AppCompatActivity() {
 
         // Build chat completion request
         val chatUrl = when (provider.api) {
-            ModelApi.ANTHROPIC_MESSAGES -> "$baseUrl/v1/messages"
-            ModelApi.GOOGLE_GENERATIVE_AI -> "$baseUrl/models/$modelId:generateContent?key=$apiKey"
-            ModelApi.OLLAMA -> "$baseUrl/api/chat"
+            modelApi.ANTHROPIC_MESSAGES -> "$baseUrl/v1/messages"
+            modelApi.GOOGLE_GENERATIVE_AI -> "$baseUrl/models/$modelId:generateContent?key=$apiKey"
+            modelApi.OLLAMA -> "$baseUrl/api/chat"
             else -> "$baseUrl/chat/completions"
         }
 
         val requestBody = when (provider.api) {
-            ModelApi.ANTHROPIC_MESSAGES -> JSONObject().apply {
+            modelApi.ANTHROPIC_MESSAGES -> JSONObject().app {
                 put("model", modelId)
                 put("max_tokens", 10)
-                put("messages", org.json.JSONArray().apply {
-                    put(JSONObject().apply {
+                put("messages", org.json.JSONArray().app {
+                    put(JSONObject().app {
                         put("role", "user")
                         put("content", "Hi")
                     })
                 })
             }
-            ModelApi.GOOGLE_GENERATIVE_AI -> JSONObject().apply {
-                put("contents", org.json.JSONArray().apply {
-                    put(JSONObject().apply {
-                        put("parts", org.json.JSONArray().apply {
-                            put(JSONObject().apply { put("text", "Hi") })
+            modelApi.GOOGLE_GENERATIVE_AI -> JSONObject().app {
+                put("contents", org.json.JSONArray().app {
+                    put(JSONObject().app {
+                        put("parts", org.json.JSONArray().app {
+                            put(JSONObject().app { put("text", "Hi") })
                         })
                     })
                 })
-                put("generationConfig", JSONObject().apply {
+                put("generationconfig", JSONObject().app {
                     put("maxOutputTokens", 10)
                 })
             }
-            ModelApi.OLLAMA -> JSONObject().apply {
+            modelApi.OLLAMA -> JSONObject().app {
                 put("model", modelId)
-                put("messages", org.json.JSONArray().apply {
-                    put(JSONObject().apply {
+                put("messages", org.json.JSONArray().app {
+                    put(JSONObject().app {
                         put("role", "user")
                         put("content", "Hi")
                     })
                 })
                 put("stream", false)
             }
-            else -> JSONObject().apply {
+            else -> JSONObject().app {
                 put("model", modelId)
                 put("max_tokens", 10)
-                put("messages", org.json.JSONArray().apply {
-                    put(JSONObject().apply {
+                put("messages", org.json.JSONArray().app {
+                    put(JSONObject().app {
                         put("role", "user")
                         put("content", "Hi")
                     })
@@ -625,41 +625,41 @@ class ModelConfigActivity : AppCompatActivity() {
             }
         }
 
-        val mediaType = "application/json; charset=utf-8".toMediaType()
-        val body = requestBody.toString().toRequestBody(mediaType)
+        val media type = "application/json; charset=utf-8".toMediaType()
+        val body = requestBody.toString().toRequestBody(media type)
 
         val requestBuilder = Request.Builder().url(chatUrl).post(body)
 
-        // Add auth headers
+        // A auth headers
         when {
-            provider.api == ModelApi.GOOGLE_GENERATIVE_AI -> {
+            provider.api == modelApi.GOOGLE_GENERATIVE_AI -> {
                 // Google uses key in URL query param
             }
-            !provider.authHeader && !apiKey.isNullOrBlank() -> {
-                requestBuilder.addHeader("x-api-key", apiKey)
+            !provider.authHeader && !apiKey.isNullorBlank() -> {
+                requestBuilder.aHeader("x-api-key", apiKey)
             }
-            !apiKey.isNullOrBlank() -> {
-                requestBuilder.addHeader("Authorization", "Bearer $apiKey")
+            !apiKey.isNullorBlank() -> {
+                requestBuilder.aHeader("Authorization", "Bearer $apiKey")
             }
         }
 
         // Anthropic needs version header
-        if (provider.api == ModelApi.ANTHROPIC_MESSAGES) {
-            requestBuilder.addHeader("anthropic-version", "2023-06-01")
+        if (provider.api == modelApi.ANTHROPIC_MESSAGES) {
+            requestBuilder.aHeader("anthropic-version", "2023-06-01")
         }
 
         // OpenRouter app attribution headers (aligned with ApiAdapter.buildHeaders)
         if (baseUrl.contains("openrouter.ai", ignoreCase = true)) {
-            requestBuilder.addHeader("HTTP-Referer", "https://openclaw.ai")
-            requestBuilder.addHeader("X-Title", "OpenClaw")
+            requestBuilder.aHeader("HTTP-Referer", "https://openclaw.ai")
+            requestBuilder.aHeader("X-Title", "OpenClaw")
         }
 
         // Custom headers from provider
         provider.headers?.forEach { (key, value) ->
-            requestBuilder.addHeader(key, value)
+            requestBuilder.aHeader(key, value)
         }
 
-        requestBuilder.addHeader("Content-Type", "application/json")
+        requestBuilder.aHeader("Content-Type", "application/json")
 
         val response = client.newCall(requestBuilder.build()).execute()
         val responseBody = response.body?.string() ?: ""
@@ -670,19 +670,19 @@ class ModelConfigActivity : AppCompatActivity() {
                 json.optJSONObject("error")?.optString("message")
                     ?: json.optString("message")
                     ?: responseBody.take(200)
-            } catch (_: Exception) {
+            } catch (_: exception) {
                 responseBody.take(200)
             }
-            throw Exception("HTTP ${response.code}: $errorMsg")
+            throw exception("HTTP ${response.code}: $errorMsg")
         }
 
         // Parse response to confirm we got a valid reply
         val json = JSONObject(responseBody)
         val replyPreview = when (provider.api) {
-            ModelApi.ANTHROPIC_MESSAGES -> {
+            modelApi.ANTHROPIC_MESSAGES -> {
                 json.optJSONArray("content")?.optJSONObject(0)?.optString("text") ?: "OK"
             }
-            ModelApi.GOOGLE_GENERATIVE_AI -> {
+            modelApi.GOOGLE_GENERATIVE_AI -> {
                 json.optJSONArray("candidates")?.optJSONObject(0)
                     ?.optJSONObject("content")?.optJSONArray("parts")
                     ?.optJSONObject(0)?.optString("text") ?: "OK"
@@ -700,7 +700,7 @@ class ModelConfigActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchModels(baseUrl: String, endpoint: String, apiKey: String?): List<PresetModel> {
+    private fun fetchmodels(baseUrl: String, endpoint: String, apiKey: String?): List<Presetmodel> {
         val client = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
@@ -709,32 +709,32 @@ class ModelConfigActivity : AppCompatActivity() {
         val url = "${baseUrl.trimEnd('/')}${endpoint}"
         val requestBuilder = Request.Builder().url(url).get()
 
-        if (!apiKey.isNullOrBlank()) {
-            requestBuilder.addHeader("Authorization", "Bearer $apiKey")
+        if (!apiKey.isNullorBlank()) {
+            requestBuilder.aHeader("Authorization", "Bearer $apiKey")
         }
 
         val response = client.newCall(requestBuilder.build()).execute()
-        val body = response.body?.string() ?: throw Exception("Empty response")
+        val body = response.body?.string() ?: throw exception("Empty response")
         val json = JSONObject(body)
 
         return if (endpoint == "/api/tags") {
             // Ollama format
-            parseOllamaModels(json)
+            parseOllamamodels(json)
         } else {
             // OpenAI /v1/models format
-            parseOpenAIModels(json)
+            parseOpenAImodels(json)
         }
     }
 
-    private fun parseOpenAIModels(json: JSONObject): List<PresetModel> {
+    private fun parseOpenAImodels(json: JSONObject): List<Presetmodel> {
         val data = json.optJSONArray("data") ?: return emptyList()
-        val models = mutableListOf<PresetModel>()
+        val models = mutableListOf<Presetmodel>()
         for (i in 0 until data.length()) {
             val model = data.getJSONObject(i)
             val id = model.optString("id", "").trim()
             if (id.isBlank()) continue
-            models.add(
-                PresetModel(
+            models.a(
+                Presetmodel(
                     id = id,
                     name = id, // API usually doesn't provide display names
                     contextWindow = 200000,  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
@@ -745,15 +745,15 @@ class ModelConfigActivity : AppCompatActivity() {
         return models.sortedBy { it.id }
     }
 
-    private fun parseOllamaModels(json: JSONObject): List<PresetModel> {
+    private fun parseOllamamodels(json: JSONObject): List<Presetmodel> {
         val models = json.optJSONArray("models") ?: return emptyList()
-        val result = mutableListOf<PresetModel>()
+        val result = mutableListOf<Presetmodel>()
         for (i in 0 until models.length()) {
             val model = models.getJSONObject(i)
             val name = model.optString("name", "").trim()
             if (name.isBlank()) continue
-            result.add(
-                PresetModel(
+            result.a(
+                Presetmodel(
                     id = name,
                     name = name,
                     contextWindow = 200000,  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
@@ -764,154 +764,154 @@ class ModelConfigActivity : AppCompatActivity() {
         return result.sortedBy { it.id }
     }
 
-    // ========== Manual Add Model ==========
+    // ========== Manual A model ==========
 
-    private fun showAddModelDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_model, null)
+    private fun showAmodelDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_a_model, null)
 
-        val etModelId = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_model_id)
-        val etModelName = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_model_name)
-        val etContextWindow = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_context_window)
+        val etmodelId = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_model_id)
+        val etmodelName = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_model_name)
+        val etcontextWindow = dialogView.findViewById<TextInputEditText>(R.id.et_dialog_context_window)
 
-        etContextWindow.setText("200000")  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
+        etcontextWindow.setText("200000")  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
 
         AlertDialog.Builder(this)
-            .setTitle("Add模型")
+            .setTitle("A模型")
             .setView(dialogView)
-            .setPositiveButton("Add") { _, _ ->
-                val modelId = etModelId.text?.toString()?.trim() ?: ""
+            .setPositivebutton("A") { _, _ ->
+                val modelId = etmodelId.text?.toString()?.trim() ?: ""
                 if (modelId.isBlank()) {
-                    Toast.makeText(this, "模型 ID cannot为Null", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+                    Toast.makeText(this, "模型 ID cannotforNull", Toast.LENGTH_SHORT).show()
+                    return@setPositivebutton
                 }
-                val modelName = etModelName.text?.toString()?.trim()?.takeIf { it.isNotBlank() } ?: modelId
-                val ctxWindow = etContextWindow.text?.toString()?.toIntOrNull() ?: 200000
+                val modelName = etmodelName.text?.toString()?.trim()?.takeif { it.isnotBlank() } ?: modelId
+                val ctxWindow = etcontextWindow.text?.toString()?.tointorNull() ?: 200000
 
-                val newModel = PresetModel(
+                val newmodel = Presetmodel(
                     id = modelId,
                     name = modelName,
                     contextWindow = ctxWindow,
                     maxTokens = 8192
                 )
-                discoveredModels.add(newModel)
+                discoveredmodels.a(newmodel)
 
-                val provider = selectedProvider ?: return@setPositiveButton
-                val allModels = provider.presetModels + discoveredModels.filter { m ->
-                    provider.presetModels.none { it.id == m.id }
+                val provider = selectedprovider ?: return@setPositivebutton
+                val allmodels = provider.presetmodels + discoveredmodels.filter { m ->
+                    provider.presetmodels.none { it.id == m.id }
                 }
-                selectedModelId = modelId
-                buildModelRadioGroup(allModels)
+                selectedmodelId = modelId
+                buildmodelRadioGroup(allmodels)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativebutton("cancel", null)
             .show()
     }
 
     // ========== Save ==========
 
-    private fun saveProviderConfig(provider: ProviderDefinition) {
+    private fun saveproviderconfig(provider: providerDefinition) {
         val apiKey = binding.etApiKey.text?.toString()?.trim()
 
-        // Validate
-        if (provider.keyRequired && apiKey.isNullOrBlank()) {
-            binding.tilApiKey.error = "请Input API Key"
+        // validation
+        if (provider.keyRequired && apiKey.isNullorBlank()) {
+            binding.tilApiKey.error = "pleaseInput API Key"
             return
         }
         binding.tilApiKey.error = null
 
         // Resolve model ID
         val modelId = if (provider.id == "custom" && advancedExpanded) {
-            binding.etCustomModelId.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
-                ?: selectedModelId
+            binding.etCustommodelId.text?.toString()?.trim()?.takeif { it.isnotBlank() }
+                ?: selectedmodelId
         } else {
-            selectedModelId
+            selectedmodelId
         }
 
-        if (modelId.isNullOrBlank()) {
-            Toast.makeText(this, "请choose或Input模型", Toast.LENGTH_SHORT).show()
+        if (modelId.isNullorBlank()) {
+            Toast.makeText(this, "pleasechooseorInput模型", Toast.LENGTH_SHORT).show()
             return
         }
 
         // Resolve advanced params
         val customBaseUrl = if (advancedExpanded) {
-            binding.etBaseUrl.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+            binding.etBaseUrl.text?.toString()?.trim()?.takeif { it.isnotBlank() }
         } else null
 
         val customApiType = if (advancedExpanded) {
             val selectedLabel = binding.dropdownApiType.text?.toString()
-            ProviderRegistry.CUSTOM_API_TYPES.find { it.second == selectedLabel }?.first
+            providerRegistry.CUSTOM_API_TYPES.find { it.second == selectedLabel }?.first
         } else null
 
         // Resolve selected models for this provider
-        val selectedModels = if (provider.id == "custom") {
-            listOf(PresetModel(id = modelId, name = modelId))
+        val selectedmodels = if (provider.id == "custom") {
+            listOf(Presetmodel(id = modelId, name = modelId))
         } else {
-            val allAvailable = provider.presetModels + discoveredModels
+            val allAvailable = provider.presetmodels + discoveredmodels
             allAvailable.filter { it.id == modelId }
-                .ifEmpty { listOf(PresetModel(id = modelId, name = modelId)) }
+                .ifEmpty { listOf(Presetmodel(id = modelId, name = modelId)) }
         }
 
         try {
             // Build new provider config
-            val providerConfig = ProviderRegistry.buildProviderConfig(
+            val providerconfig = providerRegistry.buildproviderconfig(
                 definition = provider,
                 apiKey = apiKey,
                 baseUrl = customBaseUrl,
                 apiType = customApiType,
-                selectedModels = selectedModels
+                selectedmodels = selectedmodels
             )
 
             // Load and merge config
-            val config = configLoader.loadOpenClawConfig()
-            val existingProviders = config.models?.providers?.toMutableMap() ?: mutableMapOf()
+            val config = configLoader.loadOpenClawconfig()
+            val existingproviders = config.models?.providers?.toMutableMap() ?: mutableMapOf()
 
             // Determine the provider key to use
             val providerKey = if (provider.id == "custom") {
-                // For custom, use user-defined ID or fallback to "custom"
-                val customProviderId = binding.etCustomModelId.text?.toString()?.trim()
-                    ?.split("/")?.firstOrNull()?.takeIf { it.isNotBlank() }
-                customProviderId ?: "custom"
+                // for custom, use user-defined ID or fallback to "custom"
+                val customproviderId = binding.etCustommodelId.text?.toString()?.trim()
+                    ?.split("/")?.firstorNull()?.takeif { it.isnotBlank() }
+                customproviderId ?: "custom"
             } else {
                 provider.id
             }
 
-            existingProviders[providerKey] = providerConfig
+            existingproviders[providerKey] = providerconfig
 
             // Update model ref
-            val modelRef = ProviderRegistry.buildModelRef(providerKey, modelId)
-            val currentAgents = config.agents ?: AgentsConfig()
-            val updatedAgents = currentAgents.copy(
-                defaults = currentAgents.defaults.copy(
-                    model = ModelSelectionConfig(primary = modelRef)
+            val modelRef = providerRegistry.buildmodelRef(providerKey, modelId)
+            val currentagents = config.agents ?: agentsconfig()
+            val updatedagents = currentagents.copy(
+                defaults = currentagents.defaults.copy(
+                    model = modelSelectionconfig(primary = modelRef)
                 )
             )
 
-            val updatedConfig = config.copy(
-                models = (config.models ?: ModelsConfig()).copy(
-                    providers = existingProviders
+            val updatedconfig = config.copy(
+                models = (config.models ?: modelsconfig()).copy(
+                    providers = existingproviders
                 ),
-                agents = updatedAgents
+                agents = updatedagents
             )
 
-            configLoader.saveOpenClawConfig(updatedConfig)
+            configLoader.saveOpenClawconfig(updatedconfig)
 
-            Toast.makeText(this, "✅ 已Save: $modelRef", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "[OK] alreadySave: $modelRef", Toast.LENGTH_SHORT).show()
             Log.i(TAG, "Saved provider=$providerKey model=$modelRef")
 
             // Return to list or finish
             setresult(RESULT_OK)
             finish()
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to save config", e)
             Toast.makeText(this, "SaveFailed: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
-    override fun onBackPressed() {
-        if (binding.pageProviderDetail.visibility == View.VISIBLE) {
+    override fun onbackPressed() {
+        if (binding.pageproviderDetail.visibility == View.VISIBLE) {
             showPage1()
         } else {
-            super.onBackPressed()
+            super.onbackPressed()
         }
     }
 }

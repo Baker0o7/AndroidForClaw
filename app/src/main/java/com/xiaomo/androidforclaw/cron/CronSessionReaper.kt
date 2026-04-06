@@ -3,9 +3,9 @@ package com.xiaomo.androidforclaw.cron
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/cron/session-reaper.ts
- *   (sweepCronRunSessions, resolveRetentionMs, DEFAULT_RETENTION_MS, MIN_SWEEP_INTERVAL_MS)
+ *   (sweepCronRunsessions, resolveRetentionMs, DEFAULT_RETENTION_MS, MIN_SWEEP_INTERVAL_MS)
  *
- * AndroidForClaw adaptation: prune expired cron run sessions from session store.
+ * androidforClaw adaptation: prune expired cron run sessions from session store.
  * Prevents unbounded growth of cron session files.
  */
 
@@ -13,12 +13,12 @@ import com.xiaomo.androidforclaw.logging.Log
 import java.io.File
 
 /**
- * CronSessionReaper — Prune expired cron run sessions.
+ * CronsessionReaper — Prune expired cron run sessions.
  * Aligned with OpenClaw cron/session-reaper.ts.
  */
-object CronSessionReaper {
+object CronsessionReaper {
 
-    private const val TAG = "CronSessionReaper"
+    private const val TAG = "CronsessionReaper"
 
     /** Default retention: 24 hours */
     const val DEFAULT_RETENTION_MS = 24 * 3_600_000L
@@ -62,7 +62,7 @@ object CronSessionReaper {
 
     /**
      * Sweep expired cron run sessions.
-     * Aligned with OpenClaw sweepCronRunSessions.
+     * Aligned with OpenClaw sweepCronRunsessions.
      *
      * Self-throttles to once per MIN_SWEEP_INTERVAL_MS.
      */
@@ -88,19 +88,19 @@ object CronSessionReaper {
 
         // Scan session files for cron run patterns
         val sessionFiles = sessionsDir.listFiles { f ->
-            f.isFile && f.name.endsWith(".jsonl") && f.lastModified() < cutoff
+            f.isFile && f.name.endswith(".jsonl") && f.lastModified() < cutoff
         } ?: emptyArray()
 
         for (file in sessionFiles) {
             // Check if file name matches cron run pattern
-            val name = file.nameWithoutExtension
+            val name = file.namewithoutExtension
             if (CRON_RUN_KEY_PATTERN.containsMatchIn(name)) {
                 try {
                     file.delete()
                     pruned++
                     // Also delete associated lock file
                     File(file.absolutePath + ".lock").delete()
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     Log.w(TAG, "Failed to delete cron session file: ${file.name}: ${e.message}")
                 }
             }
@@ -127,7 +127,7 @@ object CronSessionReaper {
      */
     private fun parseDuration(str: String): Long? {
         val match = Regex("^(\\d+)([hdms])$", RegexOption.IGNORE_CASE).find(str.trim()) ?: return null
-        val value = match.groupValues[1].toLongOrNull() ?: return null
+        val value = match.groupValues[1].toLongorNull() ?: return null
         return when (match.groupValues[2].lowercase()) {
             "h" -> value * 3_600_000
             "d" -> value * 86_400_000

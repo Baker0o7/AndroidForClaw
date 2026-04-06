@@ -3,37 +3,37 @@
  * - ../openclaw/src/agents/tools/sessions-list-tool.ts
  * - ../openclaw/src/agents/subagent-control.ts (buildSubagentList)
  *
- * AndroidForClaw adaptation: LLM-facing tool to list subagent runs.
- * Format aligned with OpenClaw buildSubagentList.
+ * androidforClaw adaptation: LLM-facing tool to list subagent runs.
+ * format aligned with OpenClaw buildSubagentList.
  */
 package com.xiaomo.androidforclaw.agent.tools
 
 import android.util.Log
-import com.xiaomo.androidforclaw.agent.subagent.SessionVisibilityGuard
+import com.xiaomo.androidforclaw.agent.subagent.sessionVisibilityGuard
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRunStatus
 import com.xiaomo.androidforclaw.agent.subagent.isActiveSubagentRun
 import com.xiaomo.androidforclaw.agent.subagent.resolveSubagentLabel
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
  * sessions_list — List active and recent subagent runs.
  * Aligned with OpenClaw buildSubagentList ordering and formatting.
  */
-class SessionsListTool(
+class sessionsListtool(
     private val registry: SubagentRegistry,
-    private val parentSessionKey: String,
-) : Tool {
+    private val parentsessionKey: String,
+) : tool {
 
     companion object {
-        private const val TAG = "SessionsListTool"
+        private const val TAG = "sessionsListtool"
 
         private val VALID_KINDS = setOf("subagent", "cron", "main", "group", "hook", "other")
 
-        /** Format duration compactly (aligned with OpenClaw formatDurationCompact) */
+        /** format duration compactly (aligned with OpenClaw formatDurationCompact) */
         fun formatDurationCompact(ms: Long): String {
             return when {
                 ms < 1000 -> "${ms}ms"
@@ -47,38 +47,38 @@ class SessionsListTool(
     override val name = "sessions_list"
     override val description = "List active and recent subagent runs spawned by this session."
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "status" to PropertySchema(
+                        "status" to Propertyschema(
                             type = "string",
                             description = "Filter: 'active' (running only) or 'all' (including completed). Default: 'all'.",
                             enum = listOf("active", "all")
                         ),
-                        "kinds" to PropertySchema(
+                        "kinds" to Propertyschema(
                             type = "array",
                             description = "Filter by session kinds: 'subagent', 'cron', 'main', 'group', 'hook', 'other'. Default: all.",
-                            items = PropertySchema(
+                            items = Propertyschema(
                                 type = "string",
-                                description = "Session kind",
+                                description = "session kind",
                                 enum = VALID_KINDS.toList()
                             )
                         ),
-                        "limit" to PropertySchema(
+                        "limit" to Propertyschema(
                             type = "number",
                             description = "Maximum number of sessions to return. Default: 50."
                         ),
-                        "active_minutes" to PropertySchema(
+                        "active_minutes" to Propertyschema(
                             type = "number",
                             description = "Only show sessions active within the last N minutes. Default: 30."
                         ),
-                        "message_limit" to PropertySchema(
+                        "message_limit" to Propertyschema(
                             type = "number",
                             description = "Number of recent messages to include per session (0-20). Default: 0."
                         )
@@ -89,16 +89,16 @@ class SessionsListTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): toolResult {
         val statusFilter = (args["status"] as? String)?.lowercase() ?: "all"
 
         // Parse kinds filter
         val kindsRaw = args["kinds"]
         val kindsFilter: Set<String>? = when (kindsRaw) {
             is List<*> -> {
-                val parsed = kindsRaw.mapNotNull { (it as? String)?.lowercase() }
+                val parsed = kindsRaw.mapnotNull { (it as? String)?.lowercase() }
                     .filter { it in VALID_KINDS }
-                if (parsed.isNotEmpty()) parsed.toSet() else null
+                if (parsed.isnotEmpty()) parsed.toSet() else null
             }
             else -> null
         }
@@ -127,12 +127,12 @@ class SessionsListTool(
         val cutoffMs = System.currentTimeMillis() - activeMinutes * 60_000L
 
         // Visibility guard (aligned with OpenClaw controlScope filtering)
-        val visibility = SessionVisibilityGuard.resolveVisibility(parentSessionKey, registry)
+        val visibility = sessionVisibilityGuard.resolveVisibility(parentsessionKey, registry)
 
-        // Use indexed list (active first, then recent) — aligned with OpenClaw
-        var runs = SessionVisibilityGuard.filterVisible(
-            parentSessionKey,
-            registry.buildIndexedList(parentSessionKey),
+        // use indexed list (active first, then recent) — aligned with OpenClaw
+        var runs = sessionVisibilityGuard.filterVisible(
+            parentsessionKey,
+            registry.buildIndexedList(parentsessionKey),
             visibility,
             registry,
         )
@@ -145,7 +145,7 @@ class SessionsListTool(
         // Filter by kinds (match session key pattern e.g. ":subagent:", ":cron:", etc.)
         if (kindsFilter != null) {
             runs = runs.filter { record ->
-                val key = record.childSessionKey.lowercase()
+                val key = record.childsessionKey.lowercase()
                 kindsFilter.any { kind -> ":$kind:" in key }
             }
         }
@@ -165,7 +165,7 @@ class SessionsListTool(
         runs = runs.take(limit)
 
         if (runs.isEmpty()) {
-            return ToolResult(
+            return toolResult(
                 success = true,
                 content = "No subagent runs found (filter: status=$statusFilter, kinds=${kindsFilter ?: "all"}, active_minutes=$activeMinutes).",
             )
@@ -176,13 +176,13 @@ class SessionsListTool(
             val active = runs.filter { it.isActive }
             val recent = runs.filter { !it.isActive }
 
-            if (active.isNotEmpty() || statusFilter == "all") {
+            if (active.isnotEmpty() || statusFilter == "all") {
                 appendLine("Active subagents:")
                 if (active.isEmpty()) {
                     appendLine("  (none)")
                 } else {
                     for ((i, run) in active.withIndex()) {
-                        val pendingChildren = registry.countPendingDescendantRuns(run.childSessionKey)
+                        val pendingChildren = registry.countPendingDescendantRuns(run.childsessionKey)
                         val status = if (pendingChildren > 0) {
                             "active (waiting on $pendingChildren children)"
                         } else {
@@ -198,7 +198,7 @@ class SessionsListTool(
                 appendLine()
             }
 
-            if (recent.isNotEmpty() && statusFilter != "active") {
+            if (recent.isnotEmpty() && statusFilter != "active") {
                 appendLine("Recent (completed):")
                 val offset = active.size
                 for ((i, run) in recent.withIndex()) {
@@ -217,6 +217,6 @@ class SessionsListTool(
             }
         }.trimEnd()
 
-        return ToolResult(success = true, content = text)
+        return toolResult(success = true, content = text)
     }
 }

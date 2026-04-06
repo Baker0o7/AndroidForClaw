@@ -21,7 +21,7 @@ data class TermuxStatus(
         get() = termuxInstalled && sshReachable && sshAuthOk && lastStep == TermuxSetupStep.READY
 }
 
-object TermuxStatusFormatter {
+object TermuxStatusformatter {
     fun fallbackMessage(status: TermuxStatus): String {
         return when (status.lastStep) {
             TermuxSetupStep.TERMUX_NOT_INSTALLED -> "Termux is not installed."

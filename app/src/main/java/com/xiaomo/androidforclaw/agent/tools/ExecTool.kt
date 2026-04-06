@@ -4,55 +4,55 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/bash-tools.exec.ts
  *
- * AndroidForClaw adaptation: agent tool implementation.
+ * androidforClaw adaptation: agent tool implementation.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import kotlinx.coroutines.withTimeout
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 /**
- * Exec Tool - Execute shell commands
- * Reference: nanobot's ExecTool
+ * Exec tool - Execute shell commands
+ * Reference: nanobot's Exectool
  */
-class ExecTool(
+class Exectool(
     private val timeout: Long = 60000L, // 60 seconds
     private val workingDir: String? = null
-) : Tool {
+) : tool {
     companion object {
-        private const val TAG = "ExecTool"
+        private const val TAG = "Exectool"
 
         // Dangerous commands blacklist
         private val DENY_PATTERNS = listOf(
             Regex("""\brm\s+-[rf]{1,2}\b"""),           // rm -r, rm -rf
             Regex("""\bformat\b"""),                    // format
             Regex("""\b(shutdown|reboot|poweroff)\b"""), // system power
-            Regex("""\bdd\s+if="""),                    // dd command
+            Regex("""\b\s+if="""),                    //  command
         )
     }
 
     override val name = "exec"
-    override val description = "Run shell commands (Android built-in only: ls, cat, grep, find, getprop)"
+    override val description = "Run shell commands (android built-in only: ls, cat, grep, find, getprop)"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "command" to PropertySchema("string", "要执Row的 shell 命令"),
-                        "working_dir" to PropertySchema("string", "Optional的工作目录")
+                        "command" to Propertyschema("string", "needexecution shell 命令"),
+                        "working_dir" to Propertyschema("string", "Optional工作directory")
                     ),
                     required = listOf("command")
                 )
@@ -60,22 +60,22 @@ class ExecTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val command = args["command"] as? String
         val workDir = args["working_dir"] as? String ?: workingDir
 
         if (command == null) {
-            return Toolresult.error("Missing required parameter: command")
+            return toolresult.error("Missing required parameter: command")
         }
 
         // Safety check
         val guardError = guardCommand(command)
         if (guardError != null) {
-            return Toolresult.error(guardError)
+            return toolresult.error(guardError)
         }
 
         Log.d(TAG, "Executing command: $command")
-        return withContext(Dispatchers.IO) {
+        return withcontext(Dispatchers.IO) {
             try {
                 val processBuilder = ProcessBuilder()
                 if (workDir != null) {
@@ -96,10 +96,10 @@ class ExecTool(
 
                 // Wait with real process timeout (blocking IO immune to coroutine cancellation)
                 val timeoutSec = (timeout / 1000).coerceAtLeast(5)
-                val finished = process.waitFor(timeoutSec, java.util.concurrent.TimeUnit.SECONDS)
+                val finished = process.waitfor(timeoutSec, java.util.concurrent.TimeUnit.SECONDS)
                 if (!finished) {
-                    process.destroyForcibly()
-                    return@withContext Toolresult.error("Command timed out after ${timeoutSec}s")
+                    process.destroyforcibly()
+                    return@withcontext toolresult.error("Command timed out after ${timeoutSec}s")
                 }
 
                 val result = run {
@@ -109,15 +109,15 @@ class ExecTool(
                     val exitCode = process.exitValue()
 
                     val rendered = buildString {
-                        if (stdout.isNotEmpty()) {
+                        if (stdout.isnotEmpty()) {
                             append(stdout)
                         }
-                        if (stderr.isNotEmpty()) {
-                            if (isNotEmpty()) append("\n")
+                        if (stderr.isnotEmpty()) {
+                            if (isnotEmpty()) append("\n")
                             append("STDERR:\n$stderr")
                         }
                         if (exitCode != 0) {
-                            if (isNotEmpty()) append("\n")
+                            if (isnotEmpty()) append("\n")
                             append("Exit code: $exitCode")
                         }
                     }.ifEmpty { "(no output)" }
@@ -144,7 +144,7 @@ class ExecTool(
                     rendered
                 }
 
-                Toolresult.success(
+                toolresult.success(
                     finalresult,
                     metadata = mapOf(
                         "backend" to "android-internal",
@@ -155,11 +155,11 @@ class ExecTool(
                         "command" to command
                     )
                 )
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                Toolresult.error("Command timed out after ${timeout}ms")
-            } catch (e: Exception) {
+            } catch (e: kotlinx.coroutines.Timeoutcancellationexception) {
+                toolresult.error("Command timed out after ${timeout}ms")
+            } catch (e: exception) {
                 Log.e(TAG, "Command execution failed", e)
-                Toolresult.error("Command execution failed: ${e.message}")
+                toolresult.error("Command execution failed: ${e.message}")
             }
         }
     }

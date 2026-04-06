@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.providers
  * - ../openclaw/src/agents/auth-profiles/usage.ts
  * - ../openclaw/src/agents/auth-profiles/order.ts
  *
- * AndroidForClaw adaptation: multi-provider credential profile management.
+ * androidforClaw adaptation: multi-provider credential profile management.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
@@ -111,7 +111,7 @@ enum class TokenExpiryState {
  * Aligned with OpenClaw ProfileUsageStats.
  */
 data class ProfileUsageStats(
-    var lastUsed: Long? = null,
+    var lastused: Long? = null,
     var cooldownUntil: Long? = null,
     var disabledUntil: Long? = null,
     var disabledReason: AuthProfileFailureReason? = null,
@@ -165,7 +165,7 @@ object AuthProfiles {
             try {
                 store = gson.fromJson(file.readText(), AuthProfileStore::class.java) ?: AuthProfileStore()
                 Log.d(TAG, "Loaded ${store.profiles.size} auth profiles")
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Failed to load auth profiles: ${e.message}")
                 store = AuthProfileStore()
             }
@@ -176,7 +176,7 @@ object AuthProfiles {
         val file = File(workspaceDir, AUTH_PROFILE_FILENAME)
         try {
             file.writeText(gson.toJson(store))
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to save auth profiles: ${e.message}")
         }
     }
@@ -188,7 +188,7 @@ object AuthProfiles {
         Log.d(TAG, "Upserted profile: $profileId (provider=${credential.provider})")
     }
 
-    fun listForProvider(provider: String): List<String> {
+    fun listforprovider(provider: String): List<String> {
         return store.profiles.entries
             .filter { it.value.provider.equals(provider, ignoreCase = true) }
             .map { it.key }
@@ -206,13 +206,13 @@ object AuthProfiles {
 
     fun markGood(provider: String, profileId: String) {
         store.lastGood[provider] = profileId
-        val stats = getOrCreateStats(profileId)
-        stats.lastUsed = System.currentTimeMillis()
+        val stats = getorCreateStats(profileId)
+        stats.lastused = System.currentTimeMillis()
         stats.errorCount = 0
     }
 
     fun recordFailure(profileId: String, reason: AuthProfileFailureReason) {
-        val stats = getOrCreateStats(profileId)
+        val stats = getorCreateStats(profileId)
         stats.errorCount++
         stats.lastFailureAt = System.currentTimeMillis()
         stats.failureCounts[reason.name] = (stats.failureCounts[reason.name] ?: 0) + 1
@@ -240,7 +240,7 @@ object AuthProfiles {
         Log.d(TAG, "Profile $profileId failure recorded: $reason (errors=${stats.errorCount})")
     }
 
-    fun isCoolingDown(profileId: String): Boolean {
+    fun isCoolingnext(profileId: String): Boolean {
         val stats = runtimeStats[profileId] ?: return false
         val now = System.currentTimeMillis()
 
@@ -274,17 +274,17 @@ object AuthProfiles {
         }
     }
 
-    // ── Ordering ──
+    // ── ordering ──
 
-    fun resolveOrder(provider: String): List<String> {
-        val customOrder = store.order[provider]
-        if (!customOrder.isNullOrEmpty()) {
-            return customOrder.filter { !isCoolingDown(it) }
+    fun resolveorder(provider: String): List<String> {
+        val customorder = store.order[provider]
+        if (!customorder.isNullorEmpty()) {
+            return customorder.filter { !isCoolingnext(it) }
         }
 
-        val all = listForProvider(provider)
+        val all = listforprovider(provider)
         val lastGood = store.lastGood[provider]
-        val available = all.filter { !isCoolingDown(it) }
+        val available = all.filter { !isCoolingnext(it) }
 
         return if (lastGood != null && lastGood in available) {
             listOf(lastGood) + available.filter { it != lastGood }
@@ -293,8 +293,8 @@ object AuthProfiles {
         }
     }
 
-    fun setOrder(provider: String, order: List<String>?) {
-        if (order.isNullOrEmpty()) {
+    fun setorder(provider: String, order: List<String>?) {
+        if (order.isNullorEmpty()) {
             store.order.remove(provider)
         } else {
             store.order[provider] = order.toMutableList()
@@ -323,14 +323,14 @@ object AuthProfiles {
     ): CredentialEligibility {
         return when (credential) {
             is AuthProfileCredential.ApiKey -> {
-                if (credential.key.isNullOrBlank() && credential.keyRef == null) {
+                if (credential.key.isNullorBlank() && credential.keyRef == null) {
                     CredentialEligibility(false, AuthCredentialReasonCode.MISSING_CREDENTIAL)
                 } else {
                     CredentialEligibility(true, AuthCredentialReasonCode.OK)
                 }
             }
             is AuthProfileCredential.Token -> {
-                if (credential.token.isNullOrBlank() && credential.tokenRef == null) {
+                if (credential.token.isNullorBlank() && credential.tokenRef == null) {
                     return CredentialEligibility(false, AuthCredentialReasonCode.MISSING_CREDENTIAL)
                 }
                 when (resolveTokenExpiryState(credential.expires, now)) {
@@ -340,7 +340,7 @@ object AuthProfiles {
                 }
             }
             is AuthProfileCredential.OAuth -> {
-                if (credential.accessToken.isNullOrBlank() && credential.refreshToken.isNullOrBlank()) {
+                if (credential.accessToken.isNullorBlank() && credential.refreshToken.isNullorBlank()) {
                     CredentialEligibility(false, AuthCredentialReasonCode.MISSING_CREDENTIAL)
                 } else {
                     CredentialEligibility(true, AuthCredentialReasonCode.OK)
@@ -351,7 +351,7 @@ object AuthProfiles {
 
     fun profileCount(): Int = store.profiles.size
 
-    private fun getOrCreateStats(profileId: String): ProfileUsageStats {
-        return runtimeStats.getOrPut(profileId) { ProfileUsageStats() }
+    private fun getorCreateStats(profileId: String): ProfileUsageStats {
+        return runtimeStats.getorPut(profileId) { ProfileUsageStats() }
     }
 }

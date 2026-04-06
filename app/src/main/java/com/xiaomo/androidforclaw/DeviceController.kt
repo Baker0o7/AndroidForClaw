@@ -1,11 +1,11 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw
 
-import android.accessibilityservice.AccessibilityService
-import android.content.Context
+import android.accessibilityservice.Accessibilityservice
+import android.content.context
 import android.graphics.Bitmap
 import android.provider.Settings
 import com.xiaomo.androidforclaw.logging.Log
@@ -24,8 +24,8 @@ object DeviceController {
 
 
     /** Capture a screenshot of the device via AccessibilityProxy */
-    val workPath = "/sdcard/Download/agent/"
-    fun getScreenshot(context: Context): Pair<Bitmap, String>? {
+    val workPath = "/sdcard/nextload/agent/"
+    fun getScreenshot(context: context): Pair<Bitmap, String>? {
         return runBlocking {
             try {
                 val uriString = AccessibilityProxy.captureScreen()
@@ -36,18 +36,18 @@ object DeviceController {
 
                 Log.d(TAG, "Got screenshot URI: $uriString")
 
-                // Try作为 Content URI Decode
+                // Try作for Content URI Decode
                 val bitmap = try {
-                    if (uriString.startsWith("content://")) {
+                    if (uriString.startswith("content://")) {
                         val uri = android.net.Uri.parse(uriString)
                         context.contentResolver.openInputStream(uri)?.use { inputStream ->
                             BitmapFactory.decodeStream(inputStream)
                         }
                     } else {
-                        // Fallback到File path
+                        // FallbacktoFile path
                         BitmapFactory.decodeFile(uriString)
                     }
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     Log.e(TAG, "Failed to decode from URI/path: $uriString", e)
                     null
                 }
@@ -55,49 +55,49 @@ object DeviceController {
                 if (bitmap != null) {
                     Pair(bitmap, uriString)
                 } else {
-                    Log.e(TAG, "CannotDecodeScreenshot: $uriString")
+                    Log.e(TAG, "cannotDecodeScreenshot: $uriString")
                     null
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Screenshot failed", e)
                 null
             }
         }
     }
 
-    // Check当FrontEnabledd的Input methodYesNoYes ADB Keyboard
-    fun isClawKeyboardActive(context: Context): Boolean {
+    // CheckwhenFrontEnableInput methodwhetherYes ADB Keyboard
+    fun isClawKeyboardActive(context: context): Boolean {
         val currentInputMethod = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.DEFAULT_INPUT_METHOD
         )
-        // 3. CheckADBInput methodYesNo在EnableddList中
+        // 3. CheckADBInput methodwhetherinEnableList中
         val adbInputMethodName =
-            "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME" // ADBInput method的Name, according to实际情况Modify
+            "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME" // ADBInput methodName, according to实际情况Modify
         return currentInputMethod == adbInputMethodName || currentInputMethod.contains("adbkeyboard")
     }
 
-    // Check当FrontFocusYesNo在Input fieldUp
-    fun findFocusedEditText(service: AccessibilityService): AccessibilityNodeInfo? {
+    // CheckwhenFrontFocuswhetherinInput fieldUp
+    fun findFocusedEditText(service: Accessibilityservice): AccessibilityNodeInfo? {
         val rootNode = service.rootInActiveWindow ?: return null
         return rootNode.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
     }
 
 
-    // 综合Check: YesNo ADB Key盘 + Focus在Input field
-    fun isAdbKeyboardVisible(service: AccessibilityService, context: Context): Boolean {
+    // 综合Check: whether ADB Key盘 + FocusinInput field
+    fun isAdbKeyboardVisible(service: Accessibilityservice, context: context): Boolean {
         val focusedNode = findFocusedEditText(service)
         val isClawIme = isClawKeyboardActive(context)
-        Log.d("ADBKey盘Check", "YesNoFocus在EditText: ${focusedNode != null}")
+        Log.d("ADBKey盘Check", "whetherFocusinEditText: ${focusedNode != null}")
         return focusedNode != null && isClawIme
     }
 
 
-    // todo 截屏和抓tree 放到一起 delayMerge到一起
-    fun detectIcons(context: Context): Pair<List<ViewNode>, List<ViewNode>>? {
-        // CheckAccessibilityServiceYesNoConnect
-        if (!AccessibilityProxy.isServiceReady()) {
-            Log.w(TAG, "AccessibilityService未Ready")
+    // todo 截屏and抓tree 放tooneup delayMergetooneup
+    fun detectIcons(context: context): Pair<List<ViewNode>, List<ViewNode>>? {
+        // CheckAccessibilityservicewhetherConnect
+        if (!AccessibilityProxy.isserviceReady()) {
+            Log.w(TAG, "AccessibilityservicenotReady")
             return null
         }
 
@@ -106,7 +106,7 @@ object DeviceController {
                 Log.d(TAG, "detectIcons: dumpView via AIDL")
                 var dumpView = AccessibilityProxy.dumpViewTree(useCache = false)
 
-                // most多Retry 3 次
+                // mostmanyretry 3 times
                 var retryCount = 0
                 while (dumpView.isEmpty() && retryCount < 3) {
                     Log.d(TAG, "detectIcons: retry $retryCount")
@@ -116,18 +116,18 @@ object DeviceController {
                 }
 
                 if (dumpView.isEmpty()) {
-                    Log.w(TAG, "CannotGet UI Tree(已Retry $retryCount 次)")
+                    Log.w(TAG, "cannotGet UI Tree(alreadyretry $retryCount times)")
                     return@runBlocking null
                 }
 
-                // Clone原始Data
+                // CloneoriginalData
                 val originalNodes = dumpView.map { it.copy() }
 
-                // 经过完整Process的Data
+                // 经over完整ProcessData
                 val processedNodes = processHierarchy(dumpView)
 
                 Pair(originalNodes, processedNodes)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Get UI TreeFailed", e)
                 null
             }
@@ -142,9 +142,9 @@ object DeviceController {
      */
     fun removeEmptyNodes(nodes: List<ViewNode>): List<ViewNode> {
         return nodes.filter {
-            !it.text.isNullOrEmpty() ||
-            !it.contentDesc.isNullOrEmpty() ||
-            !it.resourceId.isNullOrEmpty() ||
+            !it.text.isNullorEmpty() ||
+            !it.contentDesc.isNullorEmpty() ||
+            !it.resourceId.isNullorEmpty() ||
             it.clickable ||
             it.scrollable
         }
@@ -154,15 +154,15 @@ object DeviceController {
         val seenKeys = mutableSetOf<String>()
         val result = mutableListOf<ViewNode>()
         nodes.forEach { node ->
-            // Use text+coords as dedup key, not just text
+            // use text+coords as dedup key, not just text
             val label = node.text ?: node.contentDesc ?: node.resourceId ?: ""
             val key = "${label}@${node.point.x},${node.point.y}"
             if (key !in seenKeys) {
-                seenKeys.add(key)
-                result.add(node)
+                seenKeys.a(key)
+                result.a(node)
             } else if (node.clickable) {
                 // Keep clickable duplicates (e.g., list items with same text)
-                result.add(node)
+                result.a(node)
             }
         }
         return result
@@ -199,13 +199,13 @@ object DeviceController {
     }
 
     /** Input text into the currently focused element (e.g., an input box). */
-    fun inputText(text: String, context: Context) {
+    fun inputText(text: String, context: context) {
         AccessibilityProxy.inputText(text)
     }
 
-    /** Simulate a Back button press. */
-    fun pressBack() {
-        AccessibilityProxy.pressBack()
+    /** Simulate a back button press. */
+    fun pressback() {
+        AccessibilityProxy.pressback()
     }
 
     /** Return to the Home screen. */
@@ -213,6 +213,6 @@ object DeviceController {
         AccessibilityProxy.pressHome()
     }
 
-    // 已移除ADBDependency, 不再提供shell命令执Row
+    // alreadyremoveADBDependency, not再提供shell命令execution
 
 }

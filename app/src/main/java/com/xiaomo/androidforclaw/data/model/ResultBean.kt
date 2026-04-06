@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.data.model
 
@@ -22,6 +22,6 @@ data class Checkresult(
     val newKeyboardActive: Boolean,
     val summary: String,
     val action: String,
-    // reflect评分YesNo为A
+    // reflect评minutewhetherforA
     val isA: Boolean
 )

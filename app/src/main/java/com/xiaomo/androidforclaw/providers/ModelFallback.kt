@@ -1,20 +1,20 @@
 package com.xiaomo.androidforclaw.providers
 
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.config.OpenClawConfig
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.config.OpenClawconfig
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/model-fallback.ts
  *
- * Model fallback chain — iterates through candidate models (primary → configured
- * fallbacks → default) when requests fail with retryable errors. Context overflow
+ * model fallback chain — iterates through candidate models (primary → configured
+ * fallbacks → default) when requests fail with retryable errors. context overflow
  * errors are rethrown immediately (not retried on a different model).
  */
-object ModelFallback {
+object modelFallback {
 
-    private const val TAG = "ModelFallback"
+    private const val TAG = "modelFallback"
 
     /** Per-provider cooldown throttle: 30 seconds between probe attempts */
     private const val MIN_PROBE_INTERVAL_MS = 30_000L
@@ -25,7 +25,7 @@ object ModelFallback {
     /**
      * A model candidate in the fallback chain.
      */
-    data class ModelCandidate(
+    data class modelcandidate(
         val provider: String,
         val model: String
     )
@@ -43,7 +43,7 @@ object ModelFallback {
     /**
      * Result of a successful fallback run.
      */
-    data class ModelFallbackResult<T>(
+    data class modelFallbackResult<T>(
         val result: T,
         val provider: String,
         val model: String,
@@ -54,29 +54,29 @@ object ModelFallback {
      * Run a function with model fallback.
      *
      * Builds an ordered candidate list: primary → configured fallbacks → config default.
-     * Iterates candidates, calling [run] on each. If a candidate fails with a retryable
-     * error, moves to the next. Context overflow errors are rethrown immediately.
+     * iterations candidates, calling [run] on each. if a candidate fails with a retryable
+     * error, moves to the next. context overflow errors are rethrown immediately.
      *
      * @param config OpenClaw configuration (for fallback list)
-     * @param configLoader Config loader (for model resolution)
+     * @param configLoader config loader (for model resolution)
      * @param provider Primary provider name
      * @param model Primary model ID
-     * @param fallbacksOverride Optional explicit fallbacks; replaces config fallbacks when non-null
+     * @param fallbacksoverride Optional explicit fallbacks; replaces config fallbacks when non-null
      * @param run The actual request function (provider, model) -> result
      * @param onError Optional callback on each failed attempt
      */
-    suspend fun <T> runWithModelFallback(
-        config: OpenClawConfig?,
-        configLoader: ConfigLoader,
+    suspend fun <T> runwithmodelFallback(
+        config: OpenClawconfig?,
+        configLoader: configLoader,
         provider: String,
         model: String,
-        fallbacksOverride: List<String>? = null,
+        fallbacksoverride: List<String>? = null,
         run: suspend (provider: String, model: String) -> T,
-        onError: (suspend (provider: String, model: String, error: Exception, attempt: Int, total: Int) -> Unit)? = null
-    ): ModelFallbackResult<T> {
-        val candidates = resolveFallbackCandidates(config, configLoader, provider, model, fallbacksOverride)
+        onError: (suspend (provider: String, model: String, error: exception, attempt: Int, total: Int) -> Unit)? = null
+    ): modelFallbackResult<T> {
+        val candidates = resolveFallbackcandidates(config, configLoader, provider, model, fallbacksoverride)
         val attempts = mutableListOf<FallbackAttempt>()
-        var lastError: Exception? = null
+        var lastError: exception? = null
         val hasFallbacks = candidates.size > 1
 
         for ((i, candidate) in candidates.withIndex()) {
@@ -87,9 +87,9 @@ object ModelFallback {
                 val now = System.currentTimeMillis()
                 val lastProbe = lastProbeAttempt[candidate.provider] ?: 0L
                 if (now - lastProbe < MIN_PROBE_INTERVAL_MS) {
-                    attempts.add(FallbackAttempt(
+                    attempts.a(FallbackAttempt(
                         candidate.provider, candidate.model,
-                        "Provider ${candidate.provider} is in cooldown (throttled)",
+                        "provider ${candidate.provider} is in cooldown (throttled)",
                         reason = "cooldown"
                     ))
                     continue
@@ -102,19 +102,19 @@ object ModelFallback {
                     Log.i(TAG, "Fallback succeeded: ${candidate.provider}/${candidate.model} " +
                         "(after ${attempts.size} failed attempts)")
                 }
-                return ModelFallbackResult(result, candidate.provider, candidate.model, attempts)
-            } catch (e: Exception) {
+                return modelFallbackResult(result, candidate.provider, candidate.model, attempts)
+            } catch (e: exception) {
                 lastError = e
 
-                // Context overflow: rethrow immediately, don't try another model
-                if (isLikelyContextOverflowError(e)) {
-                    Log.w(TAG, "Context overflow on ${candidate.provider}/${candidate.model}, rethrowing")
+                // context overflow: rethrow immediately, don't try another model
+                if (islikelycontextoverflowError(e)) {
+                    Log.w(TAG, "context overflow on ${candidate.provider}/${candidate.model}, rethrowing")
                     throw e
                 }
 
                 // Record the failure
                 val reason = classifyErrorReason(e)
-                attempts.add(FallbackAttempt(
+                attempts.a(FallbackAttempt(
                     candidate.provider, candidate.model,
                     e.message, reason = reason
                 ))
@@ -124,12 +124,12 @@ object ModelFallback {
                     lastProbeAttempt[candidate.provider] = System.currentTimeMillis()
                 }
 
-                // If not retryable and this is the last candidate, rethrow
-                if (!isRetryableForFallback(e) && i == candidates.size - 1) {
+                // if not retryable and this is the last candidate, rethrow
+                if (!isretryableforFallback(e) && i == candidates.size - 1) {
                     throw e
                 }
 
-                Log.w(TAG, "Candidate ${candidate.provider}/${candidate.model} failed " +
+                Log.w(TAG, "candidate ${candidate.provider}/${candidate.model} failed " +
                     "(attempt ${i + 1}/${candidates.size}): ${e.message}")
                 onError?.invoke(candidate.provider, candidate.model, e, i + 1, candidates.size)
             }
@@ -140,54 +140,54 @@ object ModelFallback {
             throw lastError
         }
         val summary = attempts.joinToString(" | ") { "${it.provider}/${it.model}: ${it.error}" }
-        throw LLMException("All models failed (${attempts.size}): $summary", lastError)
+        throw LLMexception("All models failed (${attempts.size}): $summary", lastError)
     }
 
     /**
      * Build the ordered list of fallback candidates.
      */
-    internal fun resolveFallbackCandidates(
-        config: OpenClawConfig?,
-        configLoader: ConfigLoader,
+    internal fun resolveFallbackcandidates(
+        config: OpenClawconfig?,
+        configLoader: configLoader,
         provider: String,
         model: String,
-        fallbacksOverride: List<String>?
-    ): List<ModelCandidate> {
+        fallbacksoverride: List<String>?
+    ): List<modelcandidate> {
         val seen = mutableSetOf<String>()
-        val candidates = mutableListOf<ModelCandidate>()
+        val candidates = mutableListOf<modelcandidate>()
 
-        fun addCandidate(p: String, m: String) {
+        fun acandidate(p: String, m: String) {
             val key = "$p/$m"
             if (key in seen) return
             // Verify the provider+model actually exists in config
-            val providerConfig = configLoader.getProviderConfig(p) ?: return
-            if (providerConfig.models.none { it.id == m }) return
-            seen.add(key)
-            candidates.add(ModelCandidate(p, m))
+            val providerconfig = configLoader.getproviderconfig(p) ?: return
+            if (providerconfig.models.none { it.id == m }) return
+            seen.a(key)
+            candidates.a(modelcandidate(p, m))
         }
 
         // 1. Primary candidate
-        addCandidate(provider, model)
+        acandidate(provider, model)
 
-        // 2. Configured fallbacks (or override)
-        val fallbacks = fallbacksOverride
+        // 2. configured fallbacks (or override)
+        val fallbacks = fallbacksoverride
             ?: config?.agents?.defaults?.model?.fallbacks
             ?: emptyList()
 
         for (raw in fallbacks) {
-            val parsed = parseModelRefString(raw, configLoader)
+            val parsed = parsemodelRefString(raw, configLoader)
             if (parsed != null) {
-                addCandidate(parsed.first, parsed.second)
+                acandidate(parsed.first, parsed.second)
             }
         }
 
-        // 3. Config default model as last resort
-        if (fallbacksOverride == null) {
-            val defaultModel = config?.resolveDefaultModel()
-            if (defaultModel != null) {
-                val parsed = parseModelRefString(defaultModel, configLoader)
+        // 3. config default model as last resort
+        if (fallbacksoverride == null) {
+            val defaultmodel = config?.resolveDefaultmodel()
+            if (defaultmodel != null) {
+                val parsed = parsemodelRefString(defaultmodel, configLoader)
                 if (parsed != null) {
-                    addCandidate(parsed.first, parsed.second)
+                    acandidate(parsed.first, parsed.second)
                 }
             }
         }
@@ -198,7 +198,7 @@ object ModelFallback {
     /**
      * Parse a model reference string ("provider/model" or "model") into (provider, model).
      */
-    internal fun parseModelRefString(ref: String, configLoader: ConfigLoader): Pair<String, String>? {
+    internal fun parsemodelRefString(ref: String, configLoader: configLoader): Pair<String, String>? {
         val trimmed = ref.trim()
         if (trimmed.isEmpty()) return null
 
@@ -207,13 +207,13 @@ object ModelFallback {
         if (parts.size == 2) {
             val p = parts[0].trim()
             val m = parts[1].trim()
-            if (p.isNotEmpty() && m.isNotEmpty()) {
+            if (p.isnotEmpty() && m.isnotEmpty()) {
                 return Pair(p, m)
             }
         }
 
         // Try finding by model ID across all providers
-        val providerName = configLoader.findProviderByModelId(trimmed)
+        val providerName = configLoader.findproviderBymodelId(trimmed)
         if (providerName != null) {
             return Pair(providerName, trimmed)
         }
@@ -224,7 +224,7 @@ object ModelFallback {
     /**
      * Check if an error is likely a context overflow / context length exceeded.
      */
-    internal fun isLikelyContextOverflowError(e: Exception): Boolean {
+    internal fun islikelycontextoverflowError(e: exception): Boolean {
         val msg = e.message?.lowercase() ?: ""
         return msg.contains("context_length_exceeded") ||
             msg.contains("context window") ||
@@ -238,7 +238,7 @@ object ModelFallback {
      * More permissive than the per-request retry — any error that isn't
      * a clear client bug should allow trying the next model.
      */
-    internal fun isRetryableForFallback(e: Exception): Boolean {
+    internal fun isretryableforFallback(e: exception): Boolean {
         val msg = e.message?.lowercase() ?: ""
         return when {
             msg.contains("429") || msg.contains("rate limit") -> true
@@ -256,7 +256,7 @@ object ModelFallback {
     /**
      * Classify an error into a reason category.
      */
-    private fun classifyErrorReason(e: Exception): String {
+    private fun classifyErrorReason(e: exception): String {
         val msg = e.message?.lowercase() ?: ""
         return when {
             msg.contains("429") || msg.contains("rate limit") -> "rate_limit"

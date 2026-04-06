@@ -2,20 +2,20 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/extensions/feishu/.../policy/FeishuPolicy.kt (resolveToolPolicy)
- * - ../openclaw/extensions/discord/.../policy/DiscordPolicy.kt (resolveToolPolicy)
+ * - ../openclaw/extensions/feishu/.../policy/FeishuPolicy.kt (resolvetoolPolicy)
+ * - ../openclaw/extensions/discord/.../policy/DiscordPolicy.kt (resolvetoolPolicy)
  *
- * AndroidForClaw adaptation: centralized tool policy resolution by chat context.
+ * androidforClaw adaptation: centralized tool policy resolution by chat context.
  * Determines which tools are available based on whether the conversation is
  * a private DM or a shared group chat.
  */
 
 /**
- * Tool access policy levels.
+ * tool access policy levels.
  * Aligned with OpenClaw's tool policy concept from channel policies.
  */
-enum class ToolPolicyLevel {
-    /** All tools available (DM / local Android app) */
+enum class toolPolicyLevel {
+    /** All tools available (DM / local android app) */
     FULL,
     /** Sensitive tools blocked (group chats) */
     RESTRICTED,
@@ -24,13 +24,13 @@ enum class ToolPolicyLevel {
 }
 
 /**
- * ToolPolicyResolver — Resolve tool access policy based on chat context.
- * Aligned with OpenClaw resolveToolPolicy.
+ * toolPolicyResolver — Resolve tool access policy based on chat context.
+ * Aligned with OpenClaw resolvetoolPolicy.
  */
-object ToolPolicyResolver {
+object toolPolicyResolver {
 
     /**
-     * Tools restricted in group/shared contexts.
+     * tools restricted in group/shared contexts.
      * These tools access personal data or sensitive configuration that
      * should not be exposed in multi-user environments.
      */
@@ -38,23 +38,23 @@ object ToolPolicyResolver {
         // Memory tools — personal context that should not leak to strangers
         "memory_search",
         "memory_get",
-        // Config tools — may expose API keys, tokens, credentials
+        // config tools — may expose API keys, tokens, credentials
         "config_get",
         "config_set",
     )
 
     /**
      * Resolve tool policy level for a given chat type.
-     * Aligned with OpenClaw resolveToolPolicy.
+     * Aligned with OpenClaw resolvetoolPolicy.
      *
      * @param chatType The chat type string ("p2p"/"direct"/"group"/"channel"/"thread", or null)
-     * @return ToolPolicyLevel determining which tools are available
+     * @return toolPolicyLevel determining which tools are available
      */
-    fun resolveToolPolicy(chatType: String?): ToolPolicyLevel {
+    fun resolvetoolPolicy(chatType: String?): toolPolicyLevel {
         return when (chatType?.lowercase()) {
-            null, "p2p", "direct" -> ToolPolicyLevel.FULL
-            "group", "channel", "thread" -> ToolPolicyLevel.RESTRICTED
-            else -> ToolPolicyLevel.FULL
+            null, "p2p", "direct" -> toolPolicyLevel.FULL
+            "group", "channel", "thread" -> toolPolicyLevel.RESTRICTED
+            else -> toolPolicyLevel.FULL
         }
     }
 
@@ -65,16 +65,16 @@ object ToolPolicyResolver {
      * @param policy The resolved policy level
      * @return true if the tool is allowed
      */
-    fun isToolAllowed(toolName: String, policy: ToolPolicyLevel): Boolean {
+    fun istoolAllowed(toolName: String, policy: toolPolicyLevel): Boolean {
         return when (policy) {
-            ToolPolicyLevel.FULL -> true
-            ToolPolicyLevel.RESTRICTED -> toolName !in GROUP_RESTRICTED_TOOLS
-            ToolPolicyLevel.NONE -> false
+            toolPolicyLevel.FULL -> true
+            toolPolicyLevel.RESTRICTED -> toolName !in GROUP_RESTRICTED_TOOLS
+            toolPolicyLevel.NONE -> false
         }
     }
 
     /**
      * Get the set of restricted tool names (for prompt generation).
      */
-    fun getRestrictedToolNames(): Set<String> = GROUP_RESTRICTED_TOOLS
+    fun getRestrictedtoolNames(): Set<String> = GROUP_RESTRICTED_TOOLS
 }

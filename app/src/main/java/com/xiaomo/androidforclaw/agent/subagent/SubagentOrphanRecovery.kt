@@ -2,8 +2,8 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/subagent-orphan-recovery.ts
  *
- * AndroidForClaw adaptation: orphan recovery for subagent sessions.
- * After a process restart or crash, scans for active subagent runs that have no
+ * androidforClaw adaptation: orphan recovery for subagent sessions.
+ * after a process restart or crash, scans for active subagent runs that have no
  * corresponding Job and sends synthetic resume messages to restart them.
  */
 package com.xiaomo.androidforclaw.agent.subagent
@@ -14,32 +14,32 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Orphan recovery for subagent sessions.
+ * orphan recovery for subagent sessions.
  * Aligned with OpenClaw subagent-orphan-recovery.ts.
  *
  * On app restart, active subagent run records may exist on disk but their
  * coroutine Jobs are gone. This module detects and recovers those orphans.
  */
-object SubagentOrphanRecovery {
+object SubagentorphanRecovery {
 
-    private const val TAG = "SubagentOrphanRecovery"
+    private const val TAG = "SubagentorphanRecovery"
 
     /** Initial delay before first recovery attempt (ms). Aligned with OpenClaw 5s default. */
     private const val INITIAL_DELAY_MS = 5_000L
     /** Maximum number of retry attempts. Aligned with OpenClaw maxRetries=3. */
     private const val MAX_RETRIES = 3
-    /** Backoff multiplier. Aligned with OpenClaw exponential ×2. */
+    /** backoff multiplier. Aligned with OpenClaw exponential ×2. */
     private const val BACKOFF_MULTIPLIER = 2
     /** Maximum task text included in resume message. Aligned with OpenClaw 2000 char truncation. */
     private const val TASK_TRUNCATE_CHARS = 2000
 
     /**
      * Build a resume message for an orphaned subagent.
-     * Aligned with OpenClaw buildResumeMessage (includes lastHumanMessage + configChangeHint).
+     * Aligned with OpenClaw buildresumeMessage (includes lastHumanMessage + configChangeHint).
      *
-     * On Android, "gateway reload" is replaced with "process restart" as the equivalent event.
+     * On android, "gateway reload" is replaced with "process restart" as the equivalent event.
      */
-    fun buildResumeMessage(
+    fun buildresumeMessage(
         task: String,
         lastHumanMessage: String? = null,
         configChangeHint: String? = null,
@@ -54,14 +54,14 @@ object SubagentOrphanRecovery {
             appendLine()
             appendLine(truncatedTask)
             appendLine()
-            if (!lastHumanMessage.isNullOrBlank()) {
+            if (!lastHumanMessage.isNullorBlank()) {
                 appendLine("The last message from the user before the interruption was:")
                 appendLine()
                 appendLine(lastHumanMessage)
                 appendLine()
             }
-            append("Please continue where you left off.")
-            if (!configChangeHint.isNullOrBlank()) {
+            append("please continue where you left off.")
+            if (!configChangeHint.isNullorBlank()) {
                 appendLine()
                 append(configChangeHint)
             }
@@ -74,7 +74,7 @@ object SubagentOrphanRecovery {
      *
      * @return Triple of (recovered, failed, skipped) counts
      */
-    fun recoverOrphanedSubagentSessions(
+    fun recoverorphanedSubagentsessions(
         registry: SubagentRegistry,
         spawner: SubagentSpawner,
     ): Triple<Int, Int, Int> {
@@ -100,7 +100,7 @@ object SubagentOrphanRecovery {
                 // (unlike OpenClaw which can re-dispatch to gateway)
                 val outcome = SubagentRunOutcome(
                     SubagentRunStatus.ERROR,
-                    "Orphaned after process restart"
+                    "orphaned after process restart"
                 )
                 registry.markCompleted(
                     record.runId,
@@ -110,19 +110,19 @@ object SubagentOrphanRecovery {
                 )
                 Log.i(TAG, "Marked orphaned run as error: ${record.runId} (${record.label})")
                 recovered++
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Failed to recover orphan ${record.runId}: ${e.message}")
                 failed++
             }
         }
 
-        Log.i(TAG, "Orphan recovery complete: recovered=$recovered failed=$failed skipped=$skipped")
+        Log.i(TAG, "orphan recovery complete: recovered=$recovered failed=$failed skipped=$skipped")
         return Triple(recovered, failed, skipped)
     }
 
     /**
      * Schedule orphan recovery with exponential backoff retries.
-     * Aligned with OpenClaw scheduleOrphanRecovery.
+     * Aligned with OpenClaw scheduleorphanRecovery.
      *
      * @param scope CoroutineScope for launching recovery
      * @param registry SubagentRegistry to scan
@@ -130,7 +130,7 @@ object SubagentOrphanRecovery {
      * @param delayMs Initial delay before first attempt
      * @param maxRetries Maximum retry attempts
      */
-    fun scheduleOrphanRecovery(
+    fun scheduleorphanRecovery(
         scope: CoroutineScope,
         registry: SubagentRegistry,
         spawner: SubagentSpawner,
@@ -144,20 +144,20 @@ object SubagentOrphanRecovery {
             for (attempt in 0..maxRetries) {
                 delay(currentDelay)
 
-                Log.i(TAG, "Orphan recovery attempt ${attempt + 1}/${maxRetries + 1}")
+                Log.i(TAG, "orphan recovery attempt ${attempt + 1}/${maxRetries + 1}")
 
-                val (recovered, failed, _) = recoverOrphanedSubagentSessions(registry, spawner)
+                val (recovered, failed, _) = recoverorphanedSubagentsessions(registry, spawner)
 
                 if (failed == 0) {
-                    Log.i(TAG, "Orphan recovery completed successfully (attempt ${attempt + 1})")
+                    Log.i(TAG, "orphan recovery completed successfully (attempt ${attempt + 1})")
                     return@launch
                 }
 
                 if (attempt < maxRetries) {
                     currentDelay *= BACKOFF_MULTIPLIER
-                    Log.w(TAG, "Orphan recovery had $failed failure(s), retrying in ${currentDelay}ms")
+                    Log.w(TAG, "orphan recovery had $failed failure(s), retrying in ${currentDelay}ms")
                 } else {
-                    Log.e(TAG, "Orphan recovery exhausted retries with $failed remaining failure(s)")
+                    Log.e(TAG, "orphan recovery exhausted retries with $failed remaining failure(s)")
                 }
             }
         }

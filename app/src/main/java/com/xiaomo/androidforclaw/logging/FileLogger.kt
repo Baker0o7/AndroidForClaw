@@ -2,18 +2,18 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/logging/, logger.ts
  *
- * AndroidForClaw adaptation: file logging.
+ * androidforClaw adaptation: file logging.
  */
 package com.xiaomo.androidforclaw.logging
 
-import android.content.Context
+import android.content.context
 import android.util.Log
 import java.io.File
-import java.text.SimpleDateFormat
+import java.text.SimpleDateformat
 import java.time.Instant
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.LinkedBlockingqueue
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -24,9 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * - Structured logging (timestamp, level, tag, message)
  * - Log rotation (size limit)
  * - Categorized storage (app.log, gateway.log)
- * - AsyncWrite: All I/O 在Back台单Thread执Row, 不Blockcall方
+ * - AsyncWrite: All I/O inbackground单Threadexecution, notBlockcall方
  */
-class FileLogger(private val context: Context) {
+class FileLogger(private val context: context) {
 
     companion object {
         private const val TAG = "FileLogger"
@@ -39,27 +39,27 @@ class FileLogger(private val context: Context) {
     private val appLogFilePath get() = "$logsDir/app.log"
     private val gatewayLogFilePath get() = "$logsDir/gateway.log"
 
-    private var loggingEnableddd = true
+    private var loggingEnabled = true
 
-    /** AsyncWriteQueue */
+    /** AsyncWritequeue */
     private data class LogEntry(val filePath: String, val content: String)
-    private val writeQueue = LinkedBlockingQueue<LogEntry>()
+    private val writequeue = LinkedBlockingqueue<LogEntry>()
     private val running = AtomicBoolean(true)
 
-    /** Back台WriteThread */
+    /** backgroundWriteThread */
     private val writerThread = Thread({
-        while (running.get() || writeQueue.isNotEmpty()) {
+        while (running.get() || writequeue.isnotEmpty()) {
             try {
-                val entry = writeQueue.poll(500, java.util.concurrent.TimeUnit.MILLISECONDS)
+                val entry = writequeue.poll(500, java.util.concurrent.TimeUnit.MILLISECONDS)
                     ?: continue
-                doAppendToFile(entry.filePath, entry.content)
-            } catch (_: InterruptedException) {
+                doappendToFile(entry.filePath, entry.content)
+            } catch (_: interruptedexception) {
                 break
-            } catch (e: Exception) {
-                Log.e(TAG, "WriteLog文件Failed", e)
+            } catch (e: exception) {
+                Log.e(TAG, "WriteLogfilesFailed", e)
             }
         }
-    }, "FileLogger-Writer").apply {
+    }, "FileLogger-Writer").app {
         isDaemon = true
         priority = Thread.MIN_PRIORITY
     }
@@ -69,28 +69,28 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * Log app logs(不再call outputToLogcat, by Log.kt Package装器负责 logcat Output)
+     * Log app logs(not再call outputToLogcat, by Log.kt Package装器负责 logcat Output)
      */
     fun logApp(level: LogLevel, tag: String, message: String, error: Throwable? = null) {
-        if (!loggingEnableddd) return
+        if (!loggingEnabled) return
         val logLine = formatLogLine(level, tag, message, error)
-        writeQueue.offer(LogEntry(appLogFilePath, logLine))
+        writequeue.offer(LogEntry(appLogFilePath, logLine))
     }
 
     /**
      * Log Gateway logs
      */
     fun logGateway(level: LogLevel, message: String, error: Throwable? = null) {
-        if (!loggingEnableddd) return
+        if (!loggingEnabled) return
         val logLine = formatLogLine(level, "Gateway", message, error)
-        writeQueue.offer(LogEntry(gatewayLogFilePath, logLine))
+        writequeue.offer(LogEntry(gatewayLogFilePath, logLine))
     }
 
     /**
-     * Enabledd/disable file logging
+     * Enable/disable file logging
      */
-    fun setLoggingEnableddd(enabled: Boolean) {
-        loggingEnableddd = enabled
+    fun setLoggingEnabled(enabled: Boolean) {
+        loggingEnabled = enabled
         Log.i(TAG, "File logging ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -99,11 +99,11 @@ class FileLogger(private val context: Context) {
      */
     fun clearLogs(logType: LogType = LogType.ALL) {
         when (logType) {
-            LogType.APP -> try { File(appLogFilePath).writeText("") } catch (_: Exception) {}
-            LogType.GATEWAY -> try { File(gatewayLogFilePath).writeText("") } catch (_: Exception) {}
+            LogType.APP -> try { File(appLogFilePath).writeText("") } catch (_: exception) {}
+            LogType.GATEWAY -> try { File(gatewayLogFilePath).writeText("") } catch (_: exception) {}
             LogType.ALL -> {
-                try { File(appLogFilePath).writeText("") } catch (_: Exception) {}
-                try { File(gatewayLogFilePath).writeText("") } catch (_: Exception) {}
+                try { File(appLogFilePath).writeText("") } catch (_: exception) {}
+                try { File(gatewayLogFilePath).writeText("") } catch (_: exception) {}
             }
         }
         Log.i(TAG, "Clear logs: $logType")
@@ -160,16 +160,16 @@ class FileLogger(private val context: Context) {
                     outputFile.writeText(combined)
                 }
             }
-            Log.i(TAG, "Log已Export到: $outputPath")
+            Log.i(TAG, "LogalreadyExportto: $outputPath")
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "ExportLogFailed", e)
             false
         }
     }
 
     /**
-     * Readmost近的LogRow
+     * Readmost近LogRow
      */
     fun readRecentLogs(logType: LogType, lineCount: Int = 100): List<String> {
         val file = when (logType) {
@@ -182,13 +182,13 @@ class FileLogger(private val context: Context) {
 
         return try {
             file.readLines().takeLast(lineCount)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "ReadLogFailed", e)
             emptyList()
         }
     }
 
-    /** StopBack台WriteThread */
+    /** StopbackgroundWriteThread */
     fun shutdown() {
         running.set(false)
         writerThread.interrupt()
@@ -197,20 +197,20 @@ class FileLogger(private val context: Context) {
     // ==================== PrivateMethod ====================
 
     /**
-     * 实际Write文件(在Back台Thread执Row)
+     * 实际Writefiles(inbackgroundThreadexecution)
      */
-    private fun doAppendToFile(filePath: String, content: String) {
+    private fun doappendToFile(filePath: String, content: String) {
         try {
             val file = File(filePath)
 
-            // Check文件Size, 超过Limit则轮转
+            // CheckfilesSize, 超overLimitthen轮转
             if (file.exists() && file.length() > MAX_FILE_SIZE) {
                 rotateLog(file)
             }
 
             file.appendText(content)
-        } catch (e: Exception) {
-            Log.e(TAG, "WriteLog文件Failed: $filePath", e)
+        } catch (e: exception) {
+            Log.e(TAG, "WriteLogfilesFailed: $filePath", e)
         }
     }
 
@@ -219,45 +219,45 @@ class FileLogger(private val context: Context) {
      */
     private fun rotateLog(file: File) {
         try {
-            val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
-            val archiveName = "${file.nameWithoutExtension}-$timestamp.log"
+            val timestamp = SimpleDateformat("yyyyMM-HHmmss", Locale.US).format(Date())
+            val archiveName = "${file.namewithoutExtension}-$timestamp.log"
             val archiveFile = File(file.parent, archiveName)
 
             file.renameTo(archiveFile)
 
-            Log.i(TAG, "Log已轮转: $archiveName")
+            Log.i(TAG, "Logalready轮转: $archiveName")
 
-            cleanOldArchives(file.parentFile)
-        } catch (e: Exception) {
+            cleanoldArchives(file.parentFile)
+        } catch (e: exception) {
             Log.e(TAG, "Log轮转Failed", e)
         }
     }
 
     /**
-     * 清理Old的归档Log
+     * 清理old归档Log
      */
-    private fun cleanOldArchives(logsDir: File?) {
+    private fun cleanoldArchives(logsDir: File?) {
         if (logsDir == null || !logsDir.exists()) return
 
         try {
             val archives = logsDir.listFiles()
-                ?.filter { it.name.contains("-20") && it.name.endsWith(".log") }
+                ?.filter { it.name.contains("-20") && it.name.endswith(".log") }
                 ?.sortedByDescending { it.lastModified() }
                 ?: return
 
             if (archives.size > MAX_ARCHIVED_LOGS) {
                 archives.drop(MAX_ARCHIVED_LOGS).forEach { file ->
                     file.delete()
-                    Log.d(TAG, "DeleteOldLog: ${file.name}")
+                    Log.d(TAG, "DeleteoldLog: ${file.name}")
                 }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "清理Old归档Failed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "清理old归档Failed", e)
         }
     }
 
     /**
-     * Format log line
+     * format log line
      */
     private fun formatLogLine(
         level: LogLevel,
@@ -328,14 +328,14 @@ data class LogStats(
 /**
  * GlobalLogInstance(便捷use)
  *
- * Note: AppLog Method只Write文件, 不再call logcat. 
- * logcat Outputby Log.kt Package装器在call AppLog 之OutsideIndividualComplete, 
- * 避免 Log.kt → AppLog → FileLogger → outputToLogcat → Log.kt 的None限Recurse. 
+ * note: AppLog Method只Writefiles, not再call logcat. 
+ * logcat Outputby Log.kt Package装器incall AppLog 之outsideIndividualComplete, 
+ * 避免 Log.kt → AppLog → FileLogger → outputToLogcat → Log.kt None限Recurse. 
  */
 object AppLog {
     private lateinit var fileLogger: FileLogger
 
-    fun init(context: Context) {
+    fun init(context: context) {
         fileLogger = FileLogger(context)
     }
 

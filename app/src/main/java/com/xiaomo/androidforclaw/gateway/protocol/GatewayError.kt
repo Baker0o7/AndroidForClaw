@@ -11,4 +11,4 @@ class GatewayError(
     val code: String,
     message: String,
     val details: Any? = null
-) : Exception(message)
+) : exception(message)

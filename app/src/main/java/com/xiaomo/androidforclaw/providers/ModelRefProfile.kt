@@ -4,23 +4,23 @@ package com.xiaomo.androidforclaw.providers
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/model-ref-profile.ts
  *
- * AndroidForClaw adaptation: split trailing auth profile from model reference.
+ * androidforClaw adaptation: split trailing auth profile from model reference.
  */
 
 /**
  * Result of splitting a model reference with an optional auth profile suffix.
  * Aligned with OpenClaw splitTrailingAuthProfile return type.
  */
-data class ModelRefProfileResult(
+data class modelRefProfileResult(
     val model: String,
     val profile: String? = null
 )
 
 /**
- * Model reference profile splitting.
+ * model reference profile splitting.
  * Aligned with OpenClaw model-ref-profile.ts.
  */
-object ModelRefProfile {
+object modelRefProfile {
 
     private val DATE_VERSION_PATTERN = Regex("^\\d{8}(?:@|$)")
 
@@ -35,16 +35,16 @@ object ModelRefProfile {
      *
      * Aligned with OpenClaw splitTrailingAuthProfile.
      */
-    fun splitTrailingAuthProfile(raw: String): ModelRefProfileResult {
+    fun splitTrailingAuthProfile(raw: String): modelRefProfileResult {
         val trimmed = raw.trim()
         if (trimmed.isEmpty()) {
-            return ModelRefProfileResult(model = "")
+            return modelRefProfileResult(model = "")
         }
 
         val lastSlash = trimmed.lastIndexOf('/')
         var profileDelimiter = trimmed.indexOf('@', lastSlash + 1)
         if (profileDelimiter <= 0) {
-            return ModelRefProfileResult(model = trimmed)
+            return modelRefProfileResult(model = trimmed)
         }
 
         // Check for date version suffix (8 digits after @)
@@ -52,7 +52,7 @@ object ModelRefProfile {
         if (DATE_VERSION_PATTERN.containsMatchIn(versionSuffix)) {
             val nextDelimiter = trimmed.indexOf('@', profileDelimiter + 9)
             if (nextDelimiter < 0) {
-                return ModelRefProfileResult(model = trimmed)
+                return modelRefProfileResult(model = trimmed)
             }
             profileDelimiter = nextDelimiter
         }
@@ -60,9 +60,9 @@ object ModelRefProfile {
         val model = trimmed.substring(0, profileDelimiter).trim()
         val profile = trimmed.substring(profileDelimiter + 1).trim()
         if (model.isEmpty() || profile.isEmpty()) {
-            return ModelRefProfileResult(model = trimmed)
+            return modelRefProfileResult(model = trimmed)
         }
 
-        return ModelRefProfileResult(model = model, profile = profile)
+        return modelRefProfileResult(model = model, profile = profile)
     }
 }

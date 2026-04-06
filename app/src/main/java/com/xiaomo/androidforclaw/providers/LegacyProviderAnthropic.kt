@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-payloads.ts (legacy)
+ * - ../openclaw/src/agents/pi-embeed-payloads.ts (legacy)
  */
 
 
@@ -16,20 +16,20 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 
 /**
- * Anthropic Messages API Provider
- * Uses Anthropic native Messages API format
+ * Anthropic Messages API provider
+ * uses Anthropic native Messages API format
  *
  * API Documentation: https://docs.anthropic.com/en/api/messages
  */
-class LegacyProviderAnthropic(
+class LegacyproviderAnthropic(
     private val apiKey: String,
     private val apiBase: String = "https://api.anthropic.com"
 ) {
     companion object {
-        private const val TAG = "LegacyProviderAnthropic"
+        private const val TAG = "LegacyproviderAnthropic"
         private const val DEFAULT_TIMEOUT_SECONDS = 300L
         private const val ANTHROPIC_VERSION = "2023-06-01"
     }
@@ -41,28 +41,28 @@ class LegacyProviderAnthropic(
         .build()
 
     private val gson: Gson = GsonBuilder()
-        .disableHtmlEscaping()  // 避免转义 HTML 字符
+        .disableHtmlEscaping()  // 避免转义 HTML characters
         .serializeNulls()        // Serialize null Value
         .create()
 
     /**
-     * sendChatRequest (Anthropic Messages API 格式)
+     * sendChatRequest (Anthropic Messages API format)
      */
     suspend fun chat(
         messages: List<LegacyMessage>,
-        tools: List<ToolDefinition>? = null,
+        tools: List<toolDefinition>? = null,
         model: String = "claude-opus-4",
         maxTokens: Int = 8192,
         temperature: Double = 0.7,
-        thinkingEnableddd: Boolean = false,
+        thinkingEnabled: Boolean = false,
         thinkingBudget: Int? = null
-    ): LegacyResponse = withContext(Dispatchers.IO) {
+    ): LegacyResponse = withcontext(Dispatchers.IO) {
 
         // Anthropic restriction: temperature must be 1 when Extended Thinking is enabled
-        val actualTemperature = if (thinkingEnableddd) 1.0 else temperature
+        val actualTemperature = if (thinkingEnabled) 1.0 else temperature
 
         // Separate system message
-        val systemMessage = messages.firstOrNull { it.role == "system" }?.content?.toString()
+        val systemMessage = messages.firstorNull { it.role == "system" }?.content?.toString()
         val conversationMessages = messages.filter { it.role != "system" }
 
         // Build Anthropic format request
@@ -72,11 +72,11 @@ class LegacyProviderAnthropic(
             maxTokens = maxTokens,
             temperature = actualTemperature,
             system = systemMessage,
-            tools = tools?.map { convertToolToAnthropicFormat(it) },
-            thinking = if (thinkingEnableddd && thinkingBudget != null) {
-                ThinkingConfig(budgetTokens = thinkingBudget)
-            } else if (thinkingEnableddd) {
-                ThinkingConfig()
+            tools = tools?.map { converttoolToAnthropicformat(it) },
+            thinking = if (thinkingEnabled && thinkingBudget != null) {
+                Thinkingconfig(budgetTokens = thinkingBudget)
+            } else if (thinkingEnabled) {
+                Thinkingconfig()
             } else {
                 null
             }
@@ -84,46 +84,46 @@ class LegacyProviderAnthropic(
 
         val jsonBody = gson.toJson(requestBody)
         Log.d(TAG, "Request to $apiBase/v1/messages")
-        Log.d(TAG, "Model: $model")
+        Log.d(TAG, "model: $model")
         Log.d(TAG, "Messages: ${conversationMessages.size}")
-        Log.d(TAG, "Tools: ${tools?.size ?: 0}")
-        Log.d(TAG, "Thinking enabled: $thinkingEnableddd")
+        Log.d(TAG, "tools: ${tools?.size ?: 0}")
+        Log.d(TAG, "Thinking enabled: $thinkingEnabled")
 
         val request = Request.Builder()
             .url("$apiBase/v1/messages")
             .post(jsonBody.toRequestBody("application/json".toMediaType()))
-            .addHeader("x-api-key", apiKey)
-            .addHeader("Content-Type", "application/json")
-            .addHeader("anthropic-version", ANTHROPIC_VERSION)
+            .aHeader("x-api-key", apiKey)
+            .aHeader("Content-Type", "application/json")
+            .aHeader("anthropic-version", ANTHROPIC_VERSION)
             .build()
 
         try {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string()
-                ?: throw LLMException("Empty response from Anthropic API")
+                ?: throw LLMexception("Empty response from Anthropic API")
 
             if (!response.isSuccessful) {
                 Log.e(TAG, "API Error: $responseBody")
-                throw LLMException("HTTP ${response.code}: $responseBody")
+                throw LLMexception("HTTP ${response.code}: $responseBody")
             }
 
             // Parse Anthropic response
             val anthropicResponse = gson.fromJson(responseBody, AnthropicResponse::class.java)
             Log.d(TAG, "Response received: ${anthropicResponse.stopReason}")
 
-            // Convert回 LegacyResponse 格式
-            convertFromAnthropicResponse(anthropicResponse)
+            // Convertreturn LegacyResponse format
+            convertfromAnthropicResponse(anthropicResponse)
 
-        } catch (e: LLMException) {
+        } catch (e: LLMexception) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Request failed", e)
-            throw LLMException("Network error: ${e.message}", cause = e)
+            throw LLMexception("Network error: ${e.message}", cause = e)
         }
     }
 
     /**
-     * ConvertMessage到 Anthropic 格式
+     * ConvertMessageto Anthropic format
      */
     private fun convertToAnthropicMessage(msg: LegacyMessage): AnthropicMessage {
         return when (msg.role) {
@@ -134,14 +134,14 @@ class LegacyProviderAnthropic(
                 )
             }
             "assistant" -> {
-                if (msg.toolCalls != null && msg.toolCalls.isNotEmpty()) {
+                if (msg.toolCalls != null && msg.toolCalls.isnotEmpty()) {
                     // Assistant message contains tool calls
                     val contentBlocks = mutableListOf<AnthropicContentBlock>()
 
-                    // Add text content (if any)
+                    // A text content (if any)
                     msg.content?.toString()?.let { text ->
-                        if (text.isNotBlank()) {
-                            contentBlocks.add(
+                        if (text.isnotBlank()) {
+                            contentBlocks.a(
                                 AnthropicContentBlock(
                                     type = "text",
                                     text = text
@@ -150,14 +150,14 @@ class LegacyProviderAnthropic(
                         }
                     }
 
-                    // Add tool calls
+                    // A tool calls
                     msg.toolCalls.forEach { tc ->
-                        contentBlocks.add(
+                        contentBlocks.a(
                             AnthropicContentBlock(
                                 type = "tool_use",
                                 id = tc.id,
                                 name = tc.function.name,
-                                input = parseToolArguments(tc.function.arguments)
+                                input = parsetoolArguments(tc.function.arguments)
                             )
                         )
                     }
@@ -174,13 +174,13 @@ class LegacyProviderAnthropic(
                 }
             }
             "tool" -> {
-                // Tool result message - Anthropic uses "user" role + tool_result block
+                // tool result message - Anthropic uses "user" role + tool_result block
                 AnthropicMessage(
                     role = "user",
                     content = listOf(
                         AnthropicContentBlock(
                             type = "tool_result",
-                            toolUseId = msg.toolCallId ?: "",
+                            tooluseId = msg.toolCallId ?: "",
                             content = msg.content?.toString() ?: ""
                         )
                     )
@@ -196,23 +196,23 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * Parse工具Parameters JSON String为 Map
+     * Parse工具Parameters JSON Stringfor Map
      */
-    private fun parseToolArguments(jsonStr: String): Map<String, Any?> {
+    private fun parsetoolArguments(jsonStr: String): Map<String, Any?> {
         return try {
             @Suppress("UNCHECKED_CAST")
             gson.fromJson(jsonStr, Map::class.java) as Map<String, Any?>
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to parse tool arguments: $jsonStr", e)
             emptyMap()
         }
     }
 
     /**
-     * ConvertTool definition到 Anthropic 格式
+     * Converttool definitionto Anthropic format
      */
-    private fun convertToolToAnthropicFormat(tool: ToolDefinition): AnthropicTool {
-        // Convert ParametersSchema to InputSchema
+    private fun converttoolToAnthropicformat(tool: toolDefinition): Anthropictool {
+        // Convert Parametersschema to Inputschema
         val params = tool.function.parameters
         val properties = params.properties.mapValues { (_, prop) ->
             PropertyDef(
@@ -222,10 +222,10 @@ class LegacyProviderAnthropic(
             )
         }
 
-        return AnthropicTool(
+        return Anthropictool(
             name = tool.function.name,
             description = tool.function.description,
-            inputSchema = InputSchema(
+            inputschema = Inputschema(
                 type = "object",
                 properties = properties,
                 required = params.required
@@ -234,12 +234,12 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * Convert Anthropic Response到 LegacyResponse 格式
+     * Convert Anthropic Responseto LegacyResponse format
      */
-    private fun convertFromAnthropicResponse(response: AnthropicResponse): LegacyResponse {
+    private fun convertfromAnthropicResponse(response: AnthropicResponse): LegacyResponse {
         // Extract text content and tool calls
         var textContent: String? = null
-        val toolCalls = mutableListOf<LegacyToolCall>()
+        val toolCalls = mutableListOf<LegacytoolCall>()
         var reasoningContent: String? = null
 
         response.content.forEach { block ->
@@ -248,8 +248,8 @@ class LegacyProviderAnthropic(
                     textContent = block.text
                 }
                 "tool_use" -> {
-                    toolCalls.add(
-                        LegacyToolCall(
+                    toolCalls.a(
+                        LegacytoolCall(
                             id = block.id ?: "",
                             type = "function",
                             function = LegacyFunction(
@@ -270,7 +270,7 @@ class LegacyProviderAnthropic(
             message = LegacyResponseMessage(
                 role = "assistant",
                 content = textContent,
-                toolCalls = if (toolCalls.isNotEmpty()) toolCalls else null,
+                toolCalls = if (toolCalls.isnotEmpty()) toolCalls else null,
                 reasoningContent = reasoningContent
             ),
             finishReason = response.stopReason ?: "stop"
@@ -289,7 +289,7 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * 简化的ChatMethod
+     * 简化ChatMethod
      */
     suspend fun simpleChat(
         userMessage: String,
@@ -298,16 +298,16 @@ class LegacyProviderAnthropic(
         val messages = mutableListOf<LegacyMessage>()
 
         if (systemPrompt != null) {
-            messages.add(LegacyMessage("system", systemPrompt))
+            messages.a(LegacyMessage("system", systemPrompt))
         }
 
-        messages.add(LegacyMessage("user", userMessage))
+        messages.a(LegacyMessage("user", userMessage))
 
         val response = chat(messages = messages)
 
-        return response.choices.firstOrNull()?.message?.content
+        return response.choices.firstorNull()?.message?.content
             ?: "No response from model"
     }
 }
 
-// Data models defined in AnthropicModels.kt
+// Data models defined in Anthropicmodels.kt

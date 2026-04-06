@@ -2,45 +2,45 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import android.content.Context
+import android.content.context
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
+import android.content.pm.Packagemanager
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * List Installed Apps Skill
+ * List Installed Apps skill
  * Get list of installed applications
  */
-class ListInstalledAppsSkill(private val context: Context) : Skill {
+class ListInstalledAppsskill(private val context: context) : skill {
     companion object {
-        private const val TAG = "ListInstalledAppsSkill"
+        private const val TAG = "ListInstalledAppsskill"
     }
 
     override val name = "list_installed_apps"
     override val description = "List installed apps with package names"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "include_system" to PropertySchema(
+                        "include_system" to Propertyschema(
                             "boolean",
                             "Include system apps (default: false)"
                         ),
-                        "filter" to PropertySchema(
+                        "filter" to Propertyschema(
                             "string",
                             "Filter apps by name or package (optional)"
                         )
@@ -51,13 +51,13 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         val includeSystem = args["include_system"] as? Boolean ?: false
         val filter = args["filter"] as? String
 
         return try {
-            val pm = context.packageManager
-            val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+            val pm = context.packagemanager
+            val packages = pm.getInstalledApplications(Packagemanager.GET_META_DATA)
 
             val apps = packages
                 .filter { appInfo ->
@@ -67,7 +67,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
                     }
                     true
                 }
-                .mapNotNull { appInfo ->
+                .mapnotNull { appInfo ->
                     try {
                         val label = pm.getApplicationLabel(appInfo).toString()
                         val packageName = appInfo.packageName
@@ -78,7 +78,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
                             if (!label.contains(filter, ignoreCase = true) &&
                                 !packageName.contains(filter, ignoreCase = true)
                             ) {
-                                return@mapNotNull null
+                                return@mapnotNull null
                             }
                         }
 
@@ -87,7 +87,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
                             "label" to label,
                             "system" to isSystem
                         )
-                    } catch (e: Exception) {
+                    } catch (e: exception) {
                         Log.w(TAG, "Failed to get app info for ${appInfo.packageName}", e)
                         null
                     }
@@ -97,11 +97,11 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
             Log.d(TAG, "Found ${apps.size} apps (includeSystem=$includeSystem, filter=$filter)")
 
             val content = buildString {
-                appendLine("📱 已InstallapplyList (${apps.size} 个)")
+                appendLine("[APP] alreadyInstallappList (${apps.size} count)")
                 appendLine()
 
                 if (apps.isEmpty()) {
-                    appendLine("未找到match的apply")
+                    appendLine("not找tomatchapp")
                 } else {
                     apps.forEachIndexed { index, app ->
                         val label = app["label"] as String
@@ -115,16 +115,16 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
                 }
             }
 
-            Skillresult.success(
+            skillresult.success(
                 content,
                 mapOf(
                     "count" to apps.size,
                     "apps" to apps
                 )
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to list installed apps", e)
-            Skillresult.error("Failed to list apps: ${e.message}")
+            skillresult.error("Failed to list apps: ${e.message}")
         }
     }
 }

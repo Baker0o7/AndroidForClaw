@@ -13,14 +13,14 @@ import com.google.gson.JsonObject
 import java.io.File
 
 /**
- * Skill Lock File Manager
+ * skill Lock File manager
  *
  * Manages .clawhub/lock.json
  * Records version, hash, installation time and other info of installed skills
  */
-class SkillLockManager(private val workspacePath: String) {
+class skillLockmanager(private val workspacePath: String) {
     companion object {
-        private const val TAG = "SkillLockManager"
+        private const val TAG = "skillLockmanager"
         private const val LOCK_FILE_NAME = "lock.json"
     }
 
@@ -31,25 +31,25 @@ class SkillLockManager(private val workspacePath: String) {
     /**
      * Read lock file
      */
-    fun readLock(): SkillLockFile {
+    fun readLock(): skillLockFile {
         if (!lockFile.exists()) {
             Log.d(TAG, "Lock file not found, creating empty")
-            return SkillLockFile(skills = emptyList())
+            return skillLockFile(skills = emptyList())
         }
 
         return try {
             val content = lockFile.readText()
-            gson.fromJson(content, SkillLockFile::class.java)
-        } catch (e: Exception) {
+            gson.fromJson(content, skillLockFile::class.java)
+        } catch (e: exception) {
             Log.e(TAG, "Failed to read lock file", e)
-            SkillLockFile(skills = emptyList())
+            skillLockFile(skills = emptyList())
         }
     }
 
     /**
      * Write lock file
      */
-    fun writeLock(lockFile: SkillLockFile): Result<Unit> {
+    fun writeLock(lockFile: skillLockFile): Result<Unit> {
         return try {
             // Ensure directory exists
             lockDir.mkdirs()
@@ -58,37 +58,37 @@ class SkillLockManager(private val workspacePath: String) {
             val content = gson.toJson(lockFile)
             this.lockFile.writeText(content, Charsets.UTF_8)
 
-            Log.d(TAG, "✅ Lock file written: ${this.lockFile.absolutePath}")
+            Log.d(TAG, "[OK] Lock file written: ${this.lockFile.absolutePath}")
             Result.success(Unit)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to write lock file", e)
             Result.failure(e)
         }
     }
 
     /**
-     * Add or update skill record
+     * A or update skill record
      */
-    fun addOrUpdateSkill(entry: SkillLockEntry): Result<Unit> {
+    fun aorUpdateskill(entry: skillLockEntry): Result<Unit> {
         return try {
             val lock = readLock()
-            val existingIndex = lock.skills.indexOfFirst { it.slug == entry.slug }
+            val existingIndex = lock.skills.indexOffirst { it.slug == entry.slug }
 
-            val updatedSkills = if (existingIndex >= 0) {
+            val updatedskills = if (existingIndex >= 0) {
                 // Update existing record
-                lock.skills.toMutableList().apply {
+                lock.skills.toMutableList().app {
                     set(existingIndex, entry)
                 }
             } else {
-                // Add new record
+                // A new record
                 lock.skills + entry
             }
 
-            writeLock(lock.copy(skills = updatedSkills))
+            writeLock(lock.copy(skills = updatedskills))
 
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to add/update skill", e)
+        } catch (e: exception) {
+            Log.e(TAG, "Failed to a/update skill", e)
             Result.failure(e)
         }
     }
@@ -96,18 +96,18 @@ class SkillLockManager(private val workspacePath: String) {
     /**
      * Remove skill record
      */
-    fun removeSkill(slug: String): Result<Unit> {
+    fun removeskill(slug: String): Result<Unit> {
         return try {
             val lock = readLock()
-            val updatedSkills = lock.skills.filter { it.slug != slug }
+            val updatedskills = lock.skills.filter { it.slug != slug }
 
-            if (updatedSkills.size == lock.skills.size) {
-                Log.w(TAG, "Skill not found in lock: $slug")
+            if (updatedskills.size == lock.skills.size) {
+                Log.w(TAG, "skill not found in lock: $slug")
             }
 
-            writeLock(lock.copy(skills = updatedSkills))
+            writeLock(lock.copy(skills = updatedskills))
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to remove skill", e)
             Result.failure(e)
         }
@@ -116,7 +116,7 @@ class SkillLockManager(private val workspacePath: String) {
     /**
      * Get skill record
      */
-    fun getSkill(slug: String): SkillLockEntry? {
+    fun getskill(slug: String): skillLockEntry? {
         val lock = readLock()
         return lock.skills.find { it.slug == slug }
     }
@@ -124,7 +124,7 @@ class SkillLockManager(private val workspacePath: String) {
     /**
      * List all installed skills
      */
-    fun listSkills(): List<SkillLockEntry> {
+    fun listskills(): List<skillLockEntry> {
         return readLock().skills
     }
 
@@ -132,28 +132,28 @@ class SkillLockManager(private val workspacePath: String) {
      * Check if skill is installed
      */
     fun isInstalled(slug: String): Boolean {
-        return getSkill(slug) != null
+        return getskill(slug) != null
     }
 
     /**
      * Get installed version
      */
     fun getInstalledVersion(slug: String): String? {
-        return getSkill(slug)?.version
+        return getskill(slug)?.version
     }
 }
 
 /**
  * Lock File Structure
  */
-data class SkillLockFile(
-    val skills: List<SkillLockEntry>
+data class skillLockFile(
+    val skills: List<skillLockEntry>
 )
 
 /**
- * Skill Lock Entry
+ * skill Lock Entry
  */
-data class SkillLockEntry(
+data class skillLockEntry(
     val name: String,
     val slug: String,
     val version: String,

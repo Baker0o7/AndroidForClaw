@@ -1,30 +1,30 @@
 package com.xiaomo.androidforclaw.agent.fallback
 
-import com.xiaomo.androidforclaw.agent.auth.AuthProfileManager
+import com.xiaomo.androidforclaw.agent.auth.AuthProfilemanager
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
- * Model Fallback Manager — Multi-model fallback with provider rotation.
- * Aligned with OpenClaw runWithModelFallback().
+ * model Fallback manager — Multi-model fallback with provider rotation.
+ * Aligned with OpenClaw runwithmodelFallback().
  *
  * Key behaviors from OpenClaw:
- * - resolveFallbackCandidates(): build candidate list (primary + fallbacks)
- * - Iterate candidates until one succeeds
+ * - resolveFallbackcandidates(): build candidate list (primary + fallbacks)
+ * - iteration candidates until one succeeds
  * - Integration with auth profile cooldown (skip candidates with all profiles in cooldown)
  * - Cooldown probe: try one "cold" provider per run to recover from cooldown
  * - Log each fallback decision
  */
-class ModelFallbackManager(
-    private val authProfileManager: AuthProfileManager? = null
+class modelFallbackmanager(
+    private val authProfilemanager: AuthProfilemanager? = null
 ) {
     companion object {
-        private const val TAG = "ModelFallbackManager"
+        private const val TAG = "modelFallbackmanager"
     }
 
     /**
      * Fallback candidate (aligned with OpenClaw candidate structure).
      */
-    data class FallbackCandidate(
+    data class Fallbackcandidate(
         val provider: String,
         val model: String,
         val priority: Int = 0 // Lower = higher priority
@@ -55,27 +55,27 @@ class ModelFallbackManager(
 
     /**
      * Resolve fallback candidates for a provider/model pair.
-     * Aligned with OpenClaw resolveFallbackCandidates().
+     * Aligned with OpenClaw resolveFallbackcandidates().
      *
      * @param provider Primary provider
      * @param model Primary model
-     * @param fallbackModels Configured fallback models (format: "provider/model")
+     * @param fallbackmodels configured fallback models (format: "provider/model")
      */
-    fun resolveCandidates(
+    fun resolvecandidates(
         provider: String,
         model: String,
-        fallbackModels: List<String> = emptyList()
-    ): List<FallbackCandidate> {
-        val candidates = mutableListOf<FallbackCandidate>()
+        fallbackmodels: List<String> = emptyList()
+    ): List<Fallbackcandidate> {
+        val candidates = mutableListOf<Fallbackcandidate>()
 
         // Primary candidate (always first)
-        candidates.add(FallbackCandidate(provider, model, priority = 0))
+        candidates.a(Fallbackcandidate(provider, model, priority = 0))
 
-        // Add fallback candidates from config
-        for ((index, fallback) in fallbackModels.withIndex()) {
+        // A fallback candidates from config
+        for ((index, fallback) in fallbackmodels.withIndex()) {
             val parts = fallback.split("/", limit = 2)
             if (parts.size == 2) {
-                candidates.add(FallbackCandidate(
+                candidates.a(Fallbackcandidate(
                     provider = parts[0],
                     model = parts[1],
                     priority = index + 1
@@ -88,20 +88,20 @@ class ModelFallbackManager(
 
     /**
      * Run with model fallback — iterate candidates until one succeeds.
-     * Aligned with OpenClaw runWithModelFallback().
+     * Aligned with OpenClaw runwithmodelFallback().
      *
      * @param provider Primary provider
      * @param model Primary model
-     * @param fallbackModels Configured fallback models
+     * @param fallbackmodels configured fallback models
      * @param run Function that executes a call with a specific provider/model
      */
-    suspend fun <T> runWithFallback(
+    suspend fun <T> runwithFallback(
         provider: String,
         model: String,
-        fallbackModels: List<String> = emptyList(),
+        fallbackmodels: List<String> = emptyList(),
         run: suspend (provider: String, model: String) -> T
     ): FallbackResult where T : Any {
-        val candidates = resolveCandidates(provider, model, fallbackModels)
+        val candidates = resolvecandidates(provider, model, fallbackmodels)
         val attempts = mutableListOf<FallbackAttempt>()
         var lastError: String? = null
 
@@ -109,19 +109,19 @@ class ModelFallbackManager(
             val isPrimary = index == 0
 
             // Check auth profile cooldown
-            if (authProfileManager != null) {
-                val profileIds = authProfileManager.resolveProfileOrder(candidate.provider)
-                val anyAvailable = profileIds.any { !authProfileManager.isProfileInCooldown(it) }
+            if (authProfilemanager != null) {
+                val profileIds = authProfilemanager.resolveProfileorder(candidate.provider)
+                val anyAvailable = profileIds.any { !authProfilemanager.isProfileInCooldown(it) }
 
-                if (profileIds.isNotEmpty() && !anyAvailable) {
+                if (profileIds.isnotEmpty() && !anyAvailable) {
                     // All profiles in cooldown — skip unless this is primary or we should probe
                     if (!isPrimary) {
-                        val error = "Provider ${candidate.provider} is in cooldown"
-                        attempts.add(FallbackAttempt(candidate.provider, candidate.model, error, "cooldown"))
+                        val error = "provider ${candidate.provider} is in cooldown"
+                        attempts.a(FallbackAttempt(candidate.provider, candidate.model, error, "cooldown"))
                         Log.d(TAG, "Skipping ${candidate.provider}/${candidate.model}: all profiles in cooldown")
                         continue
                     }
-                    // For primary, still try (cooldown probe)
+                    // for primary, still try (cooldown probe)
                     Log.d(TAG, "Probing primary ${candidate.provider}/${candidate.model} despite cooldown")
                 }
             }
@@ -135,12 +135,12 @@ class ModelFallbackManager(
 
                 if (result != null) {
                     // Mark profile as used on success
-                    authProfileManager?.let { apm ->
-                        val profiles = apm.resolveProfileOrder(candidate.provider)
-                        profiles.firstOrNull()?.let { apm.markUsed(it) }
+                    authProfilemanager?.let { apm ->
+                        val profiles = apm.resolveProfileorder(candidate.provider)
+                        profiles.firstorNull()?.let { apm.markused(it) }
                     }
 
-                    attempts.add(FallbackAttempt(
+                    attempts.a(FallbackAttempt(
                         candidate.provider, candidate.model, result = result
                     ))
 
@@ -152,27 +152,27 @@ class ModelFallbackManager(
                         attempts = attempts
                     )
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 lastError = e.message ?: "Unknown error"
                 val reason = classifyError(lastError)
 
                 // Mark profile as failed
-                authProfileManager?.let { apm ->
-                    val profiles = apm.resolveProfileOrder(candidate.provider)
-                    profiles.firstOrNull()?.let {
+                authProfilemanager?.let { apm ->
+                    val profiles = apm.resolveProfileorder(candidate.provider)
+                    profiles.firstorNull()?.let {
                         val failureReason = when (reason) {
-                            "rate_limit" -> AuthProfileManager.FailureReason.RATE_LIMIT
-                            "overloaded" -> AuthProfileManager.FailureReason.OVERLOADED
-                            "billing" -> AuthProfileManager.FailureReason.BILLING
-                            "auth" -> AuthProfileManager.FailureReason.AUTH
-                            "timeout" -> AuthProfileManager.FailureReason.TIMEOUT
-                            else -> AuthProfileManager.FailureReason.UNKNOWN
+                            "rate_limit" -> AuthProfilemanager.FailureReason.RATE_LIMIT
+                            "overloaded" -> AuthProfilemanager.FailureReason.OVERLOADED
+                            "billing" -> AuthProfilemanager.FailureReason.BILLING
+                            "auth" -> AuthProfilemanager.FailureReason.AUTH
+                            "timeout" -> AuthProfilemanager.FailureReason.TIMEOUT
+                            else -> AuthProfilemanager.FailureReason.UNKNOWN
                         }
                         apm.markFailure(it, failureReason)
                     }
                 }
 
-                attempts.add(FallbackAttempt(candidate.provider, candidate.model, lastError, reason))
+                attempts.a(FallbackAttempt(candidate.provider, candidate.model, lastError, reason))
                 Log.w(TAG, "${candidate.provider}/${candidate.model} failed: $lastError")
             }
         }

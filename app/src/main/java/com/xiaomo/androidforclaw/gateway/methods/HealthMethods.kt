@@ -36,11 +36,11 @@ class HealthMethods {
                 connections = 0,
                 authenticated = false
             ),
-            agent = AgentStatus(
+            agent = agentStatus(
                 activeRuns = 0,
                 toolsLoaded = 0
             ),
-            sessions = SessionStatus(
+            sessions = sessionStatus(
                 total = 0,
                 active = 0
             ),

@@ -2,67 +2,67 @@ package com.xiaomo.androidforclaw.core
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
 import android.content.BroadcastReceiver
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import com.xiaomo.androidforclaw.logging.Log
 import com.tencent.mmkv.MMKV
 
 /**
- * Agent Message Broadcast Receiver
- * Receives Agent execution requests from Gateway or ADB
+ * agent Message Broadcast Receiver
+ * Receives agent execution requests from Gateway or ADB
  */
-class AgentMessageReceiver : BroadcastReceiver() {
+class agentMessageReceiver : BroadcastReceiver() {
     companion object {
-        private const val TAG = "AgentMessageReceiver"
+        private const val TAG = "agentMessageReceiver"
     }
 
-    override fun onReceive(context: Context, intent: Intent) {
-        // Use System.out to ensure logs are visible
-        System.out.println("========== AgentMessageReceiver.onReceive called ==========")
+    override fun onReceive(context: context, intent: Intent) {
+        // use System.out to ensure logs are visible
+        System.out.println("========== agentMessageReceiver.onReceive called ==========")
         Log.e(TAG, "========== onReceive called ==========")
         Log.e(TAG, "Action: ${intent.action}")
         Log.e(TAG, "Extras: ${intent.extras}")
 
         if (intent.action != "com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT") {
-            Log.e(TAG, "⚠️ [Receiver] Unknown action: ${intent.action}")
+            Log.e(TAG, "[WARN] [Receiver] Unknown action: ${intent.action}")
             return
         }
 
         val message = intent.getStringExtra("message")
-        val explicitSessionId = intent.getStringExtra("sessionId")
-        val resolvedSessionId = explicitSessionId ?: MMKV.defaultMMKV()?.decodeString("last_session_id")
+        val explicitsessionId = intent.getStringExtra("sessionId")
+        val resolvedsessionId = explicitsessionId ?: MMKV.defaultMMKV()?.decodeString("last_session_id")
 
-        Log.e(TAG, "📨 [Receiver] Received Agent execution request:")
-        Log.e(TAG, "  💬 Message: $message")
-        Log.e(TAG, "  🆔 Session ID: $resolvedSessionId (explicit=$explicitSessionId)")
-        System.out.println("📨 Message: $message, SessionID: $resolvedSessionId")
+        Log.e(TAG, "[MSG] [Receiver] Received agent execution request:")
+        Log.e(TAG, "  [CHAT] Message: $message")
+        Log.e(TAG, "  🆔 session ID: $resolvedsessionId (explicit=$explicitsessionId)")
+        System.out.println("[MSG] Message: $message, sessionID: $resolvedsessionId")
 
-        if (message.isNullOrEmpty()) {
-            Log.e(TAG, "⚠️ [Receiver] Message is empty, ignoring")
+        if (message.isNullorEmpty()) {
+            Log.e(TAG, "[WARN] [Receiver] Message is empty, ignoring")
             return
         }
 
-        // Ensure MainEntryNew is initialized
+        // Ensure MainEntrynew is initialized
         try {
-            Log.e(TAG, "🔧 [Receiver] Ensuring MainEntryNew is initialized...")
-            MainEntryNew.initialize(context.applicationContext as android.app.Application)
-        } catch (e: Exception) {
+            Log.e(TAG, "[WRENCH] [Receiver] Ensuring MainEntrynew is initialized...")
+            MainEntrynew.initialize(context.applicationcontext as android.app.Application)
+        } catch (e: exception) {
             // Already initialized, ignore
-            Log.e(TAG, "✓ [Receiver] MainEntryNew already initialized")
+            Log.e(TAG, "✓ [Receiver] MainEntrynew already initialized")
         }
 
-        // Execute Agent
-        Log.e(TAG, "🚀 [Receiver] Starting Agent execution...")
-        MainEntryNew.runWithSession(
+        // Execute agent
+        Log.e(TAG, "[START] [Receiver] Starting agent execution...")
+        MainEntrynew.runwithsession(
             userInput = message,
-            sessionId = resolvedSessionId,
-            application = context.applicationContext as android.app.Application
+            sessionId = resolvedsessionId,
+            application = context.applicationcontext as android.app.Application
         )
-        Log.e(TAG, "✅ [Receiver] Agent execution started")
+        Log.e(TAG, "[OK] [Receiver] agent execution started")
     }
 }

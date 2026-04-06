@@ -4,42 +4,42 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/pi-tools.read.ts
  *
- * AndroidForClaw adaptation: low-level file read tool.
+ * androidforClaw adaptation: low-level file read tool.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import java.io.File
 
 /**
- * Read File Tool - Read file content
- * Reference: nanobot's ReadFileTool
+ * Read File tool - Read file content
+ * Reference: nanobot's ReadFiletool
  */
-class ReadFileTool(
+class ReadFiletool(
     private val workspace: File? = null,
     private val allowedDir: File? = null
-) : Tool {
+) : tool {
     companion object {
-        private const val TAG = "ReadFileTool"
+        private const val TAG = "ReadFiletool"
     }
 
     override val name = "read_file"
     override val description = "Read file contents"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要Read的File path")
+                        "path" to Propertyschema("string", "needReadFile path")
                     ),
                     required = listOf("path")
                 )
@@ -47,11 +47,11 @@ class ReadFileTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val path = args["path"] as? String
 
         if (path == null) {
-            return Toolresult.error("Missing required parameter: path")
+            return toolresult.error("Missing required parameter: path")
         }
 
         Log.d(TAG, "Reading file: $path")
@@ -62,24 +62,24 @@ class ReadFileTool(
             if (allowedDir != null) {
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
-                if (!canonicalFile.path.startsWith(canonicalAllowed.path)) {
-                    return Toolresult.error("Path is outside allowed directory: $path")
+                if (!canonicalFile.path.startswith(canonicalAllowed.path)) {
+                    return toolresult.error("Path is outside allowed directory: $path")
                 }
             }
 
             if (!file.exists()) {
-                return Toolresult.error("File not found: $path")
+                return toolresult.error("File not found: $path")
             }
 
             if (!file.isFile) {
-                return Toolresult.error("Not a file: $path")
+                return toolresult.error("not a file: $path")
             }
 
             val content = file.readText(Charsets.UTF_8)
-            Toolresult.success(content)
-        } catch (e: Exception) {
+            toolresult.success(content)
+        } catch (e: exception) {
             Log.e(TAG, "Read file failed", e)
-            Toolresult.error("Read file failed: ${e.message}")
+            toolresult.error("Read file failed: ${e.message}")
         }
     }
 

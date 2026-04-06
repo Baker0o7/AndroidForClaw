@@ -5,55 +5,55 @@ package com.xiaomo.androidforclaw.agent.tools
  * - ../openclaw/src/agents/bash-tools.ts
  */
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
  * Single `exec` tool entry.
  *
  * Routing policy:
  * - backend=termux -> force Termux
- * - backend=internal -> force internal ExecTool
+ * - backend=internal -> force internal Exectool
  * - backend=auto / omitted -> prefer Termux when available, otherwise fallback internal
  */
-class ExecFacadeTool private constructor(
-    private val internalExec: Tool,
-    private val termuxExec: Tool,
+class ExecFacadetool private constructor(
+    private val internalExec: tool,
+    private val termuxExec: tool,
     private val termuxAvailable: () -> Boolean
-) : Tool {
+) : tool {
 
-    constructor(context: Context, workingDir: String? = null) : this(
-        internalExec = ExecTool(workingDir = workingDir),
-        termuxExec = TermuxBridgeTool(context),
+    constructor(context: context, workingDir: String? = null) : this(
+        internalExec = Exectool(workingDir = workingDir),
+        termuxExec = TermuxBridgetool(context),
         termuxAvailable = {
             // Fast check: use the persistent connection pool first, fall back to socket probe
-            TermuxSSHPool.isConnected || TermuxBridgeTool(context).isAvailable()
+            TermuxSSHPool.isConnected || TermuxBridgetool(context).isAvailable()
         }
     )
 
     internal constructor(
-        internalExec: Tool,
-        termuxExec: Tool,
+        internalExec: tool,
+        termuxExec: tool,
         termuxAvailable: Boolean
     ) : this(internalExec, termuxExec, { termuxAvailable })
 
     override val name: String = "exec"
-    override val description: String = "Run shell commands. Prefer Termux when available; fallback to internal Android exec."
+    override val description: String = "Run shell commands. Prefer Termux when available; fallback to internal android exec."
 
-    override fun getToolDefinition(): ToolDefinition {
-        val base = termuxExec.getToolDefinition()
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        val base = termuxExec.gettoolDefinition()
+        return toolDefinition(
             type = base.type,
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = base.function.parameters.type,
                     properties = base.function.parameters.properties + mapOf(
-                        "backend" to PropertySchema(
+                        "backend" to Propertyschema(
                             type = "string",
                             description = "Execution backend: auto | termux | internal",
                             enum = listOf("auto", "termux", "internal")
@@ -65,7 +65,7 @@ class ExecFacadeTool private constructor(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): toolResult {
         val backend = (args["backend"] as? String)?.lowercase() ?: "auto"
         return when (backend) {
             "termux" -> termuxExec.execute(args)

@@ -11,7 +11,7 @@ import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.providers.LegacyRepository
 
 /**
- * Context Compressor
+ * context compressor
  * Aligned with OpenClaw src/agents/compaction.ts
  *
  * Features:
@@ -19,12 +19,12 @@ import com.xiaomo.androidforclaw.providers.LegacyRepository
  * - Generate history message summary
  * - Identifier preservation policy
  */
-class ContextCompressor(
+class contextcompressor(
     private val legacyRepository: LegacyRepository,
-    private val config: CompactionConfig = CompactionConfig()
+    private val config: Compactionconfig = Compactionconfig()
 ) {
     companion object {
-        private const val TAG = "ContextCompressor"
+        private const val TAG = "contextcompressor"
 
         // Safety margin: 1.2x (compensate for token estimation inaccuracy)
         private const val SAFETY_MARGIN = 1.2
@@ -34,9 +34,9 @@ class ContextCompressor(
     }
 
     /**
-     * Compaction Configuration
+     * Compaction configuration
      */
-    data class CompactionConfig(
+    data class Compactionconfig(
         val mode: CompactionMode = CompactionMode.SAFEGUARD,
         val contextWindowTokens: Int = 200_000,        // Claude Opus 4.6 default
         val reserveTokensFloor: Int = 20_000,          // Minimum tokens forcibly reserved
@@ -87,12 +87,12 @@ class ContextCompressor(
     /**
      * Compact message history
      *
-     * @param messages Original message list
+     * @param messages original message list
      * @return Compacted message list
      */
     suspend fun compress(messages: List<LegacyMessage>): List<LegacyMessage> {
         if (messages.size <= 3) {
-            Log.d(TAG, "Not enough messages to compress (${messages.size})")
+            Log.d(TAG, "not enough messages to compress (${messages.size})")
             return messages
         }
 
@@ -123,33 +123,33 @@ class ContextCompressor(
             recentCount = recentCount.coerceAtLeast(2)
 
             // 3. Split messages: to compress + recent messages to keep
-            val toCompress = historyMessages.dropLast(recentCount)
+            val tocompress = historyMessages.dropLast(recentCount)
             val toKeep = historyMessages.takeLast(recentCount)
 
-            if (toCompress.isEmpty()) {
+            if (tocompress.isEmpty()) {
                 Log.d(TAG, "No messages to compress")
                 return messages
             }
 
-            Log.d(TAG, "Compressing ${toCompress.size} messages, keeping ${toKeep.size} recent")
+            Log.d(TAG, "compressing ${tocompress.size} messages, keeping ${toKeep.size} recent")
 
             // 4. Generate summary
-            val summary = generateSummary(toCompress)
+            val summary = generateSummary(tocompress)
 
             // 5. Build compacted message list
             val compressedMessages = mutableListOf<LegacyMessage>()
 
-            // Add system messages
-            compressedMessages.addAll(systemMessages)
+            // A system messages
+            compressedMessages.aAll(systemMessages)
 
-            // Add summary message
-            compressedMessages.add(
+            // A summary message
+            compressedMessages.a(
                 LegacyMessage(
                     role = "assistant",
                     content = """
                     [COMPACTED HISTORY]
 
-                    This is a summary of ${toCompress.size} earlier messages in this conversation:
+                    This is a summary of ${tocompress.size} earlier messages in this conversation:
 
                     $summary
 
@@ -158,20 +158,20 @@ class ContextCompressor(
                 )
             )
 
-            // Add kept recent messages
-            compressedMessages.addAll(toKeep)
+            // A kept recent messages
+            compressedMessages.aAll(toKeep)
 
             val originalTokens = TokenEstimator.estimateMessagesTokens(messages)
             val compressedTokens = TokenEstimator.estimateMessagesTokens(compressedMessages)
             val savedTokens = originalTokens - compressedTokens
             val compressionRatio = (savedTokens.toDouble() / originalTokens * 100).toInt()
 
-            Log.d(TAG, "Compression complete: $originalTokens → $compressedTokens tokens (saved $savedTokens, ${compressionRatio}%)")
+            Log.d(TAG, "compression complete: $originalTokens → $compressedTokens tokens (saved $savedTokens, ${compressionRatio}%)")
 
             return compressedMessages
 
-        } catch (e: Exception) {
-            Log.e(TAG, "Compression failed, returning original messages", e)
+        } catch (e: exception) {
+            Log.e(TAG, "compression failed, returning original messages", e)
             return messages
         }
     }
@@ -192,24 +192,24 @@ class ContextCompressor(
         val summaryPrompt = buildSummaryPrompt(conversationText)
 
         try {
-            // Use LLM to generate summary (using Extended Thinking)
+            // use LLM to generate summary (using Extended Thinking)
             val summaryMessages = listOf(
                 LegacyMessage(role = "user", content = summaryPrompt)
             )
 
-            val response = legacyRepository.chatWithTools(
+            val response = legacyRepository.chatwithtools(
                 messages = summaryMessages,
                 tools = emptyList(),
-                reasoningEnabled = true  // Use Extended Thinking to improve summary quality
+                reasoningEnabled = true  // use Extended Thinking to improve summary quality
             )
 
-            val message = response.choices.firstOrNull()?.message
+            val message = response.choices.firstorNull()?.message
             if (message == null) {
                 return "[Failed to generate summary: no response]"
             }
 
             return message.content?.toString() ?: "Summary generation failed"
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to generate summary", e)
             return "[Failed to generate summary: ${e.message}]"
         }
@@ -226,7 +226,7 @@ class ContextCompressor(
             - API keys and tokens
             - File paths and URLs
             - Package names (e.g., com.example.app)
-            - Hostnames and IP addresses
+            - Hostnames and IP aresses
             - Port numbers
             - Database IDs
             - Any alphanumeric codes or identifiers
@@ -247,7 +247,7 @@ class ContextCompressor(
         Focus on preserving:
         - Active tasks and their current state
         - Bulk operation progress (e.g., "5/17 items completed")
-        - User's last request
+        - user's last request
         - Decisions made and their rationales
         - TODOs, open questions, constraints
         - Any commitments or follow-up actions

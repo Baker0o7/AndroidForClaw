@@ -3,7 +3,7 @@
  * - ../openclaw/src/agents/subagent-control.ts (resolveSubagentController, controlScope)
  * - ../openclaw/src/agents/tools/sessions-list-tool.ts (visibility filtering)
  *
- * AndroidForClaw adaptation: visibility and access control for session tools.
+ * androidforClaw adaptation: visibility and access control for session tools.
  * Controls which sessions a caller can see or interact with based on their
  * relationship in the spawn tree.
  */
@@ -13,37 +13,37 @@ import com.xiaomo.androidforclaw.logging.Log
 
 /**
  * Visibility modes for session tools.
- * Aligned with OpenClaw controlScope / SessionToolsVisibility.
+ * Aligned with OpenClaw controlScope / sessiontoolsVisibility.
  */
-enum class SessionToolsVisibility {
-    /** Can only see/control self */
+enum class sessiontoolsVisibility {
+    /** can only see/control self */
     SELF,
-    /** Can see/control self + descendants (default) */
+    /** can see/control self + descendants (default) */
     TREE,
-    /** Can see/control all sessions in same agent (Android: single device = always ok) */
+    /** can see/control all sessions in same agent (android: single device = always ok) */
     AGENT,
-    /** Can see/control all sessions globally */
+    /** can see/control all sessions globally */
     ALL,
 }
 
 /**
  * Result of an access check.
  */
-sealed class SessionAccessResult {
-    data object Allowed : SessionAccessResult()
-    data class Denied(val reason: String) : SessionAccessResult()
+sealed class sessionAccessResult {
+    data object Allowed : sessionAccessResult()
+    data class Denied(val reason: String) : sessionAccessResult()
 }
 
 /**
  * Guard for session tool access based on visibility scope.
  * Aligned with OpenClaw resolveSubagentController + controlScope.
  *
- * On Android, since all sessions run in-process on a single device,
+ * On android, since all sessions run in-process on a single device,
  * AGENT and ALL are equivalent and always allow access.
  */
-object SessionVisibilityGuard {
+object sessionVisibilityGuard {
 
-    private const val TAG = "SessionVisibilityGuard"
+    private const val TAG = "sessionVisibilityGuard"
 
     /**
      * Resolve the visibility/control scope for a caller session.
@@ -54,26 +54,26 @@ object SessionVisibilityGuard {
      * - LEAF subagents → SELF (cannot control others, scope "none" in OpenClaw)
      */
     fun resolveVisibility(
-        callerSessionKey: String,
+        callersessionKey: String,
         registry: SubagentRegistry,
         maxSpawnDepth: Int = DEFAULT_MAX_SPAWN_DEPTH,
-    ): SessionToolsVisibility {
+    ): sessiontoolsVisibility {
         // Check if caller is a subagent
-        val callerRun = registry.getRunByChildSessionKey(callerSessionKey)
+        val callerRun = registry.getRunByChildsessionKey(callersessionKey)
 
         if (callerRun == null) {
-            // Not a subagent — main session, full tree control
-            return SessionToolsVisibility.TREE
+            // not a subagent — main session, full tree control
+            return sessiontoolsVisibility.TREE
         }
 
         // Resolve capabilities using config maxSpawnDepth (aligned with OpenClaw)
         val capabilities = resolveSubagentCapabilities(callerRun.depth, maxSpawnDepth)
         return if (capabilities.controlScope == SubagentControlScope.NONE) {
             // LEAF: controlScope = "none" → SELF visibility
-            SessionToolsVisibility.SELF
+            sessiontoolsVisibility.SELF
         } else {
             // MAIN/ORCHESTRATOR: controlScope = "children" → TREE visibility
-            SessionToolsVisibility.TREE
+            sessiontoolsVisibility.TREE
         }
     }
 
@@ -81,50 +81,50 @@ object SessionVisibilityGuard {
      * Check if a caller has access to a target session.
      *
      * @param action Description of the action for error messages (e.g., "list", "history", "send")
-     * @param callerSessionKey The session making the request
-     * @param targetSessionKey The session being accessed
+     * @param callersessionKey The session making the request
+     * @param targetsessionKey The session being accessed
      * @param visibility Resolved visibility scope of the caller
      * @param registry SubagentRegistry for spawn tree traversal
-     * @return SessionAccessResult.Allowed or SessionAccessResult.Denied
+     * @return sessionAccessResult.Allowed or sessionAccessResult.Denied
      */
     fun checkAccess(
         action: String,
-        callerSessionKey: String,
-        targetSessionKey: String,
-        visibility: SessionToolsVisibility,
+        callersessionKey: String,
+        targetsessionKey: String,
+        visibility: sessiontoolsVisibility,
         registry: SubagentRegistry,
-    ): SessionAccessResult {
+    ): sessionAccessResult {
         return when (visibility) {
-            SessionToolsVisibility.ALL -> {
-                // Can access everything
-                SessionAccessResult.Allowed
+            sessiontoolsVisibility.ALL -> {
+                // can access everything
+                sessionAccessResult.Allowed
             }
 
-            SessionToolsVisibility.AGENT -> {
-                // Android: single agent, always allowed
-                SessionAccessResult.Allowed
+            sessiontoolsVisibility.AGENT -> {
+                // android: single agent, always allowed
+                sessionAccessResult.Allowed
             }
 
-            SessionToolsVisibility.TREE -> {
-                // Can access self + descendants
-                if (callerSessionKey == targetSessionKey) {
-                    return SessionAccessResult.Allowed
+            sessiontoolsVisibility.TREE -> {
+                // can access self + descendants
+                if (callersessionKey == targetsessionKey) {
+                    return sessionAccessResult.Allowed
                 }
-                if (isDescendant(callerSessionKey, targetSessionKey, registry)) {
-                    return SessionAccessResult.Allowed
+                if (isDescendant(callersessionKey, targetsessionKey, registry)) {
+                    return sessionAccessResult.Allowed
                 }
-                SessionAccessResult.Denied(
-                    "Session $targetSessionKey is not a descendant of $callerSessionKey. " +
+                sessionAccessResult.Denied(
+                    "session $targetsessionKey is not a descendant of $callersessionKey. " +
                     "You can only $action your own spawned subagents."
                 )
             }
 
-            SessionToolsVisibility.SELF -> {
-                // Can only access self
-                if (callerSessionKey == targetSessionKey) {
-                    SessionAccessResult.Allowed
+            sessiontoolsVisibility.SELF -> {
+                // can only access self
+                if (callersessionKey == targetsessionKey) {
+                    sessionAccessResult.Allowed
                 } else {
-                    SessionAccessResult.Denied(
+                    sessionAccessResult.Denied(
                         "Leaf subagents cannot $action other sessions."
                     )
                 }
@@ -133,37 +133,37 @@ object SessionVisibilityGuard {
     }
 
     /**
-     * Check if targetSessionKey is a descendant of ancestorSessionKey.
-     * Uses requester-based BFS (aligned with OpenClaw spawnedBy / requesterSessionKey).
+     * Check if targetsessionKey is a descendant of ancestorsessionKey.
+     * uses requester-based BFS (aligned with OpenClaw spawnedBy / requestersessionKey).
      * OpenClaw uses gateway `sessions.list { spawnedBy }` which traverses by requester,
      * not by controller.
      */
     fun isDescendant(
-        ancestorSessionKey: String,
-        targetSessionKey: String,
+        ancestorsessionKey: String,
+        targetsessionKey: String,
         registry: SubagentRegistry,
     ): Boolean {
-        // BFS using requesterSessionKey (aligned with OpenClaw spawnedBy)
+        // BFS using requestersessionKey (aligned with OpenClaw spawnedBy)
         val visited = mutableSetOf<String>()
         val queue = ArrayDeque<String>()
 
         // Get direct children spawned by ancestor (requester-based)
-        val children = registry.listRunsForRequester(ancestorSessionKey)
+        val children = registry.listRunsforRequester(ancestorsessionKey)
         for (child in children) {
-            if (child.childSessionKey == targetSessionKey) return true
-            if (visited.add(child.childSessionKey)) {
-                queue.add(child.childSessionKey)
+            if (child.childsessionKey == targetsessionKey) return true
+            if (visited.a(child.childsessionKey)) {
+                queue.a(child.childsessionKey)
             }
         }
 
         // BFS through descendants
-        while (queue.isNotEmpty()) {
+        while (queue.isnotEmpty()) {
             val current = queue.removeAt(0)
-            val grandchildren = registry.listRunsForRequester(current)
+            val grandchildren = registry.listRunsforRequester(current)
             for (gc in grandchildren) {
-                if (gc.childSessionKey == targetSessionKey) return true
-                if (visited.add(gc.childSessionKey)) {
-                    queue.add(gc.childSessionKey)
+                if (gc.childsessionKey == targetsessionKey) return true
+                if (visited.a(gc.childsessionKey)) {
+                    queue.a(gc.childsessionKey)
                 }
             }
         }
@@ -176,23 +176,23 @@ object SessionVisibilityGuard {
      * Convenience method for list-type tools.
      */
     fun filterVisible(
-        callerSessionKey: String,
+        callersessionKey: String,
         runs: List<SubagentRunRecord>,
-        visibility: SessionToolsVisibility,
+        visibility: sessiontoolsVisibility,
         registry: SubagentRegistry,
     ): List<SubagentRunRecord> {
         return when (visibility) {
-            SessionToolsVisibility.ALL, SessionToolsVisibility.AGENT -> runs
-            SessionToolsVisibility.TREE -> {
+            sessiontoolsVisibility.ALL, sessiontoolsVisibility.AGENT -> runs
+            sessiontoolsVisibility.TREE -> {
                 runs.filter { run ->
-                    run.childSessionKey == callerSessionKey ||
-                    run.requesterSessionKey == callerSessionKey ||
-                    run.controllerSessionKey == callerSessionKey ||
-                    isDescendant(callerSessionKey, run.childSessionKey, registry)
+                    run.childsessionKey == callersessionKey ||
+                    run.requestersessionKey == callersessionKey ||
+                    run.controllersessionKey == callersessionKey ||
+                    isDescendant(callersessionKey, run.childsessionKey, registry)
                 }
             }
-            SessionToolsVisibility.SELF -> {
-                runs.filter { it.childSessionKey == callerSessionKey }
+            sessiontoolsVisibility.SELF -> {
+                runs.filter { it.childsessionKey == callersessionKey }
             }
         }
     }

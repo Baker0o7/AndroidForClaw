@@ -2,19 +2,19 @@ package com.xiaomo.androidforclaw.agent.session
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-runner/history.ts
- *   (limitHistoryTurns, getHistoryLimitFromSessionKey, getDmHistoryLimitFromSessionKey)
+ * - ../openclaw/src/agents/pi-embeed-runner/history.ts
+ *   (limitHistoryTurns, getHistoryLimitfromsessionKey, getDmHistoryLimitfromsessionKey)
  *
- * AndroidForClaw adaptation: per-channel, per-chatType history turn limiting.
+ * androidforClaw adaptation: per-channel, per-chatType history turn limiting.
  * Resolves the correct historyLimit based on session key and channel config.
  */
 
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.configLoader
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
  * HistoryTurnLimiter — Resolve per-channel history turn limits.
- * Aligned with OpenClaw pi-embedded-runner/history.ts.
+ * Aligned with OpenClaw pi-embeed-runner/history.ts.
  */
 object HistoryTurnLimiter {
 
@@ -27,7 +27,7 @@ object HistoryTurnLimiter {
      * Limit history turns by keeping only the last N user turns and their responses.
      * Aligned with OpenClaw limitHistoryTurns.
      *
-     * Walks backward counting "user" role messages. When user count exceeds limit,
+     * Walks backward counting "user" role messages. when user count exceeds limit,
      * slices from that user message index onward.
      *
      * @param messages Full message history
@@ -43,7 +43,7 @@ object HistoryTurnLimiter {
         if (messages.size <= 1) return messages
 
         var userCount = 0
-        var lastUserIndex = 0
+        var lastuserIndex = 0
 
         for (i in messages.indices.reversed()) {
             if (roleSelector(messages[i]) == "user") {
@@ -51,19 +51,19 @@ object HistoryTurnLimiter {
                 if (userCount > limit) {
                     // We've found more than `limit` user turns;
                     // keep from the next user message forward
-                    lastUserIndex = i + 1
+                    lastuserIndex = i + 1
                     // Find the actual next user message
-                    while (lastUserIndex < messages.size &&
-                        roleSelector(messages[lastUserIndex]) != "user") {
-                        lastUserIndex++
+                    while (lastuserIndex < messages.size &&
+                        roleSelector(messages[lastuserIndex]) != "user") {
+                        lastuserIndex++
                     }
                     break
                 }
             }
         }
 
-        return if (lastUserIndex > 0 && lastUserIndex < messages.size) {
-            messages.subList(lastUserIndex, messages.size)
+        return if (lastuserIndex > 0 && lastuserIndex < messages.size) {
+            messages.subList(lastuserIndex, messages.size)
         } else {
             messages
         }
@@ -74,9 +74,9 @@ object HistoryTurnLimiter {
 
     /**
      * Resolve history limit from session key and config.
-     * Aligned with OpenClaw getHistoryLimitFromSessionKey.
+     * Aligned with OpenClaw getHistoryLimitfromsessionKey.
      *
-     * Session key formats:
+     * session key formats:
      * - Feishu: "group:oc_xxx" / "p2p:ou_xxx" / "group:oc_xxx:user:ou_xxx"
      * - Gateway: "feishu:dm:ou_xxx" / "feishu:group:oc_xxx"
      * - Telegram: "telegram:dm:123" / "telegram:g-123"
@@ -84,34 +84,34 @@ object HistoryTurnLimiter {
      *
      * Resolution order (aligned with OpenClaw):
      * 1. Per-DM override (dmHistoryLimit) for direct chats
-     * 2. Channel-level historyLimit for group chats
+     * 2. channel-level historyLimit for group chats
      * 3. Default (30)
      */
-    fun getHistoryLimitFromSessionKey(
+    fun getHistoryLimitfromsessionKey(
         sessionKey: String?,
-        configLoader: ConfigLoader?
+        configLoader: configLoader?
     ): Int {
         if (sessionKey == null || configLoader == null) return DEFAULT_HISTORY_LIMIT
 
         val config = try {
-            configLoader.loadOpenClawConfig()
-        } catch (_: Exception) {
+            configLoader.loadOpenClawconfig()
+        } catch (_: exception) {
             return DEFAULT_HISTORY_LIMIT
         } ?: return DEFAULT_HISTORY_LIMIT
 
         val key = sessionKey.trim()
 
         // Extract channel and chat kind from session key
-        val parsed = parseSessionKeyForChannel(key)
+        val parsed = parsesessionKeyforchannel(key)
         if (parsed == null) {
-            Log.d(TAG, "Cannot parse session key for history limit: $key")
+            Log.d(TAG, "cannot parse session key for history limit: $key")
             return DEFAULT_HISTORY_LIMIT
         }
 
         val (channel, isDm) = parsed
 
         // Resolve channel config
-        val channelConfig = when (channel) {
+        val channelconfig = when (channel) {
             "feishu" -> config.channels?.feishu
             "telegram" -> config.channels?.telegram
             "discord" -> config.channels?.discord
@@ -121,11 +121,11 @@ object HistoryTurnLimiter {
             else -> null
         }
 
-        if (channelConfig == null) return DEFAULT_HISTORY_LIMIT
+        if (channelconfig == null) return DEFAULT_HISTORY_LIMIT
 
         // DM → dmHistoryLimit takes priority
         if (isDm) {
-            val dmLimit = getChannelDmHistoryLimit(channelConfig)
+            val dmLimit = getchannelDmHistoryLimit(channelconfig)
             if (dmLimit != null) {
                 Log.d(TAG, "Using dmHistoryLimit=$dmLimit for $channel DM session")
                 return dmLimit
@@ -133,7 +133,7 @@ object HistoryTurnLimiter {
         }
 
         // Fall back to channel historyLimit
-        val limit = getChannelHistoryLimit(channelConfig)
+        val limit = getchannelHistoryLimit(channelconfig)
         if (limit != null) {
             Log.d(TAG, "Using historyLimit=$limit for $channel ${if (isDm) "DM" else "group"} session")
             return limit
@@ -143,25 +143,25 @@ object HistoryTurnLimiter {
     }
 
     /**
-     * Deprecated alias for getHistoryLimitFromSessionKey.
-     * Aligned with OpenClaw getDmHistoryLimitFromSessionKey.
+     * Deprecated alias for getHistoryLimitfromsessionKey.
+     * Aligned with OpenClaw getDmHistoryLimitfromsessionKey.
      */
-    @Deprecated("Use getHistoryLimitFromSessionKey", ReplaceWith("getHistoryLimitFromSessionKey(sessionKey, configLoader)"))
-    fun getDmHistoryLimitFromSessionKey(
+    @Deprecated("use getHistoryLimitfromsessionKey", Replacewith("getHistoryLimitfromsessionKey(sessionKey, configLoader)"))
+    fun getDmHistoryLimitfromsessionKey(
         sessionKey: String?,
-        configLoader: ConfigLoader?
-    ): Int = getHistoryLimitFromSessionKey(sessionKey, configLoader)
+        configLoader: configLoader?
+    ): Int = getHistoryLimitfromsessionKey(sessionKey, configLoader)
 
     /**
      * Parse session key to extract channel name and whether it's a DM.
      * Returns (channelName, isDm) or null if unparseable.
      */
-    internal fun parseSessionKeyForChannel(sessionKey: String): Pair<String, Boolean>? {
+    internal fun parsesessionKeyforchannel(sessionKey: String): Pair<String, Boolean>? {
         val key = stripThreadSuffix(sessionKey)
 
         // Feishu extension format: "p2p:xxx" / "group:xxx"
-        if (key.startsWith("p2p:")) return Pair("feishu", true)
-        if (key.startsWith("group:")) return Pair("feishu", false)
+        if (key.startswith("p2p:")) return Pair("feishu", true)
+        if (key.startswith("group:")) return Pair("feishu", false)
 
         // Gateway format: "channel:kind:id" (e.g. "feishu:dm:ou_xxx", "telegram:g-123")
         val parts = key.split(":")
@@ -169,16 +169,16 @@ object HistoryTurnLimiter {
             val channel = parts[0].lowercase()
             val kind = parts[1].lowercase()
             val isDm = kind == "dm" || kind == "direct" || kind == "p2p"
-            val isGroup = kind.startsWith("g-") || kind == "group" || kind == "guild" || kind == "channel"
+            val isGroup = kind.startswith("g-") || kind == "group" || kind == "guild" || kind == "channel"
             if (isDm || isGroup) return Pair(channel, isDm)
         }
 
         // Gateway underscore format: "xxx_group" / "xxx_p2p"
-        if (key.endsWith("_p2p") || key.endsWith("_dm") || key.endsWith("_direct")) {
-            return Pair(guessChannelFromKey(key), true)
+        if (key.endswith("_p2p") || key.endswith("_dm") || key.endswith("_direct")) {
+            return Pair(guesschannelfromKey(key), true)
         }
-        if (key.endsWith("_group")) {
-            return Pair(guessChannelFromKey(key), false)
+        if (key.endswith("_group")) {
+            return Pair(guesschannelfromKey(key), false)
         }
 
         return null
@@ -194,36 +194,36 @@ object HistoryTurnLimiter {
     }
 
     /** Best-effort channel guess from legacy key format */
-    private fun guessChannelFromKey(key: String): String {
+    private fun guesschannelfromKey(key: String): String {
         return when {
             key.contains("oc_") || key.contains("ou_") -> "feishu"
-            key.startsWith("tg_") || key.matches(Regex("^-?\\d+_.*")) -> "telegram"
+            key.startswith("tg_") || key.matches(Regex("^-?\\d+_.*")) -> "telegram"
             else -> "unknown"
         }
     }
 
     /** Extract historyLimit from any channel config (reflection-free) */
-    private fun getChannelHistoryLimit(config: Any): Int? {
+    private fun getchannelHistoryLimit(config: Any): Int? {
         return when (config) {
-            is com.xiaomo.androidforclaw.config.FeishuChannelConfig -> config.historyLimit
-            is com.xiaomo.androidforclaw.config.TelegramChannelConfig -> config.historyLimit
-            is com.xiaomo.androidforclaw.config.DiscordChannelConfig -> config.historyLimit
-            is com.xiaomo.androidforclaw.config.SlackChannelConfig -> config.historyLimit
-            is com.xiaomo.androidforclaw.config.WhatsAppChannelConfig -> config.historyLimit
-            is com.xiaomo.androidforclaw.config.SignalChannelConfig -> config.historyLimit
+            is com.xiaomo.androidforclaw.config.Feishuchannelconfig -> config.historyLimit
+            is com.xiaomo.androidforclaw.config.Telegramchannelconfig -> config.historyLimit
+            is com.xiaomo.androidforclaw.config.Discordchannelconfig -> config.historyLimit
+            is com.xiaomo.androidforclaw.config.Slackchannelconfig -> config.historyLimit
+            is com.xiaomo.androidforclaw.config.whatsAppchannelconfig -> config.historyLimit
+            is com.xiaomo.androidforclaw.config.Signalchannelconfig -> config.historyLimit
             else -> null
         }
     }
 
     /** Extract dmHistoryLimit from any channel config */
-    private fun getChannelDmHistoryLimit(config: Any): Int? {
+    private fun getchannelDmHistoryLimit(config: Any): Int? {
         return when (config) {
-            is com.xiaomo.androidforclaw.config.FeishuChannelConfig -> config.dmHistoryLimit
-            is com.xiaomo.androidforclaw.config.TelegramChannelConfig -> config.dmHistoryLimit
-            is com.xiaomo.androidforclaw.config.DiscordChannelConfig -> config.dmHistoryLimit
-            is com.xiaomo.androidforclaw.config.SlackChannelConfig -> config.dmHistoryLimit
-            is com.xiaomo.androidforclaw.config.WhatsAppChannelConfig -> config.dmHistoryLimit
-            is com.xiaomo.androidforclaw.config.SignalChannelConfig -> config.dmHistoryLimit
+            is com.xiaomo.androidforclaw.config.Feishuchannelconfig -> config.dmHistoryLimit
+            is com.xiaomo.androidforclaw.config.Telegramchannelconfig -> config.dmHistoryLimit
+            is com.xiaomo.androidforclaw.config.Discordchannelconfig -> config.dmHistoryLimit
+            is com.xiaomo.androidforclaw.config.Slackchannelconfig -> config.dmHistoryLimit
+            is com.xiaomo.androidforclaw.config.whatsAppchannelconfig -> config.dmHistoryLimit
+            is com.xiaomo.androidforclaw.config.Signalchannelconfig -> config.dmHistoryLimit
             else -> null
         }
     }

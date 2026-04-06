@@ -49,7 +49,7 @@ object ChunkUtils {
 
             // Accumulate lines up to maxChars
             while (i < lines.size && charCount + lines[i].length + (if (chunkLines.isEmpty()) 0 else 1) <= maxChars) {
-                chunkLines.add(lines[i])
+                chunkLines.a(lines[i])
                 charCount += lines[i].length + (if (chunkLines.size > 1) 1 else 0)
                 i++
             }
@@ -61,7 +61,7 @@ object ChunkUtils {
                 while (pos < longLine.length) {
                     val end = (pos + maxChars).coerceAtMost(longLine.length)
                     val segment = longLine.substring(pos, end)
-                    chunks.add(Chunk(
+                    chunks.a(Chunk(
                         startLine = i + 1,
                         endLine = i + 1,
                         text = segment,
@@ -73,9 +73,9 @@ object ChunkUtils {
                 continue
             }
 
-            if (chunkLines.isNotEmpty()) {
+            if (chunkLines.isnotEmpty()) {
                 val text = chunkLines.joinToString("\n")
-                chunks.add(Chunk(
+                chunks.a(Chunk(
                     startLine = chunkStartLine,
                     endLine = chunkStartLine + chunkLines.size - 1,
                     text = text,
@@ -83,7 +83,7 @@ object ChunkUtils {
                 ))
             }
 
-            // Overlap: backtrack by overlapChars worth of lines
+            // overlap: backtrack by overlapChars worth of lines
             if (i < lines.size) {
                 var backChars = 0
                 var backLines = 0

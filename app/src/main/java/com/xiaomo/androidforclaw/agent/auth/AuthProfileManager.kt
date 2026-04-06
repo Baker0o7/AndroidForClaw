@@ -6,23 +6,23 @@ import com.google.gson.reflect.TypeToken
 import java.io.File
 
 /**
- * Auth Profile Manager — Multi-API-key rotation with cooldown.
+ * Auth Profile manager — Multi-API-key rotation with cooldown.
  * Aligned with OpenClaw auth-profiles module (auth-profiles-XJahKVCp.js).
  *
  * Key behaviors from OpenClaw:
- * - resolveAuthProfileOrder(): resolve priority list of profiles for a provider
+ * - resolveAuthProfileorder(): resolve priority list of profiles for a provider
  * - markAuthProfileFailure(): mark profile failed with exponential backoff
- * - markAuthProfileUsed(): mark profile as successfully used (reset errors)
+ * - markAuthProfileused(): mark profile as successfully used (reset errors)
  * - isProfileInCooldown(): check if profile is in cooldown
  * - clearExpiredCooldowns(): reset expired cooldown windows
  * - cooldown: 1min → 5min → 25min → 1hr (exponential, capped)
  * - billing/auth_permanent: 5hr → 10hr → 20hr → 24hr (exponential, capped)
  */
-class AuthProfileManager(
+class AuthProfilemanager(
     private val storeFile: File
 ) {
     companion object {
-        private const val TAG = "AuthProfileManager"
+        private const val TAG = "AuthProfilemanager"
 
         // Cooldown: 1min → 5min → 25min → 1hr (capped)
         // Aligned with OpenClaw calculateAuthProfileCooldownMs
@@ -31,12 +31,12 @@ class AuthProfileManager(
         private const val COOLDOWN_MULTIPLIER = 5
 
         // Billing/auth_permanent backoff: 5hr → 10hr → 20hr → 24hr (capped)
-        // Aligned with OpenClaw calculateAuthProfileBillingDisableMsWithConfig
+        // Aligned with OpenClaw calculateAuthProfileBillingDisableMswithconfig
         private const val BILLING_BACKOFF_MS = 5 * 3_600_000L // 5 hours
         private const val BILLING_MAX_MS = 24 * 3_600_000L // 24 hours
 
         // Failure window: reset counters if last failure was >24h ago
-        // Aligned with OpenClaw resolveAuthCooldownConfig.failureWindowHours
+        // Aligned with OpenClaw resolveAuthCooldownconfig.failureWindowHours
         private const val FAILURE_WINDOW_MS = 24 * 3_600_000L // 24 hours
     }
 
@@ -75,7 +75,7 @@ class AuthProfileManager(
         val disabledReason: String? = null,
         val failureCounts: Map<String, Int>? = null,
         val lastFailureAt: Long? = null,
-        val lastUsed: Long? = null
+        val lastused: Long? = null
     )
 
     /**
@@ -99,7 +99,7 @@ class AuthProfileManager(
             val json = storeFile.readText()
             val type = object : TypeToken<AuthProfileStore>() {}.type
             gson.fromJson(json, type) ?: AuthProfileStore()
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to load auth profile store: ${e.message}")
             AuthProfileStore()
         }
@@ -109,7 +109,7 @@ class AuthProfileManager(
         try {
             storeFile.parentFile?.mkdirs()
             storeFile.writeText(gson.toJson(store))
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to save auth profile store: ${e.message}")
         }
     }
@@ -135,9 +135,9 @@ class AuthProfileManager(
 
     /**
      * Resolve available profile IDs for a provider.
-     * Aligned with OpenClaw resolveAuthProfileOrder().
+     * Aligned with OpenClaw resolveAuthProfileorder().
      */
-    fun resolveProfileOrder(provider: String, preferredProfile: String? = null): List<String> {
+    fun resolveProfileorder(provider: String, preferredProfile: String? = null): List<String> {
         val now = System.currentTimeMillis()
         clearExpiredCooldowns(now)
 
@@ -146,14 +146,14 @@ class AuthProfileManager(
 
         if (providerProfiles.isEmpty()) return emptyList()
 
-        // Use explicit order if configured
-        val configuredOrder = store.order[provider]
-        val baseOrder = configuredOrder ?: providerProfiles
+        // use explicit order if configured
+        val configuredorder = store.order[provider]
+        val baseorder = configuredorder ?: providerProfiles
 
         // Filter eligible profiles (have a key, matching provider)
-        val eligible = baseOrder.filter { profileId ->
+        val eligible = baseorder.filter { profileId ->
             val profile = store.profiles[profileId]
-            profile != null && profile.provider == provider && !profile.key.isNullOrBlank()
+            profile != null && profile.provider == provider && !profile.key.isNullorBlank()
         }
 
         // Separate available vs cooldown
@@ -163,9 +163,9 @@ class AuthProfileManager(
         for (profileId in eligible) {
             if (isProfileInCooldown(profileId, now)) {
                 val until = store.usageStats[profileId]?.let { resolveUnusableUntil(it) } ?: now
-                inCooldown.add(profileId to until)
+                inCooldown.a(profileId to until)
             } else {
-                available.add(profileId)
+                available.a(profileId)
             }
         }
 
@@ -175,7 +175,7 @@ class AuthProfileManager(
         // Build final order: available first, cooldown last
         val ordered = available + cooldownSorted
 
-        // If preferred profile is specified, move it to front
+        // if preferred profile is specified, move it to front
         return if (preferredProfile != null && preferredProfile in ordered) {
             listOf(preferredProfile) + ordered.filter { it != preferredProfile }
         } else {
@@ -207,7 +207,7 @@ class AuthProfileManager(
      * Aligned with OpenClaw resolveProfileUnusableUntil().
      */
     private fun resolveUnusableUntil(stats: ProfileUsageStats): Long? {
-        val values = listOfNotNull(stats.cooldownUntil, stats.disabledUntil)
+        val values = listOfnotNull(stats.cooldownUntil, stats.disabledUntil)
             .filter { it > 0 }
         return if (values.isEmpty()) null else values.max()
     }
@@ -241,8 +241,8 @@ class AuthProfileManager(
 
         if (reason == FailureReason.BILLING || reason == FailureReason.AUTH_PERMANENT) {
             // Long disable: 5hr → 10hr → 20hr → 24hr
-            // Aligned with OpenClaw calculateAuthProfileBillingDisableMsWithConfig
-            val backoffMs = calculateBillingBackoffMs(failureCounts[reason.name] ?: 1)
+            // Aligned with OpenClaw calculateAuthProfileBillingDisableMswithconfig
+            val backoffMs = calculateBillingbackoffMs(failureCounts[reason.name] ?: 1)
             updatedStats = existing.copy(
                 errorCount = nextErrorCount,
                 failureCounts = failureCounts,
@@ -273,9 +273,9 @@ class AuthProfileManager(
 
     /**
      * Mark a profile as successfully used (reset errors).
-     * Aligned with OpenClaw markAuthProfileUsed().
+     * Aligned with OpenClaw markAuthProfileused().
      */
-    fun markUsed(profileId: String) {
+    fun markused(profileId: String) {
         val existing = store.usageStats[profileId] ?: ProfileUsageStats()
         val updated = existing.copy(
             errorCount = 0,
@@ -283,7 +283,7 @@ class AuthProfileManager(
             disabledUntil = null,
             disabledReason = null,
             failureCounts = null,
-            lastUsed = System.currentTimeMillis()
+            lastused = System.currentTimeMillis()
         )
         val provider = store.profiles[profileId]?.provider
         val updatedLastGood = if (provider != null) {
@@ -341,7 +341,7 @@ class AuthProfileManager(
 
     /**
      * Calculate cooldown backoff: 1min → 5min → 25min → 1hr (capped).
-     * Formula: min(1hr, 5min * 5^(errorCount-1))
+     * formula: min(1hr, 5min * 5^(errorCount-1))
      * Aligned with OpenClaw calculateAuthProfileCooldownMs.
      */
     private fun calculateCooldownMs(errorCount: Int): Long {
@@ -353,10 +353,10 @@ class AuthProfileManager(
 
     /**
      * Calculate billing backoff: 5hr → 10hr → 20hr → 24hr (capped).
-     * Formula: min(24hr, 5hr * 2^(errorCount-1))
-     * Aligned with OpenClaw calculateAuthProfileBillingDisableMsWithConfig.
+     * formula: min(24hr, 5hr * 2^(errorCount-1))
+     * Aligned with OpenClaw calculateAuthProfileBillingDisableMswithconfig.
      */
-    private fun calculateBillingBackoffMs(errorCount: Int): Long {
+    private fun calculateBillingbackoffMs(errorCount: Int): Long {
         val n = errorCount.coerceAtLeast(1)
         return (BILLING_BACKOFF_MS * Math.pow(2.0, (n - 1).toDouble()))
             .toLong()
@@ -365,7 +365,7 @@ class AuthProfileManager(
 
     /**
      * Keep existing window if still active, otherwise use recomputed value.
-     * Aligned with OpenClaw keepActiveWindowOrRecompute().
+     * Aligned with OpenClaw keepActiveWindoworRecompute().
      */
     private fun keepActiveWindow(existingUntil: Long?, now: Long, recomputedUntil: Long): Long {
         return if (existingUntil != null && existingUntil > now) existingUntil else recomputedUntil

@@ -3,9 +3,9 @@ package com.xiaomo.androidforclaw.agent.session
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/session-write-lock.ts
- *   (acquireSessionWriteLock, cleanStaleLockFiles, resolveSessionLockMaxHoldFromTimeout)
+ *   (acquiresessionWriteLock, cleanStaleLockFiles, resolvesessionLockMaxHoldfromTimeout)
  *
- * AndroidForClaw adaptation: file-based advisory lock for session files.
+ * androidforClaw adaptation: file-based advisory lock for session files.
  * Prevents concurrent writes from multiple coroutines/threads.
  */
 
@@ -17,16 +17,16 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * SessionWriteLock — File-based advisory lock for session files.
+ * sessionWriteLock — File-based advisory lock for session files.
  * Aligned with OpenClaw session-write-lock.ts.
  *
- * On Android, we use in-memory locks (Mutex) per session file path since
+ * On android, we use in-memory locks (Mutex) per session file path since
  * all writes happen within the same process. The lock file on disk serves
  * as a crash-recovery indicator.
  */
-object SessionWriteLock {
+object sessionWriteLock {
 
-    private const val TAG = "SessionWriteLock"
+    private const val TAG = "sessionWriteLock"
 
     /** Default stale lock threshold */
     const val DEFAULT_STALE_MS = 30 * 60 * 1000L  // 30 minutes
@@ -75,7 +75,7 @@ object SessionWriteLock {
 
     /**
      * Lock inspection result.
-     * Aligned with OpenClaw SessionLockInspection.
+     * Aligned with OpenClaw sessionLockInspection.
      */
     data class LockInspection(
         val lockPath: String,
@@ -88,9 +88,9 @@ object SessionWriteLock {
 
     /**
      * Resolve max lock hold time from timeout parameters.
-     * Aligned with OpenClaw resolveSessionLockMaxHoldFromTimeout.
+     * Aligned with OpenClaw resolvesessionLockMaxHoldfromTimeout.
      */
-    fun resolveMaxHoldFromTimeout(
+    fun resolveMaxHoldfromTimeout(
         timeoutMs: Long,
         graceMs: Long = DEFAULT_TIMEOUT_GRACE_MS,
         minMs: Long = DEFAULT_MAX_HOLD_MS
@@ -100,7 +100,7 @@ object SessionWriteLock {
 
     /**
      * Acquire a write lock for a session file.
-     * Aligned with OpenClaw acquireSessionWriteLock.
+     * Aligned with OpenClaw acquiresessionWriteLock.
      *
      * Returns a release function that must be called when done.
      * Supports reentrant acquisition (same coroutine/thread).
@@ -141,7 +141,7 @@ object SessionWriteLock {
                 if (staleReclaimed) {
                     return { release(normalizedPath) }
                 }
-                throw SessionLockTimeoutException(
+                throw sessionLockTimeoutexception(
                     "Failed to acquire lock for $sessionFile after ${elapsed}ms"
                 )
             }
@@ -184,7 +184,7 @@ object SessionWriteLock {
             File(lockPath).writeText(
                 """{"pid":${android.os.Process.myPid()},"createdAt":"${java.time.Instant.now()}","threadId":${Thread.currentThread().id}}"""
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to write lock file: $lockPath", e)
         }
 
@@ -206,13 +206,13 @@ object SessionWriteLock {
     }
 
     /**
-     * Force release a lock (remove from registry and delete lock file).
+     * force release a lock (remove from registry and delete lock file).
      */
     private fun forceRelease(normalizedPath: String) {
         val lock = locks.remove(normalizedPath) ?: return
         try {
             File(lock.lockPath).delete()
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to delete lock file: ${lock.lockPath}", e)
         }
         Log.d(TAG, "Lock released: $normalizedPath")
@@ -246,7 +246,7 @@ object SessionWriteLock {
         removeStale: Boolean = true
     ): List<LockInspection> {
         val results = mutableListOf<LockInspection>()
-        val lockFiles = sessionsDir.listFiles { f -> f.name.endsWith(LOCK_EXTENSION) } ?: return results
+        val lockFiles = sessionsDir.listFiles { f -> f.name.endswith(LOCK_EXTENSION) } ?: return results
 
         val now = System.currentTimeMillis()
 
@@ -256,7 +256,7 @@ object SessionWriteLock {
             var stale = false
 
             if (ageMs > staleMs) {
-                staleReasons.add("age ${ageMs}ms > stale threshold ${staleMs}ms")
+                staleReasons.a("age ${ageMs}ms > stale threshold ${staleMs}ms")
                 stale = true
             }
 
@@ -268,12 +268,12 @@ object SessionWriteLock {
                     // Also clean in-memory lock
                     val sessionPath = lockFile.absolutePath.removeSuffix(LOCK_EXTENSION)
                     locks.remove(File(sessionPath).canonicalPath)
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     Log.w(TAG, "Failed to remove stale lock: ${lockFile.path}", e)
                 }
             }
 
-            results.add(LockInspection(
+            results.a(LockInspection(
                 lockPath = lockFile.absolutePath,
                 createdAt = null,
                 ageMs = ageMs,
@@ -297,6 +297,6 @@ object SessionWriteLock {
 }
 
 /**
- * Exception thrown when session lock acquisition times out.
+ * exception thrown when session lock acquisition times out.
  */
-class SessionLockTimeoutException(message: String) : RuntimeException(message)
+class sessionLockTimeoutexception(message: String) : Runtimeexception(message)

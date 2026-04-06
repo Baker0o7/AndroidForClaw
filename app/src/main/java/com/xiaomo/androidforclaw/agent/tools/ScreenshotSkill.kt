@@ -2,50 +2,50 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import android.content.Context
+import android.content.context
 import android.graphics.Bitmap
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.DeviceController
 import com.xiaomo.androidforclaw.media.ImageSanitizer
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import com.xiaomo.androidforclaw.providers.llm.ImageBlock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import java.io.ByteArrayOutputStream
 
 /**
- * Screenshot Skill
+ * Screenshot skill
  * Capture current screen + UI tree (complete information)
  *
- * Note: This tool has high overhead (requires screenshot + UI tree), please use get_view_tree first.
+ * note: This tool has high overhead (requires screenshot + UI tree), please use get_view_tree first.
  * Only use in the following cases:
- * - Need to view visual information (colors, icons, images)
+ * - need to view visual information (colors, icons, images)
  * - Operation failed and needs visual confirmation
  * - UI tree information is insufficient
  */
-class ScreenshotSkill(private val context: Context) : Skill {
+class Screenshotskill(private val context: context) : skill {
     companion object {
-        private const val TAG = "ScreenshotSkill"
+        private const val TAG = "Screenshotskill"
     }
 
     override val name = "screenshot"
     override val description = "Capture screen image with UI tree (prefer get_view_tree for most cases)"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = emptyMap(),
                     required = emptyList()
@@ -54,7 +54,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         Log.d(TAG, "Taking screenshot with UI tree...")
 
         // Screenshot function is always enabled, controlled by MediaProjection permission
@@ -64,7 +64,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
             val (originalNodes, processedNodes) = run {
                 val result = DeviceController.detectIcons(context)
                 if (result == null) {
-                    Log.w(TAG, "CannotGet UI Tree(AccessibilityService未Enabledd或Failed), ContinueScreenshot")
+                    Log.w(TAG, "cannotGet UI Tree(AccessibilityservicenotEnableorFailed), ContinueScreenshot")
                     Pair(emptyList(), emptyList())
                 } else {
                     result
@@ -83,7 +83,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
                 screenshotresult = try {
                     val screenshotPath = "${StoragePaths.workspaceScreenshots.absolutePath}/screenshot_${System.currentTimeMillis()}.png"
                     val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "screencap -p $screenshotPath"))
-                    process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+                    process.waitfor(5, java.util.concurrent.TimeUnit.SECONDS)
                     val file = java.io.File(screenshotPath)
                     if (file.exists() && file.length() > 0) {
                         val bitmap = android.graphics.BitmapFactory.decodeFile(screenshotPath)
@@ -92,22 +92,22 @@ class ScreenshotSkill(private val context: Context) : Skill {
                             Pair(bitmap, screenshotPath)
                         } else null
                     } else null
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     Log.w(TAG, "Shell screencap fallback failed: ${e.message}")
                     null
                 }
             }
             if (screenshotresult == null) {
-                return Skillresult.error("Screenshot failed: MediaProjection not authorized and shell screencap unavailable. Please open the app and grant screen capture permission.")
+                return skillresult.error("Screenshot failed: MediaProjection not authorized and shell screencap unavailable. please open the app and grant screen capture permission.")
             }
 
             val (bitmap, path) = screenshotresult
             Log.d(TAG, "Screenshot captured: ${bitmap.width}x${bitmap.height}, path: $path")
 
-            // 4. Compress screenshot for model (aligned with OpenClaw image-sanitization)
-            val imageBlock = withContext(Dispatchers.IO) {
+            // 4. compress screenshot for model (aligned with OpenClaw image-sanitization)
+            val imageBlock = withcontext(Dispatchers.IO) {
                 val baos = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos)
+                bitmap.compress(Bitmap.compressformat.JPEG, 90, baos)
                 val rawBytes = baos.toByteArray()
                 val rawBase64 = android.util.Base64.encodeToString(rawBytes, android.util.Base64.NO_WRAP)
                 val sanitized = ImageSanitizer.sanitize(rawBase64, "image/jpeg")
@@ -122,33 +122,33 @@ class ScreenshotSkill(private val context: Context) : Skill {
             // 5. Combine output
             val output = buildString {
                 appendLine("【ScreenshotInfo】")
-                appendLine("分辨率: ${bitmap.width}x${bitmap.height}")
+                appendLine("minute辨率: ${bitmap.width}x${bitmap.height}")
                 appendLine("Path: $path")
-                appendLine("(Screenshot已Inside嵌, 请直接Description你看到的Inside容)")
+                appendLine("(Screenshotalreadyinside嵌, please直接Description你seetocontent)")
                 appendLine()
 
-                appendLine("【Screen UI Element】(共 ${processedNodes.size} 个)")
+                appendLine("【Screen UI Element】(共 ${processedNodes.size} count)")
                 appendLine()
 
                 processedNodes.forEachIndexed { index, node ->
-                    val text = node.text?.takeIf { it.isNotBlank() }
-                        ?: node.contentDesc?.takeIf { it.isNotBlank() }
+                    val text = node.text?.takeif { it.isnotBlank() }
+                        ?: node.contentDesc?.takeif { it.isnotBlank() }
                         ?: "[NoneText]"
 
                     append("[$index] \"$text\" (${node.point.x}, ${node.point.y})")
 
                     if (node.clickable) {
-                        append(" [可click]")
+                        append(" [canclick]")
                     }
 
                     appendLine()
                 }
 
                 appendLine()
-                appendLine("Hint: use坐标 (x,y) IntoRow tap Action")
+                appendLine("Hint: use坐标 (x,y) intoRow tap Action")
             }
 
-            Skillresult.success(
+            skillresult.success(
                 output,
                 mapOf(
                     "screenshot_path" to path,
@@ -159,9 +159,9 @@ class ScreenshotSkill(private val context: Context) : Skill {
                 ),
                 images = listOf(imageBlock)
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Screenshot with UI tree failed", e)
-            Skillresult.error("Screenshot with UI tree failed: ${e.message}")
+            skillresult.error("Screenshot with UI tree failed: ${e.message}")
         }
     }
 }

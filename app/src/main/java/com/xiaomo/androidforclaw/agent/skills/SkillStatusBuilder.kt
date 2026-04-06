@@ -6,63 +6,63 @@ package com.xiaomo.androidforclaw.agent.skills
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.configLoader
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
- * Skill Status Builder
+ * skill Status Builder
  *
- * Aligns with OpenClaw's buildWorkspaceSkillStatus()
+ * Aligns with OpenClaw's buildWorkspaceskillStatus()
  * Scans skill directories, evaluates skill eligibility, generates status report.
  *
- * Uses the unified SkillParser (no more SkillFrontmatterParser duplication).
+ * uses the unified skillParser (no more skillFrontmatterParser duplication).
  */
-class SkillStatusBuilder(private val context: Context) {
+class skillStatusBuilder(private val context: context) {
     companion object {
-        private const val TAG = "SkillStatusBuilder"
+        private const val TAG = "skillStatusBuilder"
     }
 
-    private val configLoader = ConfigLoader(context)
+    private val configLoader = configLoader(context)
 
     /**
      * Build skill status report
      *
      * @param workspacePath Workspace path (default: /sdcard/.androidforclaw/workspace)
-     * @return SkillStatusReport
+     * @return skillStatusReport
      */
-    fun buildStatus(workspacePath: String = StoragePaths.workspace.absolutePath): SkillStatusReport {
-        val managedSkillsDir = StoragePaths.skills.absolutePath
-        val bundledSkillsPath = "skills" // assets path
-        val config = configLoader.loadOpenClawConfig()
+    fun buildStatus(workspacePath: String = StoragePaths.workspace.absolutePath): skillStatusReport {
+        val managedskillsDir = StoragePaths.skills.absolutePath
+        val bundledskillsPath = "skills" // assets path
+        val config = configLoader.loadOpenClawconfig()
 
-        val skillEntries = mutableListOf<SkillStatusEntry>()
+        val skillEntries = mutableListOf<skillStatusEntry>()
 
         // 1. Load from extraDirs (lowest priority)
         config.skills.extraDirs.forEach { extraDir ->
             val dir = File(extraDir)
             if (dir.exists() && dir.isDirectory) {
                 Log.d(TAG, "Loading extra skills from $extraDir")
-                loadSkillsFromDirectory(dir, SkillSource.EXTRA).forEach { doc ->
-                    skillEntries.add(buildStatusEntry(doc, config))
+                loadskillsfromDirectory(dir, skillSource.EXTRA).forEach { doc ->
+                    skillEntries.a(buildStatusEntry(doc, config))
                 }
             }
         }
 
         // 2. Load bundled skills
-        Log.d(TAG, "Loading bundled skills from assets://$bundledSkillsPath")
-        loadSkillsFromAssets(bundledSkillsPath, SkillSource.BUNDLED).forEach { doc ->
-            skillEntries.add(buildStatusEntry(doc, config))
+        Log.d(TAG, "Loading bundled skills from assets://$bundledskillsPath")
+        loadskillsfromAssets(bundledskillsPath, skillSource.BUNDLED).forEach { doc ->
+            skillEntries.a(buildStatusEntry(doc, config))
         }
 
         // 3. Load managed skills
-        val managedDir = File(managedSkillsDir)
+        val managedDir = File(managedskillsDir)
         if (managedDir.exists() && managedDir.isDirectory) {
-            Log.d(TAG, "Loading managed skills from $managedSkillsDir")
-            loadSkillsFromDirectory(managedDir, SkillSource.MANAGED).forEach { doc ->
-                skillEntries.add(buildStatusEntry(doc, config))
+            Log.d(TAG, "Loading managed skills from $managedskillsDir")
+            loadskillsfromDirectory(managedDir, skillSource.MANAGED).forEach { doc ->
+                skillEntries.a(buildStatusEntry(doc, config))
             }
         }
 
@@ -72,64 +72,64 @@ class SkillStatusBuilder(private val context: Context) {
             val skillDirs = pluginEntry.skills.ifEmpty { listOf("skills") }
             for (skillDir in skillDirs) {
                 val assetsPath = "extensions/$pluginName/$skillDir"
-                loadSkillsFromAssets(assetsPath, SkillSource.PLUGIN).forEach { doc ->
-                    skillEntries.add(buildStatusEntry(doc, config))
+                loadskillsfromAssets(assetsPath, skillSource.PLUGIN).forEach { doc ->
+                    skillEntries.a(buildStatusEntry(doc, config))
                 }
                 // Also check filesystem
                 val fsPath = File(StoragePaths.extensions, "$pluginName/$skillDir")
                 if (fsPath.exists() && fsPath.isDirectory) {
-                    loadSkillsFromDirectory(fsPath, SkillSource.PLUGIN).forEach { doc ->
-                        skillEntries.add(buildStatusEntry(doc, config))
+                    loadskillsfromDirectory(fsPath, skillSource.PLUGIN).forEach { doc ->
+                        skillEntries.a(buildStatusEntry(doc, config))
                     }
                 }
             }
         }
 
         // 5. Load workspace skills (highest priority)
-        val workspaceSkillsDir = File(workspacePath, "skills")
-        if (workspaceSkillsDir.exists() && workspaceSkillsDir.isDirectory) {
-            Log.d(TAG, "Loading workspace skills from ${workspaceSkillsDir.absolutePath}")
-            loadSkillsFromDirectory(workspaceSkillsDir, SkillSource.WORKSPACE).forEach { doc ->
-                skillEntries.add(buildStatusEntry(doc, config))
+        val workspaceskillsDir = File(workspacePath, "skills")
+        if (workspaceskillsDir.exists() && workspaceskillsDir.isDirectory) {
+            Log.d(TAG, "Loading workspace skills from ${workspaceskillsDir.absolutePath}")
+            loadskillsfromDirectory(workspaceskillsDir, skillSource.WORKSPACE).forEach { doc ->
+                skillEntries.a(buildStatusEntry(doc, config))
             }
         }
 
-        Log.i(TAG, "✅ Loaded ${skillEntries.size} skills total")
+        Log.i(TAG, "[OK] Loaded ${skillEntries.size} skills total")
 
-        return SkillStatusReport(
+        return skillStatusReport(
             workspaceDir = workspacePath,
-            managedSkillsDir = managedSkillsDir,
+            managedskillsDir = managedskillsDir,
             skills = skillEntries
         )
     }
 
     /**
-     * Load skills from assets using SkillParser
+     * Load skills from assets using skillParser
      */
-    private fun loadSkillsFromAssets(assetsPath: String, source: SkillSource): List<SkillDocument> {
-        val docs = mutableListOf<SkillDocument>()
+    private fun loadskillsfromAssets(assetsPath: String, source: skillSource): List<skillDocument> {
+        val docs = mutableListOf<skillDocument>()
 
         try {
-            val assetManager = context.assets
-            val skillDirs = assetManager.list(assetsPath) ?: emptyArray()
+            val assetmanager = context.assets
+            val skillDirs = assetmanager.list(assetsPath) ?: emptyArray()
 
             for (skillDir in skillDirs) {
                 val skillPath = "$assetsPath/$skillDir"
-                val files = assetManager.list(skillPath) ?: emptyArray()
+                val files = assetmanager.list(skillPath) ?: emptyArray()
 
                 if ("SKILL.md" in files) {
                     val skillMdPath = "$skillPath/SKILL.md"
                     try {
-                        val content = assetManager.open(skillMdPath).bufferedReader().use { it.readText() }
-                        val doc = SkillParser.parse(content, "assets://$skillMdPath")
+                        val content = assetmanager.open(skillMdPath).bufferedReader().use { it.readText() }
+                        val doc = skillParser.parse(content, "assets://$skillMdPath")
                             .copy(source = source, filePath = "assets://$skillMdPath")
-                        docs.add(doc)
-                    } catch (e: Exception) {
+                        docs.a(doc)
+                    } catch (e: exception) {
                         Log.w(TAG, "Failed to parse $skillMdPath: ${e.message}")
                     }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to load skills from assets", e)
         }
 
@@ -137,10 +137,10 @@ class SkillStatusBuilder(private val context: Context) {
     }
 
     /**
-     * Load skills from filesystem directory using SkillParser
+     * Load skills from filesystem directory using skillParser
      */
-    private fun loadSkillsFromDirectory(directory: File, source: SkillSource): List<SkillDocument> {
-        val docs = mutableListOf<SkillDocument>()
+    private fun loadskillsfromDirectory(directory: File, source: skillSource): List<skillDocument> {
+        val docs = mutableListOf<skillDocument>()
 
         directory.listFiles()?.forEach { skillDir ->
             if (skillDir.isDirectory) {
@@ -148,10 +148,10 @@ class SkillStatusBuilder(private val context: Context) {
                 if (skillMdFile.exists()) {
                     try {
                         val content = skillMdFile.readText()
-                        val doc = SkillParser.parse(content, skillMdFile.absolutePath)
+                        val doc = skillParser.parse(content, skillMdFile.absolutePath)
                             .copy(source = source, filePath = skillMdFile.absolutePath)
-                        docs.add(doc)
-                    } catch (e: Exception) {
+                        docs.a(doc)
+                    } catch (e: exception) {
                         Log.w(TAG, "Failed to parse ${skillMdFile.absolutePath}: ${e.message}")
                     }
                 }
@@ -162,20 +162,20 @@ class SkillStatusBuilder(private val context: Context) {
     }
 
     /**
-     * Build status entry from a SkillDocument
+     * Build status entry from a skillDocument
      */
     private fun buildStatusEntry(
-        doc: SkillDocument,
-        config: com.xiaomo.androidforclaw.config.OpenClawConfig
-    ): SkillStatusEntry {
-        val skillKey = doc.effectiveSkillKey()
-        val skillConfig = config.skills.entries[skillKey]
+        doc: skillDocument,
+        config: com.xiaomo.androidforclaw.config.OpenClawconfig
+    ): skillStatusEntry {
+        val skillKey = doc.effectiveskillKey()
+        val skillconfig = config.skills.entries[skillKey]
 
         // Check if disabled by config
-        val disabled = skillConfig?.enabled == false
+        val disabled = skillconfig?.enabled == false
 
         // Check if blocked by allowlist (bundled skills need to be in allowlist)
-        val blockedByAllowlist = if (doc.source == SkillSource.BUNDLED) {
+        val blockedByAllowlist = if (doc.source == skillSource.BUNDLED) {
             val allowBundled = config.skills.allowBundled
             allowBundled != null && doc.name !in allowBundled
         } else {
@@ -187,7 +187,7 @@ class SkillStatusBuilder(private val context: Context) {
         val missing = checkMissing(requires)
 
         // Check config paths
-        val configChecks = checkConfigPaths(requires?.config, config)
+        val configChecks = checkconfigPaths(requires?.config, config)
 
         // Check platform compatibility
         val platformCompatible = checkPlatformCompatibility(doc.metadata.os)
@@ -201,11 +201,11 @@ class SkillStatusBuilder(private val context: Context) {
         // Build install options
         val installOptions = buildInstallOptions(doc.metadata.install)
 
-        return SkillStatusEntry(
+        return skillStatusEntry(
             name = doc.name,
             description = doc.description,
             source = doc.source,
-            bundled = doc.source == SkillSource.BUNDLED,
+            bundled = doc.source == skillSource.BUNDLED,
             filePath = doc.filePath,
             baseDir = File(doc.filePath).parent ?: "",
             skillKey = skillKey,
@@ -226,34 +226,34 @@ class SkillStatusBuilder(private val context: Context) {
     /**
      * Check missing requirements, returns null if all satisfied.
      */
-    private fun checkMissing(requires: SkillRequires?): SkillRequires? {
+    private fun checkMissing(requires: skillRequires?): skillRequires? {
         if (requires == null) return null
 
-        // bins: skip on Android (no PATH binaries)
-        // anyBins: skip on Android
+        // bins: skip on android (no PATH binaries)
+        // anyBins: skip on android
 
         // env: check System.getenv
         val missingEnv = requires.env.filter { System.getenv(it) == null }
 
-        // config: checked separately via checkConfigPaths
+        // config: checked separately via checkconfigPaths
 
         if (missingEnv.isEmpty()) return null
 
-        return SkillRequires(env = missingEnv)
+        return skillRequires(env = missingEnv)
     }
 
     /**
      * Check config paths
      */
-    private fun checkConfigPaths(
+    private fun checkconfigPaths(
         configPaths: List<String>?,
-        config: com.xiaomo.androidforclaw.config.OpenClawConfig
-    ): List<SkillConfigCheck> {
-        if (configPaths.isNullOrEmpty()) return emptyList()
+        config: com.xiaomo.androidforclaw.config.OpenClawconfig
+    ): List<skillconfigCheck> {
+        if (configPaths.isNullorEmpty()) return emptyList()
 
         return configPaths.map { path ->
-            val value = getConfigValue(path, config)
-            SkillConfigCheck(
+            val value = getconfigValue(path, config)
+            skillconfigCheck(
                 path = path,
                 exists = value != null,
                 value = value
@@ -270,15 +270,15 @@ class SkillStatusBuilder(private val context: Context) {
      * - agent.maxIterations
      * - skills.entries.<key>.enabled
      */
-    private fun getConfigValue(path: String, config: com.xiaomo.androidforclaw.config.OpenClawConfig): Any? {
+    private fun getconfigValue(path: String, config: com.xiaomo.androidforclaw.config.OpenClawconfig): Any? {
         val parts = path.split(".")
         return when {
             parts.size >= 2 && parts[0] in listOf("gateway", "channels") -> {
-                when (parts.getOrNull(1)) {
+                when (parts.getorNull(1)) {
                     "enabled" -> true
-                    "feishu" -> when (parts.getOrNull(2)) {
-                        "appId" -> config.channels.feishu.appId.takeIf { it.isNotEmpty() }
-                        "appSecret" -> config.channels.feishu.appSecret.takeIf { it.isNotEmpty() }
+                    "feishu" -> when (parts.getorNull(2)) {
+                        "appId" -> config.channels.feishu.appId.takeif { it.isnotEmpty() }
+                        "appSecret" -> config.channels.feishu.appSecret.takeif { it.isnotEmpty() }
                         "enabled" -> config.channels.feishu.enabled
                         else -> null
                     }
@@ -288,7 +288,7 @@ class SkillStatusBuilder(private val context: Context) {
             parts.size == 2 && parts[0] == "agent" -> {
                 when (parts[1]) {
                     "maxIterations" -> config.agent.maxIterations
-                    "defaultModel" -> config.agent.defaultModel
+                    "defaultmodel" -> config.agent.defaultmodel
                     else -> null
                 }
             }
@@ -307,13 +307,13 @@ class SkillStatusBuilder(private val context: Context) {
     /**
      * Build install options
      */
-    private fun buildInstallOptions(installSpecs: List<SkillInstallSpec>?): List<SkillInstallOption> {
+    private fun buildInstallOptions(installSpecs: List<skillInstallSpec>?): List<skillInstallOption> {
         if (installSpecs == null) return emptyList()
 
         return installSpecs.map { spec ->
             val (available, reason) = checkInstallAvailability(spec)
 
-            SkillInstallOption(
+            skillInstallOption(
                 installId = spec.id ?: "${spec.kind.name.lowercase()}-default",
                 kind = spec.kind,
                 label = spec.label ?: "Install via ${spec.kind.name}",
@@ -326,7 +326,7 @@ class SkillStatusBuilder(private val context: Context) {
     /**
      * Check installer availability
      */
-    private fun checkInstallAvailability(spec: SkillInstallSpec): Pair<Boolean, String?> {
+    private fun checkInstallAvailability(spec: skillInstallSpec): Pair<Boolean, String?> {
         val platformCompatible = spec.os?.let { osList ->
             "android" in osList.map { it.lowercase() }
         } ?: true
@@ -344,7 +344,7 @@ class SkillStatusBuilder(private val context: Context) {
                 if (spec.url != null) Pair(true, null)
                 else Pair(false, "Missing download URL")
             }
-            else -> Pair(false, "${spec.kind.name} not available on Android")
+            else -> Pair(false, "${spec.kind.name} not available on android")
         }
     }
 }

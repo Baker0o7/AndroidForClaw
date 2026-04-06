@@ -14,14 +14,14 @@ class TokenAuth(configToken: String? = null) {
     private val tokens = ConcurrentHashMap<String, TokenInfo>()
 
     init {
-        // Add configured token if provided
+        // A configured token if provided
         if (configToken != null) {
             tokens[configToken] = TokenInfo(
                 token = configToken,
                 label = "config",
                 createdAt = System.currentTimeMillis(),
                 ttlMs = null,
-                lastUsed = null
+                lastused = null
             )
         }
     }
@@ -42,7 +42,7 @@ class TokenAuth(configToken: String? = null) {
         }
 
         // Update last used
-        tokens[token] = info.copy(lastUsed = System.currentTimeMillis())
+        tokens[token] = info.copy(lastused = System.currentTimeMillis())
         return true
     }
 
@@ -56,7 +56,7 @@ class TokenAuth(configToken: String? = null) {
             label = label,
             createdAt = System.currentTimeMillis(),
             ttlMs = ttlMs,
-            lastUsed = null
+            lastused = null
         )
         return token
     }
@@ -73,7 +73,7 @@ class TokenAuth(configToken: String? = null) {
      */
     fun cleanup() {
         val now = System.currentTimeMillis()
-        tokens.entries.removeIf { (_, info) ->
+        tokens.entries.removeif { (_, info) ->
             info.ttlMs != null && (now - info.createdAt) > info.ttlMs
         }
     }
@@ -87,5 +87,5 @@ data class TokenInfo(
     val label: String,
     val createdAt: Long,
     val ttlMs: Long?,
-    val lastUsed: Long?
+    val lastused: Long?
 )

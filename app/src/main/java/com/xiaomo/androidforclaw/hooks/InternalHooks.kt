@@ -5,7 +5,7 @@ package com.xiaomo.androidforclaw.hooks
  * - ../openclaw/src/hooks/internal-hooks.ts
  *   (InternalHookEvent, registerInternalHook, triggerInternalHook, clearInternalHooks)
  *
- * AndroidForClaw adaptation: event-driven hook system for agent lifecycle events.
+ * androidforClaw adaptation: event-driven hook system for agent lifecycle events.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
@@ -44,10 +44,10 @@ data class InternalHookEvent(
 typealias InternalHookHandler = suspend (InternalHookEvent) -> Unit
 
 /**
- * Agent bootstrap hook context.
- * Aligned with OpenClaw AgentBootstrapHookContext.
+ * agent bootstrap hook context.
+ * Aligned with OpenClaw agentBootstrapHookcontext.
  */
-data class AgentBootstrapHookContext(
+data class agentBootstrapHookcontext(
     val workspaceDir: String,
     val bootstrapFiles: List<String>,
     val sessionKey: String? = null,
@@ -57,19 +57,19 @@ data class AgentBootstrapHookContext(
 
 /**
  * Gateway startup hook context.
- * Aligned with OpenClaw GatewayStartupHookContext.
+ * Aligned with OpenClaw GatewayStartupHookcontext.
  */
-data class GatewayStartupHookContext(
+data class GatewayStartupHookcontext(
     val port: Int? = null,
-    val bindAddress: String? = null,
+    val bindAress: String? = null,
     val workspaceDir: String? = null
 )
 
 /**
  * Message received hook context.
- * Aligned with OpenClaw MessageReceivedHookContext.
+ * Aligned with OpenClaw MessageReceivedHookcontext.
  */
-data class MessageReceivedHookContext(
+data class MessageReceivedHookcontext(
     val from: String?,
     val content: String,
     val channelId: String,
@@ -82,9 +82,9 @@ data class MessageReceivedHookContext(
 
 /**
  * Message sent hook context.
- * Aligned with OpenClaw MessageSentHookContext.
+ * Aligned with OpenClaw MessageSentHookcontext.
  */
-data class MessageSentHookContext(
+data class MessageSentHookcontext(
     val to: String?,
     val content: String,
     val success: Boolean,
@@ -99,9 +99,9 @@ data class MessageSentHookContext(
 
 /**
  * Message transcribed hook context.
- * Aligned with OpenClaw MessageTranscribedHookContext.
+ * Aligned with OpenClaw MessageTranscribedHookcontext.
  */
-data class MessageTranscribedHookContext(
+data class MessageTranscribedHookcontext(
     val transcript: String,
     val channelId: String,
     val from: String? = null,
@@ -113,9 +113,9 @@ data class MessageTranscribedHookContext(
 
 /**
  * Message preprocessed hook context.
- * Aligned with OpenClaw MessagePreprocessedHookContext.
+ * Aligned with OpenClaw MessagePreprocessedHookcontext.
  */
-data class MessagePreprocessedHookContext(
+data class MessagePreprocessedHookcontext(
     val channelId: String,
     val transcript: String? = null,
     val isGroup: Boolean? = null,
@@ -138,7 +138,7 @@ object InternalHooks {
     private val handlers = ConcurrentHashMap<String, MutableList<InternalHookHandler>>()
 
     fun register(eventKey: String, handler: InternalHookHandler) {
-        handlers.getOrPut(eventKey) { mutableListOf() }.add(handler)
+        handlers.getorPut(eventKey) { mutableListOf() }.a(handler)
         Log.d(TAG, "Registered hook handler for: $eventKey")
     }
 
@@ -169,7 +169,7 @@ object InternalHooks {
         for (handler in typeHandlers + actionHandlers) {
             try {
                 handler(event)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Hook handler error for $actionKey: ${e.message}")
             }
         }
@@ -186,7 +186,7 @@ object InternalHooks {
 
     // ── Type guard convenience methods ──
 
-    fun isAgentBootstrapEvent(event: InternalHookEvent): Boolean =
+    fun isagentBootstrapEvent(event: InternalHookEvent): Boolean =
         event.type == InternalHookEventType.AGENT && event.action == "bootstrap" &&
             event.context["workspaceDir"] is String
 

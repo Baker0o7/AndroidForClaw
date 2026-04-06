@@ -6,146 +6,146 @@ package com.xiaomo.androidforclaw.config
  */
 
 
-import com.xiaomo.feishu.FeishuConfig
+import com.xiaomo.feishu.Feishuconfig
 
 /**
- * Feishu Config Adapter
+ * Feishu config Adapter
  *
- * Converts FeishuChannelConfig from OpenClawConfig to FeishuConfig for feishu-channel module
+ * Converts Feishuchannelconfig from OpenClawconfig to Feishuconfig for feishu-channel module
  */
-object FeishuConfigAdapter {
+object FeishuconfigAdapter {
 
     /**
-     * Convert from FeishuChannelConfig to FeishuConfig
+     * Convert from Feishuchannelconfig to Feishuconfig
      */
-    fun toFeishuConfig(channelConfig: FeishuChannelConfig): FeishuConfig {
-        return FeishuConfig(
-            enabled = channelConfig.enabled,
-            appId = channelConfig.appId,
-            appSecret = channelConfig.appSecret,
-            encryptKey = channelConfig.encryptKey,
-            verificationToken = channelConfig.verificationToken,
-            domain = channelConfig.domain,
-            connectionMode = when (channelConfig.connectionMode) {
-                "websocket" -> FeishuConfig.ConnectionMode.WEBSOCKET
-                "webhook" -> FeishuConfig.ConnectionMode.WEBHOOK
-                else -> FeishuConfig.ConnectionMode.WEBSOCKET
+    fun toFeishuconfig(channelconfig: Feishuchannelconfig): Feishuconfig {
+        return Feishuconfig(
+            enabled = channelconfig.enabled,
+            appId = channelconfig.appId,
+            appSecret = channelconfig.appSecret,
+            encryptKey = channelconfig.encryptKey,
+            verificationToken = channelconfig.verificationToken,
+            domain = channelconfig.domain,
+            connectionMode = when (channelconfig.connectionMode) {
+                "websocket" -> Feishuconfig.ConnectionMode.WEBSOCKET
+                "webhook" -> Feishuconfig.ConnectionMode.WEBHOOK
+                else -> Feishuconfig.ConnectionMode.WEBSOCKET
             },
-            webhookPath = channelConfig.webhookPath,
-            webhookPort = channelConfig.webhookPort ?: 8765,
-            dmPolicy = when (channelConfig.dmPolicy) {
-                "open" -> FeishuConfig.DmPolicy.OPEN
-                "pairing" -> FeishuConfig.DmPolicy.PAIRING
-                "allowlist" -> FeishuConfig.DmPolicy.ALLOWLIST
-                else -> FeishuConfig.DmPolicy.PAIRING
+            webhookPath = channelconfig.webhookPath,
+            webhookPort = channelconfig.webhookPort ?: 8765,
+            dmPolicy = when (channelconfig.dmPolicy) {
+                "open" -> Feishuconfig.DmPolicy.OPEN
+                "pairing" -> Feishuconfig.DmPolicy.PAIRING
+                "allowlist" -> Feishuconfig.DmPolicy.ALLOWLIST
+                else -> Feishuconfig.DmPolicy.PAIRING
             },
-            allowFrom = channelConfig.allowFrom,
-            groupPolicy = when (channelConfig.groupPolicy) {
-                "open" -> FeishuConfig.GroupPolicy.OPEN
-                "allowlist" -> FeishuConfig.GroupPolicy.ALLOWLIST
-                "disabled" -> FeishuConfig.GroupPolicy.DISABLED
-                else -> FeishuConfig.GroupPolicy.ALLOWLIST
+            allowfrom = channelconfig.allowfrom,
+            groupPolicy = when (channelconfig.groupPolicy) {
+                "open" -> Feishuconfig.GroupPolicy.OPEN
+                "allowlist" -> Feishuconfig.GroupPolicy.ALLOWLIST
+                "disabled" -> Feishuconfig.GroupPolicy.DISABLED
+                else -> Feishuconfig.GroupPolicy.ALLOWLIST
             },
-            groupAllowFrom = channelConfig.groupAllowFrom,
-            requireMention = channelConfig.requireMention,
-            groupCommandMentionBypass = when (channelConfig.groupCommandMentionBypass.lowercase()) {
-                "single_bot" -> FeishuConfig.MentionBypass.SINGLE_BOT
-                "always" -> FeishuConfig.MentionBypass.ALWAYS
-                else -> FeishuConfig.MentionBypass.NEVER
+            groupAllowfrom = channelconfig.groupAllowfrom,
+            requireMention = channelconfig.requireMention,
+            groupCommandMentionBypass = when (channelconfig.groupCommandMentionBypass.lowercase()) {
+                "single_bot" -> Feishuconfig.MentionBypass.SINGLE_BOT
+                "always" -> Feishuconfig.MentionBypass.ALWAYS
+                else -> Feishuconfig.MentionBypass.NEVER
             },
-            allowMentionlessInMultiBotGroup = channelConfig.allowMentionlessInMultiBotGroup,
-            groupSessionScope = channelConfig.groupSessionScope,
-            topicSessionMode = when (channelConfig.topicSessionMode) {
-                "enabled" -> FeishuConfig.TopicSessionMode.ENABLED
-                "disabled" -> FeishuConfig.TopicSessionMode.DISABLED
-                else -> FeishuConfig.TopicSessionMode.DISABLED
+            allowMentionlessInMultiBotGroup = channelconfig.allowMentionlessInMultiBotGroup,
+            groupsessionScope = channelconfig.groupsessionScope,
+            topicsessionMode = when (channelconfig.topicsessionMode) {
+                "enabled" -> Feishuconfig.TopicsessionMode.ENABLED
+                "disabled" -> Feishuconfig.TopicsessionMode.DISABLED
+                else -> Feishuconfig.TopicsessionMode.DISABLED
             },
-            historyLimit = channelConfig.historyLimit ?: 0,
-            dmHistoryLimit = channelConfig.dmHistoryLimit ?: 0,
-            textChunkLimit = channelConfig.textChunkLimit,
-            chunkMode = when (channelConfig.chunkMode) {
-                "length" -> FeishuConfig.ChunkMode.LENGTH
-                "newline" -> FeishuConfig.ChunkMode.NEWLINE
-                else -> FeishuConfig.ChunkMode.LENGTH
+            historyLimit = channelconfig.historyLimit ?: 0,
+            dmHistoryLimit = channelconfig.dmHistoryLimit ?: 0,
+            textChunkLimit = channelconfig.textChunkLimit,
+            chunkMode = when (channelconfig.chunkMode) {
+                "length" -> Feishuconfig.ChunkMode.LENGTH
+                "newline" -> Feishuconfig.ChunkMode.NEWLINE
+                else -> Feishuconfig.ChunkMode.LENGTH
             },
-            mediaMaxMb = channelConfig.mediaMaxMb,
+            mediaMaxMb = channelconfig.mediaMaxMb,
             audioMaxDurationSec = 300,
-            enableDocTools = channelConfig.tools.doc,
-            enableWikiTools = channelConfig.tools.wiki,
-            enableDriveTools = channelConfig.tools.drive,
-            enableBitableTools = channelConfig.tools.bitable,
-            enableTaskTools = channelConfig.tools.task,
-            enableChatTools = channelConfig.tools.chat,
-            enablePermTools = channelConfig.tools.perm,
-            enableUrgentTools = channelConfig.tools.urgent,
-            typingIndicator = channelConfig.typingIndicator,
-            reactionDedup = channelConfig.reactionDedup,
-            debugMode = channelConfig.debugMode
+            enableDoctools = channelconfig.tools.doc,
+            enableWikitools = channelconfig.tools.wiki,
+            enableDrivetools = channelconfig.tools.drive,
+            enableBitabletools = channelconfig.tools.bitable,
+            enableTasktools = channelconfig.tools.task,
+            enableChattools = channelconfig.tools.chat,
+            enablePermtools = channelconfig.tools.perm,
+            enableUrgenttools = channelconfig.tools.urgent,
+            typingIndicator = channelconfig.typingIndicator,
+            reactionDedup = channelconfig.reactionDedup,
+            debugMode = channelconfig.debugMode
         )
     }
 
     /**
-     * Convert from FeishuConfig to FeishuChannelConfig
+     * Convert from Feishuconfig to Feishuchannelconfig
      */
-    fun fromFeishuConfig(feishuConfig: FeishuConfig): FeishuChannelConfig {
-        return FeishuChannelConfig(
-            enabled = feishuConfig.enabled,
-            appId = feishuConfig.appId,
-            appSecret = feishuConfig.appSecret,
-            encryptKey = feishuConfig.encryptKey,
-            verificationToken = feishuConfig.verificationToken,
-            domain = feishuConfig.domain,
-            connectionMode = when (feishuConfig.connectionMode) {
-                FeishuConfig.ConnectionMode.WEBSOCKET -> "websocket"
-                FeishuConfig.ConnectionMode.WEBHOOK -> "webhook"
+    fun fromFeishuconfig(feishuconfig: Feishuconfig): Feishuchannelconfig {
+        return Feishuchannelconfig(
+            enabled = feishuconfig.enabled,
+            appId = feishuconfig.appId,
+            appSecret = feishuconfig.appSecret,
+            encryptKey = feishuconfig.encryptKey,
+            verificationToken = feishuconfig.verificationToken,
+            domain = feishuconfig.domain,
+            connectionMode = when (feishuconfig.connectionMode) {
+                Feishuconfig.ConnectionMode.WEBSOCKET -> "websocket"
+                Feishuconfig.ConnectionMode.WEBHOOK -> "webhook"
             },
-            webhookPath = feishuConfig.webhookPath,
-            webhookPort = feishuConfig.webhookPort,
-            dmPolicy = when (feishuConfig.dmPolicy) {
-                FeishuConfig.DmPolicy.OPEN -> "open"
-                FeishuConfig.DmPolicy.PAIRING -> "pairing"
-                FeishuConfig.DmPolicy.ALLOWLIST -> "allowlist"
+            webhookPath = feishuconfig.webhookPath,
+            webhookPort = feishuconfig.webhookPort,
+            dmPolicy = when (feishuconfig.dmPolicy) {
+                Feishuconfig.DmPolicy.OPEN -> "open"
+                Feishuconfig.DmPolicy.PAIRING -> "pairing"
+                Feishuconfig.DmPolicy.ALLOWLIST -> "allowlist"
             },
-            allowFrom = feishuConfig.allowFrom,
-            groupPolicy = when (feishuConfig.groupPolicy) {
-                FeishuConfig.GroupPolicy.OPEN -> "open"
-                FeishuConfig.GroupPolicy.ALLOWLIST -> "allowlist"
-                FeishuConfig.GroupPolicy.DISABLED -> "disabled"
+            allowfrom = feishuconfig.allowfrom,
+            groupPolicy = when (feishuconfig.groupPolicy) {
+                Feishuconfig.GroupPolicy.OPEN -> "open"
+                Feishuconfig.GroupPolicy.ALLOWLIST -> "allowlist"
+                Feishuconfig.GroupPolicy.DISABLED -> "disabled"
             },
-            groupAllowFrom = feishuConfig.groupAllowFrom,
-            requireMention = feishuConfig.requireMention,
-            groupCommandMentionBypass = when (feishuConfig.groupCommandMentionBypass) {
-                FeishuConfig.MentionBypass.SINGLE_BOT -> "single_bot"
-                FeishuConfig.MentionBypass.ALWAYS -> "always"
-                FeishuConfig.MentionBypass.NEVER -> "never"
+            groupAllowfrom = feishuconfig.groupAllowfrom,
+            requireMention = feishuconfig.requireMention,
+            groupCommandMentionBypass = when (feishuconfig.groupCommandMentionBypass) {
+                Feishuconfig.MentionBypass.SINGLE_BOT -> "single_bot"
+                Feishuconfig.MentionBypass.ALWAYS -> "always"
+                Feishuconfig.MentionBypass.NEVER -> "never"
             },
-            allowMentionlessInMultiBotGroup = feishuConfig.allowMentionlessInMultiBotGroup,
-            groupSessionScope = feishuConfig.groupSessionScope,
-            topicSessionMode = when (feishuConfig.topicSessionMode) {
-                FeishuConfig.TopicSessionMode.ENABLED -> "enabled"
-                FeishuConfig.TopicSessionMode.DISABLED -> "disabled"
+            allowMentionlessInMultiBotGroup = feishuconfig.allowMentionlessInMultiBotGroup,
+            groupsessionScope = feishuconfig.groupsessionScope,
+            topicsessionMode = when (feishuconfig.topicsessionMode) {
+                Feishuconfig.TopicsessionMode.ENABLED -> "enabled"
+                Feishuconfig.TopicsessionMode.DISABLED -> "disabled"
             },
-            historyLimit = feishuConfig.historyLimit,
-            dmHistoryLimit = feishuConfig.dmHistoryLimit,
-            textChunkLimit = feishuConfig.textChunkLimit,
-            chunkMode = when (feishuConfig.chunkMode) {
-                FeishuConfig.ChunkMode.LENGTH -> "length"
-                FeishuConfig.ChunkMode.NEWLINE -> "newline"
+            historyLimit = feishuconfig.historyLimit,
+            dmHistoryLimit = feishuconfig.dmHistoryLimit,
+            textChunkLimit = feishuconfig.textChunkLimit,
+            chunkMode = when (feishuconfig.chunkMode) {
+                Feishuconfig.ChunkMode.LENGTH -> "length"
+                Feishuconfig.ChunkMode.NEWLINE -> "newline"
             },
-            mediaMaxMb = feishuConfig.mediaMaxMb,
-            tools = FeishuToolsConfig(
-                doc = feishuConfig.enableDocTools,
-                wiki = feishuConfig.enableWikiTools,
-                drive = feishuConfig.enableDriveTools,
-                bitable = feishuConfig.enableBitableTools,
-                task = feishuConfig.enableTaskTools,
-                chat = feishuConfig.enableChatTools,
-                perm = feishuConfig.enablePermTools,
-                urgent = feishuConfig.enableUrgentTools
+            mediaMaxMb = feishuconfig.mediaMaxMb,
+            tools = Feishutoolsconfig(
+                doc = feishuconfig.enableDoctools,
+                wiki = feishuconfig.enableWikitools,
+                drive = feishuconfig.enableDrivetools,
+                bitable = feishuconfig.enableBitabletools,
+                task = feishuconfig.enableTasktools,
+                chat = feishuconfig.enableChattools,
+                perm = feishuconfig.enablePermtools,
+                urgent = feishuconfig.enableUrgenttools
             ),
-            typingIndicator = feishuConfig.typingIndicator,
-            reactionDedup = feishuConfig.reactionDedup,
-            debugMode = feishuConfig.debugMode
+            typingIndicator = feishuconfig.typingIndicator,
+            reactionDedup = feishuconfig.reactionDedup,
+            debugMode = feishuconfig.debugMode
         )
     }
 }

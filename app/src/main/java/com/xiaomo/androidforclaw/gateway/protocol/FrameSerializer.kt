@@ -30,7 +30,7 @@ class FrameSerializer {
     fun deserialize(json: String): Frame {
         val jsonObject = JsonParser.parseString(json).asJsonObject
         val type = jsonObject.get("type")?.asString
-            ?: throw IllegalArgumentException("Missing 'type' field")
+            ?: throw IllegalArgumentexception("Missing 'type' field")
 
         return when (type) {
             // OpenClaw Protocol v3 types
@@ -39,11 +39,11 @@ class FrameSerializer {
             "event" -> gson.fromJson(json, EventFrame::class.java)
             "hello-ok" -> gson.fromJson(json, HelloOkFrame::class.java)
 
-            // Backward compatibility (old types)
+            // backward compatibility (old types)
             "request" -> gson.fromJson(json, RequestFrame::class.java)
             "response" -> gson.fromJson(json, ResponseFrame::class.java)
 
-            else -> throw IllegalArgumentException("Unknown frame type: $type")
+            else -> throw IllegalArgumentexception("Unknown frame type: $type")
         }
     }
 }

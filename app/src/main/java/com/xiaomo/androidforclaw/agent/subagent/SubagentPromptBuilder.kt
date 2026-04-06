@@ -3,7 +3,7 @@
  * - ../openclaw/src/agents/subagent-announce.ts (buildSubagentSystemPrompt, output extraction, findings)
  * - ../openclaw/src/auto-reply/tokens.ts (SILENT_REPLY_TOKEN)
  *
- * AndroidForClaw adaptation: builds multi-section Markdown system prompt for subagent sessions.
+ * androidforClaw adaptation: builds multi-section Markdown system prompt for subagent sessions.
  * Also handles output text extraction, silent reply detection, and announce message building.
  */
 package com.xiaomo.androidforclaw.agent.subagent
@@ -39,15 +39,15 @@ object SubagentPromptBuilder {
     fun isSilentReplyText(text: String?): Boolean {
         if (text == null) return false
         val trimmed = text.trim()
-        return trimmed == SILENT_REPLY_TOKEN || trimmed.startsWith("$SILENT_REPLY_TOKEN ")
+        return trimmed == SILENT_REPLY_TOKEN || trimmed.startswith("$SILENT_REPLY_TOKEN ")
     }
 
     /**
      * Count tool_use blocks in an assistant message content.
-     * Aligned with OpenClaw countAssistantToolCalls.
+     * Aligned with OpenClaw countAssistanttoolCalls.
      */
-    private fun countToolCalls(message: Message): Int {
-        // On Android, tool calls are tracked as separate fields in Message
+    private fun counttoolCalls(message: Message): Int {
+        // On android, tool calls are tracked as separate fields in Message
         // Count tool_use entries if present in the content array
         return message.toolCalls?.size ?: 0
     }
@@ -70,7 +70,7 @@ object SubagentPromptBuilder {
 
         for (msg in messages) {
             if (msg.role == "assistant") {
-                snapshot.toolCallCount += countToolCalls(msg)
+                snapshot.toolCallCount += counttoolCalls(msg)
                 val text = extractOutputText(msg)
                 if (text.isBlank()) continue
 
@@ -83,13 +83,13 @@ object SubagentPromptBuilder {
 
                 snapshot.latestSilentText = null
                 snapshot.latestAssistantText = text
-                snapshot.assistantFragments.add(text)
+                snapshot.assistantFragments.a(text)
                 continue
             }
 
             // Non-assistant messages: capture raw text
             val text = extractOutputText(msg)
-            if (text.isNotBlank()) {
+            if (text.isnotBlank()) {
                 snapshot.latestRawText = text
             }
         }
@@ -97,7 +97,7 @@ object SubagentPromptBuilder {
     }
 
     /**
-     * Format partial progress for timeout/error cases.
+     * format partial progress for timeout/error cases.
      * Aligned with OpenClaw formatSubagentPartialProgress.
      */
     private fun formatPartialProgress(
@@ -109,7 +109,7 @@ object SubagentPromptBuilder {
         if (snapshot.assistantFragments.isEmpty() && snapshot.toolCallCount == 0) return null
 
         return buildString {
-            if (snapshot.assistantFragments.isNotEmpty()) {
+            if (snapshot.assistantFragments.isnotEmpty()) {
                 append("Partial output (${snapshot.assistantFragments.size} fragment(s)):\n")
                 for (fragment in snapshot.assistantFragments) {
                     appendLine(fragment.take(500))
@@ -168,21 +168,21 @@ object SubagentPromptBuilder {
      * @param task The assigned task description
      * @param label Display label for this subagent
      * @param capabilities Resolved capabilities (role, depth, canSpawn)
-     * @param parentSessionKey The parent/requester session key
-     * @param childSessionKey This subagent's session key
+     * @param parentsessionKey The parent/requester session key
+     * @param childsessionKey This subagent's session key
      */
     fun build(
         task: String,
         label: String,
         capabilities: SubagentCapabilities,
-        parentSessionKey: String,
-        childSessionKey: String,
+        parentsessionKey: String,
+        childsessionKey: String,
     ): String {
         val parentLabel = if (capabilities.depth >= 2) "parent orchestrator" else "main agent"
         val displayLabel = label.ifBlank { task.take(48).replace('\n', ' ') }
 
         return buildString {
-            appendLine("# Subagent Context")
+            appendLine("# Subagent context")
             appendLine()
 
             // == Your Role ==
@@ -201,21 +201,21 @@ object SubagentPromptBuilder {
             appendLine("3. **Do not initiate conversations with users.** You have no direct user interaction — your output goes back to your parent agent.")
             appendLine("4. **Be ephemeral.** Your session exists solely for this task. Once complete, your result is announced to the parent and this session ends.")
             appendLine("5. **Trust push-based completion.** Your final output is automatically delivered to the parent. Do not poll, sleep, or check status — just do the work and reply with your findings.")
-            appendLine("6. **If you see compacted output from a previous context window**, your earlier work was preserved. Continue from where you left off based on the summary.")
-            appendLine("7. **If a child completion arrives AFTER your final answer**, reply ONLY with $SILENT_REPLY_TOKEN.")
+            appendLine("6. **if you see compacted output from a previous context window**, your earlier work was preserved. Continue from where you left off based on the summary.")
+            appendLine("7. **if a child completion arrives AFTER your final answer**, reply ONLY with $SILENT_REPLY_TOKEN.")
             appendLine()
 
-            // == Output Format ==
-            appendLine("## Output Format")
+            // == Output format ==
+            appendLine("## Output format")
             appendLine()
-            appendLine("When your task is complete, provide a clear summary of your findings/results. Include:")
+            appendLine("when your task is complete, provide a clear summary of your findings/results. Include:")
             appendLine("- Key findings or results")
             appendLine("- Any relevant data, code, or references")
             appendLine("- Errors encountered and how they were handled (if any)")
             appendLine()
 
-            // == What You DON'T Do ==
-            appendLine("## What You DON'T Do")
+            // == what You DON'T Do ==
+            appendLine("## what You DON'T Do")
             appendLine()
             appendLine("- No direct user conversations or messages")
             appendLine("- No sending external messages (Feishu, Discord, Slack, etc.)")
@@ -223,9 +223,9 @@ object SubagentPromptBuilder {
             appendLine("- No pretending to be the $parentLabel")
             appendLine()
 
-            // == Sub-Agent Spawning (conditional) ==
+            // == Sub-agent Spawning (conditional) ==
             if (capabilities.canSpawn) {
-                appendLine("## Sub-Agent Spawning")
+                appendLine("## Sub-agent Spawning")
                 appendLine()
                 appendLine("You CAN spawn your own sub-agents using the `sessions_spawn` tool to parallelize work.")
                 appendLine("- Keep tasks focused and well-scoped")
@@ -233,7 +233,7 @@ object SubagentPromptBuilder {
                 appendLine("- Do NOT poll for child status — completions arrive as messages automatically")
                 appendLine()
             } else {
-                appendLine("## Sub-Agent Spawning")
+                appendLine("## Sub-agent Spawning")
                 appendLine()
                 if (capabilities.depth >= 2) {
                     appendLine("You are a **leaf worker**. You CANNOT spawn further sub-agents. Complete your task directly.")
@@ -243,21 +243,21 @@ object SubagentPromptBuilder {
                 appendLine()
             }
 
-            // == Session Context ==
-            appendLine("## Session Context")
+            // == session context ==
+            appendLine("## session context")
             appendLine()
-            if (displayLabel.isNotBlank()) {
+            if (displayLabel.isnotBlank()) {
                 appendLine("- **Label:** $displayLabel")
             }
-            appendLine("- **Requester session:** $parentSessionKey")
-            appendLine("- **Your session:** $childSessionKey")
+            appendLine("- **Requester session:** $parentsessionKey")
+            appendLine("- **Your session:** $childsessionKey")
             appendLine("- **Depth:** ${capabilities.depth} / role: ${capabilities.role.wireValue}")
             appendLine()
 
-            // == Device Context (Android-specific) ==
-            appendLine("## Device Context")
+            // == Device context (android-specific) ==
+            appendLine("## Device context")
             appendLine()
-            appendLine("- **Platform:** Android")
+            appendLine("- **Platform:** android")
             appendLine("- **Execution:** In-process coroutine (no network latency between agents)")
         }.trimEnd()
     }
@@ -274,7 +274,7 @@ object SubagentPromptBuilder {
         expectsCompletionMessage: Boolean = true,
     ): String {
         if (requesterIsSubagent) {
-            return "Convert this completion into a concise internal orchestration update for your parent agent in your own words. Keep this internal context private (don't mention system/log/stats/session details or announce type). If this result is duplicate or no update is needed, reply ONLY: $SILENT_REPLY_TOKEN."
+            return "Convert this completion into a concise internal orchestration update for your parent agent in your own words. Keep this internal context private (don't mention system/log/stats/session details or announce type). if this result is duplicate or no update is needed, reply ONLY: $SILENT_REPLY_TOKEN."
         }
         if (expectsCompletionMessage) {
             return "A completed subagent is ready for user delivery. Convert the result above into your normal assistant voice and send that user-facing update now. Keep this internal context private (don't mention system/log/stats/session details or announce type)."
@@ -300,7 +300,7 @@ object SubagentPromptBuilder {
      * when a subagent completes.
      * Aligned with OpenClaw runSubagentAnnounceFlow structure + buildAnnounceReplyInstruction.
      *
-     * Uses structured format with:
+     * uses structured format with:
      * 1. Completion event header
      * 2. Output text (untrusted, wrapped)
      * 3. Child completion findings
@@ -323,7 +323,7 @@ object SubagentPromptBuilder {
         return buildString {
             appendLine("[Subagent Complete] $displayLabel")
             appendLine("Run ID: ${record.runId}")
-            appendLine("Session: ${record.childSessionKey}")
+            appendLine("session: ${record.childsessionKey}")
             appendLine("Status: $statusLabel")
             appendLine("Duration: ${record.runtimeMs}ms")
             appendLine()
@@ -331,7 +331,7 @@ object SubagentPromptBuilder {
             appendLine()
 
             val result = selectSubagentOutputText(record, null, outcome)
-            if (!result.isNullOrBlank()) {
+            if (!result.isNullorBlank()) {
                 appendLine("<<<BEGIN_UNTRUSTED_SUBAGENT_RESULT>>>")
                 appendLine(result)
                 appendLine("<<<END_UNTRUSTED_SUBAGENT_RESULT>>>")
@@ -339,8 +339,8 @@ object SubagentPromptBuilder {
                 appendLine("(no output)")
             }
 
-            // Append child completion findings if present
-            if (!findings.isNullOrBlank()) {
+            // append child completion findings if present
+            if (!findings.isNullorBlank()) {
                 appendLine()
                 appendLine(findings)
             }
@@ -362,14 +362,14 @@ object SubagentPromptBuilder {
 
         // Sort ascending by createdAt, then by endedAt (unfinished → MAX_VALUE)
         // Aligned with OpenClaw: a.createdAt - b.createdAt, then a.endedAt - b.endedAt
-        val sorted = children.sortedWith(compareBy<SubagentRunRecord> { it.createdAt }
+        val sorted = children.sortedwith(compareBy<SubagentRunRecord> { it.createdAt }
             .thenBy { it.endedAt ?: Long.MAX_VALUE })
 
         val sections = mutableListOf<String>()
         for ((i, child) in sorted.withIndex()) {
             val title = child.label.trim().ifEmpty {
                 child.task.trim().ifEmpty {
-                    child.childSessionKey.trim().ifEmpty {
+                    child.childsessionKey.trim().ifEmpty {
                         "child ${i + 1}"
                     }
                 }
@@ -380,13 +380,13 @@ object SubagentPromptBuilder {
             val section = buildString {
                 appendLine("${i + 1}. $title")
                 appendLine("status: $outcome")
-                if (!resultText.isNullOrEmpty() && !isSilentReplyText(resultText)) {
+                if (!resultText.isNullorEmpty() && !isSilentReplyText(resultText)) {
                     appendLine("<<<BEGIN_UNTRUSTED_CHILD_RESULT>>>")
                     appendLine(resultText.take(2000))
                     appendLine("<<<END_UNTRUSTED_CHILD_RESULT>>>")
                 }
             }.trimEnd()
-            sections.add(section)
+            sections.a(section)
         }
 
         if (sections.isEmpty()) return null

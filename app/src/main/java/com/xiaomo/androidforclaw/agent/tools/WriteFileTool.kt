@@ -2,45 +2,45 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/apply-patch.ts
+ * - ../openclaw/src/agents/app-patch.ts
  *
- * AndroidForClaw adaptation: low-level file write tool.
+ * androidforClaw adaptation: low-level file write tool.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import java.io.File
 
 /**
- * Write File Tool - Write to file
- * Reference: nanobot's WriteFileTool
+ * Write File tool - Write to file
+ * Reference: nanobot's WriteFiletool
  */
-class WriteFileTool(
+class WriteFiletool(
     private val workspace: File? = null,
     private val allowedDir: File? = null
-) : Tool {
+) : tool {
     companion object {
-        private const val TAG = "WriteFileTool"
+        private const val TAG = "WriteFiletool"
     }
 
     override val name = "write_file"
     override val description = "Create or overwrite files"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要Write的File path"),
-                        "content" to PropertySchema("string", "要Write的Inside容")
+                        "path" to Propertyschema("string", "needWriteFile path"),
+                        "content" to Propertyschema("string", "needWritecontent")
                     ),
                     required = listOf("path", "content")
                 )
@@ -48,12 +48,12 @@ class WriteFileTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val path = args["path"] as? String
         val content = args["content"] as? String
 
         if (path == null || content == null) {
-            return Toolresult.error("Missing required parameters: path, content")
+            return toolresult.error("Missing required parameters: path, content")
         }
 
         Log.d(TAG, "Writing file: $path (${content.length} bytes)")
@@ -64,8 +64,8 @@ class WriteFileTool(
             if (allowedDir != null) {
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
-                if (!canonicalFile.path.startsWith(canonicalAllowed.path)) {
-                    return Toolresult.error("Path is outside allowed directory: $path")
+                if (!canonicalFile.path.startswith(canonicalAllowed.path)) {
+                    return toolresult.error("Path is outside allowed directory: $path")
                 }
             }
 
@@ -75,10 +75,10 @@ class WriteFileTool(
             // Write file
             file.writeText(content, Charsets.UTF_8)
 
-            Toolresult.success("Successfully wrote ${content.length} bytes to ${file.absolutePath}")
-        } catch (e: Exception) {
+            toolresult.success("Successfully wrote ${content.length} bytes to ${file.absolutePath}")
+        } catch (e: exception) {
             Log.e(TAG, "Write file failed", e)
-            Toolresult.error("Write file failed: ${e.message}")
+            toolresult.error("Write file failed: ${e.message}")
         }
     }
 

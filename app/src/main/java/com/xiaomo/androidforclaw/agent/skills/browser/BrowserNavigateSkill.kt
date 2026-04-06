@@ -6,38 +6,38 @@ package com.xiaomo.androidforclaw.agent.skills.browser
  */
 
 
-import android.content.Context
-import com.xiaomo.androidforclaw.agent.tools.Skill
-import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import android.content.context
+import com.xiaomo.androidforclaw.agent.tools.skill
+import com.xiaomo.androidforclaw.agent.tools.skillResult
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
-import com.xiaomo.androidforclaw.browser.BrowserToolClient
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
+import com.xiaomo.androidforclaw.browser.BrowsertoolClient
 
 /**
  * browser_navigate - Navigate to URL
  *
  * Corresponds to OpenClaw's navigate tool
  */
-class BrowserNavigateSkill(private val context: Context) : Skill {
+class BrowserNavigateskill(private val context: context) : skill {
     override val name = "browser_navigate"
     override val description = "Navigate to a URL in the browser"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = "Navigate to a URL in the browserforclaw browser. Provide 'url' (must start with http:// or https://) and optional 'waitMs' (wait time after navigation in milliseconds). Example: {\"url\": \"https://google.com\", \"waitMs\": 2000}",
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "url" to PropertySchema(
+                        "url" to Propertyschema(
                             "string",
                             "The URL to navigate to (e.g., https://example.com)"
                         ),
-                        "waitMs" to PropertySchema(
+                        "waitMs" to Propertyschema(
                             "integer",
                             "Optional wait time after navigation in milliseconds"
                         )
@@ -48,31 +48,31 @@ class BrowserNavigateSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): skillResult {
         val url = args["url"] as? String
-            ?: return SkillResult.error("Missing required parameter: url")
+            ?: return skillResult.error("Missing required parameter: url")
 
         val waitMs = (args["waitMs"] as? Number)?.toLong()
 
         return try {
-            val browserClient = BrowserToolClient(context)
+            val browserClient = BrowsertoolClient(context)
             val toolArgs = mutableMapOf<String, Any?>("url" to url)
             if (waitMs != null) {
                 toolArgs["waitMs"] = waitMs
             }
 
-            val result = browserClient.executeToolAsync("browser_navigate", toolArgs)
+            val result = browserClient.executetoolAsync("browser_navigate", toolArgs)
 
             if (result.success) {
-                SkillResult.success(
+                skillResult.success(
                     "Successfully navigated to $url",
                     result.data ?: emptyMap()
                 )
             } else {
-                SkillResult.error(result.error ?: "Navigation failed")
+                skillResult.error(result.error ?: "Navigation failed")
             }
-        } catch (e: Exception) {
-            SkillResult.error("Failed to navigate: ${e.message}")
+        } catch (e: exception) {
+            skillResult.error("Failed to navigate: ${e.message}")
         }
     }
 }

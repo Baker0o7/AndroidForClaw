@@ -4,8 +4,8 @@ package com.xiaomo.androidforclaw.camera
  * OpenClaw Source Reference:
  * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/JpegSizeLimiter.kt
  *
- * JPEG Compress尺寸Limit器
- * Auto降低质量和缩放尺寸, EnsureOutput不超过指定Size
+ * JPEG compress尺寸Limit器
+ * Auto降low质量andzoom尺寸, EnsureOutputnot超over指定Size
  */
 
 import kotlin.math.max
@@ -66,7 +66,7 @@ object JpegSizeLimiter {
         }
 
         if (best.bytes.size > maxBytes) {
-            throw IllegalStateException("CAMERA_TOO_LARGE: ${best.bytes.size} bytes > $maxBytes bytes")
+            throw IllegalStateexception("CAMERA_TOO_LARGE: ${best.bytes.size} bytes > $maxBytes bytes")
         }
 
         return best

@@ -5,9 +5,9 @@ package com.xiaomo.androidforclaw.channel
  * - ../openclaw/src/channels/draft-stream-controls.ts
  *   (createFinalizableDraftStreamControls, FinalizableDraftStreamState)
  * - ../openclaw/src/channels/draft-stream-loop.ts
- *   (DraftStreamLoop, createDraftStreamLoop)
+ *   (DraftStreamloop, createDraftStreamloop)
  *
- * AndroidForClaw adaptation: streaming draft/typing indicator management.
+ * androidforClaw adaptation: streaming draft/typing indicator management.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
@@ -27,17 +27,17 @@ data class DraftStreamState(
 
 /**
  * Draft stream controls for progressive message updates.
- * Aligned with OpenClaw createFinalizableDraftStreamControls + DraftStreamLoop.
+ * Aligned with OpenClaw createFinalizableDraftStreamControls + DraftStreamloop.
  *
  * Key behaviors aligned:
  * - Flush loop with in-flight tracking
  * - send returning false puts text back to pending
  * - resetPending / resetThrottleWindow
- * - takeMessageIdAfterStop / clearFinalizableDraftMessage
+ * - takeMessageIdafterStop / clearFinalizableDraftMessage
  */
 class DraftStreamControls(
     private val throttleMs: Long = 1000L,
-    private val sendOrEditMessage: suspend (content: String, messageId: String?) -> String?
+    private val sendorEditMessage: suspend (content: String, messageId: String?) -> String?
 ) {
     companion object {
         private const val TAG = "DraftStreamControls"
@@ -53,14 +53,14 @@ class DraftStreamControls(
 
     /**
      * Update the draft with new content.
-     * Aligned with OpenClaw DraftStreamLoop.update.
+     * Aligned with OpenClaw DraftStreamloop.update.
      */
     suspend fun update(content: String) = mutex.withLock {
         if (state.stopped || state.final) return@withLock
 
         pendingContent = content
 
-        // If nothing in-flight and throttle window elapsed, flush immediately
+        // if nothing in-flight and throttle window elapsed, flush immediately
         if (inFlightDeferred == null) {
             val elapsed = System.currentTimeMillis() - lastSentAt
             if (elapsed >= throttleMs) {
@@ -73,7 +73,7 @@ class DraftStreamControls(
 
     /**
      * Flush all pending content.
-     * Aligned with OpenClaw DraftStreamLoop.flush.
+     * Aligned with OpenClaw DraftStreamloop.flush.
      */
     suspend fun flush() {
         throttleTimer?.cancel()
@@ -82,7 +82,7 @@ class DraftStreamControls(
         while (true) {
             // Wait for any in-flight operation
             inFlightDeferred?.let {
-                try { it.await() } catch (_: Exception) {}
+                try { it.await() } catch (_: exception) {}
             }
 
             val content = mutex.withLock {
@@ -120,9 +120,9 @@ class DraftStreamControls(
 
     /**
      * Stop for clear — mark stopped, cancel pending, wait for in-flight.
-     * Aligned with OpenClaw stopForClear.
+     * Aligned with OpenClaw stopforClear.
      */
-    suspend fun stopForClear() {
+    suspend fun stopforClear() {
         mutex.withLock {
             state.stopped = true
             pendingContent = null
@@ -130,15 +130,15 @@ class DraftStreamControls(
             throttleTimer = null
         }
         // Wait for in-flight
-        waitForInFlight()
+        waitforInFlight()
     }
 
     /**
      * Take message ID after stopping (for deletion).
-     * Aligned with OpenClaw takeMessageIdAfterStop.
+     * Aligned with OpenClaw takeMessageIdafterStop.
      */
-    suspend fun takeMessageIdAfterStop(): String? {
-        stopForClear()
+    suspend fun takeMessageIdafterStop(): String? {
+        stopforClear()
         return mutex.withLock {
             val id = state.messageId
             state.messageId = null
@@ -153,10 +153,10 @@ class DraftStreamControls(
     suspend fun clearMessage(
         deleteMessage: suspend (messageId: String) -> Unit
     ) {
-        val messageId = takeMessageIdAfterStop() ?: return
+        val messageId = takeMessageIdafterStop() ?: return
         try {
             deleteMessage(messageId)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to delete draft message $messageId: ${e.message}")
         }
     }
@@ -174,9 +174,9 @@ class DraftStreamControls(
     }
 
     /** Wait for current in-flight send to complete. */
-    suspend fun waitForInFlight() {
+    suspend fun waitforInFlight() {
         inFlightDeferred?.let {
-            try { it.await() } catch (_: Exception) {}
+            try { it.await() } catch (_: exception) {}
         }
     }
 
@@ -212,7 +212,7 @@ class DraftStreamControls(
 
         val success = doSend(content)
 
-        // If send returned false (e.g., rate limited), put text back
+        // if send returned false (e.g., rate limited), put text back
         if (!success) {
             mutex.withLock {
                 if (pendingContent == null) pendingContent = content
@@ -229,13 +229,13 @@ class DraftStreamControls(
         inFlightDeferred = deferred
 
         return try {
-            val newId = sendOrEditMessage(content, state.messageId)
+            val newId = sendorEditMessage(content, state.messageId)
             if (newId != null) {
                 state.messageId = newId
             }
             lastSentAt = System.currentTimeMillis()
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to send/edit draft: ${e.message}")
             false
         } finally {

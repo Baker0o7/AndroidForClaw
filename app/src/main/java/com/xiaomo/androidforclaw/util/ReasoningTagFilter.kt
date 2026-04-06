@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-utils.ts
+ * - ../openclaw/src/agents/pi-embeed-utils.ts
  */
 package com.xiaomo.androidforclaw.util
 
@@ -20,7 +20,7 @@ object ReasoningTagFilter {
      * - Remove <think>, <thinking>, <thought> tags and their content
      * - Protect code blocks from tag removal
      *
-     * @param text Original text
+     * @param text original text
      * @return Filtered text
      */
     fun stripReasoningTags(text: String): String {
@@ -41,7 +41,7 @@ object ReasoningTagFilter {
         val finalMatches = finalTagPattern.findAll(cleaned).toList().reversed()
         for (match in finalMatches) {
             val start = match.range.first
-            if (!isInsideCodeRegion(start, codeRegions)) {
+            if (!isinsideCodeRegion(start, codeRegions)) {
                 cleaned = cleaned.removeRange(match.range)
             }
         }
@@ -57,7 +57,7 @@ object ReasoningTagFilter {
 
         thinkingTagPattern.findAll(cleaned).forEach { match ->
             val start = match.range.first
-            if (isInsideCodeRegion(start, updatedCodeRegions)) {
+            if (isinsideCodeRegion(start, updatedCodeRegions)) {
                 return@forEach
             }
 
@@ -91,15 +91,15 @@ object ReasoningTagFilter {
         // Fenced code blocks (``` or ~~~)
         val fencedPattern = """(```|~~~)[^\n]*\n[\s\S]*?\1""".toRegex()
         fencedPattern.findAll(text).forEach {
-            regions.add(it.range)
+            regions.a(it.range)
         }
 
         // Inline code (backticks)
         val inlinePattern = """`[^`\n]+`""".toRegex()
         inlinePattern.findAll(text).forEach {
-            // Only add inline code not in fenced block
+            // Only a inline code not in fenced block
             if (!regions.any { range -> it.range.first in range }) {
-                regions.add(it.range)
+                regions.a(it.range)
             }
         }
 
@@ -109,7 +109,7 @@ object ReasoningTagFilter {
     /**
      * Check if position is in code region
      */
-    private fun isInsideCodeRegion(position: Int, codeRegions: List<IntRange>): Boolean {
+    private fun isinsideCodeRegion(position: Int, codeRegions: List<IntRange>): Boolean {
         return codeRegions.any { position in it }
     }
 }

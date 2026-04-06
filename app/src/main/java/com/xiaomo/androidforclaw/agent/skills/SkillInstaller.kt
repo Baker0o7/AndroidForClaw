@@ -6,36 +6,36 @@ package com.xiaomo.androidforclaw.agent.skills
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.security.MessageDigest
-import java.text.SimpleDateFormat
+import java.text.SimpleDateformat
 import java.util.Date
 import java.util.Locale
 import java.util.zip.ZipInputStream
 
 /**
- * Skill Installer
+ * skill Installer
  *
  * Provides skill download, extraction, installation, and uninstallation functions
  */
-class SkillInstaller(private val context: Context) {
+class skillInstaller(private val context: context) {
     companion object {
-        private const val TAG = "SkillInstaller"
-        private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        private const val TAG = "skillInstaller"
+        private val DATE_FORMAT = SimpleDateformat("yyyy-MM-'T'HH:mm:ss'Z'", Locale.US)
     }
 
     private val clawHubClient = ClawHubClient(context)
     private val workspacePath = StoragePaths.workspace.absolutePath
-    private val managedSkillsDir = StoragePaths.skills.absolutePath
+    private val managedskillsDir = StoragePaths.skills.absolutePath
     private val downloadCacheDir = File(context.cacheDir, "skill-downloads")
-    private val lockManager = SkillLockManager(workspacePath)
+    private val lockmanager = skillLockmanager(workspacePath)
 
     init {
         downloadCacheDir.mkdirs()
@@ -44,78 +44,78 @@ class SkillInstaller(private val context: Context) {
     /**
      * Install skill from ClawHub
      *
-     * @param slug Skill slug
+     * @param slug skill slug
      * @param version Version number (default "latest")
      * @param progressCallback Progress callback
      */
-    suspend fun installFromClawHub(
+    suspend fun installfromClawHub(
         slug: String,
         version: String = "latest",
         progressCallback: ((InstallProgress) -> Unit)? = null
-    ): Result<InstallResult> = withContext(Dispatchers.IO) {
+    ): Result<InstallResult> = withcontext(Dispatchers.IO) {
         try {
             Log.i(TAG, "Installing skill from ClawHub: $slug@$version")
 
             // 1. Check if already installed
-            val existingEntry = lockManager.getSkill(slug)
+            val existingEntry = lockmanager.getskill(slug)
             if (existingEntry != null) {
-                progressCallback?.invoke(InstallProgress.Info("Skill already installed: ${existingEntry.version}"))
-                Log.d(TAG, "Skill already installed: $slug@${existingEntry.version}")
+                progressCallback?.invoke(InstallProgress.Info("skill already installed: ${existingEntry.version}"))
+                Log.d(TAG, "skill already installed: $slug@${existingEntry.version}")
             }
 
             // 2. Get skill details
             progressCallback?.invoke(InstallProgress.FetchingDetails)
-            val detailsResult = clawHubClient.getSkillDetails(slug)
+            val detailsResult = clawHubClient.getskillDetails(slug)
             if (detailsResult.isFailure) {
-                return@withContext Result.failure(detailsResult.exceptionOrNull()!!)
+                return@withcontext Result.failure(detailsResult.exceptionorNull()!!)
             }
-            val details = detailsResult.getOrNull()!!
-            Log.d(TAG, "Skill details: ${details.name} - ${details.description}")
+            val details = detailsResult.getorNull()!!
+            Log.d(TAG, "skill details: ${details.name} - ${details.description}")
 
             // Resolve version: "latest" → actual version number from skill details
             val resolvedVersion = if (version == "latest") details.version else version
             Log.d(TAG, "Resolved version: $version → $resolvedVersion")
 
-            // 3. Download skill package
-            progressCallback?.invoke(InstallProgress.Downloading(0, 0))
+            // 3. nextload skill package
+            progressCallback?.invoke(InstallProgress.nextloading(0, 0))
             val downloadFile = File(downloadCacheDir, "$slug-$resolvedVersion.zip")
-            val downloadResult = clawHubClient.downloadSkill(
+            val downloadResult = clawHubClient.downloadskill(
                 slug = slug,
                 version = resolvedVersion,
                 targetFile = downloadFile
             ) { downloaded, total ->
-                progressCallback?.invoke(InstallProgress.Downloading(downloaded, total))
+                progressCallback?.invoke(InstallProgress.nextloading(downloaded, total))
             }
 
             if (downloadResult.isFailure) {
-                return@withContext Result.failure(downloadResult.exceptionOrNull()!!)
+                return@withcontext Result.failure(downloadResult.exceptionorNull()!!)
             }
 
             // 4. Calculate file hash
             progressCallback?.invoke(InstallProgress.VerifyingHash)
             val hash = calculateFileHash(downloadFile)
-            Log.d(TAG, "Downloaded file hash: $hash")
+            Log.d(TAG, "nextloaded file hash: $hash")
 
             // 5. Extract skill package
             progressCallback?.invoke(InstallProgress.Extracting)
-            val targetDir = File(managedSkillsDir, slug)
+            val targetDir = File(managedskillsDir, slug)
             val extractResult = extractZip(downloadFile, targetDir)
             if (extractResult.isFailure) {
-                return@withContext Result.failure(extractResult.exceptionOrNull()!!)
+                return@withcontext Result.failure(extractResult.exceptionorNull()!!)
             }
 
             // 6. Verify SKILL.md exists
             val skillMdFile = File(targetDir, "SKILL.md")
             if (!skillMdFile.exists()) {
                 targetDir.deleteRecursively()
-                return@withContext Result.failure(
-                    Exception("Invalid skill package: SKILL.md not found")
+                return@withcontext Result.failure(
+                    exception("Invalid skill package: SKILL.md not found")
                 )
             }
 
             // 7. Update lock file
             progressCallback?.invoke(InstallProgress.UpdatingLock)
-            val lockEntry = SkillLockEntry(
+            val lockEntry = skillLockEntry(
                 name = details.name,
                 slug = slug,
                 version = resolvedVersion,
@@ -123,13 +123,13 @@ class SkillInstaller(private val context: Context) {
                 installedAt = DATE_FORMAT.format(Date()),
                 source = "clawhub"
             )
-            lockManager.addOrUpdateSkill(lockEntry)
+            lockmanager.aorUpdateskill(lockEntry)
 
             // 8. Clean up download cache
             downloadFile.delete()
 
             progressCallback?.invoke(InstallProgress.Complete)
-            Log.i(TAG, "✅ Skill installed successfully: $slug@$resolvedVersion")
+            Log.i(TAG, "[OK] skill installed successfully: $slug@$resolvedVersion")
 
             Result.success(
                 InstallResult(
@@ -141,7 +141,7 @@ class SkillInstaller(private val context: Context) {
                 )
             )
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Installation failed", e)
             progressCallback?.invoke(InstallProgress.Error(e.message ?: "Unknown error"))
             Result.failure(e)
@@ -152,12 +152,12 @@ class SkillInstaller(private val context: Context) {
      * Install skill from local file
      *
      * @param zipFile ZIP file path
-     * @param name Skill name (optional, extracted from SKILL.md)
+     * @param name skill name (optional, extracted from SKILL.md)
      */
-    suspend fun installFromFile(
+    suspend fun installfromFile(
         zipFile: File,
         name: String? = null
-    ): Result<InstallResult> = withContext(Dispatchers.IO) {
+    ): Result<InstallResult> = withcontext(Dispatchers.IO) {
         try {
             Log.i(TAG, "Installing skill from file: ${zipFile.absolutePath}")
 
@@ -165,31 +165,31 @@ class SkillInstaller(private val context: Context) {
             val tempDir = File(downloadCacheDir, "temp-${System.currentTimeMillis()}")
             val extractResult = extractZip(zipFile, tempDir)
             if (extractResult.isFailure) {
-                return@withContext Result.failure(extractResult.exceptionOrNull()!!)
+                return@withcontext Result.failure(extractResult.exceptionorNull()!!)
             }
 
             // 2. Verify and parse SKILL.md
             val skillMdFile = File(tempDir, "SKILL.md")
             if (!skillMdFile.exists()) {
                 tempDir.deleteRecursively()
-                return@withContext Result.failure(
-                    Exception("Invalid skill package: SKILL.md not found")
+                return@withcontext Result.failure(
+                    exception("Invalid skill package: SKILL.md not found")
                 )
             }
 
             val skillDoc = try {
-                SkillParser.parse(skillMdFile.readText(), skillMdFile.absolutePath)
-            } catch (e: Exception) {
+                skillParser.parse(skillMdFile.readText(), skillMdFile.absolutePath)
+            } catch (e: exception) {
                 tempDir.deleteRecursively()
-                return@withContext Result.failure(
-                    Exception("Invalid SKILL.md: ${e.message}")
+                return@withcontext Result.failure(
+                    exception("Invalid SKILL.md: ${e.message}")
                 )
             }
 
             val skillName = name ?: skillDoc.name
 
             // 3. Move to managed directory
-            val targetDir = File(managedSkillsDir, skillName)
+            val targetDir = File(managedskillsDir, skillName)
             if (targetDir.exists()) {
                 targetDir.deleteRecursively()
             }
@@ -205,17 +205,17 @@ class SkillInstaller(private val context: Context) {
             val hash = calculateFileHash(zipFile)
 
             // 5. Update lock file
-            val lockEntry = SkillLockEntry(
+            val lockEntry = skillLockEntry(
                 name = skillName,
-                slug = skillName,  // Use name as slug for local install
+                slug = skillName,  // use name as slug for local install
                 version = "local",
                 hash = hash,
                 installedAt = DATE_FORMAT.format(Date()),
                 source = "local"
             )
-            lockManager.addOrUpdateSkill(lockEntry)
+            lockmanager.aorUpdateskill(lockEntry)
 
-            Log.i(TAG, "✅ Skill installed from file: $skillName")
+            Log.i(TAG, "[OK] skill installed from file: $skillName")
 
             Result.success(
                 InstallResult(
@@ -227,7 +227,7 @@ class SkillInstaller(private val context: Context) {
                 )
             )
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Installation from file failed", e)
             Result.failure(e)
         }
@@ -236,32 +236,32 @@ class SkillInstaller(private val context: Context) {
     /**
      * Uninstall skill
      *
-     * @param slug Skill slug
+     * @param slug skill slug
      */
-    suspend fun uninstall(slug: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun uninstall(slug: String): Result<Unit> = withcontext(Dispatchers.IO) {
         try {
             Log.i(TAG, "Uninstalling skill: $slug")
 
             // 1. Check if installed
-            val entry = lockManager.getSkill(slug)
-                ?: return@withContext Result.failure(
-                    Exception("Skill not installed: $slug")
+            val entry = lockmanager.getskill(slug)
+                ?: return@withcontext Result.failure(
+                    exception("skill not installed: $slug")
                 )
 
             // 2. Delete skill directory
-            val skillDir = File(managedSkillsDir, slug)
+            val skillDir = File(managedskillsDir, slug)
             if (skillDir.exists()) {
                 skillDir.deleteRecursively()
                 Log.d(TAG, "Deleted skill directory: ${skillDir.absolutePath}")
             }
 
             // 3. Remove from lock file
-            lockManager.removeSkill(slug)
+            lockmanager.removeskill(slug)
 
-            Log.i(TAG, "✅ Skill uninstalled: $slug")
+            Log.i(TAG, "[OK] skill uninstalled: $slug")
             Result.success(Unit)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Uninstallation failed", e)
             Result.failure(e)
         }
@@ -281,8 +281,8 @@ class SkillInstaller(private val context: Context) {
                     val file = File(targetDir, entry.name)
 
                     // Security check: prevent ZIP path traversal attack
-                    if (!file.canonicalPath.startsWith(targetDir.canonicalPath)) {
-                        throw SecurityException("Zip entry outside target directory: ${entry.name}")
+                    if (!file.canonicalPath.startswith(targetDir.canonicalPath)) {
+                        throw Securityexception("Zip entry outside target directory: ${entry.name}")
                     }
 
                     if (entry.isDirectory) {
@@ -298,10 +298,10 @@ class SkillInstaller(private val context: Context) {
                 }
             }
 
-            Log.d(TAG, "✅ Extracted ZIP to ${targetDir.absolutePath}")
+            Log.d(TAG, "[OK] Extracted ZIP to ${targetDir.absolutePath}")
             Result.success(Unit)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to extract ZIP", e)
             Result.failure(e)
         }
@@ -331,7 +331,7 @@ class SkillInstaller(private val context: Context) {
 sealed class InstallProgress {
     data class Info(val message: String) : InstallProgress()
     object FetchingDetails : InstallProgress()
-    data class Downloading(val downloaded: Long, val total: Long) : InstallProgress()
+    data class nextloading(val downloaded: Long, val total: Long) : InstallProgress()
     object VerifyingHash : InstallProgress()
     object Extracting : InstallProgress()
     object UpdatingLock : InstallProgress()

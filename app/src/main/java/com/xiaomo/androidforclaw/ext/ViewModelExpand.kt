@@ -1,26 +1,26 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ext
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.Viewmodel
+import androidx.lifecycle.viewmodelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 
-fun ViewModel.simpleSafeLaunch(
+fun Viewmodel.simpleSafeLaunch(
     block: suspend CoroutineScope.() -> Unit,
-    onError: ((e: Exception) -> Unit)? = null,
+    onError: ((e: exception) -> Unit)? = null,
 ): Job {
-    return viewModelScope.launch(Dispatchers.IO) {
+    return viewmodelScope.launch(Dispatchers.IO) {
         try {
             block.invoke(this)
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
+        } catch (e: exception) {
+            withcontext(Dispatchers.Main) {
                 onError?.invoke(e)
             }
         }
@@ -29,13 +29,13 @@ fun ViewModel.simpleSafeLaunch(
 
 fun CoroutineScope.simpleSafeLaunch(
     block: suspend CoroutineScope.() -> Unit,
-    onError: ((e: Exception) -> Unit)? = null,
+    onError: ((e: exception) -> Unit)? = null,
 ): Job {
     return this.launch(Dispatchers.IO) {
         try {
             block.invoke(this)
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
+        } catch (e: exception) {
+            withcontext(Dispatchers.Main) {
                 onError?.invoke(e)
             }
         }

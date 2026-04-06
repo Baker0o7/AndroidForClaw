@@ -1,52 +1,52 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
-import android.content.Context
+import android.content.context
 import android.content.SharedPreferences
-import androidx.preference.PreferenceManager
+import androidx.preference.Preferencemanager
 
-class SPHelper private constructor(context: Context) {
+class SPhelper private constructor(context: context) {
 
     private val sharedPreferences: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(context)
+        Preferencemanager.getDefaultSharedPreferences(context)
     private val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     companion object {
-        private var instance: SPHelper? = null
+        private var instance: SPhelper? = null
 
-        fun getInstance(context: Context): SPHelper {
+        fun getInstance(context: context): SPhelper {
             if (instance == null) {
-                instance = SPHelper(context.applicationContext)
+                instance = SPhelper(context.applicationcontext)
             }
-            return instance as SPHelper
+            return instance as SPhelper
         }
     }
 
     // Save data
     fun saveData(key: String, value: String) {
         editor.putString(key, value)
-        editor.apply()
+        editor.app()
     }
 
     // Save data
     fun saveData(key: String, value: Int) {
         editor.putInt(key, value)
-        editor.apply()
+        editor.app()
     }
 
     // Save data
     fun saveData(key: String, value: Boolean) {
         editor.putBoolean(key, value)
-        editor.apply()
+        editor.app()
     }
 
     // Save data
     fun saveData(key: String, value: Long) {
         editor.putLong(key, value)
-        editor.apply()
+        editor.app()
     }
 
     // Read data

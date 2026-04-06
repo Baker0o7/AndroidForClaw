@@ -2,23 +2,23 @@ package com.xiaomo.androidforclaw.agent.session
 
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import java.io.File
 
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/config/sessions/disk-budget.ts
  *
- * Session disk budget enforcement — measures total disk usage of the sessions
+ * session disk budget enforcement — measures total disk usage of the sessions
  * directory and sweeps oldest entries when the budget is exceeded.
  */
-object SessionDiskBudget {
+object sessionDiskBudget {
 
-    private const val TAG = "SessionDiskBudget"
+    private const val TAG = "sessionDiskBudget"
 
     data class DiskBudgetResult(
-        val totalBytesBefore: Long,
-        val totalBytesAfter: Long,
+        val totalBytesbefore: Long,
+        val totalBytesafter: Long,
         val deletedCount: Int,
         val freedBytes: Long
     )
@@ -26,7 +26,7 @@ object SessionDiskBudget {
     /**
      * Enforce the disk budget for the sessions directory.
      *
-     * Measures total bytes across all files. If total exceeds [maxDiskBytes],
+     * Measures total bytes across all files. if total exceeds [maxDiskBytes],
      * sweeps to bring usage down to [highWaterBytes]:
      * 1. Remove orphaned files (no matching index entry)
      * 2. Remove oldest session entries by updatedAt
@@ -38,17 +38,17 @@ object SessionDiskBudget {
      * @param highWaterBytes Target usage after sweep (default: 80% of max)
      * @return Sweep result, or null if no sweep was needed
      */
-    suspend fun enforceSessionDiskBudget(
+    suspend fun enforcesessionDiskBudget(
         sessionsDir: File,
-        sessionIndex: MutableMap<String, SessionMetadata>,
+        sessionIndex: MutableMap<String, sessionMetadata>,
         activeKey: String?,
         maxDiskBytes: Long,
         highWaterBytes: Long = (maxDiskBytes * 0.8).toLong()
-    ): DiskBudgetResult? = withContext(Dispatchers.IO) {
-        val totalBefore = measureDirSize(sessionsDir)
-        if (totalBefore <= maxDiskBytes) return@withContext null
+    ): DiskBudgetResult? = withcontext(Dispatchers.IO) {
+        val totalbefore = measureDirSize(sessionsDir)
+        if (totalbefore <= maxDiskBytes) return@withcontext null
 
-        Log.w(TAG, "Session disk usage ${totalBefore / 1024}KB exceeds budget ${maxDiskBytes / 1024}KB, sweeping...")
+        Log.w(TAG, "session disk usage ${totalbefore / 1024}KB exceeds budget ${maxDiskBytes / 1024}KB, sweeping...")
 
         var freedBytes = 0L
         var deletedCount = 0
@@ -57,8 +57,8 @@ object SessionDiskBudget {
         val knownIds = sessionIndex.values.map { it.sessionId }.toSet()
         val allFiles = sessionsDir.listFiles() ?: emptyArray()
         for (file in allFiles) {
-            if (!file.name.endsWith(".jsonl")) continue
-            val fileId = file.nameWithoutExtension
+            if (!file.name.endswith(".jsonl")) continue
+            val fileId = file.namewithoutExtension
             if (fileId !in knownIds) {
                 val size = file.length()
                 file.delete()
@@ -69,10 +69,10 @@ object SessionDiskBudget {
         }
 
         // Check if we're now under the high water mark
-        val afterOrphanCleanup = totalBefore - freedBytes
-        if (afterOrphanCleanup <= highWaterBytes) {
+        val afterorphanCleanup = totalbefore - freedBytes
+        if (afterorphanCleanup <= highWaterBytes) {
             Log.i(TAG, "Disk budget satisfied after orphan cleanup: freed ${freedBytes / 1024}KB")
-            return@withContext DiskBudgetResult(totalBefore, afterOrphanCleanup, deletedCount, freedBytes)
+            return@withcontext DiskBudgetResult(totalbefore, afterorphanCleanup, deletedCount, freedBytes)
         }
 
         // Phase 2: Remove oldest session entries
@@ -80,7 +80,7 @@ object SessionDiskBudget {
             .filter { it.key != activeKey }
             .sortedBy { it.value.updatedAt }
 
-        var currentSize = afterOrphanCleanup
+        var currentSize = afterorphanCleanup
         for (entry in sorted) {
             if (currentSize <= highWaterBytes) break
 
@@ -96,11 +96,11 @@ object SessionDiskBudget {
             Log.d(TAG, "Removed session ${entry.key} (${fileSize / 1024}KB)")
         }
 
-        val totalAfter = measureDirSize(sessionsDir)
+        val totalafter = measureDirSize(sessionsDir)
         Log.i(TAG, "Disk budget sweep complete: freed ${freedBytes / 1024}KB, " +
-            "deleted $deletedCount entries, ${totalAfter / 1024}KB remaining")
+            "deleted $deletedCount entries, ${totalafter / 1024}KB remaining")
 
-        DiskBudgetResult(totalBefore, totalAfter, deletedCount, freedBytes)
+        DiskBudgetResult(totalbefore, totalafter, deletedCount, freedBytes)
     }
 
     /**

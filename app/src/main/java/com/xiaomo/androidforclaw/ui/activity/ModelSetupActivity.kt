@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw equivalent (Android-only)
+ * - No OpenClaw equivalent (android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -13,27 +13,27 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.xiaomo.androidforclaw.R
-import com.xiaomo.androidforclaw.databinding.ActivityModelSetupBinding
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.config.ModelDefinition
+import com.xiaomo.androidforclaw.databinding.ActivitymodelSetupBinding
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.config.modelDefinition
 import com.xiaomo.androidforclaw.workspace.StoragePaths
-import com.xiaomo.androidforclaw.config.ModelsConfig
-import com.xiaomo.androidforclaw.config.ProviderConfig
+import com.xiaomo.androidforclaw.config.modelsconfig
+import com.xiaomo.androidforclaw.config.providerconfig
 
 /**
- * Model Setup Guide — simplified first-run wizard.
+ * model Setup Guide — simplified first-run wizard.
  *
  * Default flow: user only needs to paste an OpenRouter API Key.
- * Advanced: tap "Use other providers" to switch to Anthropic/OpenAI/Custom.
+ * Advanced: tap "use other providers" to switch to Anthropic/OpenAI/Custom.
  */
-class ModelSetupActivity : AppCompatActivity() {
+class modelSetupActivity : AppCompatActivity() {
 
     companion object {
-        private const val TAG = "ModelSetupActivity"
+        private const val TAG = "modelSetupActivity"
         const val EXTRA_MANUAL = "manual"
 
-        fun isNeeded(context: android.content.Context): Boolean {
-            val configFile = StoragePaths.openclawConfig
+        fun isneeded(context: android.content.context): Boolean {
+            val configFile = StoragePaths.openclawconfig
             if (!configFile.exists() || configFile.length() == 0L) {
                 Log.i(TAG, "openclaw.json missing or empty, model setup is needed")
                 return true
@@ -47,142 +47,142 @@ class ModelSetupActivity : AppCompatActivity() {
                     Log.i(TAG, "openclaw.json has no real API key, model setup is needed")
                 }
                 !hasRealKey
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Failed to read config for setup check, assuming needed", e)
                 true
             }
         }
 
-        // Provider presets
+        // provider presets
         private val PROVIDERS = mapOf(
-            "openrouter" to ProviderPreset(
+            "openrouter" to providerPreset(
                 name = "OpenRouter",
                 baseUrl = "https://openrouter.ai/api/v1",
                 api = "openai-completions",
                 hint = "OpenRouter aggregates Claude, GPT, Gemini, MiMo and more — one Key for all.",
                 models = listOf(
-                    ModelPreset("qwen/qwen3.6-plus:free", "🆓 Qwen 3.6 Plus (Default, Free, Best Coding)", reasoning = true, contextWindow = 131072, maxTokens = 32000),
-                    ModelPreset("openrouter/hunter-alpha", "Hunter Alpha (Free, 1M Context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("openrouter/free", "Free Auto Router (No Top-up Required)"),
-                    ModelPreset("stepfun/step-3.5-flash:free", "Step 3.5 Flash (Free, Coding)", contextWindow = 262144),
-                    ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (Paid, Recommended)", contextWindow = 200000, maxTokens = 16384),
-                    ModelPreset("anthropic/claude-opus-4", "Claude Opus 4 (Paid)", contextWindow = 200000, maxTokens = 32768),
-                    ModelPreset("openai/gpt-4.1", "GPT-4.1 (Paid)", contextWindow = 1048576, maxTokens = 32768),
-                    ModelPreset("google/gemini-2.5-pro", "Gemini 2.5 Pro (Paid)", contextWindow = 1048576, maxTokens = 65536)
+                    modelPreset("qwen/qwen3.6-plus:free", "🆓 Qwen 3.6 Plus (Default, Free, Best Coding)", reasoning = true, contextWindow = 131072, maxTokens = 32000),
+                    modelPreset("openrouter/hunter-alpha", "Hunter Alpha (Free, 1M context)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    modelPreset("openrouter/free", "Free Auto Router (No Top-up Required)"),
+                    modelPreset("stepfun/step-3.5-flash:free", "Step 3.5 Flash (Free, Coding)", contextWindow = 262144),
+                    modelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (Paid, Recommended)", contextWindow = 200000, maxTokens = 16384),
+                    modelPreset("anthropic/claude-opus-4", "Claude Opus 4 (Paid)", contextWindow = 200000, maxTokens = 32768),
+                    modelPreset("openai/gpt-4.1", "GPT-4.1 (Paid)", contextWindow = 1048576, maxTokens = 32768),
+                    modelPreset("google/gemini-2.5-pro", "Gemini 2.5 Pro (Paid)", contextWindow = 1048576, maxTokens = 65536)
                 ),
                 authHeader = true
             ),
-            "google" to ProviderPreset(
+            "google" to providerPreset(
                 name = "Google (Gemini)",
                 baseUrl = "https://generativelanguage.googleapis.com/v1beta",
                 api = "google-generative-ai",
                 hint = "Google Gemini API. Register: aistudio.google.com/apikey",
                 models = listOf(
-                    ModelPreset("gemini-2.5-pro", "Gemini 2.5 Pro (Recommended, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
-                    ModelPreset("gemini-2.5-flash", "Gemini 2.5 Flash (Fast, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536)
+                    modelPreset("gemini-2.5-pro", "Gemini 2.5 Pro (Recommended, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    modelPreset("gemini-2.5-flash", "Gemini 2.5 Flash (Fast, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 65536)
                 ),
                 authHeader = true
             ),
-            "anthropic" to ProviderPreset(
+            "anthropic" to providerPreset(
                 name = "Anthropic",
                 baseUrl = "https://api.anthropic.com/v1",
                 api = "anthropic-messages",
                 hint = "Anthropic official API, direct connection to Claude. Register: console.anthropic.com",
                 models = listOf(
-                    ModelPreset("claude-sonnet-4-20250514", "Claude Sonnet 4 (Recommended)"),
-                    ModelPreset("claude-opus-4-20250514", "Claude Opus 4"),
-                    ModelPreset("claude-haiku-3-5-20241022", "Claude 3.5 Haiku (Fast)")
+                    modelPreset("claude-sonnet-4-20250514", "Claude Sonnet 4 (Recommended)"),
+                    modelPreset("claude-opus-4-20250514", "Claude Opus 4"),
+                    modelPreset("claude-haiku-3-5-20241022", "Claude 3.5 Haiku (Fast)")
                 )
             ),
-            "xiaomi" to ProviderPreset(
+            "xiaomi" to providerPreset(
                 name = "Xiaomi MiMo",
                 baseUrl = "https://api.xiaomimimo.com/v1",
                 api = "openai-completions",
                 hint = "Xiaomi MiMo LLM. Register: xiaomimimo.com",
                 models = listOf(
-                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (1M, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
-                    ModelPreset("mimo-v2-flash", "MiMo V2 Flash (262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
-                    ModelPreset("mimo-v2-omni", "MiMo V2 Omni (262K, Reasoning+Vision)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
+                    modelPreset("mimo-v2-pro", "MiMo V2 Pro (1M, Reasoning)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+                    modelPreset("mimo-v2-flash", "MiMo V2 Flash (262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
+                    modelPreset("mimo-v2-omni", "MiMo V2 Omni (262K, Reasoning+Vision)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
                 ),
                 authHeader = true
             ),
-            "openai" to ProviderPreset(
+            "openai" to providerPreset(
                 name = "OpenAI",
                 baseUrl = "https://api.openai.com/v1",
                 api = "openai-completions",
                 hint = "OpenAI official API. Register: platform.openai.com",
                 models = listOf(
-                    ModelPreset("gpt-4.1", "GPT-4.1 (Recommended)"),
-                    ModelPreset("gpt-4.1-mini", "GPT-4.1 Mini (Fast)"),
-                    ModelPreset("o3", "o3 (Reasoning)")
+                    modelPreset("gpt-4.1", "GPT-4.1 (Recommended)"),
+                    modelPreset("gpt-4.1-mini", "GPT-4.1 Mini (Fast)"),
+                    modelPreset("o3", "o3 (Reasoning)")
                 )
             ),
-            "nvidia" to ProviderPreset(
+            "nvidia" to providerPreset(
                 name = "NVIDIA NIM",
                 baseUrl = "https://integrate.api.nvidia.com/v1",
                 api = "openai-completions",
                 hint = "NVIDIA NIM hosted models, free trial. Register: build.nvidia.com",
                 models = listOf(
-                    ModelPreset("moonshotai/kimi-k2.5", "Kimi K2.5 (Free, Multimodal)", contextWindow = 131072, maxTokens = 8192),
-                    ModelPreset("deepseek-ai/deepseek-r1", "DeepSeek R1 (Free, Reasoning)", reasoning = true, contextWindow = 131072, maxTokens = 8192),
-                    ModelPreset("meta/llama-4-maverick-17b-128e-instruct", "Llama 4 Maverick 17B", contextWindow = 131072, maxTokens = 8192),
-                    ModelPreset("", "Enter Model ID Manually")
+                    modelPreset("moonshotai/kimi-k2.5", "Kimi K2.5 (Free, Multimodal)", contextWindow = 131072, maxTokens = 8192),
+                    modelPreset("deepseek-ai/deepseek-r1", "DeepSeek R1 (Free, Reasoning)", reasoning = true, contextWindow = 131072, maxTokens = 8192),
+                    modelPreset("meta/llama-4-maverick-17b-128e-instruct", "Llama 4 Maverick 17B", contextWindow = 131072, maxTokens = 8192),
+                    modelPreset("", "Enter model ID Manually")
                 ),
                 authHeader = true
             ),
-            "custom" to ProviderPreset(
+            "custom" to providerPreset(
                 name = "Custom",
                 baseUrl = "",
                 api = "openai-completions",
                 hint = "Supports any OpenAI API-compatible service (vLLM, Ollama, OneAPI, etc.).",
                 models = listOf(
-                    ModelPreset("", "Enter Model ID Manually")
+                    modelPreset("", "Enter model ID Manually")
                 )
             )
         )
     }
 
-    private lateinit var binding: ActivityModelSetupBinding
-    private val configLoader by lazy { ConfigLoader(this) }
-    private var selectedProvider = "openrouter"
+    private lateinit var binding: ActivitymodelSetupBinding
+    private val configLoader by lazy { configLoader(this) }
+    private var selectedprovider = "openrouter"
     private var advancedExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityModelSetupBinding.inflate(layoutInflater)
+        binding = ActivitymodelSetupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportActionBar?.apply {
+        supportActionBar?.app {
             setDisplayHomeAsUpEnabled(true)
-            title = "Model Settings"
+            title = "model Settings"
         }
 
         // Apply navigation bar insets to bottom button bar so it won't be obscured
-        applyNavigationBarInsets()
+        appNavigationBarInsets()
 
         setupDefaultMode()
         setupAdvancedToggle()
-        setupProviderSelection()
-        setupButtons()
+        setupproviderSelection()
+        setupbuttons()
     }
 
     /**
      * Ensure the bottom button bar respects the system navigation bar height.
      */
-    private fun applyNavigationBarInsets() {
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.layoutBottomButtons) { view, windowInsets ->
+    private fun appNavigationBarInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.layoutBottombuttons) { view, windowInsets ->
             val navBarInsets = windowInsets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(
-                view.paddingLeft,
-                view.paddingTop,
-                view.paddingRight,
+            view.setPaing(
+                view.paingLeft,
+                view.paingTop,
+                view.paingRight,
                 16.dp(this) + navBarInsets.bottom
             )
             windowInsets
         }
     }
 
-    private fun Int.dp(context: android.content.Context): Int {
+    private fun Int.dp(context: android.content.context): Int {
         return (this * context.resources.displayMetrics.density + 0.5f).toInt()
     }
 
@@ -190,17 +190,17 @@ class ModelSetupActivity : AppCompatActivity() {
      * Default mode: quick setup only asks for API key.
      */
     private fun setupDefaultMode() {
-        binding.tilModel.visibility = View.GONE
+        binding.tilmodel.visibility = View.GONE
 
         // Default to OpenRouter hint
-        applyProviderPreset("openrouter")
+        appproviderPreset("openrouter")
 
         // "Open openrouter.com" link
         binding.tvOpenOpenrouter.setOnClickListener {
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://openrouter.ai/keys")))
-            } catch (e: Exception) {
-                Toast.makeText(this, "Cannot open browser", Toast.LENGTH_SHORT).show()
+            } catch (e: exception) {
+                Toast.makeText(this, "cannot open browser", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -215,19 +215,19 @@ class ModelSetupActivity : AppCompatActivity() {
             binding.tvAdvanced.text = if (advancedExpanded) {
                 "⚙️ Collapse Advanced Options"
             } else {
-                "⚙️ Use Other Providers (MiMo / Google / Anthropic / OpenAI / Custom)"
+                "⚙️ use Other providers (MiMo / Google / Anthropic / OpenAI / Custom)"
             }
 
-            // If collapsing, reset to OpenRouter
-            if (!advancedExpanded && selectedProvider != "openrouter") {
-                selectedProvider = "openrouter"
-                applyProviderPreset("openrouter")
+            // if collapsing, reset to OpenRouter
+            if (!advancedExpanded && selectedprovider != "openrouter") {
+                selectedprovider = "openrouter"
+                appproviderPreset("openrouter")
             }
         }
     }
 
-    private fun setupProviderSelection() {
-        binding.chipGroupProvider.setOnCheckedStateChangeListener { _, checkedIds ->
+    private fun setupproviderSelection() {
+        binding.chipGroupprovider.setOnCheckedStateChangeListener { _, checkedIds ->
             val provider = when {
                 checkedIds.contains(R.id.chip_openrouter) -> "openrouter"
                 checkedIds.contains(R.id.chip_mimo) -> "xiaomi"
@@ -238,15 +238,15 @@ class ModelSetupActivity : AppCompatActivity() {
                 checkedIds.contains(R.id.chip_custom) -> "custom"
                 else -> "openrouter"
             }
-            selectedProvider = provider
-            applyProviderPreset(provider)
+            selectedprovider = provider
+            appproviderPreset(provider)
         }
     }
 
-    private fun applyProviderPreset(providerKey: String) {
+    private fun appproviderPreset(providerKey: String) {
         val preset = PROVIDERS[providerKey] ?: return
 
-        binding.apply {
+        binding.app {
             // API Key hint
             tilApiKey.hint = when (providerKey) {
                 "xiaomi" -> "Xiaomi MiMo API Key"
@@ -277,57 +277,57 @@ class ModelSetupActivity : AppCompatActivity() {
                 etSetupApiBase.isEnabled = false
             }
 
-            // Provider hint
-            tvProviderHint.text = preset.hint
-            tvProviderHint.visibility = if (advancedExpanded) View.VISIBLE else View.GONE
+            // provider hint
+            tvproviderHint.text = preset.hint
+            tvproviderHint.visibility = if (advancedExpanded) View.VISIBLE else View.GONE
 
-            // Model selection: hidden for built-in providers, only shown for custom provider
+            // model selection: hien for built-in providers, only shown for custom provider
             val modelNames = preset.models.map { it.displayName }
-            val adapter = ArrayAdapter(this@ModelSetupActivity, android.R.layout.simple_dropdown_item_1line, modelNames)
-            actModel.setAdapter(adapter)
-            if (modelNames.isNotEmpty()) {
-                actModel.setText(modelNames[0], false)
+            val adapter = ArrayAdapter(this@modelSetupActivity, android.R.layout.simple_dropdown_item_1line, modelNames)
+            actmodel.setAdapter(adapter)
+            if (modelNames.isnotEmpty()) {
+                actmodel.setText(modelNames[0], false)
             }
 
-            tilModel.visibility = View.VISIBLE
+            tilmodel.visibility = View.VISIBLE
             if (providerKey == "custom") {
-                actModel.inputType = android.text.InputType.TYPE_CLASS_TEXT
-                actModel.threshold = 100
+                actmodel.inputType = android.text.InputType.TYPE_CLASS_TEXT
+                actmodel.threshold = 100
             } else {
-                actModel.inputType = android.text.InputType.TYPE_NULL
-                actModel.threshold = 1
+                actmodel.inputType = android.text.InputType.TYPE_NULL
+                actmodel.threshold = 1
             }
         }
     }
 
-    private fun setupButtons() {
+    private fun setupbuttons() {
         binding.btnSkip.setOnClickListener {
-            Log.i(TAG, "User skipped model setup, using default config")
-            saveDefaultAndFinish()
+            Log.i(TAG, "user skipped model setup, using default config")
+            saveDefaultandFinish()
         }
 
         binding.btnStart.setOnClickListener {
-            saveAndFinish()
+            saveandFinish()
         }
     }
 
-    private fun saveDefaultAndFinish() {
-        selectedProvider = "openrouter"
+    private fun saveDefaultandFinish() {
+        selectedprovider = "openrouter"
         advancedExpanded = false
-        applyProviderPreset("openrouter")
+        appproviderPreset("openrouter")
         binding.etSetupApiKey.setText("")
-        saveAndFinish()
+        saveandFinish()
     }
 
-    private fun saveAndFinish() {
+    private fun saveandFinish() {
         val userInputKey = binding.etSetupApiKey.text?.toString()?.trim()
-        val selectedModelDisplay = binding.actModel.text?.toString()?.trim()
+        val selectedmodelDisplay = binding.actmodel.text?.toString()?.trim()
 
-        // If user provided a key, use it; otherwise use the built-in encrypted key
-        val apiKey = if (userInputKey.isNullOrEmpty()) {
-            val builtInKey = com.xiaomo.androidforclaw.config.BuiltInKeyProvider.getKey()
-            if (builtInKey.isNullOrEmpty()) {
-                binding.tilApiKey.error = "Please enter API Key"
+        // if user provided a key, use it; otherwise use the built-in encrypted key
+        val apiKey = if (userInputKey.isNullorEmpty()) {
+            val builtInKey = com.xiaomo.androidforclaw.config.BuiltInKeyprovider.getKey()
+            if (builtInKey.isNullorEmpty()) {
+                binding.tilApiKey.error = "please enter API Key"
                 return
             }
             builtInKey
@@ -336,50 +336,50 @@ class ModelSetupActivity : AppCompatActivity() {
         }
         binding.tilApiKey.error = null
 
-        // For advanced/custom mode
+        // for advanced/custom mode
         val apiBase = if (advancedExpanded) {
             binding.etSetupApiBase.text?.toString()?.trim()
         } else {
             null
         }
 
-        if (selectedProvider == "custom" && apiBase.isNullOrEmpty()) {
-            binding.tilApiBase.error = "Please enter API Base URL"
+        if (selectedprovider == "custom" && apiBase.isNullorEmpty()) {
+            binding.tilApiBase.error = "please enter API Base URL"
             return
         }
 
         // Resolve model ID
-        val preset = PROVIDERS[selectedProvider] ?: return
-        val matchedPreset = if (selectedProvider == "custom") {
+        val preset = PROVIDERS[selectedprovider] ?: return
+        val matchedPreset = if (selectedprovider == "custom") {
             null
         } else {
-            preset.models.firstOrNull { it.displayName == selectedModelDisplay }
-                ?: preset.models.firstOrNull()
+            preset.models.firstorNull { it.displayName == selectedmodelDisplay }
+                ?: preset.models.firstorNull()
         }
-        val modelId = if (selectedProvider == "custom") {
-            selectedModelDisplay ?: ""
+        val modelId = if (selectedprovider == "custom") {
+            selectedmodelDisplay ?: ""
         } else {
             matchedPreset?.id ?: ""
         }
 
-        if (selectedProvider == "custom" && modelId.isBlank()) {
-            binding.tilModel.error = "Please enter Model ID"
+        if (selectedprovider == "custom" && modelId.isBlank()) {
+            binding.tilmodel.error = "please enter model ID"
             return
         }
-        binding.tilModel.error = null
+        binding.tilmodel.error = null
 
         try {
-            val config = configLoader.loadOpenClawConfig()
+            val config = configLoader.loadOpenClawconfig()
 
-            val providerName = if (selectedProvider == "custom") "custom" else selectedProvider
-            val newProvider = ProviderConfig(
+            val providerName = if (selectedprovider == "custom") "custom" else selectedprovider
+            val newprovider = providerconfig(
                 baseUrl = apiBase ?: preset.baseUrl,
                 apiKey = apiKey,
                 api = preset.api,
                 models = listOf(
-                    ModelDefinition(
+                    modelDefinition(
                         id = modelId,
-                        name = selectedModelDisplay ?: modelId,
+                        name = selectedmodelDisplay ?: modelId,
                         reasoning = matchedPreset?.reasoning ?: (modelId.contains("o3") || modelId.contains("r1") || modelId.contains("opus")),
                         contextWindow = matchedPreset?.contextWindow ?: 200000,
                         maxTokens = matchedPreset?.maxTokens ?: 16384
@@ -388,42 +388,42 @@ class ModelSetupActivity : AppCompatActivity() {
                 authHeader = preset.authHeader
             )
 
-            val existingModels = config.models ?: ModelsConfig()
+            val existingmodels = config.models ?: modelsconfig()
             // Only keep the currently selected provider — remove stale entries (Issue #9)
-            val updatedProviders = mutableMapOf<String, ProviderConfig>()
-            updatedProviders[providerName] = newProvider
+            val updatedproviders = mutableMapOf<String, providerconfig>()
+            updatedproviders[providerName] = newprovider
 
-            val defaultModelId = if (selectedProvider == "custom") {
+            val defaultmodelId = if (selectedprovider == "custom") {
                 "custom/$modelId"
-            } else if (modelId.startsWith("$providerName/")) {
+            } else if (modelId.startswith("$providerName/")) {
                 // modelId already contains provider prefix (e.g. "openrouter/hunter-alpha")
                 modelId
             } else {
                 "$providerName/$modelId"
             }
 
-            val modelSelection = com.xiaomo.androidforclaw.config.ModelSelectionConfig(primary = defaultModelId)
-            val existingAgents = config.agents ?: com.xiaomo.androidforclaw.config.AgentsConfig()
-            val updatedDefaults = existingAgents.defaults.copy(model = modelSelection)
-            val updatedAgents = existingAgents.copy(defaults = updatedDefaults)
+            val modelSelection = com.xiaomo.androidforclaw.config.modelSelectionconfig(primary = defaultmodelId)
+            val existingagents = config.agents ?: com.xiaomo.androidforclaw.config.agentsconfig()
+            val updatedDefaults = existingagents.defaults.copy(model = modelSelection)
+            val updatedagents = existingagents.copy(defaults = updatedDefaults)
 
-            val updatedConfig = config.copy(
-                models = existingModels.copy(providers = updatedProviders),
-                agents = updatedAgents
+            val updatedconfig = config.copy(
+                models = existingmodels.copy(providers = updatedproviders),
+                agents = updatedagents
             )
 
-            val saved = configLoader.saveOpenClawConfig(updatedConfig)
+            val saved = configLoader.saveOpenClawconfig(updatedconfig)
             if (!saved) {
-                Toast.makeText(this, "Save failed: Cannot write config file, please check storage permissions", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Save failed: cannot write config file, please check storage permissions", Toast.LENGTH_LONG).show()
                 return
             }
 
-            Log.i(TAG, "✅ Model config saved: provider=$providerName, model=$modelId")
+            Log.i(TAG, "[OK] model config saved: provider=$providerName, model=$modelId")
             markSetupSeen()
-            Toast.makeText(this, "✅ Configuration complete!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "[OK] configuration complete!", Toast.LENGTH_SHORT).show()
             finish()
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to save config", e)
             Toast.makeText(this, "Save failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
@@ -433,21 +433,21 @@ class ModelSetupActivity : AppCompatActivity() {
         try {
             val mmkv = com.tencent.mmkv.MMKV.defaultMMKV()
             mmkv.encode("model_setup_completed", true)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to mark setup as seen", e)
         }
     }
 
-    private data class ProviderPreset(
+    private data class providerPreset(
         val name: String,
         val baseUrl: String,
         val api: String,
         val hint: String,
-        val models: List<ModelPreset>,
+        val models: List<modelPreset>,
         val authHeader: Boolean = true
     )
 
-    private data class ModelPreset(
+    private data class modelPreset(
         val id: String,
         val displayName: String,
         val reasoning: Boolean = false,

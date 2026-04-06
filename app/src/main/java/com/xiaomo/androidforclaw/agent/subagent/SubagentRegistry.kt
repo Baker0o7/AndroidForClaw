@@ -5,13 +5,13 @@
  * - ../openclaw/src/agents/subagent-control.ts (resolveControlledSubagentTarget)
  * - ../openclaw/src/agents/subagent-registry-state.ts (persistence, orphan reconciliation)
  *
- * AndroidForClaw adaptation: ConcurrentHashMap-based registry tracking active/completed subagent runs.
+ * androidforClaw adaptation: ConcurrentHashMap-based registry tracking active/completed subagent runs.
  * Includes target resolution, cascade kill, descendant tracking, run replacement,
  * disk persistence, listener interface, and controller-based queries.
  */
 package com.xiaomo.androidforclaw.agent.subagent
 
-import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.loop.agentloop
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.Job
 import java.util.concurrent.ConcurrentHashMap
@@ -43,14 +43,14 @@ class SubagentRegistry(
     /** runId → coroutine Job */
     private val jobs = ConcurrentHashMap<String, Job>()
 
-    /** runId → child AgentLoop (for steer/kill/history) */
-    private val agentLoops = ConcurrentHashMap<String, AgentLoop>()
+    /** runId → child agentloop (for steer/kill/history) */
+    private val agentloops = ConcurrentHashMap<String, agentloop>()
 
     /** Registry event listeners */
     private val listeners = mutableListOf<SubagentRegistryListener>()
 
-    fun addListener(listener: SubagentRegistryListener) {
-        listeners.add(listener)
+    fun aListener(listener: SubagentRegistryListener) {
+        listeners.a(listener)
     }
 
     fun removeListener(listener: SubagentRegistryListener) {
@@ -62,26 +62,26 @@ class SubagentRegistry(
     /**
      * Restore runs from disk on startup.
      * Active runs without Job are orphans — mark as error.
-     * Aligned with OpenClaw restoreSubagentRunsOnce + reconcileOrphanedRestoredRuns.
+     * Aligned with OpenClaw restoreSubagentRunsOnce + reconcileorphanedRestoredRuns.
      */
-    fun restoreFromDisk() {
+    fun restorefromDisk() {
         val loaded = store?.load() ?: return
         if (loaded.isEmpty()) return
 
-        // Step 1: Merge restored runs (aligned with OpenClaw restoreSubagentRunsFromDisk mergeOnly)
-        var added = 0
+        // Step 1: Merge restored runs (aligned with OpenClaw restoreSubagentRunsfromDisk mergeOnly)
+        var aed = 0
         for ((runId, record) in loaded) {
             if (!runs.containsKey(runId)) {
                 runs[runId] = record
-                added++
+                aed++
             }
         }
-        if (added == 0) return
+        if (aed == 0) return
 
-        // Step 2: Reconcile orphans — separate step aligned with OpenClaw reconcileOrphanedRestoredRuns.
-        // OpenClaw verifies against session store (gateway sessions.get); on Android there is no
+        // Step 2: Reconcile orphans — separate step aligned with OpenClaw reconcileorphanedRestoredRuns.
+        // OpenClaw verifies against session store (gateway sessions.get); on android there is no
         // external session store, so all active runs without a Job are orphaned.
-        // These orphans are flagged here; SubagentOrphanRecovery.scheduleOrphanRecovery() handles
+        // These orphans are flagged here; SubagentorphanRecovery.scheduleorphanRecovery() handles
         // the actual recovery/cleanup with retries.
         var orphanCount = 0
         for ((_, record) in runs) {
@@ -95,7 +95,7 @@ class SubagentRegistry(
         if (orphanCount > 0) {
             Log.w(TAG, "Reconciled $orphanCount orphaned subagent runs from disk")
         }
-        Log.i(TAG, "Restored $added subagent runs from disk (orphans=$orphanCount)")
+        Log.i(TAG, "Restored $aed subagent runs from disk (orphans=$orphanCount)")
         persistToDisk()
     }
 
@@ -105,11 +105,11 @@ class SubagentRegistry(
 
     // ==================== Registration ====================
 
-    fun registerRun(record: SubagentRunRecord, loop: AgentLoop, job: Job) {
+    fun registerRun(record: SubagentRunRecord, loop: agentloop, job: Job) {
         runs[record.runId] = record
-        agentLoops[record.runId] = loop
+        agentloops[record.runId] = loop
         jobs[record.runId] = job
-        Log.i(TAG, "Registered subagent run: ${record.runId} label=${record.label} child=${record.childSessionKey}")
+        Log.i(TAG, "Registered subagent run: ${record.runId} label=${record.label} child=${record.childsessionKey}")
         persistToDisk()
         listeners.forEach { it.onRunRegistered(record) }
     }
@@ -130,7 +130,7 @@ class SubagentRegistry(
         record.frozenResultCapturedAt = if (frozenResult != null) System.currentTimeMillis() else null
         record.archiveAtMs = System.currentTimeMillis() + ARCHIVE_AFTER_MS
         // Clean up runtime references
-        agentLoops.remove(runId)
+        agentloops.remove(runId)
         jobs.remove(runId)
         Log.i(TAG, "Completed subagent run: $runId status=${outcome.status} reason=$endedReason")
         persistToDisk()
@@ -141,35 +141,35 @@ class SubagentRegistry(
 
     fun getRunById(runId: String): SubagentRunRecord? = runs[runId]
 
-    fun getAgentLoop(runId: String): AgentLoop? = agentLoops[runId]
+    fun getagentloop(runId: String): agentloop? = agentloops[runId]
 
     fun getJob(runId: String): Job? = jobs[runId]
 
     /**
      * Find run by child session key.
      * Returns active run first, fallback to any matching run (latest).
-     * Aligned with OpenClaw getSubagentRunByChildSessionKey.
+     * Aligned with OpenClaw getSubagentRunByChildsessionKey.
      */
-    fun getRunByChildSessionKey(childSessionKey: String): SubagentRunRecord? {
-        return runs.values.find { it.childSessionKey == childSessionKey && it.isActive }
+    fun getRunByChildsessionKey(childsessionKey: String): SubagentRunRecord? {
+        return runs.values.find { it.childsessionKey == childsessionKey && it.isActive }
             ?: runs.values
-                .filter { it.childSessionKey == childSessionKey }
-                .maxByOrNull { it.createdAt }
+                .filter { it.childsessionKey == childsessionKey }
+                .maxByorNull { it.createdAt }
     }
 
-    fun getActiveRunsForParent(parentSessionKey: String): List<SubagentRunRecord> {
-        return runs.values.filter { it.requesterSessionKey == parentSessionKey && it.isActive }
+    fun getActiveRunsforParent(parentsessionKey: String): List<SubagentRunRecord> {
+        return runs.values.filter { it.requestersessionKey == parentsessionKey && it.isActive }
     }
 
-    fun getAllRuns(parentSessionKey: String): List<SubagentRunRecord> {
+    fun getAllRuns(parentsessionKey: String): List<SubagentRunRecord> {
         return runs.values
-            .filter { it.requesterSessionKey == parentSessionKey }
+            .filter { it.requestersessionKey == parentsessionKey }
             .sortedByDescending { it.createdAt }
     }
 
     /**
      * Get a snapshot of all runs (keyed by runId).
-     * Used for orphan recovery scanning.
+     * used for orphan recovery scanning.
      */
     fun getRunsSnapshot(): Map<String, SubagentRunRecord> {
         return runs.toMap()
@@ -178,11 +178,11 @@ class SubagentRegistry(
     /**
      * Build indexed list: active runs first (sorted by createdAt desc),
      * then completed runs (sorted by endedAt desc).
-     * Used for numeric index resolution and list display.
+     * used for numeric index resolution and list display.
      * Aligned with OpenClaw buildSubagentList ordering.
      */
-    fun buildIndexedList(parentSessionKey: String): List<SubagentRunRecord> {
-        val allRuns = runs.values.filter { it.requesterSessionKey == parentSessionKey }
+    fun buildIndexedList(parentsessionKey: String): List<SubagentRunRecord> {
+        val allRuns = runs.values.filter { it.requestersessionKey == parentsessionKey }
         val active = allRuns.filter { it.isActive }.sortedByDescending { it.createdAt }
         val completed = allRuns.filter { !it.isActive }.sortedByDescending { it.endedAt }
         return active + completed
@@ -191,24 +191,24 @@ class SubagentRegistry(
     /**
      * List all runs spawned by a given requester session key (direct children).
      * Optional requesterRunId provides time-window scoping.
-     * Aligned with OpenClaw listRunsForRequesterFromRuns.
+     * Aligned with OpenClaw listRunsforRequesterfromRuns.
      */
-    fun listRunsForRequester(
-        requesterSessionKey: String,
+    fun listRunsforRequester(
+        requestersessionKey: String,
         requesterRunId: String? = null,
     ): List<SubagentRunRecord> {
-        val key = requesterSessionKey.trim()
+        val key = requestersessionKey.trim()
         if (key.isEmpty()) return emptyList()
 
         // Time-window scoping from requester run (aligned with OpenClaw)
         val requesterRun = requesterRunId?.trim()?.let { rid -> runs[rid] }
-        val scopedRun = if (requesterRun != null && requesterRun.childSessionKey == key) requesterRun else null
+        val scopedRun = if (requesterRun != null && requesterRun.childsessionKey == key) requesterRun else null
         val lowerBound = scopedRun?.startedAt ?: scopedRun?.createdAt
         val upperBound = scopedRun?.endedAt
 
         return runs.values
             .filter { entry ->
-                if (entry.requesterSessionKey != key) return@filter false
+                if (entry.requestersessionKey != key) return@filter false
                 if (lowerBound != null && entry.createdAt < lowerBound) return@filter false
                 if (upperBound != null && entry.createdAt > upperBound) return@filter false
                 true
@@ -217,86 +217,86 @@ class SubagentRegistry(
     }
 
     /**
-     * List runs where controllerSessionKey matches.
-     * Falls back to requesterSessionKey if controllerSessionKey is null.
-     * Aligned with OpenClaw listRunsForControllerFromRuns.
+     * List runs where controllersessionKey matches.
+     * Falls back to requestersessionKey if controllersessionKey is null.
+     * Aligned with OpenClaw listRunsforControllerfromRuns.
      */
-    fun listRunsForController(controllerKey: String): List<SubagentRunRecord> {
+    fun listRunsforController(controllerKey: String): List<SubagentRunRecord> {
         return runs.values
             .filter {
-                val key = it.controllerSessionKey ?: it.requesterSessionKey
+                val key = it.controllersessionKey ?: it.requestersessionKey
                 key == controllerKey
             }
             .sortedByDescending { it.createdAt }
     }
 
     /**
-     * Count active runs for a session (using controllerSessionKey).
+     * Count active runs for a session (using controllersessionKey).
      * Active = not ended OR has pending descendants.
-     * Aligned with OpenClaw countActiveRunsForSessionFromRuns.
+     * Aligned with OpenClaw countActiveRunsforsessionfromRuns.
      */
-    fun countActiveRunsForSession(controllerSessionKey: String): Int {
+    fun countActiveRunsforsession(controllersessionKey: String): Int {
         return runs.values.count { record ->
-            val key = record.controllerSessionKey ?: record.requesterSessionKey
-            key == controllerSessionKey && isActiveSubagentRun(record) { sessionKey ->
+            val key = record.controllersessionKey ?: record.requestersessionKey
+            key == controllersessionKey && isActiveSubagentRun(record) { sessionKey ->
                 countPendingDescendantRuns(sessionKey)
             }
         }
     }
 
-    fun activeChildCount(parentSessionKey: String): Int {
-        return countActiveRunsForSession(parentSessionKey)
+    fun activeChildCount(parentsessionKey: String): Int {
+        return countActiveRunsforsession(parentsessionKey)
     }
 
     /**
      * Check if parent can spawn more children.
      * Aligned with OpenClaw active children check in spawnSubagentDirect.
      */
-    fun canSpawn(parentSessionKey: String, maxChildren: Int): Boolean {
-        return activeChildCount(parentSessionKey) < maxChildren
+    fun canSpawn(parentsessionKey: String, maxChildren: Int): Boolean {
+        return activeChildCount(parentsessionKey) < maxChildren
     }
 
     // ==================== Advanced Queries ====================
 
     /**
      * Find all runIds associated with a child session key.
-     * Aligned with OpenClaw findRunIdsByChildSessionKeyFromRuns.
+     * Aligned with OpenClaw findRunIdsByChildsessionKeyfromRuns.
      */
-    fun findRunIdsByChildSessionKey(childSessionKey: String): List<String> {
+    fun findRunIdsByChildsessionKey(childsessionKey: String): List<String> {
         return runs.values
-            .filter { it.childSessionKey == childSessionKey }
+            .filter { it.childsessionKey == childsessionKey }
             .map { it.runId }
     }
 
     /**
      * Resolve requester for a child session.
-     * Returns requesterSessionKey of the latest run for the child.
-     * Aligned with OpenClaw resolveRequesterForChildSessionFromRuns.
+     * Returns requestersessionKey of the latest run for the child.
+     * Aligned with OpenClaw resolveRequesterforChildsessionfromRuns.
      */
-    fun resolveRequesterForChildSession(childSessionKey: String): String? {
+    fun resolveRequesterforChildsession(childsessionKey: String): String? {
         return runs.values
-            .filter { it.childSessionKey == childSessionKey }
-            .maxByOrNull { it.createdAt }
-            ?.requesterSessionKey
+            .filter { it.childsessionKey == childsessionKey }
+            .maxByorNull { it.createdAt }
+            ?.requestersessionKey
     }
 
     /**
      * Check if any run for the given child session key is active.
-     * Aligned with OpenClaw isSubagentSessionRunActive.
+     * Aligned with OpenClaw isSubagentsessionRunActive.
      */
-    fun isSubagentSessionRunActive(childSessionKey: String): Boolean {
-        return runs.values.any { it.childSessionKey == childSessionKey && it.isActive }
+    fun isSubagentsessionRunActive(childsessionKey: String): Boolean {
+        return runs.values.any { it.childsessionKey == childsessionKey && it.isActive }
     }
 
     /**
      * Check if post-completion announce should be ignored for a session.
      * True if the session's run mode is RUN and cleanup has already been completed.
-     * Aligned with OpenClaw shouldIgnorePostCompletionAnnounceForSessionFromRuns.
+     * Aligned with OpenClaw shouldIgnorePostCompletionAnnounceforsessionfromRuns.
      */
-    fun shouldIgnorePostCompletionAnnounceForSession(childSessionKey: String): Boolean {
+    fun shouldIgnorePostCompletionAnnounceforsession(childsessionKey: String): Boolean {
         val latestRun = runs.values
-            .filter { it.childSessionKey == childSessionKey }
-            .maxByOrNull { it.createdAt } ?: return false
+            .filter { it.childsessionKey == childsessionKey }
+            .maxByorNull { it.createdAt } ?: return false
         return latestRun.spawnMode != SpawnMode.SESSION &&
             latestRun.endedAt != null &&
             latestRun.cleanupCompletedAt != null &&
@@ -315,27 +315,27 @@ class SubagentRegistry(
      * 5. Label prefix match (case-insensitive)
      * 6. RunId prefix match
      */
-    fun resolveTarget(token: String, parentSessionKey: String): SubagentRunRecord? {
+    fun resolveTarget(token: String, parentsessionKey: String): SubagentRunRecord? {
         if (token.isBlank()) return null
 
-        val parentRuns = getAllRuns(parentSessionKey)
+        val parentRuns = getAllRuns(parentsessionKey)
         if (parentRuns.isEmpty()) return null
 
         // 1. "last" keyword
         if (token.equals("last", ignoreCase = true)) {
-            return parentRuns.firstOrNull { it.isActive }
-                ?: parentRuns.firstOrNull()
+            return parentRuns.firstorNull { it.isActive }
+                ?: parentRuns.firstorNull()
         }
 
         // 2. Numeric index (1-based)
-        token.toIntOrNull()?.let { index ->
-            val indexed = buildIndexedList(parentSessionKey)
-            return indexed.getOrNull(index - 1)
+        token.tointorNull()?.let { index ->
+            val indexed = buildIndexedList(parentsessionKey)
+            return indexed.getorNull(index - 1)
         }
 
-        // 3. Session key (contains ":")
+        // 3. session key (contains ":")
         if (":" in token) {
-            return parentRuns.find { it.childSessionKey == token }
+            return parentRuns.find { it.childsessionKey == token }
         }
 
         // 4. Exact label match (case-insensitive)
@@ -343,11 +343,11 @@ class SubagentRegistry(
         if (exactLabel.size == 1) return exactLabel[0]
 
         // 5. Label prefix match (case-insensitive)
-        val prefixLabel = parentRuns.filter { it.label.startsWith(token, ignoreCase = true) }
+        val prefixLabel = parentRuns.filter { it.label.startswith(token, ignoreCase = true) }
         if (prefixLabel.size == 1) return prefixLabel[0]
 
         // 6. RunId prefix match
-        val prefixRunId = parentRuns.filter { it.runId.startsWith(token) }
+        val prefixRunId = parentRuns.filter { it.runId.startswith(token) }
         if (prefixRunId.size == 1) return prefixRunId[0]
 
         return null
@@ -358,23 +358,23 @@ class SubagentRegistry(
     /**
      * Count pending (active or not-cleanup-completed) descendant runs.
      * BFS traversal through the spawn tree.
-     * Aligned with OpenClaw countPendingDescendantRunsFromRuns.
+     * Aligned with OpenClaw countPendingDescendantRunsfromRuns.
      */
     fun countPendingDescendantRuns(sessionKey: String): Int {
         var count = 0
         val queue = ArrayDeque<String>()
         val visited = mutableSetOf<String>()
-        queue.add(sessionKey)
-        visited.add(sessionKey)
+        queue.a(sessionKey)
+        visited.a(sessionKey)
 
-        while (queue.isNotEmpty()) {
+        while (queue.isnotEmpty()) {
             val currentKey = queue.removeAt(0)
-            val children = runs.values.filter { it.requesterSessionKey == currentKey }
+            val children = runs.values.filter { it.requestersessionKey == currentKey }
             for (child in children) {
                 if (child.isActive || child.cleanupCompletedAt == null) count++
-                if (child.childSessionKey !in visited) {
-                    visited.add(child.childSessionKey)
-                    queue.add(child.childSessionKey)
+                if (child.childsessionKey !in visited) {
+                    visited.a(child.childsessionKey)
+                    queue.a(child.childsessionKey)
                 }
             }
         }
@@ -383,26 +383,26 @@ class SubagentRegistry(
 
     /**
      * Same as countPendingDescendantRuns but excluding a specific runId.
-     * Used during announce to exclude the run being announced.
-     * Aligned with OpenClaw countPendingDescendantRunsExcludingRunFromRuns.
+     * used during announce to exclude the run being announced.
+     * Aligned with OpenClaw countPendingDescendantRunsExcludingRunfromRuns.
      */
     fun countPendingDescendantRunsExcludingRun(sessionKey: String, excludeRunId: String): Int {
         var count = 0
         val queue = ArrayDeque<String>()
         val visited = mutableSetOf<String>()
-        queue.add(sessionKey)
-        visited.add(sessionKey)
+        queue.a(sessionKey)
+        visited.a(sessionKey)
 
-        while (queue.isNotEmpty()) {
+        while (queue.isnotEmpty()) {
             val currentKey = queue.removeAt(0)
-            val children = runs.values.filter { it.requesterSessionKey == currentKey }
+            val children = runs.values.filter { it.requestersessionKey == currentKey }
             for (child in children) {
                 if (child.runId != excludeRunId && (child.isActive || child.cleanupCompletedAt == null)) {
                     count++
                 }
-                if (child.childSessionKey !in visited) {
-                    visited.add(child.childSessionKey)
-                    queue.add(child.childSessionKey)
+                if (child.childsessionKey !in visited) {
+                    visited.a(child.childsessionKey)
+                    queue.a(child.childsessionKey)
                 }
             }
         }
@@ -411,23 +411,23 @@ class SubagentRegistry(
 
     /**
      * Count active (not ended) descendant runs.
-     * Aligned with OpenClaw countActiveDescendantRunsFromRuns.
+     * Aligned with OpenClaw countActiveDescendantRunsfromRuns.
      */
     fun countActiveDescendantRuns(sessionKey: String): Int {
         var count = 0
         val queue = ArrayDeque<String>()
         val visited = mutableSetOf<String>()
-        queue.add(sessionKey)
-        visited.add(sessionKey)
+        queue.a(sessionKey)
+        visited.a(sessionKey)
 
-        while (queue.isNotEmpty()) {
+        while (queue.isnotEmpty()) {
             val currentKey = queue.removeAt(0)
-            val children = runs.values.filter { it.requesterSessionKey == currentKey }
+            val children = runs.values.filter { it.requestersessionKey == currentKey }
             for (child in children) {
                 if (child.isActive) count++
-                if (child.childSessionKey !in visited) {
-                    visited.add(child.childSessionKey)
-                    queue.add(child.childSessionKey)
+                if (child.childsessionKey !in visited) {
+                    visited.a(child.childsessionKey)
+                    queue.a(child.childsessionKey)
                 }
             }
         }
@@ -436,42 +436,42 @@ class SubagentRegistry(
 
     /**
      * List all descendant runs recursively.
-     * Aligned with OpenClaw listDescendantRunsForRequesterFromRuns.
+     * Aligned with OpenClaw listDescendantRunsforRequesterfromRuns.
      */
     fun listDescendantRuns(sessionKey: String): List<SubagentRunRecord> {
         val result = mutableListOf<SubagentRunRecord>()
         val queue = ArrayDeque<String>()
         val visited = mutableSetOf<String>()
-        queue.add(sessionKey)
-        visited.add(sessionKey)
+        queue.a(sessionKey)
+        visited.a(sessionKey)
 
-        while (queue.isNotEmpty()) {
+        while (queue.isnotEmpty()) {
             val currentKey = queue.removeAt(0)
-            val children = runs.values.filter { it.requesterSessionKey == currentKey }
+            val children = runs.values.filter { it.requestersessionKey == currentKey }
             for (child in children) {
-                result.add(child)
-                if (child.childSessionKey !in visited) {
-                    visited.add(child.childSessionKey)
-                    queue.add(child.childSessionKey)
+                result.a(child)
+                if (child.childsessionKey !in visited) {
+                    visited.a(child.childsessionKey)
+                    queue.a(child.childsessionKey)
                 }
             }
         }
         return result
     }
 
-    // ==================== Steer Restart Management ====================
+    // ==================== steer Restart Management ====================
 
     /**
      * Clear steer-restart suppression on a run.
-     * If the run already ended while suppression was active, resume cleanup.
-     * Aligned with OpenClaw clearSubagentRunSteerRestart.
+     * if the run already ended while suppression was active, resume cleanup.
+     * Aligned with OpenClaw clearSubagentRunsteerRestart.
      */
-    fun clearSubagentRunSteerRestart(runId: String): Boolean {
+    fun clearSubagentRunsteerRestart(runId: String): Boolean {
         val entry = runs[runId] ?: return false
         if (entry.suppressAnnounceReason != "steer-restart") return true
         entry.suppressAnnounceReason = null
         persistToDisk()
-        // If the run already finished while suppression was active, it needs cleanup
+        // if the run already finished while suppression was active, it needs cleanup
         if (entry.endedAt != null && entry.cleanupCompletedAt == null) {
             Log.i(TAG, "Resuming cleanup for run $runId after clearing steer-restart suppression")
         }
@@ -482,20 +482,20 @@ class SubagentRegistry(
 
     /**
      * Mark matching runs as terminated (killed).
-     * Can match by runId and/or childSessionKey.
+     * can match by runId and/or childsessionKey.
      * Aligned with OpenClaw markSubagentRunTerminated.
      * @return Number of runs updated.
      */
     fun markSubagentRunTerminated(
         runId: String? = null,
-        childSessionKey: String? = null,
+        childsessionKey: String? = null,
         reason: String = "killed",
     ): Int {
         val targetRunIds = mutableSetOf<String>()
-        if (!runId.isNullOrBlank()) targetRunIds.add(runId)
-        if (!childSessionKey.isNullOrBlank()) {
-            runs.values.filter { it.childSessionKey == childSessionKey }.forEach {
-                targetRunIds.add(it.runId)
+        if (!runId.isNullorBlank()) targetRunIds.a(runId)
+        if (!childsessionKey.isNullorBlank()) {
+            runs.values.filter { it.childsessionKey == childsessionKey }.forEach {
+                targetRunIds.a(it.runId)
             }
         }
         if (targetRunIds.isEmpty()) return 0
@@ -511,10 +511,10 @@ class SubagentRegistry(
             entry.cleanupHandled = true
             entry.cleanupCompletedAt = now
             entry.suppressAnnounceReason = "killed"
-            // Cancel job if exists
+            // cancel job if exists
             jobs[rid]?.cancel()
             jobs.remove(rid)
-            agentLoops.remove(rid)
+            agentloops.remove(rid)
             updated++
             listeners.forEach { it.onRunCompleted(entry) }
         }
@@ -563,21 +563,21 @@ class SubagentRegistry(
         val killed = mutableListOf<String>()
         val queue = ArrayDeque<String>()
         val visited = mutableSetOf<String>()
-        queue.add(runId)
+        queue.a(runId)
 
-        while (queue.isNotEmpty()) {
+        while (queue.isnotEmpty()) {
             val currentRunId = queue.removeAt(0)
             if (currentRunId in visited) continue
-            visited.add(currentRunId)
+            visited.a(currentRunId)
 
             val record = runs[currentRunId] ?: continue
 
             // Find children of this run's session
             val children = runs.values.filter {
-                it.requesterSessionKey == record.childSessionKey && it.isActive
+                it.requestersessionKey == record.childsessionKey && it.isActive
             }
             for (child in children) {
-                queue.add(child.runId)
+                queue.a(child.runId)
             }
 
             // Kill this run if still active
@@ -593,24 +593,24 @@ class SubagentRegistry(
                     SubagentLifecycleEndedReason.SUBAGENT_KILLED,
                     frozenResult = null,
                 )
-                killed.add(currentRunId)
+                killed.a(currentRunId)
             }
         }
 
-        if (killed.isNotEmpty()) {
+        if (killed.isnotEmpty()) {
             Log.i(TAG, "Cascade killed ${killed.size} runs starting from $runId")
         }
         return killed
     }
 
-    // ==================== Run Replacement (Steer Restart) ====================
+    // ==================== Run Replacement (steer Restart) ====================
 
     /**
      * Replace a run record with a new one after steer restart.
-     * Old run stays in registry for history; new run takes over runtime references.
-     * Aligned with OpenClaw replaceSubagentRunAfterSteer.
+     * old run stays in registry for history; new run takes over runtime references.
+     * Aligned with OpenClaw replaceSubagentRunaftersteer.
      */
-    fun replaceRun(oldRunId: String, newRecord: SubagentRunRecord, loop: AgentLoop, job: Job) {
+    fun replaceRun(oldRunId: String, newRecord: SubagentRunRecord, loop: agentloop, job: Job) {
         // Preserve frozen result as fallback (aligned with OpenClaw preserveFrozenResultFallback)
         val oldRecord = runs[oldRunId]
         if (oldRecord?.frozenResultText != null && newRecord.fallbackFrozenResultText == null) {
@@ -619,14 +619,14 @@ class SubagentRegistry(
         }
 
         // Remove old runtime references (record stays for history)
-        agentLoops.remove(oldRunId)
+        agentloops.remove(oldRunId)
         jobs.remove(oldRunId)
 
         // Register new run
         runs[newRecord.runId] = newRecord
-        agentLoops[newRecord.runId] = loop
+        agentloops[newRecord.runId] = loop
         jobs[newRecord.runId] = job
-        Log.i(TAG, "Replaced run: $oldRunId → ${newRecord.runId} (session ${newRecord.childSessionKey})")
+        Log.i(TAG, "Replaced run: $oldRunId → ${newRecord.runId} (session ${newRecord.childsessionKey})")
         persistToDisk()
     }
 
@@ -638,7 +638,7 @@ class SubagentRegistry(
      */
     fun releaseSubagentRun(runId: String) {
         runs.remove(runId)
-        agentLoops.remove(runId)
+        agentloops.remove(runId)
         jobs.remove(runId)
         Log.d(TAG, "Released subagent run: $runId")
         listeners.forEach { it.onRunReleased(runId) }
@@ -664,10 +664,10 @@ class SubagentRegistry(
         val allToRemove = (toRemove + legacySweep).distinctBy { it.runId }
         for (record in allToRemove) {
             runs.remove(record.runId)
-            agentLoops.remove(record.runId)
+            agentloops.remove(record.runId)
             jobs.remove(record.runId)
         }
-        if (allToRemove.isNotEmpty()) {
+        if (allToRemove.isnotEmpty()) {
             Log.i(TAG, "Swept ${allToRemove.size} archived subagent runs")
             persistToDisk()
         }

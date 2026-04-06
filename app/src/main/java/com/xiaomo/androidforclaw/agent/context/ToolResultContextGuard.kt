@@ -3,9 +3,9 @@ package com.xiaomo.androidforclaw.agent.context
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/session-tool-result-guard.ts (session-level guard)
- * - ../openclaw/src/agents/pi-embedded-runner/tool-result-context-guard.ts (per-run guard)
+ * - ../openclaw/src/agents/pi-embeed-runner/tool-result-context-guard.ts (per-run guard)
  *
- * AndroidForClaw adaptation: bound tool result size within context limits.
+ * androidforClaw adaptation: bound tool result size within context limits.
  */
 
 
@@ -13,7 +13,7 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.llm.Message
 
 /**
- * Tool Result Context Guard — Gap 1 alignment with OpenClaw tool-result-context-guard.ts
+ * tool Result context Guard — Gap 1 alignment with OpenClaw tool-result-context-guard.ts
  *
  * Dynamically enforces context budget by:
  * 1. Truncating individual oversized tool results
@@ -25,8 +25,8 @@ import com.xiaomo.androidforclaw.providers.llm.Message
  * - CONTEXT_INPUT_HEADROOM_RATIO = 0.75
  * - SINGLE_TOOL_RESULT_CONTEXT_SHARE = 0.5
  */
-object ToolResultContextGuard {
-    private const val TAG = "ToolResultContextGuard"
+object toolResultcontextGuard {
+    private const val TAG = "toolResultcontextGuard"
 
     // Aligned with OpenClaw tool-result-char-estimator.ts
     const val CHARS_PER_TOKEN_ESTIMATE = 4
@@ -51,7 +51,7 @@ object ToolResultContextGuard {
      * @param contextWindowTokens The model's context window in tokens
      * @return The same list, modified
      */
-    fun enforceContextBudget(
+    fun enforcecontextBudget(
         messages: MutableList<Message>,
         contextWindowTokens: Int
     ): MutableList<Message> {
@@ -59,17 +59,17 @@ object ToolResultContextGuard {
             MIN_BUDGET_CHARS,
             (contextWindowTokens * CHARS_PER_TOKEN_ESTIMATE * CONTEXT_INPUT_HEADROOM_RATIO).toInt()
         )
-        val maxSingleToolResultChars = maxOf(
+        val maxSingletoolResultChars = maxOf(
             MIN_BUDGET_CHARS,
             (contextWindowTokens * TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE * SINGLE_TOOL_RESULT_CONTEXT_SHARE).toInt()
         )
 
-        Log.d(TAG, "Context budget: $contextBudgetChars chars, single tool max: $maxSingleToolResultChars chars")
+        Log.d(TAG, "context budget: $contextBudgetChars chars, single tool max: $maxSingletoolResultChars chars")
 
         // Step 0: Hard max — truncate any tool result exceeding absolute limit (OpenClaw HARD_MAX_TOOL_RESULT_CHARS)
         for (i in messages.indices) {
             val msg = messages[i]
-            if (!isToolResultMessage(msg)) continue
+            if (!istoolResultMessage(msg)) continue
             val contentStr = msg.content ?: continue
             if (contentStr.length > HARD_MAX_TOOL_RESULT_CHARS) {
                 messages[i] = msg.copy(content = truncateTextToBudget(contentStr, HARD_MAX_TOOL_RESULT_CHARS))
@@ -80,36 +80,36 @@ object ToolResultContextGuard {
         // Step 1: Truncate individual oversized tool results (relative to context share)
         for (i in messages.indices) {
             val msg = messages[i]
-            if (!isToolResultMessage(msg)) continue
+            if (!istoolResultMessage(msg)) continue
 
             val contentStr = msg.content ?: continue
             val estimatedChars = estimateMessageChars(msg)
 
-            if (estimatedChars > maxSingleToolResultChars) {
-                val truncated = truncateTextToBudget(contentStr, maxSingleToolResultChars)
+            if (estimatedChars > maxSingletoolResultChars) {
+                val truncated = truncateTextToBudget(contentStr, maxSingletoolResultChars)
                 messages[i] = msg.copy(content = truncated)
                 Log.d(TAG, "Truncated tool result ${msg.name ?: msg.toolCallId}: $estimatedChars -> ${truncated.length} chars")
             }
         }
 
         // Step 2: Check total context and compact oldest tool results if over budget
-        var currentChars = estimateContextChars(messages)
+        var currentChars = estimatecontextChars(messages)
         if (currentChars <= contextBudgetChars) {
-            Log.d(TAG, "Context within budget: $currentChars / $contextBudgetChars chars")
+            Log.d(TAG, "context within budget: $currentChars / $contextBudgetChars chars")
             return messages
         }
 
-        Log.d(TAG, "Context over budget: $currentChars / $contextBudgetChars chars, compacting old tool results...")
+        Log.d(TAG, "context over budget: $currentChars / $contextBudgetChars chars, compacting old tool results...")
 
-        val charsNeeded = currentChars - contextBudgetChars
+        val charsneeded = currentChars - contextBudgetChars
         var reduced = 0
 
         // Compact from oldest to newest
         for (i in messages.indices) {
-            if (reduced >= charsNeeded) break
+            if (reduced >= charsneeded) break
 
             val msg = messages[i]
-            if (!isToolResultMessage(msg)) continue
+            if (!istoolResultMessage(msg)) continue
 
             val before = estimateMessageChars(msg)
             if (before <= PREEMPTIVE_COMPACTION_PLACEHOLDER.length) continue
@@ -121,8 +121,8 @@ object ToolResultContextGuard {
             Log.d(TAG, "Compacted tool result ${msg.name ?: msg.toolCallId}: $before -> $after chars (freed ${before - after})")
         }
 
-        currentChars = estimateContextChars(messages)
-        Log.d(TAG, "After compaction: $currentChars / $contextBudgetChars chars (reduced $reduced)")
+        currentChars = estimatecontextChars(messages)
+        Log.d(TAG, "after compaction: $currentChars / $contextBudgetChars chars (reduced $reduced)")
 
         return messages
     }
@@ -130,7 +130,7 @@ object ToolResultContextGuard {
     /**
      * Check if a message is a tool result.
      */
-    private fun isToolResultMessage(msg: Message): Boolean {
+    private fun istoolResultMessage(msg: Message): Boolean {
         return msg.role == "tool"
     }
 
@@ -142,7 +142,7 @@ object ToolResultContextGuard {
         return when (msg.role) {
             "tool" -> {
                 val contentChars = msg.content?.length ?: 0
-                // Tool results use TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE (2 chars/token)
+                // tool results use TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE (2 chars/token)
                 // but we need to weight them for comparison with regular text (4 chars/token)
                 val weightedChars = (contentChars * CHARS_PER_TOKEN_ESTIMATE / TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE)
                 maxOf(contentChars, weightedChars)
@@ -163,7 +163,7 @@ object ToolResultContextGuard {
     /**
      * Estimate total context chars for all messages.
      */
-    fun estimateContextChars(messages: List<Message>): Int {
+    fun estimatecontextChars(messages: List<Message>): Int {
         return messages.sumOf { estimateMessageChars(it) }
     }
 

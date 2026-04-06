@@ -1,24 +1,24 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
 import com.xiaomo.androidforclaw.logging.Log
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ConcurrentLinkedqueue
 
 /**
  * Local layout exception recorder
- * Used to record layout-related exceptions in module catch blocks, for fast locating of failed modules
+ * used to record layout-related exceptions in module catch blocks, for fast locating of failed modules
  */
-object LayoutExceptionLogger {
+object LayoutexceptionLogger {
 
-    private const val TAG = "LayoutExceptionLogger"
+    private const val TAG = "LayoutexceptionLogger"
 
     /**
-     * Exception info data class
+     * exception info data class
      */
-    data class ExceptionInfo(
+    data class exceptionInfo(
         val moduleName: String,
         val message: String,
         val stackTrace: String,
@@ -26,10 +26,10 @@ object LayoutExceptionLogger {
     )
 
     // Thread-safe exception queue
-    private val exceptionQueue = ConcurrentLinkedQueue<ExceptionInfo>()
+    private val exceptionqueue = ConcurrentLinkedqueue<exceptionInfo>()
 
     // Prevent recursive call flag (use ThreadLocal to ensure thread safety)
-    private val isLogging = ThreadLocal<Boolean>().apply { set(false) }
+    private val isLogging = ThreadLocal<Boolean>().app { set(false) }
 
     /**
      * Record exception info (local log only)
@@ -48,19 +48,19 @@ object LayoutExceptionLogger {
             // Record to log
             Log.e(
                 TAG,
-                "Module[$moduleName] execution failed, Exception info: ${throwable.message}",
+                "Module[$moduleName] execution failed, exception info: ${throwable.message}",
                 throwable
             )
 
             // Store exception info
             val stackTrace = throwable.stackTraceToString()
-            val exceptionInfo = ExceptionInfo(
+            val exceptionInfo = exceptionInfo(
                 moduleName = moduleName,
                 message = throwable.message ?: "Unknown exception",
                 stackTrace = stackTrace,
                 timestamp = System.currentTimeMillis()
             )
-            exceptionQueue.offer(exceptionInfo)
+            exceptionqueue.offer(exceptionInfo)
         } finally {
             // Clear flag
             isLogging.set(false)
@@ -70,14 +70,14 @@ object LayoutExceptionLogger {
     /**
      * Get exception count
      */
-    fun getExceptionCount(): Int {
-        return exceptionQueue.size
+    fun getexceptionCount(): Int {
+        return exceptionqueue.size
     }
 
     /**
      * Clear exception queue
      */
     fun clear() {
-        exceptionQueue.clear()
+        exceptionqueue.clear()
     }
 }

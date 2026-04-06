@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.providers
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/usage.ts
  *
- * AndroidForClaw adaptation: token usage normalization across providers.
+ * androidforClaw adaptation: token usage normalization across providers.
  */
 
 import org.json.JSONObject
@@ -99,7 +99,7 @@ object UsageNormalizer {
      * Normalize usage from a Map (for non-JSON sources).
      */
     fun normalizeUsage(raw: Map<String, Any?>?): NormalizedUsage? {
-        if (raw.isNullOrEmpty()) return null
+        if (raw.isNullorEmpty()) return null
 
         val rawInput = firstFiniteNumber(
             raw, "input", "inputTokens", "input_tokens", "promptTokens", "prompt_tokens"
@@ -170,9 +170,9 @@ object UsageNormalizer {
 
     /**
      * Derive session total tokens (prompt tokens only, excludes output).
-     * Aligned with OpenClaw deriveSessionTotalTokens.
+     * Aligned with OpenClaw derivesessionTotalTokens.
      */
-    fun deriveSessionTotalTokens(usages: List<NormalizedUsage?>): Int {
+    fun derivesessionTotalTokens(usages: List<NormalizedUsage?>): Int {
         return usages.sumOf { derivePromptTokens(it) }
     }
 
@@ -184,7 +184,7 @@ object UsageNormalizer {
                 val value = json.opt(key)
                 val num = when (value) {
                     is Number -> value.toInt()
-                    is String -> value.toIntOrNull()
+                    is String -> value.tointorNull()
                     else -> null
                 }
                 if (num != null) return num
@@ -198,7 +198,7 @@ object UsageNormalizer {
             val value = map[key]
             val num = when (value) {
                 is Number -> value.toInt()
-                is String -> value.toIntOrNull()
+                is String -> value.tointorNull()
                 else -> null
             }
             if (num != null) return num

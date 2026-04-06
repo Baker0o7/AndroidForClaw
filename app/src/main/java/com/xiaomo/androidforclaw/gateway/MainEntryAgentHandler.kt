@@ -6,66 +6,66 @@ package com.xiaomo.androidforclaw.gateway
 
 import android.app.Application
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.agent.context.ContextBuilder
-import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.context.contextBuilder
+import com.xiaomo.androidforclaw.agent.loop.agentloop
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
-import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
-import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
-import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
-import com.xiaomo.androidforclaw.data.model.TaskDataManager
+import com.xiaomo.androidforclaw.providers.UnifiedLLMprovider
+import com.xiaomo.androidforclaw.agent.tools.androidtoolRegistry
+import com.xiaomo.androidforclaw.agent.tools.toolRegistry
+import com.xiaomo.androidforclaw.data.model.TaskDatamanager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * AgentHandler implementation - connects GatewayService and AgentLoop
+ * agentHandler implementation - connects Gatewayservice and agentloop
  *
  * Responsibilities:
  * 1. Receive Gateway RPC requests
- * 2. Call AgentLoop to execute tasks
+ * 2. Call agentloop to execute tasks
  * 3. Send back progress and results
  */
-class MainEntryAgentHandler(
+class MainEntryagentHandler(
     private val application: Application
-) : AgentHandler {
+) : agentHandler {
 
     companion object {
-        private const val TAG = "MainEntryAgentHandler"
+        private const val TAG = "MainEntryagentHandler"
     }
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val taskDataManager: TaskDataManager = TaskDataManager.getInstance()
+    private val taskDatamanager: TaskDatamanager = TaskDatamanager.getInstance()
 
-    // Core components - use unified LLM Provider
-    private val llmProvider: UnifiedLLMProvider by lazy {
-        UnifiedLLMProvider(application)
+    // Core components - use unified LLM provider
+    private val llmprovider: UnifiedLLMprovider by lazy {
+        UnifiedLLMprovider(application)
     }
 
-    private val toolRegistry: ToolRegistry by lazy {
-        ToolRegistry(
+    private val toolRegistry: toolRegistry by lazy {
+        toolRegistry(
             context = application,
-            taskDataManager = taskDataManager
+            taskDatamanager = taskDatamanager
         )
     }
 
-    private val androidToolRegistry: AndroidToolRegistry by lazy {
-        AndroidToolRegistry(
+    private val androidtoolRegistry: androidtoolRegistry by lazy {
+        androidtoolRegistry(
             context = application,
-            taskDataManager = taskDataManager,
-            cameraCaptureManager = com.xiaomo.androidforclaw.core.MyApplication.getCameraCaptureManager(),
+            taskDatamanager = taskDatamanager,
+            cameraCapturemanager = com.xiaomo.androidforclaw.core.MyApplication.getCameraCapturemanager(),
         )
     }
 
-    private val contextBuilder: ContextBuilder by lazy {
-        ContextBuilder(
+    private val contextBuilder: contextBuilder by lazy {
+        contextBuilder(
             context = application,
             toolRegistry = toolRegistry,
-            androidToolRegistry = androidToolRegistry
+            androidtoolRegistry = androidtoolRegistry
         )
     }
 
-    override fun executeAgent(
+    override fun executeagent(
         sessionId: String,
         userMessage: String,
         systemPrompt: String?,
@@ -74,7 +74,7 @@ class MainEntryAgentHandler(
         progressCallback: (Map<String, Any>) -> Unit,
         completeCallback: (Map<String, Any>) -> Unit
     ) {
-        Log.d(TAG, "executeAgent called: session=$sessionId, message=$userMessage")
+        Log.d(TAG, "executeagent called: session=$sessionId, message=$userMessage")
 
         scope.launch {
             try {
@@ -87,48 +87,48 @@ class MainEntryAgentHandler(
 
                 Log.d(TAG, "System prompt ready (${finalSystemPrompt.length} chars)")
 
-                // 2. Create AgentLoop (with context management)
-                val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
-                val agentLoop = AgentLoop(
-                    llmProvider = llmProvider,
+                // 2. Create agentloop (with context management)
+                val contextmanager = com.xiaomo.androidforclaw.agent.context.contextmanager(llmprovider)
+                val agentloop = agentloop(
+                    llmprovider = llmprovider,
                     toolRegistry = toolRegistry,
-                    androidToolRegistry = androidToolRegistry,
-                    contextManager = contextManager,
+                    androidtoolRegistry = androidtoolRegistry,
+                    contextmanager = contextmanager,
                     maxIterations = maxIterations,
-                    modelRef = null  // Use default model, can be read from config
+                    modelRef = null  // use default model, can be read from config
                 )
 
                 // 3. Listen to progress
                 val progressJob = launch {
-                    agentLoop.progressFlow.collect { update ->
+                    agentloop.progressFlow.collect { update ->
                         val progressData = convertProgressToMap(update)
                         progressCallback(progressData)
                     }
                 }
 
-                // 4. Execute Agent
-                Log.d(TAG, "Starting AgentLoop execution...")
-                val result = agentLoop.run(
+                // 4. Execute agent
+                Log.d(TAG, "Starting agentloop execution...")
+                val result = agentloop.run(
                     systemPrompt = finalSystemPrompt,
                     userMessage = userMessage,
                     reasoningEnabled = true  // Enable reasoning by default
                 )
 
-                Log.d(TAG, "AgentLoop completed: ${result.iterations} iterations")
+                Log.d(TAG, "agentloop completed: ${result.iterations} iterations")
 
                 // 5. Return result
                 completeCallback(mapOf(
                     "success" to true,
                     "iterations" to result.iterations,
-                    "toolsUsed" to result.toolsUsed,
+                    "toolsused" to result.toolsused,
                     "finalContent" to result.finalContent,
                     "sessionId" to sessionId
                 ))
 
                 progressJob.cancel()
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Agent execution failed", e)
+            } catch (e: exception) {
+                Log.e(TAG, "agent execution failed", e)
                 completeCallback(mapOf(
                     "success" to false,
                     "error" to (e.message ?: "Unknown error"),
@@ -159,13 +159,13 @@ class MainEntryAgentHandler(
                 "duration" to update.llmDuration
             )
 
-            is ProgressUpdate.ToolCall -> mapOf(
+            is ProgressUpdate.toolCall -> mapOf(
                 "type" to "tool_call",
                 "name" to update.name,
                 "arguments" to update.arguments
             )
 
-            is ProgressUpdate.ToolResult -> mapOf(
+            is ProgressUpdate.toolResult -> mapOf(
                 "type" to "tool_result",
                 "result" to update.result,
                 "duration" to update.execDuration
@@ -179,18 +179,18 @@ class MainEntryAgentHandler(
                 "execDuration" to update.execDuration
             )
 
-            is ProgressUpdate.ContextOverflow -> mapOf(
+            is ProgressUpdate.contextoverflow -> mapOf(
                 "type" to "context_overflow",
                 "message" to update.message
             )
 
-            is ProgressUpdate.ContextRecovered -> mapOf(
+            is ProgressUpdate.contextRecovered -> mapOf(
                 "type" to "context_recovered",
                 "strategy" to update.strategy,
                 "attempt" to update.attempt
             )
 
-            is ProgressUpdate.LoopDetected -> mapOf(
+            is ProgressUpdate.loopDetected -> mapOf(
                 "type" to "loop_detected",
                 "detector" to update.detector,
                 "count" to update.count,
@@ -207,7 +207,7 @@ class MainEntryAgentHandler(
                 "text" to update.text,
                 "iteration" to update.iteration
             )
-            is ProgressUpdate.SteerMessageInjected -> mapOf(
+            is ProgressUpdate.steerMessageInjected -> mapOf(
                 "type" to "steer_message_injected",
                 "content" to update.content
             )
@@ -215,7 +215,7 @@ class MainEntryAgentHandler(
                 "type" to "subagent_spawned",
                 "runId" to update.runId,
                 "label" to update.label,
-                "childSessionKey" to update.childSessionKey
+                "childsessionKey" to update.childsessionKey
             )
             is ProgressUpdate.SubagentAnnounced -> mapOf(
                 "type" to "subagent_announced",

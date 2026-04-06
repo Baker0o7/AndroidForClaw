@@ -8,36 +8,36 @@ package com.xiaomo.androidforclaw.agent.tools
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import java.io.File
 
 /**
- * List Directory Tool - List directory contents
- * Reference: nanobot's ListDirTool
+ * List Directory tool - List directory contents
+ * Reference: nanobot's ListDirtool
  */
-class ListDirTool(
+class ListDirtool(
     private val workspace: File? = null,
     private val allowedDir: File? = null
-) : Tool {
+) : tool {
     companion object {
-        private const val TAG = "ListDirTool"
+        private const val TAG = "ListDirtool"
     }
 
     override val name = "list_dir"
     override val description = "List directory contents"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要List的目录Path")
+                        "path" to Propertyschema("string", "needListdirectoryPath")
                     ),
                     required = listOf("path")
                 )
@@ -45,11 +45,11 @@ class ListDirTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val path = args["path"] as? String
 
         if (path == null) {
-            return Toolresult.error("Missing required parameter: path")
+            return toolresult.error("Missing required parameter: path")
         }
 
         Log.d(TAG, "Listing directory: $path")
@@ -60,34 +60,34 @@ class ListDirTool(
             if (allowedDir != null) {
                 val canonicalDir = dir.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
-                if (!canonicalDir.path.startsWith(canonicalAllowed.path)) {
-                    return Toolresult.error("Path is outside allowed directory: $path")
+                if (!canonicalDir.path.startswith(canonicalAllowed.path)) {
+                    return toolresult.error("Path is outside allowed directory: $path")
                 }
             }
 
             if (!dir.exists()) {
-                return Toolresult.error("Directory not found: $path")
+                return toolresult.error("Directory not found: $path")
             }
 
             if (!dir.isDirectory) {
-                return Toolresult.error("Not a directory: $path")
+                return toolresult.error("not a directory: $path")
             }
 
             val items = dir.listFiles()?.sortedBy { it.name } ?: emptyList()
 
             if (items.isEmpty()) {
-                return Toolresult.success("Directory $path is empty")
+                return toolresult.success("Directory $path is empty")
             }
 
             val listing = items.joinToString("\n") { item ->
-                val prefix = if (item.isDirectory) "📁 " else "📄 "
+                val prefix = if (item.isDirectory) "[DIR] " else "📄 "
                 "$prefix${item.name}"
             }
 
-            Toolresult.success(listing, mapOf("count" to items.size))
-        } catch (e: Exception) {
+            toolresult.success(listing, mapOf("count" to items.size))
+        } catch (e: exception) {
             Log.e(TAG, "List directory failed", e)
-            Toolresult.error("List directory failed: ${e.message}")
+            toolresult.error("List directory failed: ${e.message}")
         }
     }
 

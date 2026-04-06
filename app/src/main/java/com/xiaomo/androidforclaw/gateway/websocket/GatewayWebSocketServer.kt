@@ -1,6 +1,6 @@
 package com.xiaomo.androidforclaw.gateway.websocket
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.gateway.protocol.*
 import com.xiaomo.androidforclaw.gateway.security.TokenAuth
 import fi.iki.elonen.NanoHTTPD
@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.xiaomo.androidforclaw.logging.Log
-import java.io.IOException
+import java.io.IOexception
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap
  * - Homepage UI
  */
 class GatewayWebSocketServer(
-    private val context: Context,
+    private val context: context,
     private val port: Int = 8765,
     private val tokenAuth: TokenAuth? = null
 ) : NanoWSD(null, port) {
@@ -59,12 +59,12 @@ class GatewayWebSocketServer(
     fun getActiveConnections(): Int = connections.size
 
     /**
-     * 本地ProcessInside直接call已Register的 RPC Method, 绕过 WebSocket Network层. 
-     * Return JSON String, 或在Method未找到时抛出Exception. 
+     * 本地Processinside直接callregistered RPC Method, bypass WebSocket Networklayer. 
+     * Return JSON String, orinMethodnot找tohour抛出exception. 
      */
     suspend fun handleLocalRequest(method: String, paramsJson: String?): Any? {
-        val handler = handlers[method] ?: throw IllegalArgumentException("Unknown method: $method")
-        val params: Any? = if (paramsJson.isNullOrBlank()) {
+        val handler = handlers[method] ?: throw IllegalArgumentexception("Unknown method: $method")
+        val params: Any? = if (paramsJson.isNullorBlank()) {
             null
         } else {
             try {
@@ -88,18 +88,18 @@ class GatewayWebSocketServer(
         for (conn in connections.values) {
             try {
                 conn.socket.send(json)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w("GatewayWebSocketServer", "Failed to broadcast to ${conn.clientId}: ${e.message}")
             }
         }
     }
 
-    override fun openWebSocket(handshake: IHTTPSession): WebSocket {
+    override fun openWebSocket(handshake: IHTTPsession): WebSocket {
         return GatewayWebSocket(handshake)
     }
 
-    override fun serve(session: IHTTPSession): Response {
-        // WebSocket UpgradeRequestMust优先交给 NanoWSD Process, No则会Return 200 而非 101
+    override fun serve(session: IHTTPsession): Response {
+        // WebSocket UpgradeRequestmust优先交给 NanoWSD Process, NothenwillReturn 200 而非 101
         val upgradeHeader = session.headers["upgrade"]
         if (upgradeHeader != null && upgradeHeader.equals("websocket", ignoreCase = true)) {
             return super.serve(session)
@@ -122,7 +122,7 @@ class GatewayWebSocketServer(
     /**
      * WebSocket connection handler
      */
-    inner class GatewayWebSocket(handshake: IHTTPSession) : WebSocket(handshake) {
+    inner class GatewayWebSocket(handshake: IHTTPsession) : WebSocket(handshake) {
         private val clientId = generateClientId()
         private lateinit var connection: WebSocketConnection
 
@@ -165,7 +165,7 @@ class GatewayWebSocketServer(
                     }
                 }
 
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e("GatewayWebSocketServer", "Error processing message from $clientId", e)
                 sendError("Invalid frame: ${e.message}")
             }
@@ -175,7 +175,7 @@ class GatewayWebSocketServer(
             connection.updateActivity()
         }
 
-        override fun onException(exception: IOException) {
+        override fun onexception(exception: IOexception) {
             Log.e("GatewayWebSocketServer", "WebSocket exception for $clientId", exception)
         }
 
@@ -219,7 +219,7 @@ class GatewayWebSocketServer(
                     // Send response
                     sendResponse(request.id, result)
 
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     Log.e("GatewayWebSocketServer", "Error handling request: ${request.method}", e)
                     sendError("Internal error: ${e.message}", request.id)
                 }
@@ -274,9 +274,9 @@ class GatewayWebSocketServer(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AndroidForClaw Gateway</title>
+    <title>androidforClaw Gateway</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; paing: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -290,7 +290,7 @@ class GatewayWebSocketServer(
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
+            paing: 40px;
             max-width: 600px;
             width: 90%;
         }
@@ -308,7 +308,7 @@ class GatewayWebSocketServer(
         }
         .status {
             display: inline-block;
-            padding: 8px 16px;
+            paing: 8px 16px;
             background: #10b981;
             color: white;
             border-radius: 20px;
@@ -319,7 +319,7 @@ class GatewayWebSocketServer(
         .info-box {
             background: #f8f9fa;
             border-radius: 10px;
-            padding: 20px;
+            paing: 20px;
             margin-bottom: 20px;
         }
         .info-box h3 {
@@ -330,7 +330,7 @@ class GatewayWebSocketServer(
         .info-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            paing: 10px 0;
             border-bottom: 1px solid #e5e7eb;
         }
         .info-item:last-child {
@@ -342,7 +342,7 @@ class GatewayWebSocketServer(
         }
         .info-value {
             color: #1f2937;
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier new', monospace;
         }
         .methods {
             display: grid;
@@ -352,11 +352,11 @@ class GatewayWebSocketServer(
         }
         .method {
             background: white;
-            padding: 8px 12px;
+            paing: 8px 12px;
             border-radius: 6px;
             font-size: 0.85em;
             border: 1px solid #e5e7eb;
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier new', monospace;
         }
         .footer {
             text-align: center;
@@ -375,8 +375,8 @@ class GatewayWebSocketServer(
 </head>
 <body>
     <div class="container">
-        <h1>🧠 AndroidForClaw</h1>
-        <p class="subtitle">AI Agent Runtime for Android</p>
+        <h1>[BRAIN] androidforClaw</h1>
+        <p class="subtitle">AI agent Runtime for android</p>
         <div class="status">⚡ Gateway Online</div>
 
         <div class="info-box">
@@ -395,7 +395,7 @@ class GatewayWebSocketServer(
             </div>
             <div class="info-item">
                 <span class="info-label">Authentication</span>
-                <span class="info-value">${if (tokenAuth != null) "Enableddd" else "Disabledd"}</span>
+                <span class="info-value">${if (tokenAuth != null) "Enabled" else "Disable"}</span>
             </div>
         </div>
 

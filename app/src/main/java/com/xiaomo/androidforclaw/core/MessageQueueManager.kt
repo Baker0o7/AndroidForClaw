@@ -6,20 +6,20 @@ package com.xiaomo.androidforclaw.core
  */
 
 
-import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.loop.agentloop
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Message Queue Manager
+ * Message queue manager
  *
  * Fully aligned with OpenClaw queue mechanisms:
- * - interrupt: New message immediately interrupts current run, clears queue
- * - steer: New message is passed to the running Agent
- * - followup: New message is added to queue, processed in order
- * - collect: Collect multiple messages, process in batch
+ * - interrupt: new message immediately interrupts current run, clears queue
+ * - steer: new message is passed to the running agent
+ * - followup: new message is aed to queue, processed in order
+ * - collect: collect multiple messages, process in batch
  * - queue: Simple FIFO queue
  *
  * Reference:
@@ -27,20 +27,20 @@ import java.util.concurrent.atomic.AtomicBoolean
  * - openclaw/src/auto-reply/reply/queue/types.ts
  * - openclaw/src/utils/queue-helpers.ts
  */
-class MessageQueueManager {
+class Messagequeuemanager {
 
     companion object {
-        private const val TAG = "MessageQueueManager"
+        private const val TAG = "Messagequeuemanager"
     }
 
     /**
-     * Queue mode (aligned with OpenClaw)
+     * queue mode (aligned with OpenClaw)
      */
-    enum class QueueMode {
-        INTERRUPT,   // Interrupt current run
-        STEER,       // Steer current run
-        FOLLOWUP,    // Followup queue
-        COLLECT,     // Collect mode
+    enum class queueMode {
+        INTERRUPT,   // interrupt current run
+        STEER,       // steer current run
+        FOLLOWUP,    // followup queue
+        COLLECT,     // collect mode
         QUEUE        // Simple queue
     }
 
@@ -56,10 +56,10 @@ class MessageQueueManager {
     /**
      * Message queue state
      */
-    private data class QueueState(
+    private data class queueState(
         val key: String,
-        val mode: QueueMode,
-        val messages: MutableList<QueuedMessage> = mutableListOf(),
+        val mode: queueMode,
+        val messages: MutableList<queuedMessage> = mutableListOf(),
         val isProcessing: AtomicBoolean = AtomicBoolean(false),
         val currentJob: Job? = null,
         val droppedCount: Int = 0,
@@ -69,9 +69,9 @@ class MessageQueueManager {
     )
 
     /**
-     * Queued message
+     * queued message
      */
-    data class QueuedMessage(
+    data class queuedMessage(
         val messageId: String,
         val content: String,
         val senderId: String,
@@ -82,25 +82,25 @@ class MessageQueueManager {
     )
 
     // State for each queue key
-    private val queues = ConcurrentHashMap<String, QueueState>()
+    private val queues = ConcurrentHashMap<String, queueState>()
 
     // Base queue (for followup and queue modes)
-    private val baseQueue = KeyedAsyncQueue()
+    private val basequeue = KeyedAsyncqueue()
 
-    // Active AgentLoop instances keyed by queue key.
+    // Active agentloop instances keyed by queue key.
     // Set when an agent run starts; cleared when it finishes.
-    // Used by STEER mode to inject mid-run messages and STOP to cancel runs.
-    private val activeAgentLoops = ConcurrentHashMap<String, AgentLoop>()
+    // used by STEER mode to inject mid-run messages and STOP to cancel runs.
+    private val activeagentloops = ConcurrentHashMap<String, agentloop>()
 
     // Active coroutine Jobs keyed by queue key.
-    // Used to cancel the coroutine when stopping a run.
+    // used to cancel the coroutine when stopping a run.
     private val activeJobs = ConcurrentHashMap<String, Job>()
 
     /**
      * Stop commands recognized across all channels.
      */
     private val STOP_COMMANDS = setOf(
-        "Stop", "停", "stop", "cancel", "Cancel",
+        "Stop", "停", "stop", "cancel", "cancel",
         "StopTask", "Stop allTask", "中止", "Terminate"
     )
 
@@ -112,18 +112,18 @@ class MessageQueueManager {
     }
 
     /**
-     * Stop the currently running AgentLoop + Job for the given queue key.
+     * Stop the currently running agentloop + Job for the given queue key.
      *
      * @return true if there was an active run that was stopped
      */
     fun stopActiveRun(key: String): Boolean {
-        val loop = activeAgentLoops[key]
+        val loop = activeagentloops[key]
         val job = activeJobs[key]
         if (loop != null || job != null) {
             Log.i(TAG, "🛑 [STOP] Stopping active run for $key")
             loop?.stop()
             job?.cancel()
-            activeAgentLoops.remove(key)
+            activeagentloops.remove(key)
             activeJobs.remove(key)
             return true
         }
@@ -131,14 +131,14 @@ class MessageQueueManager {
     }
 
     /**
-     * Register the currently running AgentLoop for a queue key.
+     * Register the currently running agentloop for a queue key.
      * Call this before starting an agent run so that STEER mode can
-     * push messages into the agent's steerChannel, and stop commands
+     * push messages into the agent's steerchannel, and stop commands
      * can cancel the run.
      */
-    fun setActiveAgentLoop(key: String, agentLoop: AgentLoop) {
-        activeAgentLoops[key] = agentLoop
-        Log.d(TAG, "🎯 Registered active AgentLoop for $key")
+    fun setActiveagentloop(key: String, agentloop: agentloop) {
+        activeagentloops[key] = agentloop
+        Log.d(TAG, "[TARGET] Registered active agentloop for $key")
     }
 
     /**
@@ -146,15 +146,15 @@ class MessageQueueManager {
      */
     fun setActiveJob(key: String, job: Job) {
         activeJobs[key] = job
-        Log.d(TAG, "🎯 Registered active Job for $key")
+        Log.d(TAG, "[TARGET] Registered active Job for $key")
     }
 
     /**
-     * Unregister the AgentLoop for a queue key (call when the run finishes).
+     * Unregister the agentloop for a queue key (call when the run finishes).
      */
-    fun clearActiveAgentLoop(key: String) {
-        activeAgentLoops.remove(key)
-        Log.d(TAG, "🎯 Cleared active AgentLoop for $key")
+    fun clearActiveagentloop(key: String) {
+        activeagentloops.remove(key)
+        Log.d(TAG, "[TARGET] Cleared active agentloop for $key")
     }
 
     /**
@@ -162,29 +162,29 @@ class MessageQueueManager {
      */
     fun clearActiveJob(key: String) {
         activeJobs.remove(key)
-        Log.d(TAG, "🎯 Cleared active Job for $key")
+        Log.d(TAG, "[TARGET] Cleared active Job for $key")
     }
 
     /**
      * Enqueue message
      *
-     * @param key Queue key (usually chatId)
+     * @param key queue key (usually chatId)
      * @param message Message
-     * @param mode Queue mode
+     * @param mode queue mode
      * @param processor Message processor
      */
     suspend fun enqueue(
         key: String,
-        message: QueuedMessage,
-        mode: QueueMode = QueueMode.FOLLOWUP,
-        processor: suspend (QueuedMessage) -> Unit
+        message: queuedMessage,
+        mode: queueMode = queueMode.FOLLOWUP,
+        processor: suspend (queuedMessage) -> Unit
     ) {
         when (mode) {
-            QueueMode.INTERRUPT -> handleInterrupt(key, message, processor)
-            QueueMode.STEER -> handleSteer(key, message, processor)
-            QueueMode.FOLLOWUP -> handleFollowup(key, message, processor)
-            QueueMode.COLLECT -> handleCollect(key, message, processor)
-            QueueMode.QUEUE -> handleQueue(key, message, processor)
+            queueMode.INTERRUPT -> handleinterrupt(key, message, processor)
+            queueMode.STEER -> handlesteer(key, message, processor)
+            queueMode.FOLLOWUP -> handlefollowup(key, message, processor)
+            queueMode.COLLECT -> handlecollect(key, message, processor)
+            queueMode.QUEUE -> handlequeue(key, message, processor)
         }
     }
 
@@ -193,22 +193,22 @@ class MessageQueueManager {
      *
      * Aligned with OpenClaw logic:
      * ```typescript
-     * if (resolvedQueue.mode === "interrupt" && laneSize > 0) {
+     * if (resolvedqueue.mode === "interrupt" && laneSize > 0) {
      *   const cleared = clearCommandLane(sessionLaneKey);
-     *   const aborted = abortEmbeddedPiRun(sessionIdFinal);
+     *   const aborted = abortEmbeedPiRun(sessionIdFinal);
      * }
      * ```
      */
-    private suspend fun handleInterrupt(
+    private suspend fun handleinterrupt(
         key: String,
-        message: QueuedMessage,
-        processor: suspend (QueuedMessage) -> Unit
+        message: queuedMessage,
+        processor: suspend (queuedMessage) -> Unit
     ) {
-        val state = queues.getOrPut(key) {
-            QueueState(key = key, mode = QueueMode.INTERRUPT)
+        val state = queues.getorPut(key) {
+            queueState(key = key, mode = queueMode.INTERRUPT)
         }
 
-        // 1. Cancel currently running task (AgentLoop + Job)
+        // 1. cancel currently running task (agentloop + Job)
         if (state.isProcessing.get()) {
             Log.d(TAG, "🛑 [INTERRUPT] Aborting current run for $key")
             stopActiveRun(key)
@@ -217,7 +217,7 @@ class MessageQueueManager {
         // 2. Clear queue
         val cleared = state.messages.size
         if (cleared > 0) {
-            Log.d(TAG, "🗑️  [INTERRUPT] Clearing $cleared queued messages for $key")
+            Log.d(TAG, "[DELETE]  [INTERRUPT] Clearing $cleared queued messages for $key")
             state.messages.clear()
         }
 
@@ -232,31 +232,31 @@ class MessageQueueManager {
     }
 
     /**
-     * STEER mode: Pass new message to running Agent
+     * STEER mode: Pass new message to running agent
      *
      * Aligned with OpenClaw logic:
-     * - If Agent is running, inject new message into Agent's message stream
-     * - If Agent is not running, process normally
+     * - if agent is running, inject new message into agent's message stream
+     * - if agent is not running, process normally
      */
-    private suspend fun handleSteer(
+    private suspend fun handlesteer(
         key: String,
-        message: QueuedMessage,
-        processor: suspend (QueuedMessage) -> Unit
+        message: queuedMessage,
+        processor: suspend (queuedMessage) -> Unit
     ) {
-        val state = queues.getOrPut(key) {
-            QueueState(key = key, mode = QueueMode.STEER)
+        val state = queues.getorPut(key) {
+            queueState(key = key, mode = queueMode.STEER)
         }
 
         if (state.isProcessing.get()) {
-            // Agent is running, add message to steer queue
-            Log.d(TAG, "🎯 [STEER] Injecting message into running Agent for $key")
-            state.messages.add(message)
-            // TODO: Notify AgentLoop of new message (requires AgentLoop support)
-            notifyAgentLoop(key, message)
+            // agent is running, a message to steer queue
+            Log.d(TAG, "[TARGET] [STEER] Injecting message into running agent for $key")
+            state.messages.a(message)
+            // TODO: notify agentloop of new message (requires agentloop support)
+            notifyagentloop(key, message)
         } else {
-            // Agent not running, process normally
-            Log.d(TAG, "▶️  [STEER] Agent not running, processing normally for $key")
-            baseQueue.enqueue(key) {
+            // agent not running, process normally
+            Log.d(TAG, "[PLAY]  [STEER] agent not running, processing normally for $key")
+            basequeue.enqueue(key) {
                 state.isProcessing.set(true)
                 try {
                     processor(message)
@@ -268,22 +268,22 @@ class MessageQueueManager {
     }
 
     /**
-     * FOLLOWUP mode: Add to queue, process in order
+     * FOLLOWUP mode: A to queue, process in order
      *
      * This is the currently implemented basic behavior
      */
-    private suspend fun handleFollowup(
+    private suspend fun handlefollowup(
         key: String,
-        message: QueuedMessage,
-        processor: suspend (QueuedMessage) -> Unit
+        message: queuedMessage,
+        processor: suspend (queuedMessage) -> Unit
     ) {
-        val state = queues.getOrPut(key) {
-            QueueState(key = key, mode = QueueMode.FOLLOWUP)
+        val state = queues.getorPut(key) {
+            queueState(key = key, mode = queueMode.FOLLOWUP)
         }
 
-        Log.d(TAG, "📝 [FOLLOWUP] Enqueueing message for $key (queue size: ${state.messages.size})")
+        Log.d(TAG, "[NOTE] [FOLLOWUP] Enqueueing message for $key (queue size: ${state.messages.size})")
 
-        baseQueue.enqueue(key) {
+        basequeue.enqueue(key) {
             state.isProcessing.set(true)
             try {
                 processor(message)
@@ -294,33 +294,33 @@ class MessageQueueManager {
     }
 
     /**
-     * COLLECT mode: Collect multiple messages, process in batch
+     * COLLECT mode: collect multiple messages, process in batch
      *
      * Aligned with OpenClaw logic:
-     * - Messages are added to queue
-     * - After current message processing completes, all queued messages are processed in batch
+     * - Messages are aed to queue
+     * - after current message processing completes, all queued messages are processed in batch
      */
-    private suspend fun handleCollect(
+    private suspend fun handlecollect(
         key: String,
-        message: QueuedMessage,
-        processor: suspend (QueuedMessage) -> Unit
+        message: queuedMessage,
+        processor: suspend (queuedMessage) -> Unit
     ) {
-        val state = queues.getOrPut(key) {
-            QueueState(key = key, mode = QueueMode.COLLECT)
+        val state = queues.getorPut(key) {
+            queueState(key = key, mode = queueMode.COLLECT)
         }
 
         // Apply drop policy
-        if (!applyDropPolicy(state, message)) {
+        if (!appDropPolicy(state, message)) {
             Log.w(TAG, "🚫 [COLLECT] Message dropped due to drop policy for $key")
             return
         }
 
-        state.messages.add(message)
-        Log.d(TAG, "📦 [COLLECT] Collected message for $key (${state.messages.size} total)")
+        state.messages.a(message)
+        Log.d(TAG, "[PACKAGE] [COLLECT] collected message for $key (${state.messages.size} total)")
 
-        // If not currently processing, trigger batch processing
+        // if not currently processing, trigger batch processing
         if (!state.isProcessing.get()) {
-            baseQueue.enqueue(key) {
+            basequeue.enqueue(key) {
                 state.isProcessing.set(true)
                 try {
                     processBatch(state, processor)
@@ -334,19 +334,19 @@ class MessageQueueManager {
     /**
      * QUEUE mode: Simple FIFO queue
      */
-    private suspend fun handleQueue(
+    private suspend fun handlequeue(
         key: String,
-        message: QueuedMessage,
-        processor: suspend (QueuedMessage) -> Unit
+        message: queuedMessage,
+        processor: suspend (queuedMessage) -> Unit
     ) {
         // Same as FOLLOWUP, simple queuing
-        handleFollowup(key, message, processor)
+        handlefollowup(key, message, processor)
     }
 
     /**
      * Apply drop policy
      */
-    private fun applyDropPolicy(state: QueueState, newMessage: QueuedMessage): Boolean {
+    private fun appDropPolicy(state: queueState, newMessage: queuedMessage): Boolean {
         if (state.cap <= 0 || state.messages.size < state.cap) {
             return true
         }
@@ -360,15 +360,15 @@ class MessageQueueManager {
             DropPolicy.OLD -> {
                 // Drop oldest message
                 val dropped = state.messages.removeAt(0)
-                Log.d(TAG, "🗑️  Drop policy: OLD - dropped message: ${dropped.messageId}")
+                Log.d(TAG, "[DELETE]  Drop policy: OLD - dropped message: ${dropped.messageId}")
                 true
             }
             DropPolicy.SUMMARIZE -> {
                 // Drop oldest message but keep summary
                 val dropped = state.messages.removeAt(0)
                 val summary = summarizeMessage(dropped)
-                state.summaryLines.add(summary)
-                Log.d(TAG, "📝 Drop policy: SUMMARIZE - dropped and summarized: ${dropped.messageId}")
+                state.summaryLines.a(summary)
+                Log.d(TAG, "[NOTE] Drop policy: SUMMARIZE - dropped and summarized: ${dropped.messageId}")
 
                 // Limit summary count
                 if (state.summaryLines.size > state.cap) {
@@ -382,7 +382,7 @@ class MessageQueueManager {
     /**
      * Summarize message (for SUMMARIZE drop policy)
      */
-    private fun summarizeMessage(message: QueuedMessage): String {
+    private fun summarizeMessage(message: queuedMessage): String {
         val content = message.content.take(100)
         return "[${message.timestamp}] ${message.senderId}: $content${if (message.content.length > 100) "..." else ""}"
     }
@@ -391,12 +391,12 @@ class MessageQueueManager {
      * Process batch of messages (COLLECT mode)
      */
     private suspend fun processBatch(
-        state: QueueState,
-        processor: suspend (QueuedMessage) -> Unit
+        state: queueState,
+        processor: suspend (queuedMessage) -> Unit
     ) {
         if (state.messages.isEmpty()) return
 
-        Log.d(TAG, "📦 [COLLECT] Processing batch of ${state.messages.size} messages")
+        Log.d(TAG, "[PACKAGE] [COLLECT] Processing batch of ${state.messages.size} messages")
 
         // Extract all messages
         val batch = state.messages.toList()
@@ -412,19 +412,19 @@ class MessageQueueManager {
     /**
      * Build batch message (COLLECT mode)
      *
-     * Aligned with OpenClaw's buildCollectPrompt
+     * Aligned with OpenClaw's buildcollectPrompt
      */
     private fun buildBatchMessage(
-        messages: List<QueuedMessage>,
-        state: QueueState
-    ): QueuedMessage {
+        messages: List<queuedMessage>,
+        state: queueState
+    ): queuedMessage {
         val content = buildString {
-            appendLine("[Batch] Collected ${messages.size} message(s):")
+            appendLine("[Batch] collected ${messages.size} message(s):")
             appendLine()
 
-            // If there are dropped message summaries
-            if (state.droppedCount > 0 && state.summaryLines.isNotEmpty()) {
-                appendLine("[Queue overflow] Dropped ${state.droppedCount} message(s) due to cap.")
+            // if there are dropped message summaries
+            if (state.droppedCount > 0 && state.summaryLines.isnotEmpty()) {
+                appendLine("[queue overflow] Dropped ${state.droppedCount} message(s) due to cap.")
                 appendLine("Summary:")
                 state.summaryLines.forEach { line ->
                     appendLine("- $line")
@@ -436,15 +436,15 @@ class MessageQueueManager {
             // List all messages
             messages.forEachIndexed { index, msg ->
                 appendLine("Message ${index + 1}:")
-                appendLine("From: ${msg.senderId}")
+                appendLine("from: ${msg.senderId}")
                 appendLine("Content: ${msg.content}")
                 appendLine()
             }
         }
 
-        // Use metadata from last message
+        // use metadata from last message
         val lastMessage = messages.last()
-        return QueuedMessage(
+        return queuedMessage(
             messageId = "batch_${System.currentTimeMillis()}",
             content = content,
             senderId = lastMessage.senderId,
@@ -459,37 +459,37 @@ class MessageQueueManager {
     }
 
     /**
-     * Notify AgentLoop of new message (STEER mode).
+     * notify agentloop of new message (STEER mode).
      *
-     * Sends the message content into the active AgentLoop's steerChannel.
+     * Sends the message content into the active agentloop's steerchannel.
      * The agent loop drains the channel after each tool-execution round and
      * injects the messages as user turns before the next LLM call.
      */
-    private fun notifyAgentLoop(key: String, message: QueuedMessage) {
-        val agentLoop = activeAgentLoops[key]
-        if (agentLoop == null) {
-            Log.w(TAG, "⚠️ [STEER] No active AgentLoop for key=$key, steer message dropped")
+    private fun notifyagentloop(key: String, message: queuedMessage) {
+        val agentloop = activeagentloops[key]
+        if (agentloop == null) {
+            Log.w(TAG, "[WARN] [STEER] No active agentloop for key=$key, steer message dropped")
             return
         }
 
-        val sent = agentLoop.steerChannel.trySend(message.content)
+        val sent = agentloop.steerchannel.trySend(message.content)
         if (sent.isSuccess) {
-            Log.i(TAG, "🎯 [STEER] Message injected into AgentLoop for $key: ${message.content.take(50)}...")
+            Log.i(TAG, "[TARGET] [STEER] Message injected into agentloop for $key: ${message.content.take(50)}...")
         } else {
-            Log.w(TAG, "⚠️ [STEER] steerChannel full or closed for $key, message dropped")
+            Log.w(TAG, "[WARN] [STEER] steerchannel full or closed for $key, message dropped")
         }
     }
 
     /**
      * Set queue configuration
      */
-    fun setQueueSettings(
+    fun setqueueSettings(
         key: String,
         cap: Int? = null,
         dropPolicy: DropPolicy? = null
     ) {
-        val state = queues.getOrPut(key) {
-            QueueState(key = key, mode = QueueMode.FOLLOWUP)
+        val state = queues.getorPut(key) {
+            queueState(key = key, mode = queueMode.FOLLOWUP)
         }
 
         if (cap != null) {
@@ -503,7 +503,7 @@ class MessageQueueManager {
     /**
      * Get queue state (for debugging)
      */
-    fun getQueueState(key: String): Map<String, Any> {
+    fun getqueueState(key: String): Map<String, Any> {
         val state = queues[key] ?: return mapOf(
             "exists" to false
         )
@@ -522,22 +522,22 @@ class MessageQueueManager {
     /**
      * Clear specific queue
      */
-    fun clearQueue(key: String) {
+    fun clearqueue(key: String) {
         val state = queues[key] ?: return
         state.messages.clear()
         state.summaryLines.clear()
-        Log.d(TAG, "🗑️  Cleared queue for $key")
+        Log.d(TAG, "[DELETE]  Cleared queue for $key")
     }
 
     /**
      * Clear all queues
      */
-    fun clearAllQueues() {
+    fun clearAllqueues() {
         queues.values.forEach { state ->
             state.messages.clear()
             state.summaryLines.clear()
         }
         queues.clear()
-        Log.d(TAG, "🗑️  Cleared all queues")
+        Log.d(TAG, "[DELETE]  Cleared all queues")
     }
 }

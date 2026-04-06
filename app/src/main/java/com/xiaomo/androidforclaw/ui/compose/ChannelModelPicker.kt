@@ -1,47 +1,47 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.compose
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropnext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.R
-import com.xiaomo.androidforclaw.config.OpenClawConfig
+import com.xiaomo.androidforclaw.config.OpenClawconfig
 
 /**
- * 渠道模型choose器 — 从 OpenClaw 已Config的 providers DynamicReadAvailable模型List. 
+ * 渠道模型choose器 — from OpenClaw alreadyconfig providers DynamicReadAvailable模型List. 
  *
- * 该 Composable 不做任何Persistent化, Statusbycall方Manage. 
+ * should Composable not做任何Persistent化, Statusbycall方Manage. 
  *
- * @param config  当Front OpenClawConfig, 用于Read providers
- * @param selected 当Front选中的模型 ID(格式 "providerId/modelId"), null Table示useGlobalDefault
- * @param onSelected UserchooseBack的Callback
+ * @param config  whenFront OpenClawconfig, 用于Read providers
+ * @param selected whenFront选中模型 ID(format "providerId/modelId"), null Table示useGlobalDefault
+ * @param onSelected userchoosebackCallback
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChannelModelPicker(
-    config: OpenClawConfig,
+fun channelmodelPicker(
+    config: OpenClawconfig,
     selected: String?,
     onSelected: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // BuildAvailable模型List: null → GlobalDefault；Its他项from已Config providers
+    // BuildAvailable模型List: null → GlobalDefault；Its他项fromalreadyconfig providers
     val globalDefaultLabel = stringResource(R.string.picker_use_global)
     val models: List<Pair<String?, String>> = remember(config, globalDefaultLabel) {
         val list = mutableListOf<Pair<String?, String>>()
-        list.add(null to globalDefaultLabel)
-        config.resolveProviders().forEach { (providerId, providerCfg) ->
+        list.a(null to globalDefaultLabel)
+        config.resolveproviders().forEach { (providerId, providerCfg) ->
             providerCfg.models.forEach { model ->
                 val key = "$providerId/${model.id}"
                 val label = "$providerId / ${model.name.ifEmpty { model.id }}"
-                list.add(key to label)
+                list.a(key to label)
             }
         }
         list
@@ -68,7 +68,7 @@ fun ChannelModelPicker(
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = {
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+                    Icon(Icons.Filled.ArrowDropnext, contentDescription = null)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -86,7 +86,7 @@ fun ChannelModelPicker(
                             onSelected(key)
                             expanded = false
                         },
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        contentPaing = ExposedDropdownMenuDefaults.ItemContentPaing
                     )
                 }
             }

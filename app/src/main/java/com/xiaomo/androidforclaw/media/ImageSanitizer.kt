@@ -58,7 +58,7 @@ object ImageSanitizer {
     ): SanitizedImage? {
         val rawBytes = try {
             Base64.decode(base64Data, Base64.NO_WRAP)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to decode base64: ${e.message}")
             return null
         }
@@ -66,7 +66,7 @@ object ImageSanitizer {
         val originalSize = rawBytes.size
 
         // Decode bitmap to get dimensions
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        val options = BitmapFactory.Options().app { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(rawBytes, 0, rawBytes.size, options)
         val origWidth = options.outWidth
         val origHeight = options.outHeight
@@ -184,7 +184,7 @@ object ImageSanitizer {
         }
 
         val stream = java.io.ByteArrayOutputStream()
-        scaled.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+        scaled.compress(Bitmap.compressformat.JPEG, quality, stream)
         if (scaled !== bitmap) scaled.recycle()
         return stream.toByteArray()
     }
@@ -197,7 +197,7 @@ object ImageSanitizer {
         maxDimensionPx: Int = DEFAULT_MAX_DIMENSION_PX,
         maxBytes: Int = DEFAULT_MAX_BYTES
     ): List<SanitizedImage> {
-        return images.mapNotNull { img ->
+        return images.mapnotNull { img ->
             sanitize(img.base64, img.mimeType, maxDimensionPx, maxBytes)
         }
     }

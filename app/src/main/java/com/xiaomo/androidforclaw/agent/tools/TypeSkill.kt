@@ -2,46 +2,46 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.DeviceController
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * Type Skill
+ * Type skill
  * Type text into the currently focused input field
  */
-class TypeSkill(private val context: Context) : Skill {
+class Typeskill(private val context: context) : skill {
     companion object {
-        private const val TAG = "TypeSkill"
+        private const val TAG = "Typeskill"
     }
 
     override val name = "type"
     override val description: String
         get() {
-            val isAccessibilityEnableddd = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value == true &&
-                                        com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isServiceReady()
-            val statusNote = if (!isAccessibilityEnableddd) " ⚠️ **不Available**-AccessibilityServiceNot connected" else " ✅"
-            return "Type text into focused input field (must tap input first)$statusNote"
+            val isAccessibilityEnabled = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value == true &&
+                                        com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isserviceReady()
+            val statusnote = if (!isAccessibilityEnabled) " [WARN] **notAvailable**-Accessibilityservicenot connected" else " [OK]"
+            return "Type text into focused input field (must tap input first)$statusnote"
         }
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "text" to PropertySchema("string", "要Input的TextInside容")
+                        "text" to Propertyschema("string", "needInputTextcontent")
                     ),
                     required = listOf("text")
                 )
@@ -49,11 +49,11 @@ class TypeSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         val text = args["text"] as? String
 
         if (text == null) {
-            return Skillresult.error("Missing required parameter: text")
+            return skillresult.error("Missing required parameter: text")
         }
 
         Log.d(TAG, "Typing text: $text")
@@ -65,7 +65,7 @@ class TypeSkill(private val context: Context) : Skill {
             val waitTime = (100L + (text.length * 5L).coerceAtMost(300L)).coerceAtLeast(1000L)
             kotlinx.coroutines.delay(waitTime)
 
-            Skillresult.success(
+            skillresult.success(
                 "Typed: $text (${text.length} chars)",
                 mapOf(
                     "text" to text,
@@ -73,9 +73,9 @@ class TypeSkill(private val context: Context) : Skill {
                     "wait_time_ms" to waitTime
                 )
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Type failed", e)
-            Skillresult.error("Type failed: ${e.message}")
+            skillresult.error("Type failed: ${e.message}")
         }
     }
 }

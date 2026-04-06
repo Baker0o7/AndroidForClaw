@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.data.model
 
@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.data.model
  * Task data class - Simplified version
  *
  * Only keeps running state and package name info.
- * Conversation history managed by Session (agent/session/SessionManager.kt)
+ * Conversation history managed by session (agent/session/sessionmanager.kt)
  */
 class TaskData(
     val taskId: String,

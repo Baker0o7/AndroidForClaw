@@ -4,31 +4,31 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tools/web-fetch.ts
  *
- * AndroidForClaw adaptation: web fetch tool.
+ * androidforClaw adaptation: web fetch tool.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
 /**
- * Web Fetch Tool - Fetch web page content
- * Reference: nanobot's WebFetchTool
+ * Web Fetch tool - Fetch web page content
+ * Reference: nanobot's WebFetchtool
  */
-class WebFetchTool(
+class WebFetchtool(
     private val maxChars: Int = 50000
-) : Tool {
+) : tool {
     companion object {
-        private const val TAG = "WebFetchTool"
-        private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36"
+        private const val TAG = "WebFetchtool"
+        private const val USER_AGENT = "Mozilla/5.0 (Linux; android 10) AppleWebKit/537.36"
     }
 
     private val client = OkHttpClient.Builder()
@@ -40,17 +40,17 @@ class WebFetchTool(
     override val name = "web_fetch"
     override val description = "Fetch and extract content from a URL"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "url" to PropertySchema("string", "要Get的 URL"),
-                        "max_chars" to PropertySchema("integer", "MaxReturncharacters, Default 50000")
+                        "url" to Propertyschema("string", "needGet URL"),
+                        "max_chars" to Propertyschema("integer", "MaxReturncharacters, Default 50000")
                     ),
                     required = listOf("url")
                 )
@@ -58,31 +58,31 @@ class WebFetchTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val url = args["url"] as? String
         val maxCharsParam = (args["max_chars"] as? Number)?.toInt() ?: maxChars
 
         if (url == null) {
-            return Toolresult.error("Missing required parameter: url")
+            return toolresult.error("Missing required parameter: url")
         }
 
         // URL validation
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            return Toolresult.error("URL must start with http:// or https://")
+        if (!url.startswith("http://") && !url.startswith("https://")) {
+            return toolresult.error("URL must start with http:// or https://")
         }
 
         Log.d(TAG, "Fetching URL: $url")
-        return withContext(Dispatchers.IO) {
+        return withcontext(Dispatchers.IO) {
             try {
                 val request = Request.Builder()
                     .url(url)
-                    .header("User-Agent", USER_AGENT)
+                    .header("user-agent", USER_AGENT)
                     .build()
 
                 val response = client.newCall(request).execute()
 
                 if (!response.isSuccessful) {
-                    return@withContext Toolresult.error("HTTP ${response.code}: ${response.message}")
+                    return@withcontext toolresult.error("HTTP ${response.code}: ${response.message}")
                 }
 
                 val contentType = response.header("Content-Type") ?: ""
@@ -111,10 +111,10 @@ class WebFetchTool(
                     content
                 }
 
-                Toolresult.success(finalContent, mapOf("url" to url, "length" to content.length))
-            } catch (e: Exception) {
+                toolresult.success(finalContent, mapOf("url" to url, "length" to content.length))
+            } catch (e: exception) {
                 Log.e(TAG, "Web fetch failed", e)
-                Toolresult.error("Web fetch failed: ${e.message}")
+                toolresult.error("Web fetch failed: ${e.message}")
             }
         }
     }

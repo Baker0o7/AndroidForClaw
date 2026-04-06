@@ -5,47 +5,47 @@
 package com.xiaomo.androidforclaw.channel
 
 /**
- * Channel Definition - Define Android App Channel according to OpenClaw architecture
+ * channel Definition - Define android App channel according to OpenClaw architecture
  *
- * OpenClaw Channel core concepts:
- * - Channel: Communication channel(WhatsApp, Telegram, Discord, etc.)
+ * OpenClaw channel core concepts:
+ * - channel: Communication channel(whatsApp, Telegram, Discord, etc.)
  * - Account: Account within channel (multi-account support)
- * - Session: Session instance (conversation with user/device)
- * - Capabilities: Channel capabilities(polls, threads, media, etc.)
+ * - session: session instance (conversation with user/device)
+ * - Capabilities: channel capabilities(polls, threads, media, etc.)
  *
- * Android App Channel characteristics:
+ * android App channel characteristics:
  * - Device control channel (non-social messaging channel)
  * - Single device direct execution mode (no groups, no threads)
- * - Tool-intensive(tap, swipe, screenshot, etc.)
+ * - tool-intensive(tap, swipe, screenshot, etc.)
  * - Authentication: ADB/Accessibility pairing (not token)
  */
 
 /**
- * Channel ID - Channel unique identifier
+ * channel ID - channel unique identifier
  */
 const val CHANNEL_ID = "android-app"
 
 /**
- * Channel Meta - Channel metadata
+ * channel Meta - channel metadata
  */
-data class ChannelMeta(
+data class channelMeta(
     val label: String,               // Display name
     val emoji: String,               // Icon emoji
     val description: String,         // Description
     val systemImage: String? = null  // System icon path
 )
 
-val CHANNEL_META = ChannelMeta(
-    label = "Android App",
-    emoji = "📱",
-    description = "AndroidForClaw Android device control channel"
+val CHANNEL_META = channelMeta(
+    label = "android App",
+    emoji = "[APP]",
+    description = "androidforClaw android device control channel"
 )
 
 /**
- * Channel Capabilities - Channel capability definition (reference OpenClaw)
+ * channel Capabilities - channel capability definition (reference OpenClaw)
  */
-data class ChannelCapabilities(
-    val chatTypes: List<ChatType>,    // Supported chat types
+data class channelCapabilities(
+    val chatTypes: List<chat type>,    // Supported chat types
     val polls: Boolean = false,       // Polls
     val reactions: Boolean = false,   // Reactions/emoji
     val edit: Boolean = false,        // Edit messages
@@ -58,28 +58,28 @@ data class ChannelCapabilities(
     val nativeCommands: Boolean = false,   // Native commands
     val blockStreaming: Boolean = false    // Block streaming response
 ) {
-    enum class ChatType {
+    enum class chat type {
         DIRECT,      // Direct conversation
         GROUP,       // Group
-        CHANNEL,     // Channel
+        CHANNEL,     // channel
         THREAD       // Thread
     }
 }
 
 /**
- * Android App Channel capability configuration
+ * android App channel capability configuration
  *
  * Comparison with other OpenClaw channels:
- * - WhatsApp: direct, group, polls, reactions, media
+ * - whatsApp: direct, group, polls, reactions, media
  * - Telegram: direct, group, channel, thread, polls, reactions, media, nativeCommands, blockStreaming
  * - Discord: direct, channel, thread, polls, reactions, media, nativeCommands, blockStreaming
  * - Slack: direct, channel, thread, reactions, media, nativeCommands, blockStreaming
  * - Signal: direct, group, reactions, media
  *
- * Android App: Minimal capabilities (device control only)
+ * android App: Minimal capabilities (device control only)
  */
-val ANDROID_CHANNEL_CAPABILITIES = ChannelCapabilities(
-    chatTypes = listOf(ChannelCapabilities.ChatType.DIRECT),  // Direct execution only
+val ANDROID_CHANNEL_CAPABILITIES = channelCapabilities(
+    chatTypes = listOf(channelCapabilities.chat type.DIRECT),  // Direct execution only
     polls = false,
     reactions = false,
     edit = false,
@@ -94,10 +94,10 @@ val ANDROID_CHANNEL_CAPABILITIES = ChannelCapabilities(
 )
 
 /**
- * Channel Account - Account configuration (corresponds to OpenClaw's ChannelAccountSnapshot)
+ * channel Account - Account configuration (corresponds to OpenClaw's channelAccountSnapshot)
  */
-data class ChannelAccount(
-    val accountId: String,                     // Account ID(Android: device-{uuid})
+data class channelAccount(
+    val accountId: String,                     // Account ID(android: device-{uuid})
     val name: String? = null,                  // Account name (device name)
     val enabled: Boolean = true,               // Is enabled
     val configured: Boolean = false,           // Is configured
@@ -113,96 +113,96 @@ data class ChannelAccount(
     val lastOutboundAt: Long? = null,          // Last outbound message time
     val lastProbeAt: Long? = null,             // Last probe time
 
-    // Android-specific fields
+    // android-specific fields
     val deviceId: String? = null,              // Device ID
-    val deviceModel: String? = null,           // Device model
-    val androidVersion: String? = null,        // Android version
+    val devicemodel: String? = null,           // Device model
+    val androidVersion: String? = null,        // android version
     val apiLevel: Int? = null,                 // API Level
     val architecture: String? = null,          // CPU architecture
     val accessibilityEnabled: Boolean = false, // Accessibility service status
-    val overlayPermission: Boolean = false,    // Overlay permission
+    val overlayPermission: Boolean = false,    // overlay permission
     val mediaProjection: Boolean = false       // Screen recording permission
 )
 
 /**
- * Channel Status - Channel status snapshot (corresponds to OpenClaw's ChannelsStatusSnapshot)
+ * channel Status - channel status snapshot (corresponds to OpenClaw's channelsStatusSnapshot)
  */
-data class ChannelStatus(
+data class channelStatus(
     val timestamp: Long = System.currentTimeMillis(),
     val channelId: String = CHANNEL_ID,
-    val meta: ChannelMeta = CHANNEL_META,
-    val capabilities: ChannelCapabilities = ANDROID_CHANNEL_CAPABILITIES,
-    val accounts: List<ChannelAccount> = emptyList(),
+    val meta: channelMeta = CHANNEL_META,
+    val capabilities: channelCapabilities = ANDROID_CHANNEL_CAPABILITIES,
+    val accounts: List<channelAccount> = emptyList(),
     val defaultAccountId: String? = null
 )
 
 /**
- * Agent Prompt Hints - System prompt hints (corresponds to OpenClaw's agentPrompt.messageToolHints)
+ * agent Prompt Hints - System prompt hints (corresponds to OpenClaw's agentPrompt.messagetoolHints)
  */
-object AndroidChannelPromptHints {
+object androidchannelPromptHints {
 
     /**
      * Generate channel-specific system prompt hints
      */
-    fun getMessageToolHints(account: ChannelAccount? = null): List<String> {
+    fun getMessagetoolHints(account: channelAccount? = null): List<String> {
         val hints = mutableListOf<String>()
 
         // Basic hints
-        hints.add("You are running on an Android device with direct access to device controls")
-        hints.add("Use tools to observe and control the device:")
-        hints.add("  - Observation: screenshot, get_ui_tree")
-        hints.add("  - Actions: tap, swipe, type, long_press")
-        hints.add("  - Navigation: home, back, open_app")
-        hints.add("  - System: wait, stop, notification")
+        hints.a("You are running on an android device with direct access to device controls")
+        hints.a("use tools to observe and control the device:")
+        hints.a("  - Observation: screenshot, get_ui_tree")
+        hints.a("  - Actions: tap, swipe, type, long_press")
+        hints.a("  - Navigation: home, back, open_app")
+        hints.a("  - System: wait, stop, notification")
 
         // Device-specific hints
         if (account != null) {
-            hints.add("")
-            hints.add("Device Information:")
-            hints.add("  - Model: ${account.deviceModel ?: "Unknown"}")
-            hints.add("  - Android: ${account.androidVersion ?: "Unknown"} (API ${account.apiLevel ?: "Unknown"})")
-            hints.add("  - Architecture: ${account.architecture ?: "Unknown"}")
+            hints.a("")
+            hints.a("Device Information:")
+            hints.a("  - model: ${account.devicemodel ?: "Unknown"}")
+            hints.a("  - android: ${account.androidVersion ?: "Unknown"} (API ${account.apiLevel ?: "Unknown"})")
+            hints.a("  - Architecture: ${account.architecture ?: "Unknown"}")
 
             // Permissions status hints
-            hints.add("")
-            hints.add("Permissions Status:")
-            hints.add("  - Accessibility: ${if (account.accessibilityEnabled) "✓ Enabled" else "✗ Disabled"}")
-            hints.add("  - Overlay: ${if (account.overlayPermission) "✓ Granted" else "✗ Not granted"}")
-            hints.add("  - Screen Capture: ${if (account.mediaProjection) "✓ Granted" else "✗ Not granted"}")
+            hints.a("")
+            hints.a("Permissions Status:")
+            hints.a("  - Accessibility: ${if (account.accessibilityEnabled) "✓ Enabled" else "✗ Disabled"}")
+            hints.a("  - overlay: ${if (account.overlayPermission) "✓ Granted" else "✗ not granted"}")
+            hints.a("  - Screen Capture: ${if (account.mediaProjection) "✓ Granted" else "✗ not granted"}")
         }
 
         // Best practices hints
-        hints.add("")
-        hints.add("Best Practices:")
-        hints.add("  - Always screenshot before and after actions")
-        hints.add("  - Verify state changes after operations")
-        hints.add("  - Use wait() for loading states")
-        hints.add("  - Try alternative approaches when blocked")
+        hints.a("")
+        hints.a("Best Practices:")
+        hints.a("  - Always screenshot before and after actions")
+        hints.a("  - Verify state changes after operations")
+        hints.a("  - use wait() for loading states")
+        hints.a("  - Try alternative approaches when blocked")
 
         return hints
     }
 
     /**
-     * Generate Runtime Section Channel information
+     * Generate Runtime Section channel information
      */
-    fun getRuntimeChannelInfo(account: ChannelAccount? = null): String {
+    fun getRuntimechannelInfo(account: channelAccount? = null): String {
         return buildString {
             appendLine("channel: $CHANNEL_ID")
             appendLine("channel_label: ${CHANNEL_META.label}")
             if (account != null) {
                 appendLine("account_id: ${account.accountId}")
                 appendLine("device_id: ${account.deviceId ?: "unknown"}")
-                appendLine("device_model: ${account.deviceModel ?: "unknown"}")
+                appendLine("device_model: ${account.devicemodel ?: "unknown"}")
             }
         }.trim()
     }
 }
 
 /**
- * Channel Config - Channel configuration
+ * channel config - channel configuration
  */
-data class ChannelConfig(
+data class channelconfig(
     val enabled: Boolean = true,
     val defaultAccount: String? = null,
-    val accounts: Map<String, ChannelAccount> = emptyMap()
+    val accounts: Map<String, channelAccount> = emptyMap()
 )

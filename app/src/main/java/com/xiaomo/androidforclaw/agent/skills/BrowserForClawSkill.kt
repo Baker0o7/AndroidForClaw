@@ -6,17 +6,17 @@ package com.xiaomo.androidforclaw.agent.skills
  */
 
 
-import android.content.Context
-import com.xiaomo.androidforclaw.agent.tools.Skill
-import com.xiaomo.androidforclaw.agent.tools.SkillResult
-import com.xiaomo.androidforclaw.browser.BrowserToolClient
+import android.content.context
+import com.xiaomo.androidforclaw.agent.tools.skill
+import com.xiaomo.androidforclaw.agent.tools.skillResult
+import com.xiaomo.androidforclaw.browser.BrowsertoolClient
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * BrowserForClaw - Browser Control Skill
+ * BrowserforClaw - Browser Control skill
  *
  * This is a unified browser control entry point that encapsulates all browser operation capabilities.
  * Corresponds to the independent browserforclaw project, communicating via HTTP API.
@@ -35,41 +35,41 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
  * - hover: Hover over element
  * - select: Select dropdown option
  */
-class BrowserForClawSkill(private val context: Context) : Skill {
+class BrowserforClawskill(private val context: context) : skill {
     override val name = "browser"
     override val description = "Control browserforclaw to perform web automation tasks"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = "Control browserforclaw browser for web automation. Unified interface supporting: navigate (to URL), click (element), type (text input), get_content (page content), wait (conditions), scroll (page), execute (JavaScript), press (keys), screenshot, get_cookies/set_cookies, hover, select (dropdown). Pass operation + relevant params (url, selector, text, etc) to browserforclaw.",
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "operation" to PropertySchema(
+                        "operation" to Propertyschema(
                             "string",
                             "Browser operation: navigate, click, type, get_content, wait, scroll, execute, press, screenshot, get_cookies, set_cookies, hover, select"
                         ),
-                        "url" to PropertySchema("string", "URL for navigate operation"),
-                        "selector" to PropertySchema("string", "CSS selector for element operations"),
-                        "text" to PropertySchema("string", "Text for type operation"),
-                        "format" to PropertySchema("string", "Content format for get_content: text, html, markdown"),
-                        "direction" to PropertySchema("string", "Scroll direction: up, down, top, bottom"),
-                        "script" to PropertySchema("string", "JavaScript code for execute operation"),
-                        "key" to PropertySchema("string", "Key name for press operation"),
-                        "timeMs" to PropertySchema("integer", "Wait time in milliseconds"),
-                        "waitMs" to PropertySchema("integer", "Wait time after navigation"),
-                        "timeout" to PropertySchema("integer", "Timeout for wait operations"),
-                        "index" to PropertySchema("integer", "Element index when multiple match"),
-                        "clear" to PropertySchema("boolean", "Clear field before typing"),
-                        "submit" to PropertySchema("boolean", "Submit form after typing"),
-                        "fullPage" to PropertySchema("boolean", "Capture full page screenshot"),
-                        "cookies" to PropertySchema("array", "Cookie list for set_cookies", items = PropertySchema("string", "Cookie string")),
-                        "values" to PropertySchema("array", "Values for select operation", items = PropertySchema("string", "Select value")),
-                        "x" to PropertySchema("integer", "X coordinate for scroll"),
-                        "y" to PropertySchema("integer", "Y coordinate for scroll")
+                        "url" to Propertyschema("string", "URL for navigate operation"),
+                        "selector" to Propertyschema("string", "CSS selector for element operations"),
+                        "text" to Propertyschema("string", "Text for type operation"),
+                        "format" to Propertyschema("string", "Content format for get_content: text, html, markdown"),
+                        "direction" to Propertyschema("string", "Scroll direction: up, down, top, bottom"),
+                        "script" to Propertyschema("string", "JavaScript code for execute operation"),
+                        "key" to Propertyschema("string", "Key name for press operation"),
+                        "timeMs" to Propertyschema("integer", "Wait time in milliseconds"),
+                        "waitMs" to Propertyschema("integer", "Wait time after navigation"),
+                        "timeout" to Propertyschema("integer", "Timeout for wait operations"),
+                        "index" to Propertyschema("integer", "Element index when multiple match"),
+                        "clear" to Propertyschema("boolean", "Clear field before typing"),
+                        "submit" to Propertyschema("boolean", "Submit form after typing"),
+                        "fullPage" to Propertyschema("boolean", "Capture full page screenshot"),
+                        "cookies" to Propertyschema("array", "Cookie list for set_cookies", items = Propertyschema("string", "Cookie string")),
+                        "values" to Propertyschema("array", "Values for select operation", items = Propertyschema("string", "Select value")),
+                        "x" to Propertyschema("integer", "X coordinate for scroll"),
+                        "y" to Propertyschema("integer", "Y coordinate for scroll")
                     ),
                     required = listOf("operation")
                 )
@@ -77,12 +77,12 @@ class BrowserForClawSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): skillResult {
         val operation = args["operation"] as? String
-            ?: return SkillResult.error("Missing required parameter: operation")
+            ?: return skillResult.error("Missing required parameter: operation")
 
         return try {
-            val browserClient = BrowserToolClient(context)
+            val browserClient = BrowsertoolClient(context)
 
             // Map operation to browserforclaw tool name
             val toolName = "browser_$operation"
@@ -90,10 +90,10 @@ class BrowserForClawSkill(private val context: Context) : Skill {
             // Remove operation parameter, pass remaining parameters directly to browserforclaw
             val toolArgs = args.filterKeys { it != "operation" }
 
-            val result = browserClient.executeToolAsync(toolName, toolArgs)
+            val result = browserClient.executetoolAsync(toolName, toolArgs)
 
             if (result.success) {
-                // Format return message based on operation type
+                // format return message based on operation type
                 val message = when (operation) {
                     "navigate" -> "Successfully navigated to ${args["url"]}"
                     "click" -> "Successfully clicked element: ${args["selector"]}"
@@ -116,12 +116,12 @@ class BrowserForClawSkill(private val context: Context) : Skill {
                     else -> "Operation completed"
                 }
 
-                SkillResult.success(message, result.data ?: emptyMap())
+                skillResult.success(message, result.data ?: emptyMap())
             } else {
-                SkillResult.error(result.error ?: "Browser operation failed")
+                skillResult.error(result.error ?: "Browser operation failed")
             }
-        } catch (e: Exception) {
-            SkillResult.error("Failed to execute browser operation: ${e.message}")
+        } catch (e: exception) {
+            skillResult.error("Failed to execute browser operation: ${e.message}")
         }
     }
 }

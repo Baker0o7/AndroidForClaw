@@ -4,19 +4,19 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.agent.loop.AgentLoop
-import com.xiaomo.androidforclaw.agent.loop.Agentresult
-import com.xiaomo.androidforclaw.agent.session.SessionManager
+import com.xiaomo.androidforclaw.agent.loop.agentloop
+import com.xiaomo.androidforclaw.agent.loop.agentresult
+import com.xiaomo.androidforclaw.agent.session.sessionmanager
 import com.xiaomo.androidforclaw.gateway.protocol.*
 import com.xiaomo.androidforclaw.gateway.websocket.GatewayWebSocketServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.withTimeoutorNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import java.util.UUID
@@ -24,30 +24,30 @@ import java.util.concurrent.ConcurrentHashMap
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
 
 /**
- * Agent RPC methods implementation with async execution
+ * agent RPC methods implementation with async execution
  */
-class AgentMethods(
-    private val context: Context,
-    private val agentLoop: AgentLoop,
-    private val sessionManager: SessionManager,
+class agentMethods(
+    private val context: context,
+    private val agentloop: agentloop,
+    private val sessionmanager: sessionmanager,
     private val gateway: GatewayWebSocketServer,
     private val externalActiveJobs: ConcurrentHashMap<String, kotlinx.coroutines.Job>? = null
 ) {
-    private val TAG = "AgentMethods"
+    private val TAG = "agentMethods"
     private val agentScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // Store running agent tasks
-    private val runningTasks = ConcurrentHashMap<String, AgentTask>()
+    private val runningTasks = ConcurrentHashMap<String, agentTask>()
 
     /**
      * agent() - Execute an agent run asynchronously
      */
-    suspend fun agent(params: AgentParams): AgentRunResponse {
+    suspend fun agent(params: agentParams): agentRunResponse {
         val runId = "run_${UUID.randomUUID()}"
         val acceptedAt = System.currentTimeMillis()
 
         // Create task
-        val task = AgentTask(
+        val task = agentTask(
             runId = runId,
             sessionKey = params.sessionKey,
             message = params.message,
@@ -66,9 +66,9 @@ class AgentMethods(
         // Execute agent asynchronously
         agentScope.launch {
             try {
-                executeAgent(runId, params)
-            } catch (e: Exception) {
-                Log.e(TAG, "Agent execution failed: $runId", e)
+                executeagent(runId, params)
+            } catch (e: exception) {
+                Log.e(TAG, "agent execution failed: $runId", e)
                 task.status = "error"
                 task.error = e.message
 
@@ -79,11 +79,11 @@ class AgentMethods(
                 ))
             } finally {
                 // Keep task for a while after completion for wait() queries
-                // Should have TTL cleanup mechanism
+                // should have TTL cleanup mechanism
             }
         }
 
-        return AgentRunResponse(
+        return agentRunResponse(
             runId = runId,
             acceptedAt = acceptedAt
         )
@@ -96,28 +96,28 @@ class AgentMethods(
      * (from chat.send in GatewayController) so callers can wait on runs
      * started through either path.
      */
-    suspend fun agentWait(params: AgentWaitParams): AgentWaitResponse {
+    suspend fun agentWait(params: agentWaitParams): agentWaitResponse {
         val timeout = params.timeout ?: 30000L
 
         // 1. Check internal runningTasks first (agent() path)
         val task = runningTasks[params.runId]
         if (task != null) {
-            val result = withTimeoutOrNull(timeout) {
-                task.resultChannel.receive()
+            val result = withTimeoutorNull(timeout) {
+                task.resultchannel.receive()
             }
 
             return if (result != null) {
-                AgentWaitResponse(
+                agentWaitResponse(
                     runId = params.runId,
                     status = "completed",
                     result = mapOf(
                         "content" to result.finalContent,
                         "iterations" to result.iterations,
-                        "toolsUsed" to result.toolsUsed
+                        "toolsused" to result.toolsused
                     )
                 )
             } else {
-                AgentWaitResponse(
+                agentWaitResponse(
                     runId = params.runId,
                     status = if (task.status == "error") "error" else "timeout",
                     result = if (task.status == "error") mapOf("error" to task.error) else null
@@ -130,26 +130,26 @@ class AgentMethods(
         if (externalJob != null) {
             if (!externalJob.isActive) {
                 // Job already finished
-                return AgentWaitResponse(
+                return agentWaitResponse(
                     runId = params.runId,
                     status = "completed",
                     result = null
                 )
             }
             // Suspend until the coroutine Job completes, with timeout
-            val completed = withTimeoutOrNull(timeout) {
+            val completed = withTimeoutorNull(timeout) {
                 externalJob.join()
                 true
             }
-            return AgentWaitResponse(
+            return agentWaitResponse(
                 runId = params.runId,
                 status = if (completed == true) "completed" else "timeout",
                 result = null
             )
         }
 
-        // 3. Not found in either map — already completed or never existed
-        return AgentWaitResponse(
+        // 3. not found in either map — already completed or never existed
+        return agentWaitResponse(
             runId = params.runId,
             status = "completed",
             result = null
@@ -159,8 +159,8 @@ class AgentMethods(
     /**
      * agent.identity() - Get agent identity
      */
-    fun agentIdentity(): AgentIdentityresult {
-        return AgentIdentityresult(
+    fun agentIdentity(): agentIdentityresult {
+        return agentIdentityresult(
             name = "androidforclaw",
             version = "1.0.0",
             platform = "android",
@@ -179,13 +179,13 @@ class AgentMethods(
     /**
      * Execute agent task
      */
-    private suspend fun executeAgent(runId: String, params: AgentParams) {
+    private suspend fun executeagent(runId: String, params: agentParams) {
         val task = runningTasks[runId] ?: return
 
         try {
-            // Use simple system prompt
+            // use simple system prompt
             val systemPrompt = """
-You are an AI agent controlling an Android device.
+You are an AI agent controlling an android device.
 
 Available tools:
 - screenshot(): Capture screen
@@ -200,14 +200,14 @@ Instructions:
 1. Always screenshot before and after actions
 2. Verify results after each operation
 3. Be precise with coordinates
-4. Use stop() when task is complete
+4. use stop() when task is complete
             """.trimIndent()
 
             // Get or create session
-            val session = sessionManager.getOrCreate(params.sessionKey)
+            val session = sessionmanager.getorCreate(params.sessionKey)
 
-            // Subscribe to AgentLoop progress updates and forward as Gateway Events
-            val progressJob = agentLoop.progressFlow
+            // Subscribe to agentloop progress updates and forward as Gateway Events
+            val progressJob = agentloop.progressFlow
                 .onEach { progress ->
                     when (progress) {
                         is ProgressUpdate.Iteration -> {
@@ -221,17 +221,17 @@ Instructions:
                             broadcastEvent("agent.thinking", mapOf(
                                 "runId" to runId,
                                 "iteration" to progress.iteration,
-                                "message" to "正在Process第 ${progress.iteration} 步..."
+                                "message" to "currentlyProcess第 ${progress.iteration} step..."
                             ))
                         }
-                        is ProgressUpdate.ToolCall -> {
+                        is ProgressUpdate.toolCall -> {
                             broadcastEvent("agent.tool_call", mapOf(
                                 "runId" to runId,
                                 "tool" to progress.name,
                                 "arguments" to progress.arguments
                             ))
                         }
-                        is ProgressUpdate.Toolresult -> {
+                        is ProgressUpdate.toolresult -> {
                             broadcastEvent("agent.tool_result", mapOf(
                                 "runId" to runId,
                                 "tool" to progress.name,
@@ -251,20 +251,20 @@ Instructions:
                             // Iteration completion statistics (optional)
                             Log.d(TAG, "Iteration ${progress.number} complete: ${progress.iterationDuration}ms")
                         }
-                        is ProgressUpdate.ContextOverflow -> {
+                        is ProgressUpdate.contextoverflow -> {
                             broadcastEvent("agent.context_overflow", mapOf(
                                 "runId" to runId,
                                 "message" to progress.message
                             ))
                         }
-                        is ProgressUpdate.ContextRecovered -> {
+                        is ProgressUpdate.contextRecovered -> {
                             broadcastEvent("agent.context_recovered", mapOf(
                                 "runId" to runId,
                                 "strategy" to progress.strategy,
                                 "attempt" to progress.attempt
                             ))
                         }
-                        is ProgressUpdate.LoopDetected -> {
+                        is ProgressUpdate.loopDetected -> {
                             broadcastEvent("agent.loop_detected", mapOf(
                                 "runId" to runId,
                                 "detector" to progress.detector,
@@ -278,14 +278,14 @@ Instructions:
                             Log.w(TAG, "Progress error: ${progress.message}")
                         }
                         is ProgressUpdate.BlockReply -> {
-                            Log.d(TAG, "📤 Block reply: ${progress.text.take(100)}")
+                            Log.d(TAG, "[SEND] Block reply: ${progress.text.take(100)}")
                             com.xiaomo.androidforclaw.gateway.GatewayServer.getInstance()?.broadcast("agent.block_reply", mapOf(
                                 "text" to progress.text,
                                 "iteration" to progress.iteration
                             ))
                         }
-                        is ProgressUpdate.SteerMessageInjected -> {
-                            Log.d(TAG, "🎯 Steer message injected: ${progress.content.take(100)}")
+                        is ProgressUpdate.steerMessageInjected -> {
+                            Log.d(TAG, "[TARGET] steer message injected: ${progress.content.take(100)}")
                             broadcastEvent("agent.steer_injected", mapOf(
                                 "runId" to runId,
                                 "content" to progress.content.take(200)
@@ -296,7 +296,7 @@ Instructions:
                                 "runId" to runId,
                                 "subagentRunId" to progress.runId,
                                 "label" to progress.label,
-                                "childSessionKey" to progress.childSessionKey
+                                "childsessionKey" to progress.childsessionKey
                             ))
                         }
                         is ProgressUpdate.SubagentAnnounced -> {
@@ -329,14 +329,14 @@ Instructions:
                 .launchIn(agentScope)
 
             // Execute agent loop
-            val result = agentLoop.run(
+            val result = agentloop.run(
                 systemPrompt = systemPrompt,
                 userMessage = params.message,
                 contextHistory = emptyList(),
-                reasoningEnableddd = true
+                reasoningEnabled = true
             )
 
-            // Cancel progress subscription
+            // cancel progress subscription
             progressJob.cancel()
 
             // Update task status
@@ -344,20 +344,20 @@ Instructions:
             task.result = result
 
             // Send completion signal
-            task.resultChannel.send(result)
+            task.resultchannel.send(result)
 
             // Send agent.complete event
             broadcastEvent("agent.complete", mapOf(
                 "runId" to runId,
                 "status" to "completed",
                 "iterations" to result.iterations,
-                "toolsUsed" to result.toolsUsed,
+                "toolsused" to result.toolsused,
                 "content" to result.finalContent
             ))
 
-            Log.i(TAG, "Agent completed: $runId, iterations=${result.iterations}")
+            Log.i(TAG, "agent completed: $runId, iterations=${result.iterations}")
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             task.status = "error"
             task.error = e.message
             throw e
@@ -374,23 +374,23 @@ Instructions:
             gateway.broadcast(EventFrame(
                 event = event,
                 payload = data,  // OpenClaw uses "payload" not "data"
-                seq = eventSeq++  // Add sequence number
+                seq = eventSeq++  // A sequence number
             ))
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to broadcast event: $event", e)
         }
     }
 }
 
 /**
- * Agent task
+ * agent task
  */
-private data class AgentTask(
+private data class agentTask(
     val runId: String,
     val sessionKey: String,
     val message: String,
     var status: String,
-    var result: Agentresult? = null,
+    var result: agentresult? = null,
     var error: String? = null,
-    val resultChannel: Channel<Agentresult> = Channel(1)
+    val resultchannel: channel<agentresult> = channel(1)
 )

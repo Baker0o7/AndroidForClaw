@@ -5,22 +5,22 @@
  * - ../openclaw/src/cron/service/ops.ts
  * - ../openclaw/src/cron/service/jobs.ts
  *
- * AndroidForClaw adaptation: cron scheduling.
+ * androidforClaw adaptation: cron scheduling.
  */
 package com.xiaomo.androidforclaw.cron
 
-import android.content.Context
+import android.content.context
 import android.os.Handler
-import android.os.Looper
+import android.os.looper
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.*
 import java.util.UUID
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class CronService(private val context: Context, private val config: CronConfig) {
+class Cronservice(private val context: context, private val config: Cronconfig) {
     companion object {
-        private const val TAG = "CronService"
+        private const val TAG = "Cronservice"
         private const val MIN_TIMER_MS = 1000L
 
         /**
@@ -65,12 +65,12 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
     private val store = CronStore(config.storePath)
     private val runLog = CronRunLog(
-        "${config.storePath.substringBeforeLast("/")}/runs",
+        "${config.storePath.substringbeforeLast("/")}/runs",
         config.runLog
     )
 
     private val lock = ReentrantLock()
-    private val handler = Handler(Looper.getMainLooper())
+    private val handler = Handler(looper.getMainlooper())
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private var jobs = mutableListOf<CronJob>()
@@ -93,7 +93,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
     fun start() {
         lock.withLock {
             if (isStarted) return
-            Log.d(TAG, "Starting CronService...")
+            Log.d(TAG, "Starting Cronservice...")
 
             val storeFile = store.load()
             jobs = storeFile.jobs.toMutableList()
@@ -106,7 +106,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
             persist()
 
             isStarted = true
-            Log.d(TAG, "CronService started with ${jobs.size} jobs")
+            Log.d(TAG, "Cronservice started with ${jobs.size} jobs")
         }
 
         // Startup catch-up: run missed jobs (outside lock, aligned with OpenClaw runMissedJobs)
@@ -121,16 +121,16 @@ class CronService(private val context: Context, private val config: CronConfig) 
             if (!isStarted) return
             timerRunnable?.let { handler.removeCallbacks(it) }
             timerRunnable = null
-            scope.coroutineContext.cancelChildren()
+            scope.coroutinecontext.cancelChildren()
             isStarted = false
             running = false
-            Log.d(TAG, "CronService stopped")
+            Log.d(TAG, "Cronservice stopped")
         }
     }
 
     // ── CRUD ─────────────────────────────────────────────────────
 
-    fun add(job: CronJob): CronJob {
+    fun a(job: CronJob): CronJob {
         return lock.withLock {
             val newJob = job.copy(
                 id = UUID.randomUUID().toString(),
@@ -139,18 +139,18 @@ class CronService(private val context: Context, private val config: CronConfig) 
             )
             newJob.state.nextRunAtMs = computeJobNextRun(newJob)
 
-            jobs.add(newJob)
+            jobs.a(newJob)
             persist()
             armTimer()
 
-            emitEvent(CronEvent(jobId = newJob.id, action = "added"))
+            emitEvent(CronEvent(jobId = newJob.id, action = "aed"))
             newJob
         }
     }
 
     fun update(jobId: String, patch: (CronJob) -> CronJob): CronJob? {
         return lock.withLock {
-            val idx = jobs.indexOfFirst { it.id == jobId }
+            val idx = jobs.indexOffirst { it.id == jobId }
             if (idx == -1) return null
 
             val updated = patch(jobs[idx]).copy(updatedAtMs = System.currentTimeMillis())
@@ -167,7 +167,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
     fun remove(jobId: String): Boolean {
         return lock.withLock {
-            val removed = jobs.removeIf { it.id == jobId }
+            val removed = jobs.removeif { it.id == jobId }
             if (removed) {
                 persist()
                 runLog.delete(jobId)
@@ -211,7 +211,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
             mapOf(
                 "enabled" to config.enabled,
                 "jobs" to jobs.size,
-                "nextWakeAtMs" to (jobs.mapNotNull { it.state.nextRunAtMs }.minOrNull() as Any?),
+                "nextWakeAtMs" to (jobs.mapnotNull { it.state.nextRunAtMs }.minorNull() as Any?),
                 "isStarted" to isStarted,
                 "concurrentRuns" to concurrentRuns
             )
@@ -231,9 +231,9 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
         val nowMs = System.currentTimeMillis()
         val nextRunAtMs = jobs.filter { it.enabled }
-            .mapNotNull { it.state.nextRunAtMs }
+            .mapnotNull { it.state.nextRunAtMs }
             .filter { it > nowMs }
-            .minOrNull() ?: return
+            .minorNull() ?: return
 
         val delay = (nextRunAtMs - nowMs).coerceAtLeast(0)
 
@@ -252,7 +252,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
     /**
      * Re-arm timer at MAX_TIMER_DELAY_MS while a tick is running.
      * Aligned with OpenClaw timer.ts armRunningRecheckTimer.
-     * Without this, a long-running job would leave no timer set after the
+     * without this, a long-running job would leave no timer set after the
      * early return, silently killing the scheduler. (See OpenClaw #12025)
      */
     private fun armRunningRecheckTimer() {
@@ -287,7 +287,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
                             job.state.runningAtMs = nowMs
                             job.state.lastError = null
                         }
-                        if (due.isNotEmpty()) persist()
+                        if (due.isnotEmpty()) persist()
                     }
                 }
 
@@ -298,7 +298,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
                 // Maintenance recompute: only repair missing nextRunAtMs,
                 // don't advance past-due values without execution
-                // (aligned with OpenClaw recomputeNextRunsForMaintenance)
+                // (aligned with OpenClaw recomputeNextRunsforMaintenance)
                 lock.withLock {
                     var changed = false
                     for (job in jobs) {
@@ -311,8 +311,8 @@ class CronService(private val context: Context, private val config: CronConfig) 
                     if (changed) persist()
                 }
             } finally {
-                // Session reaper: sweep expired sessions (aligned with OpenClaw timer.ts)
-                sweepSessions()
+                // session reaper: sweep expired sessions (aligned with OpenClaw timer.ts)
+                sweepsessions()
 
                 running = false
                 armTimer()
@@ -376,7 +376,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
     /**
      * Execute a job with full lifecycle handling.
-     * Aligned with OpenClaw timer.ts executeJobCoreWithTimeout + applyOutcomeToStoredJob.
+     * Aligned with OpenClaw timer.ts executeJobCorewithTimeout + appOutcomeToStoredJob.
      */
     private suspend fun executeJob(job: CronJob) {
         if (concurrentRuns >= config.maxConcurrentRuns) return
@@ -393,22 +393,22 @@ class CronService(private val context: Context, private val config: CronConfig) 
         var result: CronRunResult
 
         try {
-            // Execute with timeout support (aligned with OpenClaw executeJobCoreWithTimeout)
+            // Execute with timeout support (aligned with OpenClaw executeJobCorewithTimeout)
             val timeoutMs = resolveJobTimeoutMs(job)
             result = if (timeoutMs != null && timeoutMs > 0) {
-                withTimeoutOrNull(timeoutMs) {
+                withTimeoutorNull(timeoutMs) {
                     when (job.sessionTarget) {
-                        SessionTarget.MAIN -> executeMainJob(job)
-                        SessionTarget.ISOLATED -> executeIsolatedJob(job)
+                        sessionTarget.MAIN -> executeMainJob(job)
+                        sessionTarget.ISOLATED -> executeIsolatedJob(job)
                     }
                 } ?: CronRunResult(RunStatus.ERROR, "cron: job execution timed out")
             } else {
                 when (job.sessionTarget) {
-                    SessionTarget.MAIN -> executeMainJob(job)
-                    SessionTarget.ISOLATED -> executeIsolatedJob(job)
+                    sessionTarget.MAIN -> executeMainJob(job)
+                    sessionTarget.ISOLATED -> executeIsolatedJob(job)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             result = CronRunResult(RunStatus.ERROR, e.message ?: "Unknown error")
         }
 
@@ -416,7 +416,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
         // Apply result with full lifecycle handling
         val shouldDelete = lock.withLock {
-            val delete = applyJobResult(job, result, startMs, endedMs)
+            val delete = appJobResult(job, result, startMs, endedMs)
             concurrentRuns--
             persist()
             delete
@@ -444,7 +444,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
         // Delete one-shot job if needed (aligned with OpenClaw shouldDelete)
         if (shouldDelete) {
             lock.withLock {
-                jobs.removeIf { it.id == job.id }
+                jobs.removeif { it.id == job.id }
                 persist()
                 emitEvent(CronEvent(jobId = job.id, action = "removed"))
             }
@@ -455,16 +455,16 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
     /**
      * Apply the result of a job execution to the job's state.
-     * Aligned with OpenClaw timer.ts applyJobResult.
+     * Aligned with OpenClaw timer.ts appJobResult.
      *
      * Handles:
      * - Consecutive error tracking and exponential backoff
      * - One-shot (at) job lifecycle: disable on success, retry/disable on error
      * - nextRunAtMs computation with MIN_REFIRE_GAP_MS safety net for cron
      *
-     * @return true if the job should be deleted (at + deleteAfterRun + OK)
+     * @return true if the job should be deleted (at + deleteafterRun + OK)
      */
-    private fun applyJobResult(
+    private fun appJobResult(
         job: CronJob,
         result: CronRunResult,
         startedAt: Long,
@@ -488,7 +488,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
         }
 
         val shouldDelete =
-            job.schedule is CronSchedule.At && job.deleteAfterRun == true && result.status == RunStatus.OK
+            job.schedule is CronSchedule.At && job.deleteafterRun == true && result.status == RunStatus.OK
 
         if (!shouldDelete) {
             if (job.schedule is CronSchedule.At) {
@@ -502,7 +502,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
                     val consecutive = job.state.consecutiveErrors
                     if (transient && consecutive <= DEFAULT_MAX_TRANSIENT_RETRIES) {
                         // Schedule retry with backoff (#24355)
-                        val backoff = CronScheduleParser.errorBackoffMs(consecutive, config.retry.backoffMs)
+                        val backoff = CronScheduleParser.errorbackoffMs(consecutive, config.retry.backoffMs)
                         job.state.nextRunAtMs = endedAt + backoff
                         Log.i(TAG, "Scheduling one-shot retry for ${job.id} after ${backoff}ms " +
                             "(consecutive=$consecutive)")
@@ -515,8 +515,8 @@ class CronService(private val context: Context, private val config: CronConfig) 
                     }
                 }
             } else if (result.status == RunStatus.ERROR && job.enabled) {
-                // Periodic job error: apply exponential backoff
-                val backoff = CronScheduleParser.errorBackoffMs(
+                // Periodic job error: app exponential backoff
+                val backoff = CronScheduleParser.errorbackoffMs(
                     maxOf(1, job.state.consecutiveErrors), config.retry.backoffMs
                 )
                 val normalNext = computeJobNextRun(job, endedAt)
@@ -551,12 +551,12 @@ class CronService(private val context: Context, private val config: CronConfig) 
         return when (val payload = job.payload) {
             is CronPayload.SystemEvent -> {
                 // System events: log and return OK (aligned with OpenClaw
-                // executeMainSessionCronJob which enqueues the system event)
+                // executeMainsessionCronJob which enqueues the system event)
                 CronRunResult(RunStatus.OK, "System event: ${payload.text}")
             }
-            is CronPayload.AgentTurn -> {
+            is CronPayload.agentTurn -> {
                 val delivery = CronDeliveryResolver.resolveDeliveryPlan(job)
-                CronAgentTurnExecutor.execute(
+                CronagentTurnExecutor.execute(
                     context = context,
                     sessionId = "cron_${job.name}",
                     userMessage = payload.message,
@@ -571,9 +571,9 @@ class CronService(private val context: Context, private val config: CronConfig) 
 
     private suspend fun executeIsolatedJob(job: CronJob): CronRunResult {
         return when (val payload = job.payload) {
-            is CronPayload.AgentTurn -> {
+            is CronPayload.agentTurn -> {
                 val delivery = CronDeliveryResolver.resolveDeliveryPlan(job)
-                CronAgentTurnExecutor.execute(
+                CronagentTurnExecutor.execute(
                     context = context,
                     sessionId = "cron_isolated_${job.id}",
                     userMessage = payload.message,
@@ -614,12 +614,12 @@ class CronService(private val context: Context, private val config: CronConfig) 
         val immediate = missed.take(maxImmediate)
         val deferred = missed.drop(maxImmediate)
 
-        if (deferred.isNotEmpty()) {
+        if (deferred.isnotEmpty()) {
             Log.i(TAG, "Staggering ${deferred.size} missed jobs " +
                 "(${immediate.size} immediate, ${deferred.size} deferred)")
         }
 
-        if (immediate.isNotEmpty()) {
+        if (immediate.isnotEmpty()) {
             Log.i(TAG, "Running ${immediate.size} missed jobs after restart")
 
             // Mark as running
@@ -640,7 +640,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
         }
 
         // Schedule deferred jobs with staggered delays
-        if (deferred.isNotEmpty()) {
+        if (deferred.isnotEmpty()) {
             val baseNow = System.currentTimeMillis()
             lock.withLock {
                 var offset = DEFAULT_MISSED_JOB_STAGGER_MS
@@ -654,46 +654,46 @@ class CronService(private val context: Context, private val config: CronConfig) 
         }
     }
 
-    // ── Session Reaper ───────────────────────────────────────────
+    // ── session Reaper ───────────────────────────────────────────
 
     /**
      * Sweep expired cron run sessions.
      * Aligned with OpenClaw timer.ts session reaper block.
-     * Self-throttled via CronSessionReaper.
+     * Self-throttled via CronsessionReaper.
      */
-    private fun sweepSessions() {
+    private fun sweepsessions() {
         try {
             val sessionsDir = java.io.File(
-                config.storePath.substringBeforeLast("/"), "sessions"
+                config.storePath.substringbeforeLast("/"), "sessions"
             )
-            val retentionMs = CronSessionReaper.resolveRetentionMs(config.sessionRetention)
+            val retentionMs = CronsessionReaper.resolveRetentionMs(config.sessionRetention)
                 ?: return
-            CronSessionReaper.sweep(sessionsDir, retentionMs)
-        } catch (e: Exception) {
-            Log.w(TAG, "Session reaper sweep failed: ${e.message}")
+            CronsessionReaper.sweep(sessionsDir, retentionMs)
+        } catch (e: exception) {
+            Log.w(TAG, "session reaper sweep failed: ${e.message}")
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────
+    // ── helpers ──────────────────────────────────────────────────
 
     private fun computeJobNextRun(job: CronJob, nowMs: Long = System.currentTimeMillis()): Long? {
         if (!job.enabled) return null
 
-        // Use stagger-aware computation for cron schedules
+        // use stagger-aware computation for cron schedules
         if (job.schedule is CronSchedule.Cron) {
             return CronScheduleParser.computeStaggeredCronNextRun(job.schedule, job.id, nowMs)
         }
 
-        // For "every" schedules: compute from lastRunAtMs if available
+        // for "every" schedules: compute from lastRunAtMs if available
         if (job.schedule is CronSchedule.Every) {
             val lastRun = job.state.lastRunAtMs
             if (lastRun != null) {
-                val nextFromLast = lastRun + maxOf(1, job.schedule.everyMs)
-                if (nextFromLast > nowMs) return nextFromLast
+                val nextfromLast = lastRun + maxOf(1, job.schedule.everyMs)
+                if (nextfromLast > nowMs) return nextfromLast
             }
         }
 
-        // For "at" schedules: stay due until successfully finished
+        // for "at" schedules: stay due until successfully finished
         if (job.schedule is CronSchedule.At) {
             if (job.state.lastRunStatus == RunStatus.OK && job.state.lastRunAtMs != null) {
                 // Already ran successfully
@@ -717,7 +717,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
      */
     private fun resolveJobTimeoutMs(job: CronJob): Long? {
         val payload = job.payload
-        if (payload is CronPayload.AgentTurn && payload.timeoutSeconds != null) {
+        if (payload is CronPayload.agentTurn && payload.timeoutSeconds != null) {
             return payload.timeoutSeconds * 1000L
         }
         return null
@@ -728,7 +728,7 @@ class CronService(private val context: Context, private val config: CronConfig) 
      * Aligned with OpenClaw timer.ts isTransientCronError.
      */
     private fun isTransientError(error: String?): Boolean {
-        if (error.isNullOrBlank()) return false
+        if (error.isNullorBlank()) return false
         val patterns = listOf(
             Regex("(rate[_ ]limit|too many requests|429|resource has been exhausted|cloudflare|tokens per day)", RegexOption.IGNORE_CASE),
             Regex("\\b529\\b|\\boverloaded(?:_error)?\\b|high demand|temporar(?:ily|y) overloaded|capacity exceeded", RegexOption.IGNORE_CASE),

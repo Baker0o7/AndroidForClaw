@@ -1,13 +1,13 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.float
 
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
-import android.content.Context
+import android.content.context
 import android.os.Bundle
 import com.xiaomo.androidforclaw.logging.Log
 import android.view.Gravity
@@ -20,34 +20,34 @@ import com.xiaomo.androidforclaw.util.MMKVKeys
 import com.tencent.mmkv.MMKV
 
 /**
- * Session info floating window manager
+ * session info floating window manager
  *
  * Features:
  * - Only shown when app is in background (no activity visible)
- * - Uses ActivityLifecycleCallbacks to track foreground state
+ * - uses ActivityLifecycleCallbacks to track foreground state
  * - Float window never shows on any app screen (main, chat, settings, etc.)
  * - Disabled by default, controlled by in-app switch
  */
-object SessionFloatWindow {
-    private const val TAG = "SessionFloatWindow"
+object sessionFloatWindow {
+    private const val TAG = "sessionFloatWindow"
     private const val FLOAT_TAG = "session_float"
 
-    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val mainHandler = android.os.Handler(android.os.looper.getMainlooper())
 
     private var isEnabled = false
     private var foregroundActivityCount = 0
     private var sessionInfoTextView: TextView? = null
     private var titleTextView: TextView? = null
     private var latestMessage: String = ""
-    private var latestContext: Context? = null
+    private var latestcontext: context? = null
     private var lifecycleRegistered = false
 
     /**
      * Initialize floating window configuration and register lifecycle callbacks.
      * Call this from MyApplication.onCreate().
      */
-    fun init(context: Context) {
-        latestContext = context.applicationContext
+    fun init(context: context) {
+        latestcontext = context.applicationcontext
 
         // Read switch status from MMKV
         val mmkv = MMKV.defaultMMKV()
@@ -55,17 +55,17 @@ object SessionFloatWindow {
 
         // Register lifecycle callbacks once
         if (!lifecycleRegistered) {
-            val app = context.applicationContext as? Application
+            val app = context.applicationcontext as? Application
             if (app != null) {
                 app.registerActivityLifecycleCallbacks(lifecycleCallback)
                 lifecycleRegistered = true
                 Log.d(TAG, "ActivityLifecycleCallbacks registered")
             } else {
-                Log.w(TAG, "Context is not Application, cannot register lifecycle callbacks")
+                Log.w(TAG, "context is not Application, cannot register lifecycle callbacks")
             }
         }
 
-        Log.d(TAG, "SessionFloatWindow initialized, enabled=$isEnabled")
+        Log.d(TAG, "sessionFloatWindow initialized, enabled=$isEnabled")
     }
 
     /**
@@ -86,14 +86,14 @@ object SessionFloatWindow {
                 foregroundActivityCount = 0
                 Log.d(TAG, "App went to background, checking if float window should show")
                 if (isEnabled) {
-                    latestContext?.let { createFloatWindow(it) }
+                    latestcontext?.let { createFloatWindow(it) }
                 }
             }
         }
 
         // Unused lifecycle callbacks
         override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-        override fun onActivityResumed(activity: Activity) {}
+        override fun onActivityresumed(activity: Activity) {}
         override fun onActivityPaused(activity: Activity) {}
         override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
         override fun onActivityDestroyed(activity: Activity) {}
@@ -102,9 +102,9 @@ object SessionFloatWindow {
     /**
      * Set floating window switch status
      */
-    fun setEnabled(context: Context, enabled: Boolean) {
+    fun setEnabled(context: context, enabled: Boolean) {
         isEnabled = enabled
-        latestContext = context.applicationContext
+        latestcontext = context.applicationcontext
 
         // Save to MMKV
         val mmkv = MMKV.defaultMMKV()
@@ -133,7 +133,7 @@ object SessionFloatWindow {
      * Update session info
      */
     @SuppressLint("SetTextI18n")
-    fun updateSessionInfo(title: String, content: String) {
+    fun updatesessionInfo(title: String, content: String) {
         latestMessage = content
         mainHandler.post {
             titleTextView?.text = "🤖 $title"
@@ -143,7 +143,7 @@ object SessionFloatWindow {
     }
 
     /**
-     * Update with latest chat message (called from AgentLoop/ChatViewModel on IO thread)
+     * Update with latest chat message (called from agentloop/ChatViewmodel on IO thread)
      */
     fun updateLatestMessage(message: String) {
         latestMessage = message
@@ -156,7 +156,7 @@ object SessionFloatWindow {
      * Create floating window
      */
     @SuppressLint("InflateParams")
-    private fun createFloatWindow(context: Context) {
+    private fun createFloatWindow(context: context) {
         if (EasyFloat.isShow(FLOAT_TAG)) {
             Log.d(TAG, "Float window already exists")
             return
@@ -168,7 +168,7 @@ object SessionFloatWindow {
                 .setLayout(R.layout.layout_session_float) { view ->
                     titleTextView = view.findViewById(R.id.tv_float_title)
                     sessionInfoTextView = view.findViewById(R.id.tv_session_info)
-                    if (latestMessage.isNotEmpty()) {
+                    if (latestMessage.isnotEmpty()) {
                         sessionInfoTextView?.text = latestMessage.take(100)
                     }
                 }
@@ -179,7 +179,7 @@ object SessionFloatWindow {
                 .show()
 
             Log.d(TAG, "Float window created")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to create float window", e)
         }
     }
@@ -194,7 +194,7 @@ object SessionFloatWindow {
                 sessionInfoTextView = null
                 Log.d(TAG, "Float window dismissed")
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to dismiss float window", e)
         }
     }

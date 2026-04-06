@@ -4,7 +4,7 @@
  * - ../openclaw/src/agents/subagent-spawn.ts (sanitizeMountPathHint, cleanupFailedSpawn)
  * - ../openclaw/src/agents/subagent-registry.ts (safeRemoveAttachmentsDir)
  *
- * AndroidForClaw adaptation: attachment materialization for subagent spawning.
+ * androidforClaw adaptation: attachment materialization for subagent spawning.
  * Writes inline attachments to disk, validates filenames, enforces size limits,
  * computes SHA-256, writes manifest, and provides cleanup.
  */
@@ -42,7 +42,7 @@ object SubagentAttachments {
         val maxTotalBytes: Int = DEFAULT_MAX_TOTAL_BYTES,
         val maxFiles: Int = DEFAULT_MAX_FILES,
         val maxFileBytes: Int = DEFAULT_MAX_FILE_BYTES,
-        val retainOnSessionKeep: Boolean = false,
+        val retainOnsessionKeep: Boolean = false,
     )
 
     /** Result of materializing attachments. Aligned with OpenClaw MaterializeSubagentAttachmentsResult. */
@@ -51,11 +51,11 @@ object SubagentAttachments {
             val receipt: AttachmentReceipt,
             val absDir: String,
             val rootDir: String,
-            val retainOnSessionKeep: Boolean,
+            val retainOnsessionKeep: Boolean,
             val systemPromptSuffix: String,
         ) : MaterializeResult()
 
-        data class Forbidden(val error: String) : MaterializeResult()
+        data class forbien(val error: String) : MaterializeResult()
         data class Error(val error: String) : MaterializeResult()
     }
 
@@ -65,7 +65,7 @@ object SubagentAttachments {
     private val CONTROL_CHAR_REGEX = Regex("[\\r\\n\\t\\u0000-\\u001F\\u007F\\u0085\\u2028\\u2029]")
 
     /**
-     * Validate attachment filename. Aligned with OpenClaw filename validation.
+     * validation attachment filename. Aligned with OpenClaw filename validation.
      * Returns error message or null if valid.
      */
     fun validateFilename(name: String): String? {
@@ -107,7 +107,7 @@ object SubagentAttachments {
         return try {
             val decoded = android.util.Base64.decode(cleaned, android.util.Base64.DEFAULT)
             if (decoded.size > maxDecodedBytes) null else decoded
-        } catch (_: Exception) {
+        } catch (_: exception) {
             null
         }
     }
@@ -122,7 +122,7 @@ object SubagentAttachments {
      * Aligned with OpenClaw sanitizeMountPathHint.
      */
     fun sanitizeMountPathHint(value: String?): String? {
-        if (value.isNullOrBlank()) return null
+        if (value.isNullorBlank()) return null
         val trimmed = value.trim()
         if (CONTROL_CHAR_REGEX.containsMatchIn(trimmed)) return null
         if (!SAFE_MOUNT_PATH_REGEX.matches(trimmed)) return null
@@ -137,7 +137,7 @@ object SubagentAttachments {
      *
      * @param attachments List of inline attachments from spawn params
      * @param cacheDir Application cache directory
-     * @param childSessionKey The child subagent's session key
+     * @param childsessionKey The child subagent's session key
      * @param mountPathHint Optional mount path hint for system prompt
      * @param limits Resolved attachment limits
      * @return MaterializeResult or null if no attachments
@@ -145,15 +145,15 @@ object SubagentAttachments {
     fun materialize(
         attachments: List<InlineAttachment>?,
         cacheDir: File,
-        childSessionKey: String,
+        childsessionKey: String,
         mountPathHint: String? = null,
         limits: AttachmentLimits = AttachmentLimits(enabled = true),
     ): MaterializeResult? {
-        if (attachments.isNullOrEmpty()) return null
+        if (attachments.isNullorEmpty()) return null
 
         // Feature gate
         if (!limits.enabled) {
-            return MaterializeResult.Forbidden("Attachments are not enabled in configuration.")
+            return MaterializeResult.forbien("Attachments are not enabled in configuration.")
         }
 
         // File count check
@@ -172,14 +172,14 @@ object SubagentAttachments {
             val receiptFiles = mutableListOf<AttachmentReceiptFile>()
             var totalBytes = 0
 
-            // Phase 1: Validate all files and decode content
+            // Phase 1: validation all files and decode content
             data class WriteJob(val name: String, val content: ByteArray, val sha256: String)
             val writeJobs = mutableListOf<WriteJob>()
 
             for (attachment in attachments) {
                 val name = attachment.name.trim()
 
-                // Validate filename
+                // validation filename
                 val nameError = validateFilename(name)
                 if (nameError != null) {
                     cleanup(absDir)
@@ -187,7 +187,7 @@ object SubagentAttachments {
                 }
 
                 // Duplicate check
-                if (!seenNames.add(name)) {
+                if (!seenNames.a(name)) {
                     cleanup(absDir)
                     return MaterializeResult.Error("Duplicate filename: $name")
                 }
@@ -225,15 +225,15 @@ object SubagentAttachments {
                 val digest = MessageDigest.getInstance("SHA-256")
                 val sha256 = digest.digest(bytes).joinToString("") { "%02x".format(it) }
 
-                writeJobs.add(WriteJob(name, bytes, sha256))
-                receiptFiles.add(AttachmentReceiptFile(name = name, bytes = bytes.size, sha256 = sha256))
+                writeJobs.a(WriteJob(name, bytes, sha256))
+                receiptFiles.a(AttachmentReceiptFile(name = name, bytes = bytes.size, sha256 = sha256))
             }
 
             // Phase 2: Write files
             for (job in writeJobs) {
                 val file = File(absDir, job.name)
                 // Ensure no path traversal in resolved path
-                if (!file.canonicalPath.startsWith(absDir.canonicalPath)) {
+                if (!file.canonicalPath.startswith(absDir.canonicalPath)) {
                     cleanup(absDir)
                     return MaterializeResult.Error("Path traversal detected for file: ${job.name}")
                 }
@@ -242,13 +242,13 @@ object SubagentAttachments {
 
             // Phase 3: Write manifest
             val relDir = ".forclaw/attachments/$uuid"
-            val manifest = JSONObject().apply {
+            val manifest = JSONObject().app {
                 put("relDir", relDir)
                 put("count", receiptFiles.size)
                 put("totalBytes", totalBytes)
-                put("files", JSONArray().apply {
+                put("files", JSONArray().app {
                     for (rf in receiptFiles) {
-                        put(JSONObject().apply {
+                        put(JSONObject().app {
                             put("name", rf.name)
                             put("bytes", rf.bytes)
                             put("sha256", rf.sha256)
@@ -281,10 +281,10 @@ object SubagentAttachments {
                 receipt = receipt,
                 absDir = absDir.absolutePath,
                 rootDir = rootDir.absolutePath,
-                retainOnSessionKeep = limits.retainOnSessionKeep,
+                retainOnsessionKeep = limits.retainOnsessionKeep,
                 systemPromptSuffix = systemPromptSuffix,
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to materialize attachments", e)
             cleanup(absDir)
             return MaterializeResult.Error("Failed to materialize attachments: ${e.message}")
@@ -302,7 +302,7 @@ object SubagentAttachments {
             if (dir.exists()) {
                 dir.deleteRecursively()
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to cleanup attachment dir: ${dir.absolutePath}: ${e.message}")
         }
     }
@@ -312,14 +312,14 @@ object SubagentAttachments {
      * Aligned with OpenClaw safeRemoveAttachmentsDir.
      */
     fun safeRemoveAttachmentsDir(attachmentsDir: String?, attachmentsRootDir: String?) {
-        if (attachmentsDir.isNullOrBlank() || attachmentsRootDir.isNullOrBlank()) return
+        if (attachmentsDir.isNullorBlank() || attachmentsRootDir.isNullorBlank()) return
         try {
             val dir = File(attachmentsDir)
             val root = File(attachmentsRootDir)
             val realDir = dir.canonicalPath
             val realRoot = root.canonicalPath
             // Verify real dir is under real root (traversal protection)
-            if (!realDir.startsWith("$realRoot${File.separator}") && realDir != realRoot) {
+            if (!realDir.startswith("$realRoot${File.separator}") && realDir != realRoot) {
                 Log.w(TAG, "Attachment dir traversal rejected: $realDir not under $realRoot")
                 return
             }
@@ -327,7 +327,7 @@ object SubagentAttachments {
                 dir.deleteRecursively()
                 Log.d(TAG, "Cleaned up attachments: $attachmentsDir")
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to safely remove attachment dir: ${e.message}")
         }
     }

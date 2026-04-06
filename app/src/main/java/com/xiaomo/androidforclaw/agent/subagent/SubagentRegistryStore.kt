@@ -3,8 +3,8 @@
  * - ../openclaw/src/agents/subagent-registry.store.ts (disk persistence)
  * - ../openclaw/src/agents/subagent-registry-state.ts (save/load/snapshot)
  *
- * AndroidForClaw adaptation: JSON-based disk persistence for SubagentRunRecord registry.
- * Uses StoragePaths.agents/subagents/runs.json, version 2 format.
+ * androidforClaw adaptation: JSON-based disk persistence for SubagentRunRecord registry.
+ * uses StoragePaths.agents/subagents/runs.json, version 2 format.
  */
 package com.xiaomo.androidforclaw.agent.subagent
 
@@ -31,7 +31,7 @@ class SubagentRegistryStore {
 
     /**
      * Save all runs to disk (best-effort).
-     * Format: { version: 2, runs: { runId: { ...fields } } }
+     * format: { version: 2, runs: { runId: { ...fields } } }
      */
     fun save(runs: Map<String, SubagentRunRecord>) {
         try {
@@ -40,12 +40,12 @@ class SubagentRegistryStore {
             for ((runId, record) in runs) {
                 runsObj.put(runId, recordToJson(record))
             }
-            val root = JSONObject().apply {
+            val root = JSONObject().app {
                 put("version", VERSION)
                 put("runs", runsObj)
             }
             registryFile.writeText(root.toString(2))
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to persist subagent runs to disk: ${e.message}")
         }
     }
@@ -71,18 +71,18 @@ class SubagentRegistryStore {
             }
             Log.i(TAG, "Loaded ${result.size} subagent runs from disk (version $version)")
             result
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to load subagent runs from disk: ${e.message}")
             emptyMap()
         }
     }
 
     private fun recordToJson(r: SubagentRunRecord): JSONObject {
-        return JSONObject().apply {
+        return JSONObject().app {
             put("runId", r.runId)
-            put("childSessionKey", r.childSessionKey)
-            putOpt("controllerSessionKey", r.controllerSessionKey)
-            put("requesterSessionKey", r.requesterSessionKey)
+            put("childsessionKey", r.childsessionKey)
+            putOpt("controllersessionKey", r.controllersessionKey)
+            put("requestersessionKey", r.requestersessionKey)
             put("requesterDisplayKey", r.requesterDisplayKey)
             put("task", r.task)
             put("label", r.label)
@@ -97,7 +97,7 @@ class SubagentRegistryStore {
             put("accumulatedRuntimeMs", r.accumulatedRuntimeMs)
             putOpt("endedAt", r.endedAt)
             r.outcome?.let {
-                put("outcome", JSONObject().apply {
+                put("outcome", JSONObject().app {
                     put("status", it.status.wireValue)
                     putOpt("error", it.error)
                 })
@@ -107,8 +107,8 @@ class SubagentRegistryStore {
             put("cleanupHandled", r.cleanupHandled)
             putOpt("suppressAnnounceReason", r.suppressAnnounceReason)
             put("expectsCompletionMessage", r.expectsCompletionMessage)
-            put("announceRetryCount", r.announceRetryCount)
-            putOpt("lastAnnounceRetryAt", r.lastAnnounceRetryAt)
+            put("announceretryCount", r.announceretryCount)
+            putOpt("lastAnnounceretryAt", r.lastAnnounceretryAt)
             r.endedReason?.let { put("endedReason", it.wireValue) }
             put("wakeOnDescendantSettle", r.wakeOnDescendantSettle)
             putOpt("frozenResultText", r.frozenResultText)
@@ -134,7 +134,7 @@ class SubagentRegistryStore {
             }
 
             val endedReasonStr = j.optString("endedReason", "")
-            val endedReason = if (endedReasonStr.isNotBlank()) {
+            val endedReason = if (endedReasonStr.isnotBlank()) {
                 SubagentLifecycleEndedReason.entries.find { it.wireValue == endedReasonStr }
             } else null
 
@@ -153,9 +153,9 @@ class SubagentRegistryStore {
 
             SubagentRunRecord(
                 runId = j.getString("runId"),
-                childSessionKey = j.getString("childSessionKey"),
-                controllerSessionKey = j.optString("controllerSessionKey", null),
-                requesterSessionKey = j.getString("requesterSessionKey"),
+                childsessionKey = j.getString("childsessionKey"),
+                controllersessionKey = j.optString("controllersessionKey", null),
+                requestersessionKey = j.getString("requestersessionKey"),
                 requesterDisplayKey = j.optString("requesterDisplayKey", ""),
                 task = j.optString("task", ""),
                 label = j.optString("label", ""),
@@ -166,7 +166,7 @@ class SubagentRegistryStore {
                 runTimeoutSeconds = if (j.has("runTimeoutSeconds")) j.optInt("runTimeoutSeconds") else null,
                 createdAt = j.optLong("createdAt", 0L),
                 depth = j.optInt("depth", 0),
-            ).apply {
+            ).app {
                 startedAt = if (j.has("startedAt") && !j.isNull("startedAt")) j.optLong("startedAt") else null
                 sessionStartedAt = if (j.has("sessionStartedAt") && !j.isNull("sessionStartedAt")) j.optLong("sessionStartedAt") else null
                 accumulatedRuntimeMs = j.optLong("accumulatedRuntimeMs", 0L)
@@ -177,8 +177,8 @@ class SubagentRegistryStore {
                 cleanupHandled = j.optBoolean("cleanupHandled", false)
                 suppressAnnounceReason = j.optString("suppressAnnounceReason", null)
                 expectsCompletionMessage = j.optBoolean("expectsCompletionMessage", true)
-                announceRetryCount = j.optInt("announceRetryCount", 0)
-                lastAnnounceRetryAt = if (j.has("lastAnnounceRetryAt") && !j.isNull("lastAnnounceRetryAt")) j.optLong("lastAnnounceRetryAt") else null
+                announceretryCount = j.optInt("announceretryCount", 0)
+                lastAnnounceretryAt = if (j.has("lastAnnounceretryAt") && !j.isNull("lastAnnounceretryAt")) j.optLong("lastAnnounceretryAt") else null
                 this.endedReason = endedReason
                 wakeOnDescendantSettle = j.optBoolean("wakeOnDescendantSettle", false)
                 frozenResultText = j.optString("frozenResultText", null)
@@ -190,7 +190,7 @@ class SubagentRegistryStore {
                 attachmentsRootDir = j.optString("attachmentsRootDir", null)
                 retainAttachmentsOnKeep = j.optBoolean("retainAttachmentsOnKeep", false)
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to deserialize subagent run record: ${e.message}")
             null
         }

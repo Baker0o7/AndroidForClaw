@@ -5,18 +5,18 @@ package com.xiaomo.androidforclaw.agent
  * - ../openclaw/src/agents/identity.ts
  * - ../openclaw/src/agents/identity-file.ts
  *
- * AndroidForClaw adaptation: agent identity resolution and IDENTITY.md parsing.
+ * androidforClaw adaptation: agent identity resolution and IDENTITY.md parsing.
  */
 
-import com.xiaomo.androidforclaw.config.OpenClawConfig
+import com.xiaomo.androidforclaw.config.OpenClawconfig
 import com.xiaomo.androidforclaw.logging.Log
 import java.io.File
 
 /**
- * Agent identity file data.
- * Aligned with OpenClaw AgentIdentityFile.
+ * agent identity file data.
+ * Aligned with OpenClaw agentIdentityFile.
  */
-data class AgentIdentityFile(
+data class agentIdentityFile(
     val name: String? = null,
     val emoji: String? = null,
     val theme: String? = null,
@@ -28,7 +28,7 @@ data class AgentIdentityFile(
 /**
  * Resolved identity config for an agent.
  */
-data class IdentityConfig(
+data class Identityconfig(
     val name: String? = null,
     val emoji: String? = null,
     val theme: String? = null,
@@ -36,12 +36,12 @@ data class IdentityConfig(
 )
 
 /**
- * Agent identity resolution.
+ * agent identity resolution.
  * Aligned with OpenClaw identity.ts + identity-file.ts.
  */
-object AgentIdentity {
+object agentIdentity {
 
-    private const val TAG = "AgentIdentity"
+    private const val TAG = "agentIdentity"
     private const val DEFAULT_IDENTITY_FILENAME = "IDENTITY.md"
     private const val DEFAULT_ACK_REACTION = "eyes"
 
@@ -54,13 +54,13 @@ object AgentIdentity {
 
     /**
      * Resolve agent identity from config.
-     * Aligned with OpenClaw resolveAgentIdentity.
+     * Aligned with OpenClaw resolveagentIdentity.
      */
-    fun resolveAgentIdentity(cfg: OpenClawConfig, agentId: String? = null): IdentityConfig {
-        // For now, Android uses a single default agent
+    fun resolveagentIdentity(cfg: OpenClawconfig, agentId: String? = null): Identityconfig {
+        // for now, android uses a single default agent
         // Future: look up agents config by agentId
-        return IdentityConfig(
-            name = "AndroidForClaw",
+        return Identityconfig(
+            name = "androidforClaw",
             emoji = null,
             theme = null,
             avatar = null
@@ -74,19 +74,19 @@ object AgentIdentity {
      * Aligned with OpenClaw resolveAckReaction.
      */
     fun resolveAckReaction(
-        cfg: OpenClawConfig,
+        cfg: OpenClawconfig,
         agentId: String? = null,
         channelReaction: String? = null,
         accountReaction: String? = null
     ): String {
         // Level 1: channel account override
-        if (!accountReaction.isNullOrBlank()) return accountReaction
+        if (!accountReaction.isNullorBlank()) return accountReaction
         // Level 2: channel override
-        if (!channelReaction.isNullOrBlank()) return channelReaction
+        if (!channelReaction.isNullorBlank()) return channelReaction
         // Level 3: global messages.ackReactionScope (not a direct emoji, skip)
         // Level 4: identity emoji
-        val identity = resolveAgentIdentity(cfg, agentId)
-        if (!identity.emoji.isNullOrBlank()) return identity.emoji
+        val identity = resolveagentIdentity(cfg, agentId)
+        if (!identity.emoji.isNullorBlank()) return identity.emoji
         // Level 5: default
         return DEFAULT_ACK_REACTION
     }
@@ -95,8 +95,8 @@ object AgentIdentity {
      * Resolve outgoing message prefix.
      * Aligned with OpenClaw resolveMessagePrefix.
      */
-    fun resolveMessagePrefix(cfg: OpenClawConfig, agentId: String? = null): String? {
-        val identity = resolveAgentIdentity(cfg, agentId)
+    fun resolveMessagePrefix(cfg: OpenClawconfig, agentId: String? = null): String? {
+        val identity = resolveagentIdentity(cfg, agentId)
         return identity.name?.let { "[$it]" }
     }
 
@@ -104,7 +104,7 @@ object AgentIdentity {
      * Resolve response prefix (for replies).
      * Aligned with OpenClaw resolveResponsePrefix.
      */
-    fun resolveResponsePrefix(cfg: OpenClawConfig, agentId: String? = null): String? {
+    fun resolveResponsePrefix(cfg: OpenClawconfig, agentId: String? = null): String? {
         // Default: no prefix for responses (unlike outgoing messages)
         return null
     }
@@ -113,15 +113,15 @@ object AgentIdentity {
      * Resolve identity name for display.
      * Aligned with OpenClaw resolveIdentityName.
      */
-    fun resolveIdentityName(cfg: OpenClawConfig, agentId: String? = null): String? {
-        return resolveAgentIdentity(cfg, agentId).name
+    fun resolveIdentityName(cfg: OpenClawconfig, agentId: String? = null): String? {
+        return resolveagentIdentity(cfg, agentId).name
     }
 
     /**
      * Resolve identity name in bracketed format: "[name]".
      * Aligned with OpenClaw resolveIdentityNamePrefix.
      */
-    fun resolveIdentityNamePrefix(cfg: OpenClawConfig, agentId: String? = null): String? {
+    fun resolveIdentityNamePrefix(cfg: OpenClawconfig, agentId: String? = null): String? {
         val name = resolveIdentityName(cfg, agentId) ?: return null
         return "[$name]"
     }
@@ -134,7 +134,7 @@ object AgentIdentity {
      *
      * Aligned with OpenClaw parseIdentityMarkdown.
      */
-    fun parseIdentityMarkdown(content: String): AgentIdentityFile? {
+    fun parseIdentityMarkdown(content: String): agentIdentityFile? {
         val fields = mutableMapOf<String, String>()
 
         for (line in content.lines()) {
@@ -151,7 +151,7 @@ object AgentIdentity {
 
         if (fields.isEmpty()) return null
 
-        return AgentIdentityFile(
+        return agentIdentityFile(
             name = fields["name"],
             emoji = fields["emoji"],
             theme = fields["theme"],
@@ -163,14 +163,14 @@ object AgentIdentity {
 
     /**
      * Load identity from a file path.
-     * Aligned with OpenClaw loadIdentityFromFile.
+     * Aligned with OpenClaw loadIdentityfromFile.
      */
-    fun loadIdentityFromFile(path: File): AgentIdentityFile? {
+    fun loadIdentityfromFile(path: File): agentIdentityFile? {
         if (!path.exists()) return null
         return try {
             val content = path.readText()
             parseIdentityMarkdown(content)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to load identity file: ${e.message}")
             null
         }
@@ -178,24 +178,24 @@ object AgentIdentity {
 
     /**
      * Load agent identity from workspace.
-     * Aligned with OpenClaw loadAgentIdentityFromWorkspace.
+     * Aligned with OpenClaw loadagentIdentityfromWorkspace.
      */
-    fun loadIdentityFromWorkspace(workspace: File): AgentIdentityFile? {
+    fun loadIdentityfromWorkspace(workspace: File): agentIdentityFile? {
         val identityFile = File(workspace, DEFAULT_IDENTITY_FILENAME)
-        return loadIdentityFromFile(identityFile)
+        return loadIdentityfromFile(identityFile)
     }
 
     /**
      * Check if an identity has any non-empty values.
      * Aligned with OpenClaw identityHasValues.
      */
-    fun identityHasValues(identity: AgentIdentityFile?): Boolean {
+    fun identityHasValues(identity: agentIdentityFile?): Boolean {
         if (identity == null) return false
-        return !identity.name.isNullOrBlank() ||
-            !identity.emoji.isNullOrBlank() ||
-            !identity.theme.isNullOrBlank() ||
-            !identity.creature.isNullOrBlank() ||
-            !identity.vibe.isNullOrBlank() ||
-            !identity.avatar.isNullOrBlank()
+        return !identity.name.isNullorBlank() ||
+            !identity.emoji.isNullorBlank() ||
+            !identity.theme.isNullorBlank() ||
+            !identity.creature.isNullorBlank() ||
+            !identity.vibe.isNullorBlank() ||
+            !identity.avatar.isNullorBlank()
     }
 }

@@ -2,15 +2,15 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-runner.ts (legacy wrapper)
+ * - ../openclaw/src/agents/pi-embeed-runner.ts (legacy wrapper)
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.config.OpenClawConfig
-import com.xiaomo.androidforclaw.config.ProviderConfig
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.config.OpenClawconfig
+import com.xiaomo.androidforclaw.config.providerconfig
 import com.xiaomo.androidforclaw.util.AppConstants
 
 /**
@@ -18,10 +18,10 @@ import com.xiaomo.androidforclaw.util.AppConstants
  * Provides higher-level API wrapper
  * Automatically selects OpenAI or Anthropic format based on config
  *
- * **Config来源**: 从 /sdcard/.androidforclaw/openclaw.json 和 models.json ReadConfig
+ * **configcome源**: from /sdcard/.androidforclaw/openclaw.json and models.json Readconfig
  */
 class LegacyRepository(
-    context: Context,
+    context: context,
     apiKey: String? = null,  // Optional, defaults to reading from config
     apiBase: String? = null,  // Optional, defaults to reading from config
     private val apiType: String? = null  // Optional, defaults to reading from config
@@ -30,55 +30,55 @@ class LegacyRepository(
         private const val TAG = "LegacyRepository"
     }
 
-    // Config loader
-    private val configLoader = ConfigLoader(context)
+    // config loader
+    private val configLoader = configLoader(context)
 
     // Load OpenClaw config
-    private val openClawConfig: OpenClawConfig by lazy {
-        configLoader.loadOpenClawConfig()
+    private val openClawconfig: OpenClawconfig by lazy {
+        configLoader.loadOpenClawconfig()
     }
 
-    // Find corresponding provider by defaultModel
-    private fun getProviderForDefaultModel(): ProviderConfig? {
-        val defaultModel = openClawConfig.agent.defaultModel
-        val providerName = configLoader.findProviderByModelId(defaultModel)
-        Log.d(TAG, "Default model: $defaultModel, Provider: $providerName")
-        return providerName?.let { configLoader.getProviderConfig(it) }
+    // Find corresponding provider by defaultmodel
+    private fun getproviderforDefaultmodel(): providerconfig? {
+        val defaultmodel = openClawconfig.agent.defaultmodel
+        val providerName = configLoader.findproviderBymodelId(defaultmodel)
+        Log.d(TAG, "Default model: $defaultmodel, provider: $providerName")
+        return providerName?.let { configLoader.getproviderconfig(it) }
     }
 
     // Read API config from config (prioritize constructor parameters, otherwise read from config file)
     private val actualApiKey: String by lazy {
         apiKey ?: run {
-            // Read apiKey from provider corresponding to defaultModel
-            val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("openrouter")
+            // Read apiKey from provider corresponding to defaultmodel
+            val provider = getproviderforDefaultmodel() ?: configLoader.getproviderconfig("openrouter")
             provider?.apiKey ?: AppConstants.OPENROUTER_API_KEY
         }
     }
 
     private val actualApiBase: String by lazy {
         apiBase ?: run {
-            // Read baseUrl from provider corresponding to defaultModel
-            val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("openrouter")
+            // Read baseUrl from provider corresponding to defaultmodel
+            val provider = getproviderforDefaultmodel() ?: configLoader.getproviderconfig("openrouter")
             provider?.baseUrl ?: "https://openrouter.ai/api/v1"
         }
     }
 
     private val actualApiType: String by lazy {
         apiType ?: run {
-            // Read api type from provider corresponding to defaultModel
-            val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("openrouter")
+            // Read api type from provider corresponding to defaultmodel
+            val provider = getproviderforDefaultmodel() ?: configLoader.getproviderconfig("openrouter")
             provider?.api ?: "openai-completions"
         }
     }
 
-    // Select Provider based on API type
-    private val openAIProvider by lazy {
-        val provider = getProviderForDefaultModel() ?: configLoader.getProviderConfig("anthropic")
-        Log.d(TAG, "Creating OpenAI Provider:")
-        Log.d(TAG, "  Provider name: ${provider?.let { configLoader.findProviderByModelId(openClawConfig.agent.defaultModel) }}")
+    // Select provider based on API type
+    private val openAIprovider by lazy {
+        val provider = getproviderforDefaultmodel() ?: configLoader.getproviderconfig("anthropic")
+        Log.d(TAG, "Creating OpenAI provider:")
+        Log.d(TAG, "  provider name: ${provider?.let { configLoader.findproviderBymodelId(openClawconfig.agent.defaultmodel) }}")
         Log.d(TAG, "  authHeader from config: ${provider?.authHeader}")
         Log.d(TAG, "  Final authHeader value: ${provider?.authHeader ?: true}")
-        LegacyProviderOpenAI(
+        LegacyproviderOpenAI(
             apiKey = actualApiKey,
             apiBase = actualApiBase,
             providerId = "legacy",
@@ -87,60 +87,60 @@ class LegacyRepository(
         )
     }
 
-    private val anthropicProvider by lazy {
-        LegacyProviderAnthropic(
+    private val anthropicprovider by lazy {
+        LegacyproviderAnthropic(
             apiKey = actualApiKey,
             apiBase = actualApiBase
         )
     }
 
     /**
-     * 带工具call的Chat
+     * 带工具callChat
      *
      * @param messages Message list
-     * @param tools Tool definition list
-     * @param model Model ID (optional, defaults to agent.defaultModel from openclaw.json)
-     * @param reasoningEnableddd Whether Extended Thinking is enabled (optional, defaults to thinking.enabled from openclaw.json)
+     * @param tools tool definition list
+     * @param model model ID (optional, defaults to agent.defaultmodel from openclaw.json)
+     * @param reasoningEnabled Whether Extended Thinking is enabled (optional, defaults to thinking.enabled from openclaw.json)
      */
-    suspend fun chatWithTools(
+    suspend fun chatwithtools(
         messages: List<LegacyMessage>,
-        tools: List<ToolDefinition>,
+        tools: List<toolDefinition>,
         model: String? = null,
-        reasoningEnableddd: Boolean? = null
+        reasoningEnabled: Boolean? = null
     ): LegacyResponse {
         // Read default values from config
-        val actualModel = model ?: openClawConfig.agent.defaultModel
-        val actualReasoningEnableddd = reasoningEnableddd ?: openClawConfig.thinking.enabled
+        val actualmodel = model ?: openClawconfig.agent.defaultmodel
+        val actualReasoningEnabled = reasoningEnabled ?: openClawconfig.thinking.enabled
 
-        Log.d(TAG, "chatWithTools: ${messages.size} messages, ${tools.size} tools")
-        Log.d(TAG, "Model: $actualModel, API Type: $actualApiType")
-        Log.d(TAG, "Reasoning enabled: $actualReasoningEnableddd, Budget: ${openClawConfig.thinking.budgetTokens}")
+        Log.d(TAG, "chatwithtools: ${messages.size} messages, ${tools.size} tools")
+        Log.d(TAG, "model: $actualmodel, API Type: $actualApiType")
+        Log.d(TAG, "Reasoning enabled: $actualReasoningEnabled, Budget: ${openClawconfig.thinking.budgetTokens}")
 
         return when (actualApiType) {
             "anthropic-messages" -> {
-                anthropicProvider.chat(
+                anthropicprovider.chat(
                     messages = messages,
                     tools = tools,
-                    model = actualModel,
-                    thinkingEnableddd = actualReasoningEnableddd,
-                    thinkingBudget = openClawConfig.thinking.budgetTokens
+                    model = actualmodel,
+                    thinkingEnabled = actualReasoningEnabled,
+                    thinkingBudget = openClawconfig.thinking.budgetTokens
                 )
             }
             "openai-completions" -> {
-                openAIProvider.chat(
+                openAIprovider.chat(
                     messages = messages,
                     tools = tools,
-                    model = actualModel
+                    model = actualmodel
                 )
             }
             else -> {
                 Log.w(TAG, "Unknown API type: $actualApiType, falling back to Anthropic")
-                anthropicProvider.chat(
+                anthropicprovider.chat(
                     messages = messages,
                     tools = tools,
-                    model = actualModel,
-                    thinkingEnableddd = actualReasoningEnableddd,
-                    thinkingBudget = openClawConfig.thinking.budgetTokens
+                    model = actualmodel,
+                    thinkingEnabled = actualReasoningEnabled,
+                    thinkingBudget = openClawconfig.thinking.budgetTokens
                 )
             }
         }
@@ -149,35 +149,35 @@ class LegacyRepository(
     /**
      * SimpleChat(None工具)
      *
-     * @param userMessage User message
+     * @param userMessage user message
      * @param systemPrompt System prompt (optional)
-     * @param reasoningEnableddd Extended Thinking YesNoEnabledd(Optional, Default从 openclaw.json Read)
+     * @param reasoningEnabled Extended Thinking whetherEnable(Optional, Defaultfrom openclaw.json Read)
      */
     suspend fun simpleChat(
         userMessage: String,
         systemPrompt: String? = null,
-        reasoningEnableddd: Boolean? = null
+        reasoningEnabled: Boolean? = null
     ): String {
-        val actualReasoningEnableddd = reasoningEnableddd ?: openClawConfig.thinking.enabled
+        val actualReasoningEnabled = reasoningEnabled ?: openClawconfig.thinking.enabled
 
         Log.d(TAG, "simpleChat: $userMessage")
-        Log.d(TAG, "Reasoning enabled: $actualReasoningEnableddd")
+        Log.d(TAG, "Reasoning enabled: $actualReasoningEnabled")
 
         return when (actualApiType) {
             "anthropic-messages" -> {
-                anthropicProvider.simpleChat(
+                anthropicprovider.simpleChat(
                     userMessage = userMessage,
                     systemPrompt = systemPrompt
                 )
             }
             "openai-completions" -> {
-                openAIProvider.simpleChat(
+                openAIprovider.simpleChat(
                     userMessage = userMessage,
                     systemPrompt = systemPrompt
                 )
             }
             else -> {
-                anthropicProvider.simpleChat(
+                anthropicprovider.simpleChat(
                     userMessage = userMessage,
                     systemPrompt = systemPrompt
                 )
@@ -189,32 +189,32 @@ class LegacyRepository(
      * ContinueConversation
      *
      * @param messages Existing message list
-     * @param newUserMessage New user message
-     * @param tools Tool definition list(Optional)
+     * @param newuserMessage new user message
+     * @param tools tool definition list(Optional)
      */
     suspend fun continueChat(
         messages: List<LegacyMessage>,
-        newUserMessage: String,
-        tools: List<ToolDefinition>? = null
+        newuserMessage: String,
+        tools: List<toolDefinition>? = null
     ): LegacyResponse {
         val updatedMessages = messages.toMutableList()
-        updatedMessages.add(LegacyMessage("user", newUserMessage))
+        updatedMessages.a(LegacyMessage("user", newuserMessage))
 
         return when (actualApiType) {
             "anthropic-messages" -> {
-                anthropicProvider.chat(
+                anthropicprovider.chat(
                     messages = updatedMessages,
                     tools = tools
                 )
             }
             "openai-completions" -> {
-                openAIProvider.chat(
+                openAIprovider.chat(
                     messages = updatedMessages,
                     tools = tools
                 )
             }
             else -> {
-                anthropicProvider.chat(
+                anthropicprovider.chat(
                     messages = updatedMessages,
                     tools = tools
                 )
@@ -223,18 +223,18 @@ class LegacyRepository(
     }
 
     /**
-     * Get当FrontConfigInfo(用于Debug)
+     * GetwhenFrontconfigInfo(用于Debug)
      */
-    fun getConfigInfo(): String {
+    fun getconfigInfo(): String {
         return """
-            |Configuration:
+            |configuration:
             |  API Key: ${actualApiKey.take(10)}***
             |  API Base: $actualApiBase
             |  API Type: $actualApiType
-            |  Default Model: ${openClawConfig.agent.defaultModel}
-            |  Max Iterations: ${openClawConfig.agent.maxIterations}
-            |  Thinking Enableddd: ${openClawConfig.thinking.enabled}
-            |  Thinking Budget: ${openClawConfig.thinking.budgetTokens}
+            |  Default model: ${openClawconfig.agent.defaultmodel}
+            |  Max Iterations: ${openClawconfig.agent.maxIterations}
+            |  Thinking Enabled: ${openClawconfig.thinking.enabled}
+            |  Thinking Budget: ${openClawconfig.thinking.budgetTokens}
         """.trimMargin()
     }
 }

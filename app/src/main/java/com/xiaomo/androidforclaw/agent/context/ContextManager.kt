@@ -4,17 +4,17 @@ package com.xiaomo.androidforclaw.agent.context
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/agent-command.ts (context overflow recovery)
  *
- * AndroidForClaw adaptation: manage context growth and recovery.
+ * androidforClaw adaptation: manage context growth and recovery.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
+import com.xiaomo.androidforclaw.providers.UnifiedLLMprovider
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.providers.llm.Message
 
 /**
- * Context Manager - Handle context overflow
+ * context manager - Handle context overflow
  * Aligned with OpenClaw's multi-layer recovery strategy
  *
  * Strategy order (refer to OpenClaw run.ts lines 687-1055):
@@ -23,16 +23,16 @@ import com.xiaomo.androidforclaw.providers.llm.Message
  * 3. Try truncating oversized tool results
  * 4. Give up and return error
  */
-class ContextManager(
-    private val llmProvider: UnifiedLLMProvider
+class contextmanager(
+    private val llmprovider: UnifiedLLMprovider
 ) {
     companion object {
-        private const val TAG = "ContextManager"
+        private const val TAG = "contextmanager"
         private const val MAX_COMPACTION_ATTEMPTS = 3
-        private const val DEFAULT_CONTEXT_WINDOW = 200_000  // Aligned with ContextWindowGuard default (OpenClaw = 200K)
+        private const val DEFAULT_CONTEXT_WINDOW = 200_000  // Aligned with contextWindowGuard default (OpenClaw = 200K)
     }
 
-    private val compactor = MessageCompactor(llmProvider)
+    private val compactor = MessageCompactor(llmprovider)
     private var compactionAttempts = 0
     private var toolresultTruncationAttempted = false
 
@@ -42,29 +42,29 @@ class ContextManager(
     fun reset() {
         compactionAttempts = 0
         toolresultTruncationAttempted = false
-        Log.d(TAG, "Context manager reset")
+        Log.d(TAG, "context manager reset")
     }
 
     /**
      * Handle context overflow error
      * @return Returns fixed message list if recoverable, otherwise returns null
      */
-    suspend fun handleContextOverflow(
+    suspend fun handlecontextoverflow(
         error: Throwable,
         messages: List<Message>,
         contextWindow: Int = DEFAULT_CONTEXT_WINDOW
-    ): ContextRecoveryresult {
-        val errorMessage = ContextErrors.extractErrorMessage(error)
+    ): contextRecoveryresult {
+        val errorMessage = contextErrors.extractErrorMessage(error)
 
-        Log.e(TAG, "DetectedUpDown文超限: $errorMessage")
-        Log.d(TAG, "当FrontMessage数: ${messages.size}")
-        Log.d(TAG, "已Try compaction: $compactionAttempts 次")
-        Log.d(TAG, "已Try截断: $toolresultTruncationAttempted")
+        Log.e(TAG, "detected context exceeded limit: $errorMessage")
+        Log.d(TAG, "whenFrontMessage数: ${messages.size}")
+        Log.d(TAG, "alreadyTry compaction: $compactionAttempts times")
+        Log.d(TAG, "alreadyTry截断: $toolresultTruncationAttempted")
 
         // 1. Confirm it's a context overflow error
-        if (!ContextErrors.isLikelyContextOverflowError(errorMessage)) {
-            Log.w(TAG, "Not a context overflow error, cannot handle")
-            return ContextRecoveryresult.CannotRecover(errorMessage)
+        if (!contextErrors.islikelycontextoverflowError(errorMessage)) {
+            Log.w(TAG, "not a context overflow error, cannot handle")
+            return contextRecoveryresult.cannotRecover(errorMessage)
         }
 
         // 2. Try Compaction
@@ -81,25 +81,25 @@ class ContextManager(
 
             if (compactionresult.isSuccess) {
                 compactionAttempts++
-                val compacted = compactionresult.getOrNull()!!
+                val compacted = compactionresult.getorNull()!!
 
-                Log.d(TAG, "Compaction Success: ${legacyMessages.size} -> ${compacted.size} 条Message")
+                Log.d(TAG, "Compaction Success: ${legacyMessages.size} -> ${compacted.size} messages")
 
-                // Convert回 Message
-                val newMessages = convertFromLegacyMessages(compacted)
+                // Convertreturn Message
+                val newMessages = convertfromLegacyMessages(compacted)
 
-                return ContextRecoveryresult.Recovered(
+                return contextRecoveryresult.Recovered(
                     messages = newMessages,
                     strategy = "compaction",
                     attempt = compactionAttempts
                 )
             } else {
-                Log.e(TAG, "Compaction Failed: ${compactionresult.exceptionOrNull()?.message}")
+                Log.e(TAG, "Compaction Failed: ${compactionresult.exceptionorNull()?.message}")
 
                 // Compaction failed, check if it's due to compaction itself causing overflow
-                if (ContextErrors.isCompactionFailureError(errorMessage)) {
+                if (contextErrors.isCompactionFailureError(errorMessage)) {
                     Log.e(TAG, "Compaction itself failed, cannot recover")
-                    return ContextRecoveryresult.CannotRecover(
+                    return contextRecoveryresult.cannotRecover(
                         "Compaction failed: context overflow during summarization. " +
                         "Try /reset or use a larger-context model."
                     )
@@ -113,28 +113,28 @@ class ContextManager(
 
             val legacyMessages = convertToLegacyMessages(messages)
 
-            if (ToolresultTruncator.hasOversizedToolresults(legacyMessages)) {
+            if (toolresultTruncator.hasoversizedtoolresults(legacyMessages)) {
                 toolresultTruncationAttempted = true
 
-                val truncated = ToolresultTruncator.truncateToolresults(legacyMessages)
-                val newMessages = convertFromLegacyMessages(truncated)
+                val truncated = toolresultTruncator.truncatetoolresults(legacyMessages)
+                val newMessages = convertfromLegacyMessages(truncated)
 
                 Log.d(TAG, "工具result截断Complete")
 
-                return ContextRecoveryresult.Recovered(
+                return contextRecoveryresult.Recovered(
                     messages = newMessages,
                     strategy = "truncation",
                     attempt = 1
                 )
             } else {
-                Log.d(TAG, "NoneDetected超大工具result")
+                Log.d(TAG, "NoneDetected超big工具result")
             }
         }
 
         // 4. Give up
         Log.e(TAG, "All recovery strategies failed")
-        return ContextRecoveryresult.CannotRecover(
-            "Context overflow: prompt too large for the model. " +
+        return contextRecoveryresult.cannotRecover(
+            "context overflow: prompt too large for the model. " +
             "Compaction attempts: $compactionAttempts. " +
             "Try clearing session history or use a larger-context model."
         )
@@ -157,16 +157,16 @@ class ContextManager(
     suspend fun preemptivelyCompact(
         messages: List<Message>
     ): List<Message> {
-        Log.d(TAG, "PreventiveCompress...")
+        Log.d(TAG, "Preventivecompress...")
 
         val legacyMessages = convertToLegacyMessages(messages)
         val result = compactor.compactMessages(legacyMessages, keepLastN = 5)
 
         return if (result.isSuccess) {
-            Log.d(TAG, "PreventiveCompressSuccess")
-            convertFromLegacyMessages(result.getOrNull()!!)
+            Log.d(TAG, "PreventivecompressSuccess")
+            convertfromLegacyMessages(result.getorNull()!!)
         } else {
-            Log.w(TAG, "PreventiveCompressFailed, use原Message")
+            Log.w(TAG, "PreventivecompressFailed, use原Message")
             messages
         }
     }
@@ -184,7 +184,7 @@ class ContextManager(
                             role = "assistant",
                             content = msg.content,
                             toolCalls = msg.toolCalls.map { tc ->
-                                com.xiaomo.androidforclaw.providers.LegacyToolCall(
+                                com.xiaomo.androidforclaw.providers.LegacytoolCall(
                                     id = tc.id,
                                     type = "function",
                                     function = com.xiaomo.androidforclaw.providers.LegacyFunction(
@@ -212,7 +212,7 @@ class ContextManager(
     /**
      * Convert legacy format to new format
      */
-    private fun convertFromLegacyMessages(legacyMessages: List<LegacyMessage>): List<Message> {
+    private fun convertfromLegacyMessages(legacyMessages: List<LegacyMessage>): List<Message> {
         return legacyMessages.map { msg ->
             when (msg.role) {
                 "system" -> Message(
@@ -229,7 +229,7 @@ class ContextManager(
                             role = "assistant",
                             content = msg.content?.toString() ?: "",
                             toolCalls = msg.toolCalls.map { tc ->
-                                com.xiaomo.androidforclaw.providers.llm.ToolCall(
+                                com.xiaomo.androidforclaw.providers.llm.toolCall(
                                     id = tc.id,
                                     name = tc.function.name,
                                     arguments = tc.function.arguments
@@ -259,9 +259,9 @@ class ContextManager(
 }
 
 /**
- * Context Recovery result
+ * context Recovery result
  */
-sealed class ContextRecoveryresult {
+sealed class contextRecoveryresult {
     /**
      * Successfully recovered
      */
@@ -269,12 +269,12 @@ sealed class ContextRecoveryresult {
         val messages: List<Message>,
         val strategy: String,  // "compaction" or "truncation"
         val attempt: Int
-    ) : ContextRecoveryresult()
+    ) : contextRecoveryresult()
 
     /**
-     * Cannot recover
+     * cannot recover
      */
-    data class CannotRecover(
+    data class cannotRecover(
         val reason: String
-    ) : ContextRecoveryresult()
+    ) : contextRecoveryresult()
 }

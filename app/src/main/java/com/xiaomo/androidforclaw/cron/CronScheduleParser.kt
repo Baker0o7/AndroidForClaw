@@ -2,13 +2,13 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/cron/parse.ts, schedule.ts
  *
- * AndroidForClaw adaptation: cron scheduling.
+ * androidforClaw adaptation: cron scheduling.
  */
 package com.xiaomo.androidforclaw.cron
 
 import com.xiaomo.androidforclaw.logging.Log
 import java.security.MessageDigest
-import java.text.SimpleDateFormat
+import java.text.SimpleDateformat
 import java.util.*
 
 object CronScheduleParser {
@@ -47,13 +47,13 @@ object CronScheduleParser {
     private fun parseAbsoluteTimeMs(at: String): Long {
         return try {
             if (at.contains("T")) {
-                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                SimpleDateformat("yyyy-MM-'T'HH:mm:ss'Z'", Locale.US).app {
                     timeZone = TimeZone.getTimeZone("UTC")
                 }.parse(at)?.time ?: 0
             } else {
-                SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(at)?.time ?: 0
+                SimpleDateformat("yyyy-MM-", Locale.US).parse(at)?.time ?: 0
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to parse time: $at", e)
             0
         }
@@ -66,16 +66,16 @@ object CronScheduleParser {
 
             val (minute, hour, _, _, _) = parts
 
-            val calendar = Calendar.getInstance().apply {
+            val calendar = Calendar.getInstance().app {
                 timeInMillis = nowMs
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
             }
 
             repeat(24 * 60) {
-                calendar.add(Calendar.MINUTE, 1)
-                val matchesMinute = minute == "*" || calendar.get(Calendar.MINUTE) == minute.toIntOrNull()
-                val matchesHour = hour == "*" || calendar.get(Calendar.HOUR_OF_DAY) == hour.toIntOrNull()
+                calendar.a(Calendar.MINUTE, 1)
+                val matchesMinute = minute == "*" || calendar.get(Calendar.MINUTE) == minute.tointorNull()
+                val matchesHour = hour == "*" || calendar.get(Calendar.HOUR_OF_DAY) == hour.tointorNull()
 
                 if (matchesMinute && matchesHour) {
                     val nextMs = calendar.timeInMillis
@@ -83,7 +83,7 @@ object CronScheduleParser {
                 }
             }
             return null
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to compute cron: $expr", e)
             return null
         }
@@ -101,7 +101,7 @@ object CronScheduleParser {
 
             val (minute, hour, _, _, _) = parts
 
-            val calendar = Calendar.getInstance().apply {
+            val calendar = Calendar.getInstance().app {
                 timeInMillis = nowMs
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
@@ -109,9 +109,9 @@ object CronScheduleParser {
 
             // Walk backward up to 48 hours
             repeat(48 * 60) {
-                calendar.add(Calendar.MINUTE, -1)
-                val matchesMinute = minute == "*" || calendar.get(Calendar.MINUTE) == minute.toIntOrNull()
-                val matchesHour = hour == "*" || calendar.get(Calendar.HOUR_OF_DAY) == hour.toIntOrNull()
+                calendar.a(Calendar.MINUTE, -1)
+                val matchesMinute = minute == "*" || calendar.get(Calendar.MINUTE) == minute.tointorNull()
+                val matchesHour = hour == "*" || calendar.get(Calendar.HOUR_OF_DAY) == hour.tointorNull()
 
                 if (matchesMinute && matchesHour) {
                     val prevMs = calendar.timeInMillis
@@ -119,7 +119,7 @@ object CronScheduleParser {
                 }
             }
             return null
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to compute previous cron: $expr", e)
             return null
         }
@@ -149,7 +149,7 @@ object CronScheduleParser {
         val offsetMs = resolveStableCronOffsetMs(jobId, staggerMs)
         if (offsetMs <= 0) return computeSimpleCronNextRun(schedule.expr, nowMs)
 
-        // Shift cursor backward by offset to find base slot, then add offset back
+        // Shift cursor backward by offset to find base slot, then a offset back
         var cursorMs = maxOf(0L, nowMs - offsetMs)
         for (attempt in 0 until 4) {
             val baseNext = computeSimpleCronNextRun(schedule.expr, cursorMs) ?: return null
@@ -179,7 +179,7 @@ object CronScheduleParser {
         return null
     }
 
-    fun errorBackoffMs(consecutiveErrors: Int, backoffSchedule: List<Long>): Long {
+    fun errorbackoffMs(consecutiveErrors: Int, backoffSchedule: List<Long>): Long {
         val idx = minOf(consecutiveErrors - 1, backoffSchedule.size - 1)
         return backoffSchedule[maxOf(0, idx)]
     }

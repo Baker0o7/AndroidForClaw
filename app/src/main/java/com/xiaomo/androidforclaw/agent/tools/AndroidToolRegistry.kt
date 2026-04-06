@@ -4,107 +4,107 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tool-catalog.ts
  *
- * AndroidForClaw adaptation: agent tool implementation.
+ * androidforClaw adaptation: agent tool implementation.
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.agent.memory.MemoryManager
-import com.xiaomo.androidforclaw.camera.CameraCaptureManager
+import com.xiaomo.androidforclaw.agent.memory.Memorymanager
+import com.xiaomo.androidforclaw.camera.CameraCapturemanager
 import com.xiaomo.androidforclaw.workspace.StoragePaths
-import com.xiaomo.androidforclaw.agent.tools.memory.MemoryGetSkill
-import com.xiaomo.androidforclaw.agent.tools.memory.MemorySearchSkill
-import com.xiaomo.androidforclaw.agent.tools.device.DeviceToolSkillAdapter
-import com.xiaomo.androidforclaw.data.model.TaskDataManager
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.agent.tools.memory.MemoryGetskill
+import com.xiaomo.androidforclaw.agent.tools.memory.MemorySearchskill
+import com.xiaomo.androidforclaw.agent.tools.device.DevicetoolskillAdapter
+import com.xiaomo.androidforclaw.data.model.TaskDatamanager
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * Android Tool Registry
+ * android tool Registry
  *
- * Manages Android platform-specific tools (Platform-specific tools)
+ * Manages android platform-specific tools (Platform-specific tools)
  *
  * Aligned with OpenClaw architecture:
- * - ToolRegistry: Universal tools (read, write, exec, web_fetch)
- * - AndroidToolRegistry: Android platform tools (tap, screenshot, open_app, memory)
- * - SkillsLoader: Markdown Skills (mobile-operations.md)
+ * - toolRegistry: Universal tools (read, write, exec, web_fetch)
+ * - androidtoolRegistry: android platform tools (tap, screenshot, open_app, memory)
+ * - skillsLoader: Markdown skills (mobile-operations.md)
  *
  * Reference: Platform-specific capabilities in OpenClaw's pi-tools.ts
  */
-class AndroidToolRegistry(
-    private val context: Context,
-    private val taskDataManager: TaskDataManager,
-    private val memoryManager: MemoryManager? = null,
+class androidtoolRegistry(
+    private val context: context,
+    private val taskDatamanager: TaskDatamanager,
+    private val memorymanager: Memorymanager? = null,
     private val workspacePath: String = StoragePaths.workspace.absolutePath,
-    private val cameraCaptureManager: CameraCaptureManager? = null,
+    private val cameraCapturemanager: CameraCapturemanager? = null,
 ) {
     companion object {
-        private const val TAG = "AndroidToolRegistry"
+        private const val TAG = "androidtoolRegistry"
     }
 
-    private val tools = mutableMapOf<String, Skill>()
+    private val tools = mutableMapOf<String, skill>()
 
     init {
-        registerAndroidTools()
-        registerMemoryTools()
+        registerandroidtools()
+        registerMemorytools()
     }
 
     /**
-     * Register Android platform-specific tools
+     * Register android platform-specific tools
      */
-    private fun registerAndroidTools() {
+    private fun registerandroidtools() {
         // === Unified device tool (Playwright-aligned) ===
         // Single entry point for ALL screen operations via ref-based interaction
         // Replaces: screenshot, get_view_tree, tap, swipe, type, long_press, home, back, open_app, wait
-        register(DeviceToolSkillAdapter(context))
+        register(DevicetoolskillAdapter(context))
 
-        // === Android System API (directly call system API, replace UI Automation) ===
-        register(AndroidApiSkill(context))
+        // === android System API (directly call system API, replace UI Automation) ===
+        register(androidApiskill(context))
 
         // === App management tools ===
-        register(ListInstalledAppsSkill(context))  // List apps
-        register(InstallAppSkill(context))         // Install APK
-        register(StartActivityTool(context))       // Start Activity
+        register(ListInstalledAppsskill(context))  // List apps
+        register(InstallAppskill(context))         // Install APK
+        register(StartActivitytool(context))       // Start Activity
 
         // === Control tools ===
-        register(StopSkill(taskDataManager)) // Stop
-        register(LogSkill())                 // Log
+        register(Stopskill(taskDatamanager)) // Stop
+        register(Logskill())                 // Log
 
         // === Feishu image (kept as direct tool — media upload needs special handling) ===
-        register(FeishuSendImageSkill(context))
+        register(FeishuSendImageskill(context))
 
-        // === Eye (Aligned with OpenClaw camera — Phone cameraLike头作为 Agent eyes) ===
-        if (cameraCaptureManager != null) {
-            register(EyeSkill(context, cameraCaptureManager))
+        // === Eye (Aligned with OpenClaw camera — Phone cameralike头作for agent eyes) ===
+        if (cameraCapturemanager != null) {
+            register(Eyeskill(context, cameraCapturemanager))
         } else {
-            Log.d(TAG, "⚠️ CameraCaptureManager not provided, skipping eye skill")
+            Log.d(TAG, "[WARN] CameraCapturemanager not provided, skipping eye skill")
         }
 
-        Log.d(TAG, "✅ Registered ${tools.size} Android platform tools")
+        Log.d(TAG, "[OK] Registered ${tools.size} android platform tools")
     }
 
     /**
      * Register memory tools
      */
-    private fun registerMemoryTools() {
-        if (memoryManager == null) {
-            Log.d(TAG, "⚠️ MemoryManager not provided, skipping memory tools")
+    private fun registerMemorytools() {
+        if (memorymanager == null) {
+            Log.d(TAG, "[WARN] Memorymanager not provided, skipping memory tools")
             return
         }
 
         // === Memory tools (Memory) ===
-        register(MemoryGetSkill(memoryManager, workspacePath))
-        register(MemorySearchSkill(memoryManager, workspacePath))
+        register(MemoryGetskill(memorymanager, workspacePath))
+        register(MemorySearchskill(memorymanager, workspacePath))
 
-        Log.d(TAG, "✅ Registered memory tools")
+        Log.d(TAG, "[OK] Registered memory tools")
     }
 
     /**
      * Register a tool
      */
-    private fun register(tool: Skill) {
+    private fun register(tool: skill) {
         tools[tool.name] = tool
-        Log.d(TAG, "  📱 ${tool.name}")
+        Log.d(TAG, "  [APP] ${tool.name}")
     }
 
     /**
@@ -115,52 +115,52 @@ class AndroidToolRegistry(
     /**
      * Execute tool
      */
-    suspend fun execute(name: String, args: Map<String, Any?>): Skillresult {
+    suspend fun execute(name: String, args: Map<String, Any?>): skillresult {
         val tool = tools[name]
         if (tool == null) {
-            Log.e(TAG, "Unknown Android tool: $name")
-            return Skillresult.error("Unknown Android tool: $name")
+            Log.e(TAG, "Unknown android tool: $name")
+            return skillresult.error("Unknown android tool: $name")
         }
 
-        Log.d(TAG, "Executing Android tool: $name with args: $args")
+        Log.d(TAG, "Executing android tool: $name with args: $args")
         return try {
             tool.execute(args)
-        } catch (e: Exception) {
-            Log.e(TAG, "Android tool execution failed: $name", e)
-            Skillresult.error("Execution failed: ${e.message}")
+        } catch (e: exception) {
+            Log.e(TAG, "android tool execution failed: $name", e)
+            skillresult.error("Execution failed: ${e.message}")
         }
     }
 
     /**
-     * Get all Tool Definitions (for LLM function calling)
+     * Get all tool Definitions (for LLM function calling)
      */
-    fun getToolDefinitions(): List<ToolDefinition> {
-        return tools.values.map { it.getToolDefinition() }
+    fun gettoolDefinitions(): List<toolDefinition> {
+        return tools.values.map { it.gettoolDefinition() }
     }
 
     /**
      * Get all tools description (for building system prompt)
      */
-    fun getToolsDescription(excludeTools: Set<String> = emptySet()): String {
+    fun gettoolsDescription(excludetools: Set<String> = emptySet()): String {
         return buildString {
-            appendLine("## Android Platform Tools")
+            appendLine("## android Platform tools")
             appendLine()
-            appendLine("Android Device专属Capability,通过 AccessibilityService 和系统 API 提供: ")
+            appendLine("android Device专属Capability,through Accessibilityservice and系统 API 提供: ")
             appendLine()
 
-            // Organize by category
+            // organize by category
             val categories = mapOf(
                 "观察" to listOf("screenshot", "get_view_tree"),
-                "交互" to listOf("tap", "swipe", "type", "long_press"),
+                "interaction" to listOf("tap", "swipe", "type", "long_press"),
                 "导航" to listOf("home", "back", "open_app"),
-                "applyManage" to listOf("list_installed_apps", "install_app", "start_activity"),
+                "appManage" to listOf("list_installed_apps", "install_app", "start_activity"),
                 "控制" to listOf("wait", "stop", "log"),
                 "浏览器" to listOf("browser")
             )
 
             categories.forEach { (category, toolNames) ->
-                val filtered = toolNames.filter { it !in excludeTools }
-                if (filtered.isNotEmpty()) {
+                val filtered = toolNames.filter { it !in excludetools }
+                if (filtered.isnotEmpty()) {
                     appendLine("### $category")
                     filtered.forEach { name ->
                         tools[name]?.let { tool ->
@@ -176,5 +176,5 @@ class AndroidToolRegistry(
     /**
      * Get tool count
      */
-    fun getToolCount(): Int = tools.size
+    fun gettoolCount(): Int = tools.size
 }

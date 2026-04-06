@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.agent.context
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/bootstrap-budget.ts
  *
- * AndroidForClaw adaptation: bootstrap file truncation analysis and warnings.
+ * androidforClaw adaptation: bootstrap file truncation analysis and warnings.
  */
 
 /**
@@ -19,12 +19,12 @@ data class BootstrapFileStatus(
 )
 
 /**
- * Overall bootstrap budget analysis.
+ * overall bootstrap budget analysis.
  * Aligned with OpenClaw BootstrapBudgetAnalysis.
  */
 data class BootstrapBudgetAnalysis(
     val files: List<BootstrapFileStatus>,
-    val totalOriginalChars: Int,
+    val totaloriginalChars: Int,
     val totalInjectedChars: Int,
     val totalMaxChars: Int,
     val anyTruncated: Boolean,
@@ -64,7 +64,7 @@ object BootstrapBudget {
             )
         }
 
-        val totalOriginal = statuses.sumOf { it.originalChars }
+        val totaloriginal = statuses.sumOf { it.originalChars }
         val totalInjected = statuses.sumOf { it.injectedChars }
         val anyTruncated = statuses.any { it.truncated }
         val nearLimit = totalMaxChars > 0 &&
@@ -72,7 +72,7 @@ object BootstrapBudget {
 
         return BootstrapBudgetAnalysis(
             files = statuses,
-            totalOriginalChars = totalOriginal,
+            totaloriginalChars = totaloriginal,
             totalInjectedChars = totalInjected,
             totalMaxChars = totalMaxChars,
             anyTruncated = anyTruncated,
@@ -102,7 +102,7 @@ object BootstrapBudget {
                 val remaining = analysis.files.count { it.truncated } - DEFAULT_MAX_WARNING_FILES
                 appendLine("- ...and $remaining more files")
             }
-            append("If context seems incomplete, read the full files directly.")
+            append("if context seems incomplete, read the full files directly.")
         }
     }
 

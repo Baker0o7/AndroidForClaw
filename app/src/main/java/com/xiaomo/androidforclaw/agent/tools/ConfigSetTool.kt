@@ -2,36 +2,36 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
+import com.xiaomo.androidforclaw.gateway.methods.configMethods
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
  * Write value to /sdcard/.androidforclaw/openclaw.json by path.
  */
-class ConfigSetTool(
-    private val configMethods: ConfigMethods
-) : Tool {
+class configSettool(
+    private val configMethods: configMethods
+) : tool {
     override val name = "config_set"
     override val description = "Set a configuration value in openclaw.json by dot path"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "Dot path, e.g. channels.feishu.enabled"),
-                        "value" to PropertySchema("string", "Value to write; strings like true/false are also accepted")
+                        "path" to Propertyschema("string", "Dot path, e.g. channels.feishu.enabled"),
+                        "value" to Propertyschema("string", "Value to write; strings like true/false are also accepted")
                     ),
                     required = listOf("path", "value")
                 )
@@ -39,11 +39,11 @@ class ConfigSetTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): toolResult {
         val path = args["path"] as? String
-            ?: return ToolResult.error("Missing required parameter: path")
+            ?: return toolResult.error("Missing required parameter: path")
         val rawValue = args["value"]
-            ?: return ToolResult.error("Missing required parameter: value")
+            ?: return toolResult.error("Missing required parameter: value")
 
         val value: Any? = when (rawValue) {
             is String -> when (rawValue.lowercase()) {
@@ -56,9 +56,9 @@ class ConfigSetTool(
 
         val result = configMethods.configSet(mapOf("path" to path, "value" to value))
         return if (result.success) {
-            ToolResult.success(result.message)
+            toolResult.success(result.message)
         } else {
-            ToolResult.error(result.message)
+            toolResult.error(result.message)
         }
     }
 }

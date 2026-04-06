@@ -7,9 +7,9 @@ package com.xiaomo.androidforclaw.providers
 
 
 /**
- * Legacy LLM API Exception
+ * Legacy LLM API exception
  */
-class LLMException(
+class LLMexception(
     message: String,
     cause: Throwable? = null
-) : Exception(message, cause)
+) : exception(message, cause)

@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only — MCP Server 供External Agent call)
+ * - No OpenClaw counterpart (android-only — MCP Server 供External agent call)
  */
 package com.xiaomo.androidforclaw.mcp
 
@@ -13,19 +13,19 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * MCP Server — 将手机的Accessibility操控和截屏Capability通过 MCP Protocol暴露给External Agent. 
+ * MCP Server — will手机Accessibility操控and截屏Capabilitythrough MCP Protocol暴露给External agent. 
  *
  * ┌──────────────────────────────────────────────────────────────┐
- * │  ⚠️  此ClassYes给【External Agent】use的(Claude Desktop、Cursor 等)│
- * │     与 AndroidForClaw 自身FeatureNone关.                           │
- * │     AndroidForClaw 通过 DeviceTool → AccessibilityProxy      │
- * │     直接call, 不走 MCP.                                       │
+ * │  [WARN]  thisClassYes给【External agent】use(Claude Desktop、Cursor 等)│
+ * │     and androidforClaw 自身FeatureNone关.                           │
+ * │     androidforClaw through Devicetool → AccessibilityProxy      │
+ * │     直接call, not走 MCP.                                       │
  * └──────────────────────────────────────────────────────────────┘
  *
  * Transport: Streamable HTTP (POST /mcp)
  * Protocol: JSON-RPC 2.0 (MCP spec)
  *
- * 暴露的 Tools:
+ * 暴露 tools:
  *   get_view_tree  — Get UI Tree
  *   screenshot     — 截屏 (base64)
  *   tap            — click坐标
@@ -34,7 +34,7 @@ import org.json.JSONObject
  *   input_text     — Input文字
  *   press_home     — 按 Home Key
  *   press_back     — 按ReturnKey
- *   get_current_app— Get当FrontFront台applyPackage name
+ *   get_current_app— GetwhenFrontforegroundappPackage name
  */
 class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
 
@@ -69,29 +69,29 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         return entry.node.point.x to entry.node.point.y
     }
 
-    // ── Tool definitions ────────────────────────────────────────
+    // ── tool definitions ────────────────────────────────────────
 
-    private val mcpTools = listOf(
-        McpTool(
+    private val mcptools = listOf(
+        Mcptool(
             name = "get_view_tree",
-            description = "Get current screen UI tree in Playwright-style snapshot format. Returns role-based nodes with [ref=eN] identifiers. Use ref values with tap/long_press tools for precise element targeting.",
-            inputSchema = mapOf(
+            description = "Get current screen UI tree in Playwright-style snapshot format. Returns role-based nodes with [ref=eN] identifiers. use ref values with tap/long_press tools for precise element targeting.",
+            inputschema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "use_cache" to mapOf("type" to "boolean", "description" to "Use cached tree (default true)"),
+                    "use_cache" to mapOf("type" to "boolean", "description" to "use cached tree (default true)"),
                     "interactive_only" to mapOf("type" to "boolean", "description" to "Only return interactive elements like buttons, textboxes, etc. (default false)")
                 )
             )
         ),
-        McpTool(
+        Mcptool(
             name = "screenshot",
-            description = "截取当FrontScreen, Return base64 Encode的 PNG Graph片",
-            inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+            description = "截取whenFrontScreen, Return base64 Encode PNG image",
+            inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
-        McpTool(
+        Mcptool(
             name = "tap",
-            description = "Tap on screen. Use ref from get_view_tree (e.g. ref='e3') OR x,y coordinates.",
-            inputSchema = mapOf(
+            description = "Tap on screen. use ref from get_view_tree (e.g. ref='e3') OR x,y coordinates.",
+            inputschema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
                     "ref" to mapOf("type" to "string", "description" to "Element ref from get_view_tree snapshot (e.g. 'e3')"),
@@ -100,10 +100,10 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
                 )
             )
         ),
-        McpTool(
+        Mcptool(
             name = "long_press",
-            description = "Long press on screen. Use ref from get_view_tree OR x,y coordinates.",
-            inputSchema = mapOf(
+            description = "Long press on screen. use ref from get_view_tree OR x,y coordinates.",
+            inputschema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
                     "ref" to mapOf("type" to "string", "description" to "Element ref from get_view_tree snapshot (e.g. 'e3')"),
@@ -112,55 +112,55 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
                 )
             )
         ),
-        McpTool(
+        Mcptool(
             name = "swipe",
-            description = "在ScreenUp执Rowswipe手势",
-            inputSchema = mapOf(
+            description = "inScreenUpexecutionswipe手势",
+            inputschema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "start_x" to mapOf("type" to "integer", "description" to "起始 X"),
-                    "start_y" to mapOf("type" to "integer", "description" to "起始 Y"),
+                    "start_x" to mapOf("type" to "integer", "description" to "up始 X"),
+                    "start_y" to mapOf("type" to "integer", "description" to "up始 Y"),
                     "end_x" to mapOf("type" to "integer", "description" to "End X"),
                     "end_y" to mapOf("type" to "integer", "description" to "End Y"),
-                    "duration_ms" to mapOf("type" to "integer", "description" to "swipe时长(ms), Default 300")
+                    "duration_ms" to mapOf("type" to "integer", "description" to "swipeduration(ms), Default 300")
                 ),
                 "required" to listOf("start_x", "start_y", "end_x", "end_y")
             )
         ),
-        McpTool(
+        Mcptool(
             name = "input_text",
-            description = "向当FrontFocusInput fieldInput文字",
-            inputSchema = mapOf(
+            description = "向whenFrontFocusInput fieldInput文字",
+            inputschema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "text" to mapOf("type" to "string", "description" to "要Input的文字")
+                    "text" to mapOf("type" to "string", "description" to "needInput文字")
                 ),
                 "required" to listOf("text")
             )
         ),
-        McpTool(
+        Mcptool(
             name = "press_home",
-            description = "按 Home Key, Return主Screen",
-            inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+            description = "按 Home Key, ReturnmainScreen",
+            inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
-        McpTool(
+        Mcptool(
             name = "press_back",
             description = "按ReturnKey",
-            inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+            inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
-        McpTool(
+        Mcptool(
             name = "get_current_app",
-            description = "Get当FrontFront台apply的Package name",
-            inputSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+            description = "GetwhenFrontforegroundappPackage name",
+            inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
     )
 
     // ── HTTP routing ────────────────────────────────────────────
 
-    override fun serve(session: IHTTPSession): Response {
+    override fun serve(session: IHTTPsession): Response {
         // CORS headers for all responses
         val corsHeaders = mapOf(
-            "Access-Control-Allow-Origin" to "*",
+            "Access-Control-Allow-origin" to "*",
             "Access-Control-Allow-Methods" to "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers" to "Content-Type",
         )
@@ -168,37 +168,37 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         return when {
             session.method == Method.OPTIONS -> {
                 newFixedLengthResponse(Response.Status.OK, MIME_PLAINTEXT, "").also { r ->
-                    corsHeaders.forEach { (k, v) -> r.addHeader(k, v) }
+                    corsHeaders.forEach { (k, v) -> r.aHeader(k, v) }
                 }
             }
 
             session.method == Method.GET && session.uri == "/health" -> {
                 val body = JSONObject().put("status", "ok").toString()
                 newFixedLengthResponse(Response.Status.OK, "application/json", body).also { r ->
-                    corsHeaders.forEach { (k, v) -> r.addHeader(k, v) }
+                    corsHeaders.forEach { (k, v) -> r.aHeader(k, v) }
                 }
             }
 
             session.method == Method.POST && session.uri == "/mcp" -> {
                 handleMcp(session).also { r ->
-                    corsHeaders.forEach { (k, v) -> r.addHeader(k, v) }
+                    corsHeaders.forEach { (k, v) -> r.aHeader(k, v) }
                 }
             }
 
             else -> {
-                newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not Found")
+                newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "not Found")
             }
         }
     }
 
     // ── MCP JSON-RPC dispatcher ─────────────────────────────────
 
-    private fun handleMcp(session: IHTTPSession): Response {
+    private fun handleMcp(session: IHTTPsession): Response {
         // Read POST body
         val bodyMap = HashMap<String, String>()
         try {
             session.parseBody(bodyMap)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to parse body", e)
             return jsonRpcErrorResponse(null, JsonRpcError.PARSE_ERROR, "Parse error: ${e.message}")
         }
@@ -210,7 +210,7 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
 
         val request = try {
             JsonRpcRequest.fromJson(JSONObject(body))
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Invalid JSON-RPC request", e)
             return jsonRpcErrorResponse(null, JsonRpcError.PARSE_ERROR, "Invalid JSON: ${e.message}")
         }
@@ -223,8 +223,8 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
                 // Client acknowledgement, no response needed but send empty OK
                 newFixedLengthResponse(Response.Status.OK, "application/json", "")
             }
-            "tools/list" -> handleToolsList(request)
-            "tools/call" -> handleToolsCall(request)
+            "tools/list" -> handletoolsList(request)
+            "tools/call" -> handletoolsCall(request)
             else -> jsonRpcErrorResponse(request.id, JsonRpcError.METHOD_NOT_FOUND, "Unknown method: ${request.method}")
         }
     }
@@ -241,12 +241,12 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         return jsonRpcSuccessResponse(request.id, result.toJson())
     }
 
-    private fun handleToolsList(request: JsonRpcRequest): Response {
-        val toolsresult = McpToolsListresult(tools = mcpTools)
+    private fun handletoolsList(request: JsonRpcRequest): Response {
+        val toolsresult = McptoolsListresult(tools = mcptools)
         return jsonRpcSuccessResponse(request.id, toolsresult.toJson())
     }
 
-    private fun handleToolsCall(request: JsonRpcRequest): Response {
+    private fun handletoolsCall(request: JsonRpcRequest): Response {
         val params = request.params ?: return jsonRpcErrorResponse(
             request.id, JsonRpcError.INVALID_PARAMS, "Missing params"
         )
@@ -259,11 +259,11 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         val args = params["arguments"] as? Map<String, Any?> ?: emptyMap()
 
         val callresult = try {
-            executeTool(toolName, args)
-        } catch (e: Exception) {
-            Log.e(TAG, "Tool execution failed: $toolName", e)
-            McpToolCallresult(
-                content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Error: ${e.message}")),
+            executetool(toolName, args)
+        } catch (e: exception) {
+            Log.e(TAG, "tool execution failed: $toolName", e)
+            McptoolCallresult(
+                content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Error: ${e.message}")),
                 isError = true
             )
         }
@@ -271,12 +271,12 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         return jsonRpcSuccessResponse(request.id, callresult.toJson())
     }
 
-    // ── Tool execution ──────────────────────────────────────────
+    // ── tool execution ──────────────────────────────────────────
 
-    private fun executeTool(name: String, args: Map<String, Any?>): McpToolCallresult {
-        if (!AccessibilityProxy.isServiceReady()) {
-            return McpToolCallresult(
-                content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Accessibility service not connected")),
+    private fun executetool(name: String, args: Map<String, Any?>): McptoolCallresult {
+        if (!AccessibilityProxy.isserviceReady()) {
+            return McptoolCallresult(
+                content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Accessibility service not connected")),
                 isError = true
             )
         }
@@ -295,29 +295,29 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
                     appendLine()
                     appendLine("---")
                     appendLine("Refs: ${result.stats.refCount} | Interactive: ${result.stats.interactiveNodes} | Total nodes: ${result.stats.totalNodes}")
-                    appendLine("Use [ref=eN] with tap/long_press tools to interact with elements.")
+                    appendLine("use [ref=eN] with tap/long_press tools to interact with elements.")
                 }
 
-                McpToolCallresult(
-                    content = listOf(McpToolCallresult.ContentItem(type = "text", text = output))
+                McptoolCallresult(
+                    content = listOf(McptoolCallresult.ContentItem(type = "text", text = output))
                 )
             }
 
             "screenshot" -> runBlocking {
                 if (!AccessibilityProxy.isMediaProjectionGranted()) {
-                    return@runBlocking McpToolCallresult(
-                        content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Screen capture permission not granted")),
+                    return@runBlocking McptoolCallresult(
+                        content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Screen capture permission not granted")),
                         isError = true
                     )
                 }
                 val base64 = AccessibilityProxy.captureScreen()
-                if (base64.isNotEmpty()) {
-                    McpToolCallresult(
-                        content = listOf(McpToolCallresult.ContentItem(type = "image", data = base64, mimeType = "image/png"))
+                if (base64.isnotEmpty()) {
+                    McptoolCallresult(
+                        content = listOf(McptoolCallresult.ContentItem(type = "image", data = base64, mimeType = "image/png"))
                     )
                 } else {
-                    McpToolCallresult(
-                        content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Screenshot failed")),
+                    McptoolCallresult(
+                        content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Screenshot failed")),
                         isError = true
                     )
                 }
@@ -326,8 +326,8 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
             "tap" -> runBlocking {
                 val ref = args["ref"] as? String
                 val (x, y) = if (ref != null) {
-                    resolveRefCoords(ref) ?: return@runBlocking McpToolCallresult(
-                        content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Unknown ref: $ref. Run get_view_tree first to get valid refs.")),
+                    resolveRefCoords(ref) ?: return@runBlocking McptoolCallresult(
+                        content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Unknown ref: $ref. Run get_view_tree first to get valid refs.")),
                         isError = true
                     )
                 } else {
@@ -343,8 +343,8 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
             "long_press" -> runBlocking {
                 val ref = args["ref"] as? String
                 val (x, y) = if (ref != null) {
-                    resolveRefCoords(ref) ?: return@runBlocking McpToolCallresult(
-                        content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Unknown ref: $ref. Run get_view_tree first to get valid refs.")),
+                    resolveRefCoords(ref) ?: return@runBlocking McptoolCallresult(
+                        content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Unknown ref: $ref. Run get_view_tree first to get valid refs.")),
                         isError = true
                     )
                 } else {
@@ -379,8 +379,8 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
             }
 
             "press_back" -> {
-                val ok = AccessibilityProxy.pressBack()
-                textresult(if (ok) "Back pressed" else "Back press failed")
+                val ok = AccessibilityProxy.pressback()
+                textresult(if (ok) "back pressed" else "back press failed")
             }
 
             "get_current_app" -> runBlocking {
@@ -388,21 +388,21 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
                 textresult(pkg)
             }
 
-            else -> McpToolCallresult(
-                content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Unknown tool: $name")),
+            else -> McptoolCallresult(
+                content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Unknown tool: $name")),
                 isError = true
             )
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────
+    // ── helpers ──────────────────────────────────────────────────
 
-    private fun textresult(text: String) = McpToolCallresult(
-        content = listOf(McpToolCallresult.ContentItem(type = "text", text = text))
+    private fun textresult(text: String) = McptoolCallresult(
+        content = listOf(McptoolCallresult.ContentItem(type = "text", text = text))
     )
 
-    private fun paramError(param: String) = McpToolCallresult(
-        content = listOf(McpToolCallresult.ContentItem(type = "text", text = "Missing required parameter: $param")),
+    private fun paramError(param: String) = McptoolCallresult(
+        content = listOf(McptoolCallresult.ContentItem(type = "text", text = "Missing required parameter: $param")),
         isError = true
     )
 

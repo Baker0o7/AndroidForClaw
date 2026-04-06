@@ -2,19 +2,19 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/canvas-host/server.ts (HTTP canvas host)
  * - ../openclaw/src/canvas-host/a2ui.ts (A2UI bridge)
- * - ../openclaw/src/canvas-host/a2ui/index.html (Canvas HTML shell)
+ * - ../openclaw/src/canvas-host/a2ui/index.html (canvas HTML shell)
  *
- * AndroidForClaw adaptation: WebView-based Canvas Activity.
+ * androidforClaw adaptation: WebView-based canvas Activity.
  */
 package com.xiaomo.androidforclaw.canvas
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.graphics.Canvas
+import android.graphics.canvas
 import android.os.Bundle
 import android.util.Base64
 import android.view.View
-import android.view.WindowManager
+import android.view.Windowmanager
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -28,70 +28,70 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 
 /**
- * Canvas Activity — 用 WebView Show Canvas Inside容. 
+ * canvas Activity — 用 WebView Show canvas content. 
  *
- * 对应 OpenClaw macOS/iOS Up的 Canvas Window(WKWebView). 
- * Agent 通过 CanvasManager 控制本 Activity 的 WebView. 
+ * correctshould OpenClaw macOS/iOS Up canvas Window(WKWebView). 
+ * agent through canvasmanager 控制本 Activity  WebView. 
  */
-class CanvasActivity : AppCompatActivity() {
+class canvasActivity : AppCompatActivity() {
     companion object {
-        private const val TAG = "CanvasActivity"
+        private const val TAG = "canvasActivity"
         const val EXTRA_URL = "canvas_url"
     }
 
     internal lateinit var webView: WebView
 
-    @SuppressLint("SetJavaScriptEnableddd")
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 全屏沉浸式
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // all屏沉浸式
+        window.aFlags(Windowmanager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Create WebView
-        webView = WebView(this).apply {
+        webView = WebView(this).app {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         }
 
-        val container = FrameLayout(this).apply {
+        val container = FrameLayout(this).app {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
-            setBackgroundColor(0xFF000000.toInt())
-            addView(webView)
+            setbackgroundColor(0xFF000000.toInt())
+            aView(webView)
         }
         setContentView(container)
 
-        // Config WebView
-        webView.settings.apply {
-            javaScriptEnableddd = true
-            domStorageEnableddd = true
+        // config WebView
+        webView.settings.app {
+            javaScriptEnabled = true
+            domStorageEnabled = true
             allowFileAccess = true
             @Suppress("DEPRECATION")
-            allowFileAccessFromFileURLs = true
+            allowFileAccessfromFileURLs = true
             @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = true
+            allowUniversalAccessfromFileURLs = true
             allowContentAccess = true
-            mediaPlaybackRequiresUserGesture = false
+            mediaPlaybackRequiresuserGesture = false
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             useWideViewPort = true
-            loadWithOverviewMode = true
-            // Support缩放
+            loadwithoverviewMode = true
+            // Supportzoom
             setSupportZoom(true)
             builtInZoomControls = true
             displayZoomControls = false
         }
 
-        // 注入 JS Bridge(对应 OpenClaw 的 window.openclawCanvasA2UIAction)
-        webView.addJavascriptInterface(CanvasJsBridge(), "openclawCanvasA2UIAction")
+        // 注入 JS Bridge(correctshould OpenClaw  window.openclawcanvasA2UIAction)
+        webView.aJavascriptInterface(canvasJsBridge(), "openclawcanvasA2UIAction")
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                // Canvas Inside的导航都在 WebView InsideProcess
+            override fun shouldoverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                // canvas inside导航都in WebView insideProcess
                 return false
             }
 
@@ -110,8 +110,8 @@ class CanvasActivity : AppCompatActivity() {
             }
         }
 
-        // Register到 CanvasManager
-        CanvasManager.currentActivity = this
+        // Registerto canvasmanager
+        canvasmanager.currentActivity = this
 
         // Load URL
         val url = intent.getStringExtra(EXTRA_URL)
@@ -119,25 +119,25 @@ class CanvasActivity : AppCompatActivity() {
             loadUrl(url)
         } else {
             // LoadDefault canvas index.html
-            val indexFile = File(CanvasManager.getCanvasRoot(), "index.html")
+            val indexFile = File(canvasmanager.getcanvasRoot(), "index.html")
             if (indexFile.exists()) {
                 loadUrl("file://${indexFile.absolutePath}")
             } else {
-                // LoadInside置Default页面
-                webView.loadData(defaultCanvasHtml(), "text/html", "utf-8")
+                // Loadinside置Default页面
+                webView.loadData(defaultcanvasHtml(), "text/html", "utf-8")
             }
         }
 
-        Log.i(TAG, "CanvasActivity created, url=$url")
+        Log.i(TAG, "canvasActivity created, url=$url")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (CanvasManager.currentActivity === this) {
-            CanvasManager.currentActivity = null
+        if (canvasmanager.currentActivity === this) {
+            canvasmanager.currentActivity = null
         }
         webView.destroy()
-        Log.i(TAG, "CanvasActivity destroyed")
+        Log.i(TAG, "canvasActivity destroyed")
     }
 
     /**
@@ -149,11 +149,11 @@ class CanvasActivity : AppCompatActivity() {
     }
 
     /**
-     * 执Row JavaScript 并Returnresult
+     * execution JavaScript 并Returnresult
      */
     fun evaluateJavaScript(id: String, script: String) {
         webView.evaluateJavascript(script) { result ->
-            CanvasManager.onEvalresult(id, result)
+            canvasmanager.onEvalresult(id, result)
         }
     }
 
@@ -162,20 +162,20 @@ class CanvasActivity : AppCompatActivity() {
      */
     fun takeSnapshot(id: String, format: String, maxWidth: Int?, quality: Int) {
         try {
-            // Get WebView 的实际Inside容尺寸
+            // Get WebView 实际content尺寸
             var w = webView.width
             var h = webView.height
             if (w <= 0 || h <= 0) {
-                CanvasManager.onSnapshotresult(id, CanvasManager.Snapshotresult("", format, 0, 0))
+                canvasmanager.onSnapshotresult(id, canvasmanager.Snapshotresult("", format, 0, 0))
                 return
             }
 
             // Create Bitmap 并绘制 WebView
-            val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
+            val bitmap = Bitmap.createBitmap(w, h, Bitmap.config.ARGB_8888)
+            val canvas = canvas(bitmap)
             webView.draw(canvas)
 
-            // ifNeed缩放
+            // ifneedzoom
             val finalBitmap = if (maxWidth != null && maxWidth > 0 && w > maxWidth) {
                 val scale = maxWidth.toFloat() / w.toFloat()
                 val newH = (h * scale).toInt()
@@ -188,58 +188,58 @@ class CanvasActivity : AppCompatActivity() {
 
             // 转 base64
             val stream = ByteArrayOutputStream()
-            val compressFormat = if (format == "jpeg" || format == "jpg") {
-                Bitmap.CompressFormat.JPEG
+            val compressformat = if (format == "jpeg" || format == "jpg") {
+                Bitmap.compressformat.JPEG
             } else {
-                Bitmap.CompressFormat.PNG
+                Bitmap.compressformat.PNG
             }
-            finalBitmap.compress(compressFormat, quality, stream)
+            finalBitmap.compress(compressformat, quality, stream)
             val base64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
 
-            val result = CanvasManager.Snapshotresult(
+            val result = canvasmanager.Snapshotresult(
                 base64 = base64,
-                format = if (compressFormat == Bitmap.CompressFormat.JPEG) "jpeg" else "png",
+                format = if (compressformat == Bitmap.compressformat.JPEG) "jpeg" else "png",
                 width = finalBitmap.width,
                 height = finalBitmap.height
             )
             finalBitmap.recycle()
 
-            CanvasManager.onSnapshotresult(id, result)
-        } catch (e: Exception) {
+            canvasmanager.onSnapshotresult(id, result)
+        } catch (e: exception) {
             Log.e(TAG, "Snapshot failed", e)
-            CanvasManager.onSnapshotresult(id, CanvasManager.Snapshotresult("", format, 0, 0))
+            canvasmanager.onSnapshotresult(id, canvasmanager.Snapshotresult("", format, 0, 0))
         }
     }
 
     /**
-     * JS Bridge — 对应 OpenClaw 的 window.openclawCanvasA2UIAction
+     * JS Bridge — correctshould OpenClaw  window.openclawcanvasA2UIAction
      *
-     * 在 a2ui.ts 中定义: 
-     *   window.openclawCanvasA2UIAction.postMessage(raw)
+     * in a2ui.ts 中定义: 
+     *   window.openclawcanvasA2UIAction.postMessage(raw)
      */
-    inner class CanvasJsBridge {
+    inner class canvasJsBridge {
         @JavascriptInterface
         fun postMessage(raw: String) {
             Log.d(TAG, "JS Bridge received: ${raw.take(200)}")
-            // A2UI action — 目FrontRecordLog, Back续可扩展Process
+            // A2UI action — 目FrontRecordLog, back续canextendProcess
         }
     }
 
     /**
-     * Default Canvas HTML 页面
+     * Default canvas HTML 页面
      */
-    private fun defaultCanvasHtml(): String = """
+    private fun defaultcanvasHtml(): String = """
 <!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Claw Canvas</title>
+<title>Claw canvas</title>
 <style>
 html, body { height: 100%; margin: 0; background: #0b1328; color: #e5e7eb; 
   font: 16px system-ui, Roboto, sans-serif; }
-.wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
-.card { width: min(560px, 88vw); text-align: center; padding: 24px;
+.wrap { min-height: 100%; display: grid; place-items: center; paing: 24px; }
+.card { width: min(560px, 88vw); text-align: center; paing: 24px;
   border-radius: 16px; background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.10); }
 h1 { margin: 0 0 8px; font-size: 22px; }
@@ -249,8 +249,8 @@ h1 { margin: 0 0 8px; font-size: 22px; }
 <body>
 <div class="wrap">
   <div class="card">
-    <h1>🦞 Claw Canvas</h1>
-    <div class="sub">Wait Agent LoadInside容...</div>
+    <h1>🦞 Claw canvas</h1>
+    <div class="sub">Wait agent Loadcontent...</div>
   </div>
 </div>
 </body>

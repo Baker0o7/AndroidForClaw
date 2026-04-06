@@ -4,17 +4,17 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tools/web-search.ts
  *
- * AndroidForClaw adaptation: web search tool using Brave Search API.
+ * androidforClaw adaptation: web search tool using Brave Search API.
  * Aligned with OpenClaw web_search tool schema and behavior.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -22,15 +22,15 @@ import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
 /**
- * Web Search Tool — Search the web using Brave Search API.
+ * Web Search tool — Search the web using Brave Search API.
  * Aligned with OpenClaw web_search tool.
  *
  * Requires BRAVE_API_KEY in openclaw.json config:
  *   tools.web.search.apiKey or env BRAVE_API_KEY
  */
-class WebSearchTool(private val apiKeyProvider: () -> String?) : Tool {
+class WebSearchtool(private val apiKeyprovider: () -> String?) : tool {
     companion object {
-        private const val TAG = "WebSearchTool"
+        private const val TAG = "WebSearchtool"
         private const val BRAVE_API_URL = "https://api.search.brave.com/res/v1/web/search"
         private const val MAX_COUNT = 10
         private const val DEFAULT_COUNT = 5
@@ -44,32 +44,32 @@ class WebSearchTool(private val apiKeyProvider: () -> String?) : Tool {
     override val name = "web_search"
     override val description = "Search the web using Brave Search API. Supports region-specific and localized search via country and language parameters. Returns titles, URLs, and snippets for fast research."
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "query" to PropertySchema(
+                        "query" to Propertyschema(
                             type = "string",
                             description = "Search query string."
                         ),
-                        "count" to PropertySchema(
+                        "count" to Propertyschema(
                             type = "number",
                             description = "Number of results to return (1-10)."
                         ),
-                        "country" to PropertySchema(
+                        "country" to Propertyschema(
                             type = "string",
                             description = "2-letter country code for region-specific results (e.g., 'DE', 'US', 'ALL'). Default: 'US'."
                         ),
-                        "language" to PropertySchema(
+                        "language" to Propertyschema(
                             type = "string",
                             description = "ISO 639-1 language code for results (e.g., 'en', 'de', 'fr')."
                         ),
-                        "freshness" to PropertySchema(
+                        "freshness" to Propertyschema(
                             type = "string",
                             description = "Filter by time: 'day' (24h), 'week', 'month', or 'year'."
                         )
@@ -80,33 +80,33 @@ class WebSearchTool(private val apiKeyProvider: () -> String?) : Tool {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): toolResult {
         val query = args["query"] as? String
-            ?: return ToolResult.error("Missing required parameter: query")
+            ?: return toolResult.error("Missing required parameter: query")
 
         val count = ((args["count"] as? Number)?.toInt() ?: DEFAULT_COUNT).coerceIn(1, MAX_COUNT)
         val country = args["country"] as? String
         val language = args["language"] as? String
         val freshness = args["freshness"] as? String
 
-        val apiKey = apiKeyProvider()
-        if (apiKey.isNullOrBlank()) {
-            return ToolResult.error("Brave Search API key not configured. Set tools.web.search.apiKey in openclaw.json or BRAVE_API_KEY environment variable.")
+        val apiKey = apiKeyprovider()
+        if (apiKey.isNullorBlank()) {
+            return toolResult.error("Brave Search API key not configured. Set tools.web.search.apiKey in openclaw.json or BRAVE_API_KEY environment variable.")
         }
 
-        return withContext(Dispatchers.IO) {
+        return withcontext(Dispatchers.IO) {
             try {
                 val urlBuilder = StringBuilder(BRAVE_API_URL)
                 urlBuilder.append("?q=").append(URLEncoder.encode(query, "UTF-8"))
                 urlBuilder.append("&count=").append(count)
 
-                if (!country.isNullOrBlank()) {
+                if (!country.isNullorBlank()) {
                     urlBuilder.append("&country=").append(URLEncoder.encode(country, "UTF-8"))
                 }
-                if (!language.isNullOrBlank()) {
+                if (!language.isNullorBlank()) {
                     urlBuilder.append("&search_lang=").append(URLEncoder.encode(language, "UTF-8"))
                 }
-                if (!freshness.isNullOrBlank()) {
+                if (!freshness.isNullorBlank()) {
                     // Map OpenClaw freshness values to Brave API
                     val braveFreshness = when (freshness.lowercase()) {
                         "day" -> "pd"
@@ -133,14 +133,14 @@ class WebSearchTool(private val apiKeyProvider: () -> String?) : Tool {
 
                 if (!response.isSuccessful || body == null) {
                     Log.e(TAG, "Search failed: ${response.code}")
-                    return@withContext ToolResult.error("Search failed: HTTP ${response.code}")
+                    return@withcontext toolResult.error("Search failed: HTTP ${response.code}")
                 }
 
                 val json = JSONObject(body)
                 val webResults = json.optJSONObject("web")?.optJSONArray("results")
 
                 if (webResults == null || webResults.length() == 0) {
-                    return@withContext ToolResult.success("No results found for: $query")
+                    return@withcontext toolResult.success("No results found for: $query")
                 }
 
                 val formatted = buildString {
@@ -152,18 +152,18 @@ class WebSearchTool(private val apiKeyProvider: () -> String?) : Tool {
 
                         appendLine("${i + 1}. **$title**")
                         appendLine("   $url")
-                        if (snippet.isNotBlank()) {
+                        if (snippet.isnotBlank()) {
                             appendLine("   $snippet")
                         }
                         appendLine()
                     }
                 }
 
-                ToolResult.success(formatted.trim())
+                toolResult.success(formatted.trim())
 
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Search failed", e)
-                ToolResult.error("Search failed: ${e.message}")
+                toolResult.error("Search failed: ${e.message}")
             }
         }
     }

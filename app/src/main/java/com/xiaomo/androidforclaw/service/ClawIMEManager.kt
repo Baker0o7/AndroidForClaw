@@ -1,10 +1,10 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.service
 
-import android.content.Context
+import android.content.context
 import android.provider.Settings
 import com.xiaomo.androidforclaw.logging.Log
 import android.view.KeyEvent
@@ -13,15 +13,15 @@ import android.view.inputmethod.ExtractedTextRequest
 
 /**
  * ClawIME Manage器
- * 提供对 ClawIME 的直接callInterface,避免useBroadcast
+ * 提供correct ClawIME 直接callInterface,避免useBroadcast
  *
  * 工作原理:
- * - ClawIME Yes同Process的 InputMethodService
- * - 通过单例Schema让 ClawIME Register自己的Instance
- * - Its他Group件通过此 Manager 直接call ClawIME 的Method
+ * - ClawIME Yes同Process InputMethodservice
+ * - through单例schema让 ClawIME Register自己Instance
+ * - Its他Group件throughthis manager 直接call ClawIME Method
  */
-object ClawIMEManager {
-    private const val TAG = "ClawIMEManager"
+object ClawIMEmanager {
+    private const val TAG = "ClawIMEmanager"
 
     // ClawIME Instance引用
     private var clawImeInstance: ClawIME? = null
@@ -43,28 +43,28 @@ object ClawIMEManager {
     }
 
     /**
-     * Check ClawIME YesNo为当FrontEnabledd的Input method
+     * Check ClawIME whetherforwhenFrontEnableInput method
      */
-    fun isClawImeEnableddd(context: Context): Boolean {
+    fun isClawImeEnabled(context: context): Boolean {
         return try {
             val currentIme = Settings.Secure.getString(
                 context.contentResolver,
                 Settings.Secure.DEFAULT_INPUT_METHOD
             )
             val clawImeName = "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME"
-            val isEnableddd = currentIme == clawImeName
-            Log.d(TAG, "Current IME: $currentIme, ClawIME enabled: $isEnableddd")
-            isEnableddd
-        } catch (e: Exception) {
+            val isEnabled = currentIme == clawImeName
+            Log.d(TAG, "Current IME: $currentIme, ClawIME enabled: $isEnabled")
+            isEnabled
+        } catch (e: exception) {
             Log.e(TAG, "Failed to check IME status", e)
             false
         }
     }
 
     /**
-     * Check ClawIME YesNo已Connect
-     * as long asInstanceExists就think已Connect(currentInputConnection 只在EditSession中才非 null, 
-     * 但 IME Service本身Yes活的, tap Input fieldBack connection 会AutoReady)
+     * Check ClawIME whetheralreadyConnect
+     * as long asInstanceExists就thinkalreadyConnect(currentInputConnection 只inEditsession中才非 null, 
+     * but IME service本身Yes活, tap Input fieldback connection willAutoReady)
      */
     fun isConnected(): Boolean {
         val hasInstance = clawImeInstance != null
@@ -74,14 +74,14 @@ object ClawIMEManager {
     }
 
     /**
-     * Check当FrontYesNoHas活跃的InputConnect(Input fieldHasFocus且Key盘已弹出)
+     * CheckwhenFrontwhetherHas活跃InputConnect(Input fieldHasFocus且Key盘already弹出)
      */
     fun hasActiveInputConnection(): Boolean {
         return clawImeInstance?.currentInputConnection != null
     }
 
     /**
-     * InputText(带Retry, Wait InputConnection Ready)
+     * InputText(带retry, Wait InputConnection Ready)
      */
     fun inputText(text: String): Boolean {
         val ime = clawImeInstance
@@ -90,12 +90,12 @@ object ClawIMEManager {
             return false
         }
 
-        // Wait InputConnection Ready(tap BackpossiblyNeed一点Time)
+        // Wait InputConnection Ready(tap backpossiblyneedone点Time)
         var ic = ime.currentInputConnection
         if (ic == null) {
             Log.d(TAG, "InputConnection not ready, waiting...")
             for (i in 1..10) {
-                try { Thread.sleep(100) } catch (_: InterruptedException) {}
+                try { Thread.sleep(100) } catch (_: interruptedexception) {}
                 ic = ime.currentInputConnection
                 if (ic != null) {
                     Log.d(TAG, "InputConnection ready after ${i * 100}ms")
@@ -115,7 +115,7 @@ object ClawIMEManager {
             ic.endBatchEdit()
             Log.d(TAG, "✓ Input text: ${text.take(50)}${if (text.length > 50) "..." else ""}")
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to input text", e)
             false
         }
@@ -125,29 +125,29 @@ object ClawIMEManager {
      * 清NullInput field
      */
     fun clearText(): Boolean {
-        val ic = waitForInputConnection() ?: return false
+        val ic = waitforInputConnection() ?: return false
 
         return try {
             // REF: stackoverflow/33082004 author: Maxime Epain
             val curPos = ic.getExtractedText(ExtractedTextRequest(), 0)?.text
             if (curPos != null) {
-                val beforePos = ic.getTextBeforeCursor(curPos.length, 0)
-                val afterPos = ic.getTextAfterCursor(curPos.length, 0)
+                val beforePos = ic.getTextbeforeCursor(curPos.length, 0)
+                val afterPos = ic.getTextafterCursor(curPos.length, 0)
                 ic.deleteSurroundingText(beforePos?.length ?: 0, afterPos?.length ?: 0)
             }
             Log.d(TAG, "✓ Cleared text")
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to clear text", e)
             false
         }
     }
 
     /**
-     * sendMessage (执RowEdit器Action或回车)
+     * sendMessage (executionEdit器Actionorreturn车)
      */
     fun sendMessage(): Boolean {
-        val ic = waitForInputConnection() ?: return false
+        val ic = waitforInputConnection() ?: return false
 
         return try {
             // 先Try IME_ACTION_SEND
@@ -160,7 +160,7 @@ object ClawIMEManager {
                 Log.d(TAG, "performEditorAction IME_ACTION_GO: $sent")
             }
 
-            // if还YesFailed,Trysend回车Key
+            // if还YesFailed,Trysendreturn车Key
             if (!sent) {
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
@@ -169,16 +169,16 @@ object ClawIMEManager {
             }
 
             sent
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to send message", e)
             false
         }
     }
 
     /**
-     * Wait InputConnection Ready(most多 1 秒)
+     * Wait InputConnection Ready(mostmany 1 seconds)
      */
-    private fun waitForInputConnection(): android.view.inputmethod.InputConnection? {
+    private fun waitforInputConnection(): android.view.inputmethod.InputConnection? {
         val ime = clawImeInstance
         if (ime == null) {
             Log.e(TAG, "ClawIME instance not available")
@@ -188,7 +188,7 @@ object ClawIMEManager {
         if (ic == null) {
             Log.d(TAG, "InputConnection not ready, waiting...")
             for (i in 1..10) {
-                try { Thread.sleep(100) } catch (_: InterruptedException) {}
+                try { Thread.sleep(100) } catch (_: interruptedexception) {}
                 ic = ime.currentInputConnection
                 if (ic != null) {
                     Log.d(TAG, "InputConnection ready after ${i * 100}ms")
@@ -206,28 +206,28 @@ object ClawIMEManager {
      * send按KeyEvent
      */
     fun sendKey(keyCode: Int): Boolean {
-        val ic = waitForInputConnection() ?: return false
+        val ic = waitforInputConnection() ?: return false
 
         return try {
             ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
             ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
             Log.d(TAG, "✓ Sent key code: $keyCode")
             true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to send key", e)
             false
         }
     }
 
     /**
-     * Get当FrontInput field中的Text(Debug用)
+     * GetwhenFrontInput field中Text(Debug用)
      */
     fun getCurrentText(): String? {
         val ic = clawImeInstance?.currentInputConnection ?: return null
         return try {
             val extracted = ic.getExtractedText(ExtractedTextRequest(), 0)
             extracted?.text?.toString()
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to get current text", e)
             null
         }

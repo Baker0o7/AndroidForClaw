@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -10,24 +10,24 @@ object AppConstants {
     // ============= HTTP Logging =============
     val HTTP_LOG_LEVEL: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.NONE
 
-    // ============= API Configillustrate =============
-    // All API Confignow从以DownConfig文件Read: 
-    // - /sdcard/.androidforclaw/config/models.json (模型提供商Config)
-    // - /sdcard/.androidforclaw/openclaw.json (OpenClaw 主Config)
+    // ============= API configillustrate =============
+    // All API confignowfrombynextconfigfilesRead: 
+    // - /sdcard/.androidforclaw/config/models.json (模型提供商config)
+    // - /sdcard/.androidforclaw/openclaw.json (OpenClaw mainconfig)
     //
-    // 请勿在此文件中硬Encode API Key 和 Base URL
-    // use ConfigLoader.loadModelsConfig() 和 ConfigLoader.loadOpenClawConfig() ReadConfig
+    // please勿inthisfiles中硬Encode API Key and Base URL
+    // use configLoader.loadmodelsconfig() and configLoader.loadOpenClawconfig() Readconfig
     //
     // 参考Document: 
-    // - CLAUDE.md: Configuration System
-    // - doc/OpenClaw架构Depthanalyze.md: Config系统illustrate
+    // - CLAUDE.md: configuration System
+    // - doc/OpenClaw架构Depthanalyze.md: config系统illustrate
 
-    // ============= EnvironmentVariableConstant(用于Config文件的 ${VAR_NAME} Replace) =============
-    // 这些Constant会被 ConfigLoader 通过反射Read, 用于ReplaceConfig文件中的EnvironmentVariable占位符
+    // ============= EnvironmentVariableConstant(用于configfiles ${VAR_NAME} Replace) =============
+    // thissomeConstantwill被 configLoader through反射Read, 用于Replaceconfigfiles中EnvironmentVariable占position符
     // Priority: 系统EnvironmentVariable > AppConstants Constant > MMKV Storage
     //
-    // ⚠️ 开源Version: 请在Config文件中Settings API Key, 不要在此处硬Encode
-    // Config文件Location: /sdcard/.androidforclaw/config/models.json
-    const val OPENROUTER_API_KEY = ""  // 请在 /sdcard/.androidforclaw/config/models.json 中Config
+    // [WARN] 开源Version: pleaseinconfigfiles中Settings API Key, notneedinthis处硬Encode
+    // configfilesLocation: /sdcard/.androidforclaw/config/models.json
+    const val OPENROUTER_API_KEY = ""  // pleasein /sdcard/.androidforclaw/config/models.json 中config
 
 }

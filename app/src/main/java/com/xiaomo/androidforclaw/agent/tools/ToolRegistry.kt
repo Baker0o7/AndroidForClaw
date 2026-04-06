@@ -4,119 +4,119 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tool-catalog.ts, openclaw-tools.ts
  *
- * AndroidForClaw adaptation: register app, android, config, and extension tools.
+ * androidforClaw adaptation: register app, android, config, and extension tools.
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.data.model.TaskDataManager
-import com.xiaomo.androidforclaw.providers.ToolDefinition
-import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
+import com.xiaomo.androidforclaw.data.model.TaskDatamanager
+import com.xiaomo.androidforclaw.providers.toolDefinition
+import com.xiaomo.androidforclaw.gateway.methods.configMethods
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
- * Tool Registry - Manages universal low-level Tools
- * Inspired by OpenClaw's pi-tools (from Pi Coding Agent)
+ * tool Registry - Manages universal low-level tools
+ * Inspired by OpenClaw's pi-tools (from Pi Coding agent)
  *
- * Tools are cross-platform universal capabilities:
+ * tools are cross-platform universal capabilities:
  * - read_file, write_file, edit_file: File operations
  * - list_dir: Directory listing
- * - exec: Execute shell commands (auto-routes to embedded Termux or internal shell)
+ * - exec: Execute shell commands (auto-routes to embeed Termux or internal shell)
  * - web_fetch: Web fetching
  *
- * Note: Android-specific capabilities are managed in AndroidToolRegistry
+ * note: android-specific capabilities are managed in androidtoolRegistry
  */
-class ToolRegistry(
-    private val context: Context,
-    private val taskDataManager: TaskDataManager
+class toolRegistry(
+    private val context: context,
+    private val taskDatamanager: TaskDatamanager
 ) {
     companion object {
-        private const val TAG = "ToolRegistry"
+        private const val TAG = "toolRegistry"
     }
 
-    private val tools = mutableMapOf<String, Tool>()
+    private val tools = mutableMapOf<String, tool>()
 
     init {
-        registerDefaultTools()
+        registerDefaulttools()
     }
 
     /**
      * Register universal tools (cross-platform capabilities)
      */
-    private fun registerDefaultTools() {
-        // Use external storage workspace (aligned with OpenClaw ~/.openclaw/workspace/)
+    private fun registerDefaulttools() {
+        // use external storage workspace (aligned with OpenClaw ~/.openclaw/workspace/)
         val workspace = StoragePaths.workspace
         workspace.mkdirs()
 
-        // === File system tools (from Pi Coding Agent) ===
-        register(ReadFileTool(workspace = workspace))
-        register(WriteFileTool(workspace = workspace))
-        register(EditFileTool(workspace = workspace))
-        register(ListDirTool(workspace = workspace))
+        // === File system tools (from Pi Coding agent) ===
+        register(ReadFiletool(workspace = workspace))
+        register(WriteFiletool(workspace = workspace))
+        register(EditFiletool(workspace = workspace))
+        register(ListDirtool(workspace = workspace))
 
         // === Memory tools (Memory Recall) ===
         
-        // Memory tools registered in AndroidToolRegistry (MemorySearchSkill/MemoryGetSkill)
+        // Memory tools registered in androidtoolRegistry (MemorySearchskill/MemoryGetskill)
 
-        // === Patch tool (OpenClaw apply-patch.ts) ===
-        register(ApplyPatchTool(workspace = workspace))
+        // === Patch tool (OpenClaw app-patch.ts) ===
+        register(ApplyPatchtool(workspace = workspace))
 
         // === Shell tools ===
         // Single exec entry with backend routing (auto/termux/internal).
-        register(ExecFacadeTool(context, workingDir = workspace.absolutePath))
+        register(ExecFacadetool(context, workingDir = workspace.absolutePath))
 
         // === Network tools ===
-        register(WebFetchTool())
-        register(WebSearchTool {
+        register(WebFetchtool())
+        register(WebSearchtool {
             // Resolve Brave API key from environment or openclaw.json
             System.getenv("BRAVE_API_KEY") ?: try {
                 val json = org.json.JSONObject(
-                    StoragePaths.openclawConfig.readText()
+                    StoragePaths.openclawconfig.readText()
                 )
                 json.optJSONObject("tools")
                     ?.optJSONObject("web")
                     ?.optJSONObject("search")
                     ?.optString("apiKey", null)
-            } catch (_: Exception) { null }
+            } catch (_: exception) { null }
         })
 
-        // === Canvas tool (Screen Tab WebView) ===
-        register(CanvasTool(context))
+        // === canvas tool (Screen Tab WebView) ===
+        register(canvastool(context))
 
-        // === Config tools ===
-        val configMethods = ConfigMethods(context)
-        register(ConfigGetTool(configMethods))
-        register(ConfigSetTool(configMethods))
+        // === config tools ===
+        val configMethods = configMethods(context)
+        register(configGettool(configMethods))
+        register(configSettool(configMethods))
 
         // === TTS tool (OpenClaw tts-tool.ts) ===
-        register(TtsTool(context))
+        register(Ttstool(context))
 
         // === Body tool (agent's virtual body) — only when enabled ===
-        val bodyEnableddd = context.getSharedPreferences("forclaw_avatar", android.content.Context.MODE_PRIVATE)
+        val bodyEnabled = context.getSharedPreferences("forclaw_avatar", android.content.context.MODE_PRIVATE)
             .getBoolean("enabled", false)
-        if (bodyEnableddd) {
-            AvatarTool.appContext = context.applicationContext
-            register(AvatarTool())
+        if (bodyEnabled) {
+            Avatartool.appcontext = context.applicationcontext
+            register(Avatartool())
         }
 
         // === ClawHub skill hub tools ===
         // Aligned with OpenClaw gateway RPC: skills.search / skills.install
-        register(SkillsSearchTool(context))
-        register(SkillsInstallTool(context))
-        register(ClawHubConfigTool(context))
+        register(skillsSearchtool(context))
+        register(skillsInstalltool(context))
+        register(ClawHubconfigtool(context))
 
         // === Lark CLI (飞书官方 CLI) ===
-        register(LarkCliTool(context))
+        register(LarkClitool(context))
 
-        Log.d(TAG, "✅ Registered ${tools.size} universal tools (memory tools in AndroidToolRegistry)")
+        Log.d(TAG, "[OK] Registered ${tools.size} universal tools (memory tools in androidtoolRegistry)")
     }
 
     /**
      * Register a tool
      */
-    fun register(tool: Tool) {
+    fun register(tool: tool) {
         tools[tool.name] = tool
         Log.d(TAG, "Registered tool: ${tool.name}")
     }
@@ -129,40 +129,40 @@ class ToolRegistry(
     /**
      * Execute tool
      */
-    suspend fun execute(name: String, args: Map<String, Any?>): Toolresult {
+    suspend fun execute(name: String, args: Map<String, Any?>): toolresult {
         val tool = tools[name]
         if (tool == null) {
             Log.e(TAG, "Unknown tool: $name")
-            return Toolresult.error("Unknown tool: $name")
+            return toolresult.error("Unknown tool: $name")
         }
 
         Log.d(TAG, "Executing tool: $name with args: $args")
         return try {
             tool.execute(args)
-        } catch (e: Exception) {
-            Log.e(TAG, "Tool execution failed: $name", e)
-            Toolresult.error("Execution failed: ${e.message}")
+        } catch (e: exception) {
+            Log.e(TAG, "tool execution failed: $name", e)
+            toolresult.error("Execution failed: ${e.message}")
         }
     }
 
     /**
-     * Get all Tool Definitions (for LLM function calling)
+     * Get all tool Definitions (for LLM function calling)
      */
-    fun getToolDefinitions(): List<ToolDefinition> {
-        return tools.values.map { it.getToolDefinition() }
+    fun gettoolDefinitions(): List<toolDefinition> {
+        return tools.values.map { it.gettoolDefinition() }
     }
 
     /**
      * Get all tools description (for building system prompt)
      */
-    fun getToolsDescription(excludeTools: Set<String> = emptySet()): String {
+    fun gettoolsDescription(excludetools: Set<String> = emptySet()): String {
         return buildString {
-            appendLine("## Universal Tools")
+            appendLine("## Universal tools")
             appendLine()
-            appendLine("跨平台通用工具, from Pi Coding Agent 和 OpenClaw: ")
+            appendLine("跨platform通用工具, from Pi Coding agent and OpenClaw: ")
             appendLine()
             tools.values
-                .filter { it.name !in excludeTools }
+                .filter { it.name !in excludetools }
                 .forEach { tool ->
                     appendLine("### ${tool.name}")
                     appendLine(tool.description)
@@ -174,5 +174,5 @@ class ToolRegistry(
     /**
      * Get tool count
      */
-    fun getToolCount(): Int = tools.size
+    fun gettoolCount(): Int = tools.size
 }

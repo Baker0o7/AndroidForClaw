@@ -4,30 +4,30 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
-import com.xiaomo.androidforclaw.agent.session.SessionManager
+import com.xiaomo.androidforclaw.agent.session.sessionmanager
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.gateway.protocol.*
-import java.text.SimpleDateFormat
+import java.text.SimpleDateformat
 import java.util.Locale
 
 /**
- * Session RPC methods implementation
+ * session RPC methods implementation
  */
-class SessionMethods(
-    private val sessionManager: SessionManager
+class sessionMethods(
+    private val sessionmanager: sessionmanager
 ) {
     /**
      * sessions.list() - List all sessions
      */
     @Suppress("UNCHECKED_CAST")
-    fun sessionsList(params: Any?): SessionListResult {
+    fun sessionsList(params: Any?): sessionListResult {
         val p = params as? Map<String, Any?> ?: emptyMap()
         val limit = (p["limit"] as? Number)?.toInt() ?: Int.MAX_VALUE
 
-        val keys = sessionManager.getAllKeys()
+        val keys = sessionmanager.getAllKeys()
         val sessions = keys.map { key ->
-            val session = sessionManager.get(key)
-            SessionInfo(
+            val session = sessionmanager.get(key)
+            sessionInfo(
                 key = key,
                 messageCount = session?.messageCount() ?: 0,
                 createdAt = parseIso8601(session?.createdAt),
@@ -35,15 +35,15 @@ class SessionMethods(
                 displayName = session?.metadata?.get("displayName") as? String
             )
         }.sortedByDescending { it.updatedAt }.take(limit)
-        return SessionListResult(sessions = sessions)
+        return sessionListResult(sessions = sessions)
     }
 
     private fun parseIso8601(isoString: String?): Long {
-        if (isoString.isNullOrEmpty()) return System.currentTimeMillis()
+        if (isoString.isNullorEmpty()) return System.currentTimeMillis()
         return try {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).parse(isoString)?.time
+            SimpleDateformat("yyyy-MM-'T'HH:mm:ss.SSS'Z'", Locale.US).parse(isoString)?.time
                 ?: System.currentTimeMillis()
-        } catch (_: Exception) {
+        } catch (_: exception) {
             System.currentTimeMillis()
         }
     }
@@ -52,24 +52,24 @@ class SessionMethods(
      * sessions.preview() - Preview a session's messages
      */
     @Suppress("UNCHECKED_CAST")
-    fun sessionsPreview(params: Any?): SessionPreviewResult {
+    fun sessionsPreview(params: Any?): sessionPreviewResult {
         val paramsMap = params as? Map<String, Any?>
-            ?: throw IllegalArgumentException("params must be an object")
+            ?: throw IllegalArgumentexception("params must be an object")
         val key = paramsMap["key"] as? String
-            ?: throw IllegalArgumentException("key required")
+            ?: throw IllegalArgumentexception("key required")
 
-        val session = sessionManager.get(key)
-            ?: throw IllegalArgumentException("Session not found: $key")
+        val session = sessionmanager.get(key)
+            ?: throw IllegalArgumentexception("session not found: $key")
 
-        val messages: List<SessionMessage> = session.messages.map { msg: LegacyMessage ->
-            SessionMessage(
+        val messages: List<sessionMessage> = session.messages.map { msg: LegacyMessage ->
+            sessionMessage(
                 role = msg.role,
                 content = msg.content?.toString() ?: "",
                 timestamp = System.currentTimeMillis()
             )
         }
 
-        return SessionPreviewResult(key = key, messages = messages)
+        return sessionPreviewResult(key = key, messages = messages)
     }
 
     /**
@@ -78,11 +78,11 @@ class SessionMethods(
     @Suppress("UNCHECKED_CAST")
     fun sessionsReset(params: Any?): Map<String, Boolean> {
         val paramsMap = params as? Map<String, Any?>
-            ?: throw IllegalArgumentException("params must be an object")
+            ?: throw IllegalArgumentexception("params must be an object")
         val key = paramsMap["key"] as? String
-            ?: throw IllegalArgumentException("key required")
+            ?: throw IllegalArgumentexception("key required")
 
-        sessionManager.clear(key)
+        sessionmanager.clear(key)
         return mapOf("success" to true)
     }
 
@@ -92,11 +92,11 @@ class SessionMethods(
     @Suppress("UNCHECKED_CAST")
     fun sessionsDelete(params: Any?): Map<String, Boolean> {
         val paramsMap = params as? Map<String, Any?>
-            ?: throw IllegalArgumentException("params must be an object")
+            ?: throw IllegalArgumentexception("params must be an object")
         val key = paramsMap["key"] as? String
-            ?: throw IllegalArgumentException("key required")
+            ?: throw IllegalArgumentexception("key required")
 
-        sessionManager.clear(key)
+        sessionmanager.clear(key)
         return mapOf("success" to true)
     }
 
@@ -105,17 +105,17 @@ class SessionMethods(
      *
      * Supported operations:
      * - metadata: Update session metadata
-     * - messages: Manipulate message list (add, remove, update)
+     * - messages: Manipulate message list (a, remove, update)
      */
     @Suppress("UNCHECKED_CAST")
     fun sessionsPatch(params: Any?): Map<String, Boolean> {
         val paramsMap = params as? Map<String, Any?>
-            ?: throw IllegalArgumentException("params must be an object")
+            ?: throw IllegalArgumentexception("params must be an object")
         val key = paramsMap["key"] as? String
-            ?: throw IllegalArgumentException("key required")
+            ?: throw IllegalArgumentexception("key required")
 
-        val session = sessionManager.get(key)
-            ?: throw IllegalArgumentException("Session not found: $key")
+        val session = sessionmanager.get(key)
+            ?: throw IllegalArgumentexception("session not found: $key")
 
         // Update metadata
         val metadata = paramsMap["metadata"] as? Map<String, Any?>
@@ -129,11 +129,11 @@ class SessionMethods(
             val operation = messagesOp["op"] as? String
 
             when (operation) {
-                "add" -> {
-                    // Add message
+                "a" -> {
+                    // A message
                     val role = messagesOp["role"] as? String ?: "user"
                     val content = messagesOp["content"] as? String ?: ""
-                    session.addMessage(LegacyMessage(role = role, content = content))
+                    session.aMessage(LegacyMessage(role = role, content = content))
                 }
                 "remove" -> {
                     // Remove message at specified index
@@ -152,14 +152,14 @@ class SessionMethods(
                     if (session.messages.size > count) {
                         val keep = session.messages.takeLast(count)
                         session.messages.clear()
-                        session.messages.addAll(keep)
+                        session.messages.aAll(keep)
                     }
                 }
             }
         }
 
         // Save session
-        sessionManager.save(session)
+        sessionmanager.save(session)
 
         return mapOf("success" to true)
     }

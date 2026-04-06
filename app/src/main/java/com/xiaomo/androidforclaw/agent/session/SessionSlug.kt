@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.agent.session
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/session-slug.ts
  *
- * AndroidForClaw adaptation: human-readable session identifiers.
+ * androidforClaw adaptation: human-readable session identifiers.
  */
 
 import kotlin.random.Random
@@ -13,7 +13,7 @@ import kotlin.random.Random
  * Human-readable session slug generator.
  * Aligned with OpenClaw session-slug.ts.
  */
-object SessionSlug {
+object sessionSlug {
 
     /**
      * Adjectives for slug generation (42 words).
@@ -23,7 +23,7 @@ object SessionSlug {
         "swift", "bright", "calm", "dark", "eager", "fair", "gentle", "happy",
         "keen", "lively", "merry", "noble", "proud", "quiet", "rapid", "sharp",
         "tender", "vivid", "warm", "young", "ancient", "bold", "clever", "daring",
-        "elegant", "fierce", "grand", "hidden", "ivory", "jade", "kind", "lunar",
+        "elegant", "fierce", "grand", "hien", "ivory", "jade", "kind", "lunar",
         "mystic", "nimble", "ornate", "pale", "regal", "serene", "true", "vast",
         "wild", "zealous"
     )
@@ -48,9 +48,9 @@ object SessionSlug {
      * Create a human-readable session slug.
      * Tries 2-word → 3-word → random suffix → timestamp fallback.
      *
-     * Aligned with OpenClaw createSessionSlug.
+     * Aligned with OpenClaw createsessionSlug.
      */
-    fun createSessionSlug(isTaken: ((String) -> Boolean)? = null): String {
+    fun createsessionSlug(isTaken: ((String) -> Boolean)? = null): String {
         // Try 2-word slugs first
         repeat(10) {
             val slug = "${randomAdj()}-${randomNoun()}"

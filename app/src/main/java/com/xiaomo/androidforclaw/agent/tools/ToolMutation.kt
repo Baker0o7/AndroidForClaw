@@ -4,21 +4,21 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tool-mutation.ts
  *
- * AndroidForClaw adaptation: mutating tool detection and fingerprinting.
+ * androidforClaw adaptation: mutating tool detection and fingerprinting.
  */
 
 /**
- * Tool mutation detection — identifies write/side-effect tool calls.
+ * tool mutation detection — identifies write/side-effect tool calls.
  * Aligned with OpenClaw tool-mutation.ts.
  */
-object ToolMutation {
+object toolMutation {
 
     /**
-     * Tool names that are always or sometimes mutating.
+     * tool names that are always or sometimes mutating.
      * Aligned with OpenClaw MUTATING_TOOL_NAMES.
      */
     val MUTATING_TOOL_NAMES = setOf(
-        "write", "edit", "apply_patch", "exec", "bash", "process",
+        "write", "edit", "app_patch", "exec", "bash", "process",
         "message", "sessions_send", "cron", "gateway", "canvas",
         "nodes", "session_status"
     )
@@ -43,23 +43,23 @@ object ToolMutation {
 
     /**
      * Quick check: is the tool name likely mutating?
-     * Aligned with OpenClaw isLikelyMutatingToolName.
+     * Aligned with OpenClaw islikelyMutatingtoolName.
      */
-    fun isLikelyMutatingToolName(toolName: String): Boolean {
+    fun islikelyMutatingtoolName(toolName: String): Boolean {
         return toolName.trim().lowercase() in MUTATING_TOOL_NAMES
     }
 
     /**
      * Deep check: is this specific tool call mutating, considering the action arg?
-     * Aligned with OpenClaw isMutatingToolCall.
+     * Aligned with OpenClaw isMutatingtoolCall.
      */
-    fun isMutatingToolCall(toolName: String, args: Map<String, Any?> = emptyMap()): Boolean {
+    fun isMutatingtoolCall(toolName: String, args: Map<String, Any?> = emptyMap()): Boolean {
         val name = toolName.trim().lowercase()
         val rawAction = (args["action"] as? String)?.trim()?.lowercase()
             ?.replace(Regex("[\\s-]"), "_")
 
         return when (name) {
-            "write", "edit", "apply_patch", "exec", "bash", "sessions_send" -> true
+            "write", "edit", "app_patch", "exec", "bash", "sessions_send" -> true
 
             "process" -> rawAction != null && rawAction in PROCESS_MUTATING_ACTIONS
 
@@ -69,7 +69,7 @@ object ToolMutation {
             }
 
             "session_status" -> {
-                !(args["model"] as? String).isNullOrBlank()
+                !(args["model"] as? String).isNullorBlank()
             }
 
             "cron", "gateway", "canvas" -> rawAction == null || rawAction !in READ_ONLY_ACTIONS
@@ -77,12 +77,12 @@ object ToolMutation {
             "nodes" -> rawAction != "list"
 
             else -> {
-                // Tools ending with _actions
-                if (name.endsWith("_actions")) {
+                // tools ending with _actions
+                if (name.endswith("_actions")) {
                     return rawAction == null || rawAction !in READ_ONLY_ACTIONS
                 }
-                // Tools starting with message_ or containing send
-                if (name.startsWith("message_") || name.contains("send")) return true
+                // tools starting with message_ or containing send
+                if (name.startswith("message_") || name.contains("send")) return true
                 false
             }
         }
@@ -101,14 +101,14 @@ object ToolMutation {
      * Build a stable fingerprint for a mutating tool call.
      * Returns null if the call is not mutating.
      *
-     * Aligned with OpenClaw buildToolActionFingerprint.
+     * Aligned with OpenClaw buildtoolActionFingerprint.
      */
-    fun buildToolActionFingerprint(
+    fun buildtoolActionFingerprint(
         toolName: String,
         args: Map<String, Any?> = emptyMap(),
         meta: String? = null
     ): String? {
-        if (!isMutatingToolCall(toolName, args)) return null
+        if (!isMutatingtoolCall(toolName, args)) return null
 
         val name = toolName.trim().lowercase()
         val action = (args["action"] as? String)?.trim()?.lowercase()
@@ -116,22 +116,22 @@ object ToolMutation {
 
         val parts = mutableListOf("tool=$name")
         if (action != null) {
-            parts.add("action=$action")
+            parts.a("action=$action")
         }
 
         // Find the first non-empty target key
         var foundTarget = false
         for (key in FINGERPRINT_TARGET_KEYS) {
             val value = args[key]?.toString()?.trim()
-            if (!value.isNullOrEmpty()) {
-                parts.add("$key=$value")
+            if (!value.isNullorEmpty()) {
+                parts.a("$key=$value")
                 foundTarget = true
                 break
             }
         }
 
         if (!foundTarget && meta != null) {
-            parts.add("meta=${meta.trim().lowercase()}")
+            parts.a("meta=${meta.trim().lowercase()}")
         }
 
         return parts.joinToString("|")
@@ -141,23 +141,23 @@ object ToolMutation {
      * Build mutation state for a tool call.
      * Returns (isMutating, fingerprint).
      *
-     * Aligned with OpenClaw buildToolMutationState.
+     * Aligned with OpenClaw buildtoolMutationState.
      */
-    fun buildToolMutationState(
+    fun buildtoolMutationState(
         toolName: String,
         args: Map<String, Any?> = emptyMap(),
         meta: String? = null
     ): Pair<Boolean, String?> {
-        val mutating = isMutatingToolCall(toolName, args)
-        val fingerprint = if (mutating) buildToolActionFingerprint(toolName, args, meta) else null
+        val mutating = isMutatingtoolCall(toolName, args)
+        val fingerprint = if (mutating) buildtoolActionFingerprint(toolName, args, meta) else null
         return mutating to fingerprint
     }
 
     /**
      * Check if two tool actions are the same mutation.
-     * Aligned with OpenClaw isSameToolMutationAction.
+     * Aligned with OpenClaw isSametoolMutationAction.
      */
-    fun isSameToolMutationAction(
+    fun isSametoolMutationAction(
         existingFingerprint: String?,
         nextFingerprint: String?
     ): Boolean {

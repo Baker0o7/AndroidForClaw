@@ -2,37 +2,37 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/model-selection.ts (buildConfiguredAllowlistKeys)
+ * - ../openclaw/src/agents/model-selection.ts (buildconfiguredAllowlistKeys)
  *
- * Model allowlist/blocklist — controls which models are permitted for LLM requests.
+ * model allowlist/blocklist — controls which models are permitted for LLM requests.
  * Supports glob-style wildcards (e.g., "gpt-*" matches "gpt-4o").
  */
-object ModelAllowlist {
+object modelAllowlist {
 
     /**
      * Check if a model ID is allowed by the allowlist/blocklist configuration.
      *
      * Rules:
-     * - If no config or both lists are null/empty: all models allowed
-     * - If `allow` is set: only models matching at least one allow pattern are permitted
-     * - If `block` is set: models matching any block pattern are rejected
+     * - if no config or both lists are null/empty: all models allowed
+     * - if `allow` is set: only models matching at least one allow pattern are permitted
+     * - if `block` is set: models matching any block pattern are rejected
      * - `block` takes precedence over `allow` (if a model matches both, it's blocked)
      */
-    fun isModelAllowed(modelId: String, config: ModelAllowlistConfig?): Boolean {
+    fun ismodelAllowed(modelId: String, config: modelAllowlistconfig?): Boolean {
         if (config == null) return true
 
         val allow = config.allow
         val block = config.block
 
         // Block takes precedence
-        if (!block.isNullOrEmpty()) {
+        if (!block.isNullorEmpty()) {
             if (block.any { matchesGlob(modelId, it) }) {
                 return false
             }
         }
 
-        // If allow list is specified, model must match at least one pattern
-        if (!allow.isNullOrEmpty()) {
+        // if allow list is specified, model must match at least one pattern
+        if (!allow.isNullorEmpty()) {
             return allow.any { matchesGlob(modelId, it) }
         }
 
@@ -66,9 +66,9 @@ object ModelAllowlist {
 }
 
 /**
- * Model allowlist/blocklist configuration.
+ * model allowlist/blocklist configuration.
  */
-data class ModelAllowlistConfig(
+data class modelAllowlistconfig(
     val allow: List<String>? = null,
     val block: List<String>? = null
 )

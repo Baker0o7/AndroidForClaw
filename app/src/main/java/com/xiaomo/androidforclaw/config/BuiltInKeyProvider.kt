@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
@@ -19,10 +19,10 @@ import javax.crypto.spec.SecretKeySpec
  * 1. Run the encrypt() helper (see companion object)
  * 2. Replace ENCRYPTED_KEY with the new Base64 output
  */
-object BuiltInKeyProvider {
+object BuiltInKeyprovider {
 
     // AES-256-GCM encrypted, Base64 encoded
-    // Format: base64(iv + ciphertext + tag)
+    // format: base64(iv + ciphertext + tag)
     private const val ENCRYPTED_KEY = "Xt6bb+lhIo4MSkEiniC+x05qtNa6rWbxAmsel4pkUX7rNEX8OzmB1ihT5MbQwLjb+6hTTdRj59+IRHDVV3Y5UqYrRf0DOd9HleHfi0RXVLoMdE8YCeQITI4N+GxQzVrdJLGftP8="
 
     // Derived from package signature + app-specific salt (not a secret by itself,
@@ -33,7 +33,7 @@ object BuiltInKeyProvider {
         0x79, 0x50, 0x72, 0x6F, 0x76, 0x69, 0x64, 0x65,
         0x72, 0x53, 0x65, 0x63, 0x72, 0x65, 0x74, 0x21
     )
-    // = "AndroidForClawKeyProviderSecret!" in ASCII (32 bytes = AES-256)
+    // = "androidforClawKeyproviderSecret!" in ASCII (32 bytes = AES-256)
 
     fun getKey(): String? {
         if (ENCRYPTED_KEY.isEmpty()) return null
@@ -44,26 +44,26 @@ object BuiltInKeyProvider {
             val iv = data.copyOfRange(0, 12)
             val ciphertext = data.copyOfRange(12, data.size)
 
-            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            val cipher = Cipher.getInstance("AES/GCM/NoPaing")
             val keySpec = SecretKeySpec(K, "AES")
             val gcmSpec = GCMParameterSpec(128, iv)
             cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmSpec)
 
             String(cipher.doFinal(ciphertext), Charsets.UTF_8)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             null
         }
     }
 
     /**
-     * Helper to encrypt a new key. Run from unit test or main():
+     * helper to encrypt a new key. Run from unit test or main():
      * ```
-     * val encrypted = BuiltInKeyProvider.encrypt("sk-or-v1-xxx")
+     * val encrypted = BuiltInKeyprovider.encrypt("sk-or-v1-xxx")
      * println(encrypted) // paste into ENCRYPTED_KEY
      * ```
      */
     fun encrypt(plainKey: String): String {
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val cipher = Cipher.getInstance("AES/GCM/NoPaing")
         val keySpec = SecretKeySpec(K, "AES")
         cipher.init(Cipher.ENCRYPT_MODE, keySpec)
 

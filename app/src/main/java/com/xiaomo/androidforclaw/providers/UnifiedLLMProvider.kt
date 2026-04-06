@@ -2,33 +2,33 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-runner/run/attempt.ts (LLM call: session create, stream, tool dispatch)
- * - ../openclaw/src/agents/pi-embedded-runner/run/payloads.ts (request payload construction)
- * - ../openclaw/src/agents/pi-embedded-payloads.ts (provider-specific payload formatting)
+ * - ../openclaw/src/agents/pi-embeed-runner/run/attempt.ts (LLM call: session create, stream, tool dispatch)
+ * - ../openclaw/src/agents/pi-embeed-runner/run/payloads.ts (request payload construction)
+ * - ../openclaw/src/agents/pi-embeed-payloads.ts (provider-specific payload formatting)
  *
- * Note: pi-embedded-runner.ts is a barrel re-export; actual logic is in pi-embedded-runner/run/attempt.ts etc.
+ * note: pi-embeed-runner.ts is a barrel re-export; actual logic is in pi-embeed-runner/run/attempt.ts etc.
  *
- * AndroidForClaw adaptation: unified provider dispatch for Android (batch + SSE streaming).
+ * androidforClaw adaptation: unified provider dispatch for android (batch + SSE streaming).
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.config.ModelApi
-import com.xiaomo.androidforclaw.config.ModelDefinition
-import com.xiaomo.androidforclaw.config.ProviderConfig
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.config.modelApi
+import com.xiaomo.androidforclaw.config.modelDefinition
+import com.xiaomo.androidforclaw.config.providerconfig
 import com.xiaomo.androidforclaw.providers.llm.Message
-import com.xiaomo.androidforclaw.providers.llm.ToolDefinition as NewToolDefinition
-import com.xiaomo.androidforclaw.providers.llm.FunctionDefinition as NewFunctionDefinition
-import com.xiaomo.androidforclaw.providers.llm.ParametersSchema as NewParametersSchema
-import com.xiaomo.androidforclaw.providers.llm.PropertySchema as NewPropertySchema
+import com.xiaomo.androidforclaw.providers.llm.toolDefinition as newtoolDefinition
+import com.xiaomo.androidforclaw.providers.llm.FunctionDefinition as newFunctionDefinition
+import com.xiaomo.androidforclaw.providers.llm.Parametersschema as newParametersschema
+import com.xiaomo.androidforclaw.providers.llm.Propertyschema as newPropertyschema
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -37,53 +37,53 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
- * 统一 LLM Provider
+ * 统one LLM provider
  * Supports all OpenClaw compatible API types
  *
  * Features:
  * 1. Automatically load provider and model info from config files
  * 2. Support multiple API formats (OpenAI, Anthropic, Gemini, Ollama, etc.)
- * 3. Use ApiAdapter to handle differences between different APIs
+ * 3. use ApiAdapter to handle differences between different APIs
  * 4. Support Extended Thinking / Reasoning
  * 5. Support custom headers and authentication methods
  *
  * Reference: OpenClaw src/agents/llm-client.ts
  */
-class UnifiedLLMProvider(private val context: Context) {
+class UnifiedLLMprovider(private val context: context) {
 
     companion object {
-        private const val TAG = "UnifiedLLMProvider"
+        private const val TAG = "UnifiedLLMprovider"
         private const val DEFAULT_TIMEOUT_SECONDS = 120L
         private const val DEFAULT_TEMPERATURE = 0.7
     }
 
-    private val configLoader = ConfigLoader(context)
+    private val configLoader = configLoader(context)
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .writeTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .addNetworkInterceptor { chain ->
+        .aNetworkInterceptor { chain ->
             chain.proceed(
                 chain.request().newBuilder()
-                    .header("User-Agent", "AndroidForClaw/${com.xiaomo.androidforclaw.BuildConfig.VERSION_NAME}")
+                    .header("user-agent", "androidforClaw/${com.xiaomo.androidforclaw.Buildconfig.VERSION_NAME}")
                     .build()
             )
         }
         .build()
 
     /**
-     * ConvertOld的 ToolDefinition 到New格式
+     * Convertold toolDefinition tonewformat
      */
-    private fun convertToolDefinition(old: ToolDefinition): NewToolDefinition {
-        return NewToolDefinition(
+    private fun converttoolDefinition(old: toolDefinition): newtoolDefinition {
+        return newtoolDefinition(
             type = old.type,
-            function = NewFunctionDefinition(
+            function = newFunctionDefinition(
                 name = old.function.name,
                 description = old.function.description,
-                parameters = NewParametersSchema(
+                parameters = newParametersschema(
                     type = old.function.parameters.type,
                     properties = old.function.parameters.properties.mapValues { (_, prop) ->
-                        convertPropertySchema(prop)
+                        convertPropertyschema(prop)
                     },
                     required = old.function.parameters.required
                 )
@@ -91,103 +91,103 @@ class UnifiedLLMProvider(private val context: Context) {
         )
     }
 
-    private fun convertPropertySchema(old: PropertySchema): NewPropertySchema {
-        return NewPropertySchema(
+    private fun convertPropertyschema(old: Propertyschema): newPropertyschema {
+        return newPropertyschema(
             type = old.type,
             description = old.description,
             enum = old.enum,
-            items = old.items?.let { convertPropertySchema(it) },
-            properties = old.properties?.mapValues { (_, child) -> convertPropertySchema(child) }
+            items = old.items?.let { convertPropertyschema(it) },
+            properties = old.properties?.mapValues { (_, child) -> convertPropertyschema(child) }
         )
     }
 
     /**
-     * 带工具call的Chat
+     * 带工具callChat
      *
      * @param messages Message list
-     * @param tools Tool definition list (old format)
-     * @param modelRef Model reference, format: provider/model-id or just model-id
+     * @param tools tool definition list (old format)
+     * @param modelRef model reference, format: provider/model-id or just model-id
      * @param temperature Temperature parameter
      * @param maxTokens Maximum generated tokens
-     * @param reasoningEnableddd Whether to enable reasoning mode
+     * @param reasoningEnabled Whether to enable reasoning mode
      */
-    suspend fun chatWithTools(
+    suspend fun chatwithtools(
         messages: List<Message>,
-        tools: List<ToolDefinition>?,
+        tools: List<toolDefinition>?,
         modelRef: String? = null,
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
-        reasoningEnableddd: Boolean = false,
+        reasoningEnabled: Boolean = false,
         maxRetries: Int = 3
-    ): LLMResponse = withContext(Dispatchers.IO) {
+    ): LLMResponse = withcontext(Dispatchers.IO) {
         // Convert tool definitions to new format
-        val newTools = tools?.map { convertToolDefinition(it) }
+        val newtools = tools?.map { converttoolDefinition(it) }
 
         // Parse primary model reference
-        val (primaryProvider, primaryModel) = parseModelRef(modelRef)
+        val (primaryprovider, primarymodel) = parsemodelRef(modelRef)
 
-        // Use model fallback chain (OpenClaw model-fallback.ts)
-        val config = configLoader.loadOpenClawConfig()
-        val fallbackresult = ModelFallback.runWithModelFallback(
+        // use model fallback chain (OpenClaw model-fallback.ts)
+        val config = configLoader.loadOpenClawconfig()
+        val fallbackresult = modelFallback.runwithmodelFallback(
             config = config,
             configLoader = configLoader,
-            provider = primaryProvider,
-            model = primaryModel,
+            provider = primaryprovider,
+            model = primarymodel,
             run = { provider, model ->
-                performRequestForModel(
-                    messages, newTools, provider, model, temperature, maxTokens, reasoningEnableddd, maxRetries
+                performRequestformodel(
+                    messages, newtools, provider, model, temperature, maxTokens, reasoningEnabled, maxRetries
                 )
             },
             onError = { provider, model, error, attempt, total ->
-                Log.w(TAG, "⚠️ Fallback attempt $attempt/$total failed for $provider/$model: ${error.message}")
+                Log.w(TAG, "[WARN] Fallback attempt $attempt/$total failed for $provider/$model: ${error.message}")
             }
         )
 
-        return@withContext fallbackresult.result
+        return@withcontext fallbackresult.result
     }
 
     /**
-     * 流式Chat — Return Flow<StreamChunk>, 实时 emit SSE 增量
-     * Aligned with OpenClaw streamSimple / pi-embedded-subscribe.handlers.messages.ts
+     * 流式Chat — Return Flow<StreamChunk>, 实hour emit SSE 增量
+     * Aligned with OpenClaw streamSimple / pi-embeed-subscribe.handlers.messages.ts
      */
-    fun chatWithToolsStreaming(
+    fun chatwithtoolsStreaming(
         messages: List<Message>,
-        tools: List<ToolDefinition>?,
+        tools: List<toolDefinition>?,
         modelRef: String? = null,
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
-        reasoningEnableddd: Boolean = false,
+        reasoningEnabled: Boolean = false,
         maxRetries: Int = 3
     ): Flow<StreamChunk> = flow {
-        val newTools = tools?.map { convertToolDefinition(it) }
-        val (resolvedProviderName, resolvedModelId) = parseModelRef(modelRef)
-        val config = configLoader.loadOpenClawConfig()
+        val newtools = tools?.map { converttoolDefinition(it) }
+        val (resolvedproviderName, resolvedmodelId) = parsemodelRef(modelRef)
+        val config = configLoader.loadOpenClawconfig()
 
-        // === Layer 1: Model Fallback ===
-        val candidates = ModelFallback.resolveFallbackCandidates(
-            config, configLoader, resolvedProviderName, resolvedModelId, null
+        // === Layer 1: model Fallback ===
+        val candidates = modelFallback.resolveFallbackcandidates(
+            config, configLoader, resolvedproviderName, resolvedmodelId, null
         )
-        var lastException: Exception? = null
+        var lastexception: exception? = null
 
         for (candidate in candidates) {
             try {
                 // Resolve candidate provider/model config
-                val aliasResolved = configLoader.resolveModelId(candidate.model)
-                val normalizedModelId = ModelIdNormalization.normalizeModelId(candidate.provider, aliasResolved)
-                val providerRaw = configLoader.getProviderConfig(candidate.provider)
-                    ?: throw LLMException("Provider not found: ${candidate.provider}")
-                val modelRaw = providerRaw.models.find { it.id == normalizedModelId }
+                val aliasResolved = configLoader.resolvemodelId(candidate.model)
+                val normalizedmodelId = modelIdNormalization.normalizemodelId(candidate.provider, aliasResolved)
+                val providerRaw = configLoader.getproviderconfig(candidate.provider)
+                    ?: throw LLMexception("provider not found: ${candidate.provider}")
+                val modelRaw = providerRaw.models.find { it.id == normalizedmodelId }
                     ?: providerRaw.models.find { it.id == candidate.model }
-                    ?: throw LLMException("Model not found: $normalizedModelId in provider: ${candidate.provider}")
-                val (provider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, candidate.provider)
+                    ?: throw LLMexception("model not found: $normalizedmodelId in provider: ${candidate.provider}")
+                val (provider, model) = modelCompat.normalizemodelCompat(providerRaw, modelRaw, candidate.provider)
                 val api = model.api ?: provider.api
 
-                // Non-streaming APIs → batch fallback (already has full retry/rotation via performRequestForModel)
-                if (api == ModelApi.GOOGLE_GENERATIVE_AI || api == ModelApi.OPENAI_RESPONSES || api == ModelApi.OPENAI_CODEX_RESPONSES) {
-                    Log.d(TAG, "⚠️ API $api does not support streaming, falling back to batch")
-                    val batchResponse = performRequestForModel(
-                        messages, newTools, candidate.provider, candidate.model,
-                        temperature, maxTokens, reasoningEnableddd, maxRetries
+                // Non-streaming APIs → batch fallback (already has full retry/rotation via performRequestformodel)
+                if (api == modelApi.GOOGLE_GENERATIVE_AI || api == modelApi.OPENAI_RESPONSES || api == modelApi.OPENAI_CODEX_RESPONSES) {
+                    Log.d(TAG, "[WARN] API $api does not support streaming, falling back to batch")
+                    val batchResponse = performRequestformodel(
+                        messages, newtools, candidate.provider, candidate.model,
+                        temperature, maxTokens, reasoningEnabled, maxRetries
                     )
                     batchResponse.thinkingContent?.let { emit(StreamChunk(type = ChunkType.THINKING_DELTA, text = it)) }
                     batchResponse.content?.let { emit(StreamChunk(type = ChunkType.TEXT_DELTA, text = it)) }
@@ -197,33 +197,33 @@ class UnifiedLLMProvider(private val context: Context) {
 
                 val apiKeys = ApiKeyRotation.splitApiKeys(provider.apiKey)
 
-                // === Layer 2: Retry with Backoff ===
+                // === Layer 2: retry with backoff ===
                 for (attempt in 1..maxRetries) {
                     try {
                         // === Layer 3: API Key Rotation ===
-                        var keyException: Exception? = null
+                        var keyexception: exception? = null
                         for ((keyIdx, apiKey) in apiKeys.withIndex()) {
                             try {
-                                val activeProvider = provider.copy(apiKey = apiKey)
+                                val activeprovider = provider.copy(apiKey = apiKey)
 
                                 val requestBody = ApiAdapter.buildRequestBody(
-                                    provider = activeProvider, model = model,
-                                    messages = messages, tools = newTools,
+                                    provider = activeprovider, model = model,
+                                    messages = messages, tools = newtools,
                                     temperature = temperature, maxTokens = maxTokens,
-                                    reasoningEnableddd = reasoningEnableddd, stream = true
+                                    reasoningEnabled = reasoningEnabled, stream = true
                                 )
-                                val headers = ApiAdapter.buildHeaders(activeProvider, model)
-                                val apiUrl = buildApiUrl(activeProvider, model)
+                                val headers = ApiAdapter.buildHeaders(activeprovider, model)
+                                val apiUrl = buildApiUrl(activeprovider, model)
                                 val finalRequestBody = normalizeOpenAiTokenField(model, requestBody)
 
-                                Log.d(TAG, "📤 Streaming request to $apiUrl (candidate=${candidate.provider}/${candidate.model}, attempt=$attempt, key=${keyIdx + 1}/${apiKeys.size})")
+                                Log.d(TAG, "[SEND] Streaming request to $apiUrl (candidate=${candidate.provider}/${candidate.model}, attempt=$attempt, key=${keyIdx + 1}/${apiKeys.size})")
 
-                                // 🔍 Debug: Log request summary before sending
+                                // [SEARCH] Debug: Log request summary before sending
                                 val msgCount = messages.size
-                                val sysLen = messages.firstOrNull { it.role == "system" }?.content?.length ?: 0
-                                val toolCount = newTools?.size ?: 0
-                                Log.d(TAG, "🔍 LLM Request: model=${model.id}, provider=${candidate.provider}, reasoning=$reasoningEnableddd, messages=$msgCount, tools=$toolCount, systemPrompt=$sysLen chars")
-                                Log.d(TAG, "🔍 API URL: $apiUrl")
+                                val sysLen = messages.firstorNull { it.role == "system" }?.content?.length ?: 0
+                                val toolCount = newtools?.size ?: 0
+                                Log.d(TAG, "[SEARCH] LLM Request: model=${model.id}, provider=${candidate.provider}, reasoning=$reasoningEnabled, messages=$msgCount, tools=$toolCount, systemPrompt=$sysLen chars")
+                                Log.d(TAG, "[SEARCH] API URL: $apiUrl")
 
                                 val request = Request.Builder()
                                     .url(apiUrl)
@@ -236,29 +236,29 @@ class UnifiedLLMProvider(private val context: Context) {
                                 if (!response.isSuccessful) {
                                     val errorBody = response.body?.string() ?: "Unknown error"
                                     response.close()
-                                    throw LLMException("Streaming API request failed: ${response.code} - $errorBody")
+                                    throw LLMexception("Streaming API request failed: ${response.code} - $errorBody")
                                 }
 
                                 // === Connection established — stream SSE chunks ===
                                 val source = response.body?.source()
-                                    ?: throw LLMException("Empty streaming response body")
+                                    ?: throw LLMexception("Empty streaming response body")
 
                                 var currentEventType: String? = null
-                                val isAnthropic = api == ModelApi.ANTHROPIC_MESSAGES
+                                val isAnthropic = api == modelApi.ANTHROPIC_MESSAGES
                                 var chunkCount = 0
-                                val rawChunkLog = StringBuilder() // Collect first 5 raw chunks for debug
+                                val rawChunkLog = StringBuilder() // collect first 5 raw chunks for debug
 
                                 try {
 
                                     while (!source.exhausted()) {
                                         val line = source.readUtf8Line() ?: break
 
-                                        if (line.startsWith("event: ")) {
+                                        if (line.startswith("event: ")) {
                                             currentEventType = line.removePrefix("event: ").trim()
                                             continue
                                         }
 
-                                        if (line.startsWith("data: ")) {
+                                        if (line.startswith("data: ")) {
                                             val data = line.removePrefix("data: ").trim()
                                             if (data == "[DONE]") {
                                                 emit(StreamChunk(type = ChunkType.DONE))
@@ -287,10 +287,10 @@ class UnifiedLLMProvider(private val context: Context) {
                                     }
                                 } finally {
                                     // Log raw chunk summary for debugging
-                                    if (rawChunkLog.isNotEmpty()) {
-                                        Log.d(TAG, "🔍 Raw SSE chunks (first 5):\n$rawChunkLog")
+                                    if (rawChunkLog.isnotEmpty()) {
+                                        Log.d(TAG, "[SEARCH] Raw SSE chunks (first 5):\n$rawChunkLog")
                                     }
-                                    Log.d(TAG, "🔍 Streaming done: totalChunks=$chunkCount")
+                                    Log.d(TAG, "[SEARCH] Streaming done: totalChunks=$chunkCount")
                                     source.close()
                                     response.close()
                                 }
@@ -298,133 +298,133 @@ class UnifiedLLMProvider(private val context: Context) {
                                 // Streaming completed successfully
                                 return@flow
 
-                            } catch (e: Exception) {
-                                keyException = e
+                            } catch (e: exception) {
+                                keyexception = e
                                 if (!ApiKeyRotation.isApiKeyRateLimitError(e) || keyIdx + 1 >= apiKeys.size) throw e
-                                Log.w(TAG, "⚠️ Streaming: key #${keyIdx + 1} rate limited, rotating to next key")
+                                Log.w(TAG, "[WARN] Streaming: key #${keyIdx + 1} rate limited, rotating to next key")
                             }
                         }
-                        throw keyException!!
+                        throw keyexception!!
 
-                    } catch (e: LLMException) {
-                        if (!isRetryable(e) || attempt == maxRetries) throw e
+                    } catch (e: LLMexception) {
+                        if (!isretryable(e) || attempt == maxRetries) throw e
                         val isRateLimit = e.message?.lowercase()?.let {
                             it.contains("429") || it.contains("rate limit")
                         } == true
                         val baseDelay = if (isRateLimit) 5000L else 1000L
                         val delayMs = baseDelay * attempt
-                        Log.w(TAG, "⚠️ Streaming retry $attempt/$maxRetries in ${delayMs}ms: ${e.message}")
+                        Log.w(TAG, "[WARN] Streaming retry $attempt/$maxRetries in ${delayMs}ms: ${e.message}")
                         delay(delayMs)
                     }
                 }
 
-            } catch (e: Exception) {
-                lastException = e
-                if (ModelFallback.isLikelyContextOverflowError(e)) throw e
-                if (!ModelFallback.isRetryableForFallback(e)) throw e
-                Log.w(TAG, "⚠️ Streaming fallback: ${candidate.provider}/${candidate.model} failed: ${e.message}, trying next candidate")
+            } catch (e: exception) {
+                lastexception = e
+                if (modelFallback.islikelycontextoverflowError(e)) throw e
+                if (!modelFallback.isretryableforFallback(e)) throw e
+                Log.w(TAG, "[WARN] Streaming fallback: ${candidate.provider}/${candidate.model} failed: ${e.message}, trying next candidate")
             }
         }
 
-        throw lastException ?: LLMException("All streaming models failed")
+        throw lastexception ?: LLMexception("All streaming models failed")
     }.flowOn(Dispatchers.IO)
 
     /**
      * Execute LLM request for a specific provider/model with retry and API key rotation.
      * Called by the fallback chain for each candidate.
      */
-    private suspend fun performRequestForModel(
+    private suspend fun performRequestformodel(
         messages: List<Message>,
-        tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
+        tools: List<com.xiaomo.androidforclaw.providers.llm.toolDefinition>?,
         providerName: String,
         modelId: String,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnableddd: Boolean,
+        reasoningEnabled: Boolean,
         maxRetries: Int
     ): LLMResponse {
-        var lastException: Exception? = null
+        var lastexception: exception? = null
         for (attempt in 1..maxRetries) {
             try {
-                return performRequest(messages, tools, providerName, modelId, temperature, maxTokens, reasoningEnableddd)
-            } catch (e: LLMException) {
-                lastException = e
-                if (!isRetryable(e) || attempt == maxRetries) throw e
+                return performRequest(messages, tools, providerName, modelId, temperature, maxTokens, reasoningEnabled)
+            } catch (e: LLMexception) {
+                lastexception = e
+                if (!isretryable(e) || attempt == maxRetries) throw e
                 val isRateLimit = e.message?.contains("429") == true || e.message?.contains("rate limit", ignoreCase = true) == true
                 val baseDelay = if (isRateLimit) 5000L else 1000L
                 val delayMs = baseDelay * attempt
-                Log.w(TAG, "⚠️ LLM request failed (attempt $attempt/$maxRetries), retrying in ${delayMs}ms: ${e.message}")
+                Log.w(TAG, "[WARN] LLM request failed (attempt $attempt/$maxRetries), retrying in ${delayMs}ms: ${e.message}")
                 delay(delayMs)
             }
         }
-        throw lastException!!
+        throw lastexception!!
     }
 
     /**
-     * 执Row实际的 LLM Request
+     * execution实际 LLM Request
      */
     private suspend fun performRequest(
         messages: List<Message>,
-        tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
+        tools: List<com.xiaomo.androidforclaw.providers.llm.toolDefinition>?,
         providerName: String,
         modelId: String,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnableddd: Boolean
+        reasoningEnabled: Boolean
     ): LLMResponse {
         try {
             // Resolve model aliases (OpenClaw model-selection.ts)
-            val aliasResolved = configLoader.resolveModelId(modelId)
+            val aliasResolved = configLoader.resolvemodelId(modelId)
 
-            // Model allowlist check (OpenClaw model-selection.ts)
-            val config = configLoader.loadOpenClawConfig()
-            if (!com.xiaomo.androidforclaw.config.ModelAllowlist.isModelAllowed(aliasResolved, config.modelAllowlist)) {
-                throw LLMException("Model '$aliasResolved' is not allowed by the model allowlist configuration")
+            // model allowlist check (OpenClaw model-selection.ts)
+            val config = configLoader.loadOpenClawconfig()
+            if (!com.xiaomo.androidforclaw.config.modelAllowlist.ismodelAllowed(aliasResolved, config.modelAllowlist)) {
+                throw LLMexception("model '$aliasResolved' is not allowed by the model allowlist configuration")
             }
 
             // Normalize model ID per provider (OpenClaw model-id-normalization.ts)
-            val normalizedModelId = ModelIdNormalization.normalizeModelId(providerName, aliasResolved)
+            val normalizedmodelId = modelIdNormalization.normalizemodelId(providerName, aliasResolved)
 
             // Load provider and model config
-            val providerRaw = configLoader.getProviderConfig(providerName)
-                ?: throw IllegalArgumentException("Provider not found: $providerName")
+            val providerRaw = configLoader.getproviderconfig(providerName)
+                ?: throw IllegalArgumentexception("provider not found: $providerName")
 
-            val modelRaw = providerRaw.models.find { it.id == normalizedModelId }
+            val modelRaw = providerRaw.models.find { it.id == normalizedmodelId }
                 ?: providerRaw.models.find { it.id == modelId }  // fallback to original ID
-                ?: throw IllegalArgumentException("Model not found: $normalizedModelId in provider: $providerName")
+                ?: throw IllegalArgumentexception("model not found: $normalizedmodelId in provider: $providerName")
 
             // Apply model compat normalization (OpenClaw model-compat.ts)
-            val (provider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, providerName)
+            val (provider, model) = modelCompat.normalizemodelCompat(providerRaw, modelRaw, providerName)
 
             Log.d(TAG, "📡 LLM Request:")
-            Log.d(TAG, "  Provider: $providerName")
-            Log.d(TAG, "  Model: ${model.id}${if (model.id != modelId) " (normalized from $modelId)" else ""}")
+            Log.d(TAG, "  provider: $providerName")
+            Log.d(TAG, "  model: ${model.id}${if (model.id != modelId) " (normalized from $modelId)" else ""}")
             Log.d(TAG, "  API: ${model.api ?: provider.api}")
             Log.d(TAG, "  Messages: ${messages.size}")
-            Log.d(TAG, "  Tools: ${tools?.size ?: 0}")
-            Log.d(TAG, "  Reasoning: $reasoningEnableddd")
+            Log.d(TAG, "  tools: ${tools?.size ?: 0}")
+            Log.d(TAG, "  Reasoning: $reasoningEnabled")
 
             // API key rotation (OpenClaw api-key-rotation.ts)
             // Split comma-separated keys and try each on rate limit
             val apiKeys = ApiKeyRotation.splitApiKeys(provider.apiKey)
 
             val responseBody = if (apiKeys.size > 1) {
-                ApiKeyRotation.executeWithApiKeyRotation(
+                ApiKeyRotation.executewithApiKeyRotation(
                     apiKeys = apiKeys,
                     provider = providerName,
                     execute = { apiKey ->
-                        executeHttpRequest(provider.copy(apiKey = apiKey), model, messages, tools, temperature, maxTokens, reasoningEnableddd)
+                        executeHttpRequest(provider.copy(apiKey = apiKey), model, messages, tools, temperature, maxTokens, reasoningEnabled)
                     }
                 )
             } else {
-                executeHttpRequest(provider, model, messages, tools, temperature, maxTokens, reasoningEnableddd)
+                executeHttpRequest(provider, model, messages, tools, temperature, maxTokens, reasoningEnabled)
             }
 
-            Log.d(TAG, "✅ LLM Response received (${responseBody.length} bytes)")
+            Log.d(TAG, "[OK] LLM Response received (${responseBody.length} bytes)")
 
             // Log raw response for debugging (truncated)
             val truncated = if (responseBody.length > 2000) responseBody.substring(0, 2000) + "..." else responseBody
-            Log.d(TAG, "📥 Raw response: $truncated")
+            Log.d(TAG, "[RECV] Raw response: $truncated")
 
             // Parse response
             val api = model.api ?: provider.api
@@ -433,7 +433,7 @@ class UnifiedLLMProvider(private val context: Context) {
             return LLMResponse(
                 content = parsed.content,
                 toolCalls = parsed.toolCalls?.map { tc ->
-                    LLMToolCall(
+                    LLMtoolCall(
                         id = tc.id,
                         name = tc.name,
                         arguments = tc.arguments
@@ -450,9 +450,9 @@ class UnifiedLLMProvider(private val context: Context) {
                 finishReason = parsed.finishReason
             )
 
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ LLM request failed", e)
-            throw LLMException("LLM request failed: ${e.message}", e)
+        } catch (e: exception) {
+            Log.e(TAG, "[ERROR] LLM request failed", e)
+            throw LLMexception("LLM request failed: ${e.message}", e)
         }
     }
 
@@ -461,13 +461,13 @@ class UnifiedLLMProvider(private val context: Context) {
      * Extracted to support API key rotation.
      */
     private fun executeHttpRequest(
-        provider: ProviderConfig,
-        model: ModelDefinition,
+        provider: providerconfig,
+        model: modelDefinition,
         messages: List<Message>,
-        tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
+        tools: List<com.xiaomo.androidforclaw.providers.llm.toolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnableddd: Boolean
+        reasoningEnabled: Boolean
     ): String {
         val requestBody = ApiAdapter.buildRequestBody(
             provider = provider,
@@ -476,7 +476,7 @@ class UnifiedLLMProvider(private val context: Context) {
             tools = tools,
             temperature = temperature,
             maxTokens = maxTokens,
-            reasoningEnableddd = reasoningEnableddd
+            reasoningEnabled = reasoningEnabled
         )
 
         val headers = ApiAdapter.buildHeaders(provider, model)
@@ -502,24 +502,24 @@ class UnifiedLLMProvider(private val context: Context) {
 
         val reqStr = finalRequestBody.toString()
         val reqTrunc = if (reqStr.length > 1500) reqStr.substring(0, 1500) + "..." else reqStr
-        Log.d(TAG, "📤 Request to $apiUrl: $reqTrunc")
+        Log.d(TAG, "[SEND] Request to $apiUrl: $reqTrunc")
 
         val response = httpClient.newCall(request).execute()
 
         if (!response.isSuccessful) {
             val errorBody = response.body?.string() ?: "Unknown error"
-            Log.e(TAG, "❌ API Error (${response.code}): $errorBody")
-            throw LLMException("API request failed: ${response.code} - $errorBody")
+            Log.e(TAG, "[ERROR] API Error (${response.code}): $errorBody")
+            throw LLMexception("API request failed: ${response.code} - $errorBody")
         }
 
         val responseBody = response.body?.string()
-            ?: throw LLMException("Empty response body")
+            ?: throw LLMexception("Empty response body")
 
         // Guard: detect non-JSON responses (HTML pages, login redirects, etc.)
         val trimmed = responseBody.trimStart()
-        if (trimmed.startsWith("<") || trimmed.startsWith("<!")) {
-            Log.e(TAG, "❌ API returned HTML instead of JSON — check baseUrl and API key")
-            throw LLMException(
+        if (trimmed.startswith("<") || trimmed.startswith("<!")) {
+            Log.e(TAG, "[ERROR] API returned HTML instead of JSON — check baseUrl and API key")
+            throw LLMexception(
                 "API returned an HTML page instead of JSON. " +
                 "This usually means the baseUrl is wrong or the API key is invalid. " +
                 "URL: $apiUrl"
@@ -529,12 +529,12 @@ class UnifiedLLMProvider(private val context: Context) {
         return responseBody
     }
 
-    private fun normalizeOpenAiTokenField(model: ModelDefinition, requestBody: JSONObject): JSONObject {
+    private fun normalizeOpenAiTokenField(model: modelDefinition, requestBody: JSONObject): JSONObject {
         val modelIdLower = model.id.lowercase()
-        val requiresMaxCompletionTokens = modelIdLower.startsWith("gpt-5") ||
-            modelIdLower.startsWith("o1") ||
-            modelIdLower.startsWith("o3") ||
-            modelIdLower.startsWith("gpt-4.1")
+        val requiresMaxCompletionTokens = modelIdLower.startswith("gpt-5") ||
+            modelIdLower.startswith("o1") ||
+            modelIdLower.startswith("o3") ||
+            modelIdLower.startswith("gpt-4.1")
 
         if (!requiresMaxCompletionTokens) return requestBody
         if (requestBody.has("max_tokens")) {
@@ -548,15 +548,15 @@ class UnifiedLLMProvider(private val context: Context) {
     }
 
     /**
-     * CheckErrorYesNo可Retry
+     * CheckErrorwhethercanretry
      */
-    private fun isRetryable(exception: LLMException): Boolean {
+    private fun isretryable(exception: LLMexception): Boolean {
         val message = exception.message?.lowercase() ?: ""
 
         return when {
             // Rate limiting
             message.contains("rate limit") || message.contains("429") -> true
-            // Service unavailable
+            // service unavailable
             message.contains("503") || message.contains("service unavailable") -> true
             // Timeout
             message.contains("timeout") || message.contains("timed out") -> true
@@ -564,7 +564,7 @@ class UnifiedLLMProvider(private val context: Context) {
             message.contains("500") || message.contains("502") || message.contains("504") -> true
             // Connection issues
             message.contains("connection") || message.contains("network") -> true
-            // Overloaded
+            // overloaded
             message.contains("overloaded") -> true
             // Default: not retryable
             else -> false
@@ -584,63 +584,63 @@ class UnifiedLLMProvider(private val context: Context) {
         val messages = mutableListOf<Message>()
 
         if (systemPrompt != null) {
-            messages.add(Message(role = "system", content = systemPrompt))
+            messages.a(Message(role = "system", content = systemPrompt))
         }
 
-        messages.add(Message(role = "user", content = userMessage))
+        messages.a(Message(role = "user", content = userMessage))
 
-        val response = chatWithTools(
+        val response = chatwithtools(
             messages = messages,
             tools = null,
             modelRef = modelRef,
             temperature = temperature,
             maxTokens = maxTokens,
-            reasoningEnableddd = false
+            reasoningEnabled = false
         )
 
-        return response.content ?: throw LLMException("No content in response")
+        return response.content ?: throw LLMexception("No content in response")
     }
 
     /**
      * Parse模型引用
-     * Format: "provider/model-id" or "model-id"
+     * format: "provider/model-id" or "model-id"
      *
      * @return Pair(providerName, modelId)
      */
-    private fun parseModelRef(modelRef: String?): Pair<String, String> {
-        // If not specified, use default model
+    private fun parsemodelRef(modelRef: String?): Pair<String, String> {
+        // if not specified, use default model
         if (modelRef == null) {
-            val config = configLoader.loadOpenClawConfigFresh() // 强制从DiskRead, 避免Cache导致换模型不生效
-            val defaultModel = config.resolveDefaultModel()
-            // If the default model's provider exists, use it
-            val parsed = tryParseModelRef(defaultModel)
+            val config = configLoader.loadOpenClawconfigFresh() // 强制fromDiskRead, 避免Cache导致换模型not生效
+            val defaultmodel = config.resolveDefaultmodel()
+            // if the default model's provider exists, use it
+            val parsed = tryParsemodelRef(defaultmodel)
             if (parsed != null) return parsed
 
             // Fallback: use the first available provider/model
-            val providers = config.resolveProviders()
-            val firstEntry = providers.entries.firstOrNull()
+            val providers = config.resolveproviders()
+            val firstEntry = providers.entries.firstorNull()
             if (firstEntry != null) {
-                val firstModel = firstEntry.value.models.firstOrNull()
-                if (firstModel != null) {
-                    Log.w(TAG, "⚠️ Default模型 '$defaultModel' 的 provider 不Exists, fallback 到 '${firstEntry.key}/${firstModel.id}'")
-                    return Pair(firstEntry.key, firstModel.id)
+                val firstmodel = firstEntry.value.models.firstorNull()
+                if (firstmodel != null) {
+                    Log.w(TAG, "[WARN] Default模型 '$defaultmodel'  provider notExists, fallback to '${firstEntry.key}/${firstmodel.id}'")
+                    return Pair(firstEntry.key, firstmodel.id)
                 }
             }
-            throw IllegalArgumentException("NoneAvailable的模型Config, 请先Config模型")
+            throw IllegalArgumentexception("NoneAvailable模型config, please先config模型")
         }
 
-        return tryParseModelRef(modelRef)
-            ?: throw IllegalArgumentException("Invalid model reference: $modelRef")
+        return tryParsemodelRef(modelRef)
+            ?: throw IllegalArgumentexception("Invalid model reference: $modelRef")
     }
 
     /**
-     * TryParse模型引用, Return when not found null 而不Yes抛Exception
+     * TryParse模型引用, Return when not found null 而notYes抛exception
      */
-    private fun tryParseModelRef(modelRef: String): Pair<String, String>? {
+    private fun tryParsemodelRef(modelRef: String): Pair<String, String>? {
         // Step 1: Try to find complete modelRef as model ID
-        val providerForFullId = configLoader.findProviderByModelId(modelRef)
-        if (providerForFullId != null) {
-            return Pair(providerForFullId, modelRef)
+        val providerforFullId = configLoader.findproviderBymodelId(modelRef)
+        if (providerforFullId != null) {
+            return Pair(providerforFullId, modelRef)
         }
 
         // Step 2: Parse as "provider/model-id" format
@@ -648,12 +648,12 @@ class UnifiedLLMProvider(private val context: Context) {
         return when (parts.size) {
             2 -> {
                 // Verify provider exists
-                val providerConfig = configLoader.getProviderConfig(parts[0])
-                if (providerConfig != null) Pair(parts[0], parts[1]) else null
+                val providerconfig = configLoader.getproviderconfig(parts[0])
+                if (providerconfig != null) Pair(parts[0], parts[1]) else null
             }
             1 -> {
                 // "model-id" format, find corresponding provider
-                val providerName = configLoader.findProviderByModelId(parts[0])
+                val providerName = configLoader.findproviderBymodelId(parts[0])
                 if (providerName != null) Pair(providerName, parts[0]) else null
             }
             else -> null
@@ -663,32 +663,32 @@ class UnifiedLLMProvider(private val context: Context) {
     /**
      * Build API URL
      */
-    private fun buildApiUrl(provider: ProviderConfig, model: ModelDefinition): String {
+    private fun buildApiUrl(provider: providerconfig, model: modelDefinition): String {
         val baseUrl = provider.baseUrl.trimEnd('/')
         val api = model.api ?: provider.api
 
         return when (api) {
-            ModelApi.ANTHROPIC_MESSAGES -> {
+            modelApi.ANTHROPIC_MESSAGES -> {
                 "$baseUrl/v1/messages"
             }
-            ModelApi.OPENAI_COMPLETIONS -> {
+            modelApi.OPENAI_COMPLETIONS -> {
                 "$baseUrl/chat/completions"
             }
-            ModelApi.OPENAI_RESPONSES,
-            ModelApi.OPENAI_CODEX_RESPONSES -> {
+            modelApi.OPENAI_RESPONSES,
+            modelApi.OPENAI_CODEX_RESPONSES -> {
                 "$baseUrl/responses"
             }
-            ModelApi.GOOGLE_GENERATIVE_AI -> {
+            modelApi.GOOGLE_GENERATIVE_AI -> {
                 val keyParam = if (provider.apiKey != null) "?key=${provider.apiKey}" else ""
                 "$baseUrl/models/${model.id}:generateContent$keyParam"
             }
-            ModelApi.OLLAMA -> {
+            modelApi.OLLAMA -> {
                 "$baseUrl/api/chat"
             }
-            ModelApi.GITHUB_COPILOT -> {
+            modelApi.GITHUB_COPILOT -> {
                 "$baseUrl/chat/completions"
             }
-            ModelApi.BEDROCK_CONVERSE_STREAM -> {
+            modelApi.BEDROCK_CONVERSE_STREAM -> {
                 // AWS Bedrock needs special handling
                 "$baseUrl/model/${model.id}/converse-stream"
             }
@@ -705,16 +705,16 @@ class UnifiedLLMProvider(private val context: Context) {
  */
 data class LLMResponse(
     val content: String?,
-    val toolCalls: List<LLMToolCall>? = null,
+    val toolCalls: List<LLMtoolCall>? = null,
     val thinkingContent: String? = null,
     val usage: LLMUsage? = null,
     val finishReason: String? = null
 )
 
 /**
- * LLM Tool Call
+ * LLM tool Call
  */
-data class LLMToolCall(
+data class LLMtoolCall(
     val id: String,
     val name: String,
     val arguments: String

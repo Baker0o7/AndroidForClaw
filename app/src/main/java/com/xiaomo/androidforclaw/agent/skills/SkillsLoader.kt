@@ -4,28 +4,28 @@ package com.xiaomo.androidforclaw.agent.skills
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/skills.ts, skills-status.ts
  *
- * AndroidForClaw adaptation: bundled/managed/workspace skill discovery and cache.
+ * androidforClaw adaptation: bundled/managed/workspace skill discovery and cache.
  */
 
 
-import android.content.Context
+import android.content.context
 import android.os.FileObserver
 import android.os.Handler
-import android.os.Looper
+import android.os.looper
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.configLoader
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
- * Skills Loader — unified skill loading with full OpenClaw alignment.
+ * skills Loader — unified skill loading with full OpenClaw alignment.
  *
  * Loading priority (higher overrides lower, by name dedup):
  * 1. extraDirs (lowest) — skills.extraDirs config
- * 2. Bundled Skills — assets/skills/
- * 3. Managed Skills — /sdcard/.androidforclaw/skills/
- * 4. Plugin Skills — enabled plugin skill directories
- * 5. Workspace Skills (highest) — /sdcard/.androidforclaw/workspace/skills/
+ * 2. Bundled skills — assets/skills/
+ * 3. Managed skills — /sdcard/.androidforclaw/skills/
+ * 4. Plugin skills — enabled plugin skill directories
+ * 5. Workspace skills (highest) — /sdcard/.androidforclaw/workspace/skills/
  *
  * Features aligned with OpenClaw:
  * - extraDirs support (skills.extraDirs)
@@ -33,95 +33,95 @@ import java.io.File
  * - Environment injection (skills.entries.<key>.env / apiKey)
  * - Hot reload with debounce (skills.watch / skills.watchDebounceMs)
  * - Managed + Workspace directory monitoring
- * - Unified SkillParser (no duplicate parsers)
+ * - Unified skillParser (no duplicate parsers)
  * - Consistent managed path (skills/ not .skills/)
  */
-class SkillsLoader(private val context: Context) {
+class skillsLoader(private val context: context) {
     companion object {
-        private const val TAG = "SkillsLoader"
+        private const val TAG = "skillsLoader"
 
-        // Three-tier Skills directories (aligns with OpenClaw architecture)
+        // Three-tier skills directories (aligns with OpenClaw architecture)
         private const val BUNDLED_SKILLS_PATH = "skills"  // assets path
         private val MANAGED_SKILLS_DIR = StoragePaths.skills.absolutePath  // aligns with ~/.openclaw/skills/
-        private val WORKSPACE_SKILLS_DIR = StoragePaths.workspaceSkills.absolutePath  // aligns with ~/.openclaw/workspace/
+        private val WORKSPACE_SKILLS_DIR = StoragePaths.workspaceskills.absolutePath  // aligns with ~/.openclaw/workspace/
 
-        // Skill file name
+        // skill file name
         private const val SKILL_FILE_NAME = "SKILL.md"
     }
 
-    // Skills cache
-    private val skillsCache = mutableMapOf<String, SkillDocument>()
+    // skills cache
+    private val skillsCache = mutableMapOf<String, skillDocument>()
     private var cacheValid = false
 
-    // Config reference
-    private val configLoader = ConfigLoader(context)
+    // config reference
+    private val configLoader = configLoader(context)
 
     // File monitoring (hot reload with debounce)
     private val fileObservers = mutableListOf<FileObserver>()
-    private var hotReloadEnableddd = false
-    private val handler = Handler(Looper.getMainLooper())
+    private var hotReloadEnabled = false
+    private val handler = Handler(looper.getMainlooper())
     private var pendingReload: Runnable? = null
 
     /**
-     * Load all Skills
+     * Load all skills
      * Priority override: Workspace > Managed > Bundled > extraDirs
      *
-     * @return Map<name, SkillDocument>
+     * @return Map<name, skillDocument>
      */
-    fun loadSkills(): Map<String, SkillDocument> {
+    fun loadskills(): Map<String, skillDocument> {
         // Return cached if valid
-        if (cacheValid && skillsCache.isNotEmpty()) {
-            Log.d(TAG, "ReturnCache的 Skills (${skillsCache.size} 个)")
+        if (cacheValid && skillsCache.isnotEmpty()) {
+            Log.d(TAG, "ReturnCache skills (${skillsCache.size} count)")
             return skillsCache.toMap()
         }
 
-        Log.d(TAG, "StartLoad Skills...")
+        Log.d(TAG, "StartLoad skills...")
         skillsCache.clear()
 
-        val config = configLoader.loadOpenClawConfig()
+        val config = configLoader.loadOpenClawconfig()
 
         // Load by priority (lowest first, higher overrides)
-        val extraCount = loadExtraDirsSkills(skillsCache, config.skills.extraDirs)
-        val bundledCount = loadBundledSkills(skillsCache)
-        val managedCount = loadManagedSkills(skillsCache)
-        val pluginCount = loadPluginSkills(skillsCache, config)
-        val workspaceCount = loadWorkspaceSkills(skillsCache)
+        val extraCount = loadExtraDirsskills(skillsCache, config.skills.extraDirs)
+        val bundledCount = loadBundledskills(skillsCache)
+        val managedCount = loadManagedskills(skillsCache)
+        val pluginCount = loadPluginskills(skillsCache, config)
+        val workspaceCount = loadWorkspaceskills(skillsCache)
 
         cacheValid = true
 
-        Log.i(TAG, "Skills Load complete: Total ${skillsCache.size} 个")
+        Log.i(TAG, "skills Load complete: Total ${skillsCache.size} count")
         Log.i(TAG, "  - extraDirs: $extraCount")
         Log.i(TAG, "  - Bundled: $bundledCount")
-        Log.i(TAG, "  - Managed: $managedCount (Override)")
-        Log.i(TAG, "  - Plugin: $pluginCount (Override)")
-        Log.i(TAG, "  - Workspace: $workspaceCount (Override)")
+        Log.i(TAG, "  - Managed: $managedCount (override)")
+        Log.i(TAG, "  - Plugin: $pluginCount (override)")
+        Log.i(TAG, "  - Workspace: $workspaceCount (override)")
 
         return skillsCache.toMap()
     }
 
     /**
-     * Reload Skills (clear cache)
+     * Reload skills (clear cache)
      */
     fun reload() {
-        Log.i(TAG, "重NewLoad Skills...")
+        Log.i(TAG, "reLoad skills...")
         cacheValid = false
-        loadSkills()
+        loadskills()
     }
 
     /**
-     * Enabledd hot reload with debounce.
+     * Enable hot reload with debounce.
      * Monitors Workspace + Managed directories.
      * Aligns with OpenClaw: skills.watch + skills.watchDebounceMs
      */
     fun enableHotReload() {
-        if (hotReloadEnableddd) {
-            Log.d(TAG, "热Overload已Enabledd")
+        if (hotReloadEnabled) {
+            Log.d(TAG, "热overloadalreadyEnable")
             return
         }
 
-        val config = configLoader.loadOpenClawConfig()
+        val config = configLoader.loadOpenClawconfig()
         if (!config.skills.watch) {
-            Log.d(TAG, "热Overload已在Config中Disabled (skills.watch=false)")
+            Log.d(TAG, "热overloadalreadyinconfig中Disabled (skills.watch=false)")
             return
         }
 
@@ -129,16 +129,16 @@ class SkillsLoader(private val context: Context) {
 
         // Monitor both Workspace and Managed directories
         val dirsToWatch = mutableListOf<File>()
-        File(WORKSPACE_SKILLS_DIR).let { if (it.exists()) dirsToWatch.add(it) }
-        File(MANAGED_SKILLS_DIR).let { if (it.exists()) dirsToWatch.add(it) }
+        File(WORKSPACE_SKILLS_DIR).let { if (it.exists()) dirsToWatch.a(it) }
+        File(MANAGED_SKILLS_DIR).let { if (it.exists()) dirsToWatch.a(it) }
 
         // Also monitor extraDirs
         config.skills.extraDirs.forEach { dir ->
-            File(dir).let { if (it.exists()) dirsToWatch.add(it) }
+            File(dir).let { if (it.exists()) dirsToWatch.a(it) }
         }
 
         if (dirsToWatch.isEmpty()) {
-            Log.w(TAG, "None可Monitor的 Skills 目录")
+            Log.w(TAG, "NonecanMonitor skills directory")
             return
         }
 
@@ -146,34 +146,34 @@ class SkillsLoader(private val context: Context) {
             try {
                 val observer = object : FileObserver(dir, CREATE or MODIFY or DELETE) {
                     override fun onEvent(event: Int, path: String?) {
-                        if (path != null && path.endsWith(SKILL_FILE_NAME)) {
-                            Log.i(TAG, "Detected Skill 文件变化: ${dir.name}/$path")
+                        if (path != null && path.endswith(SKILL_FILE_NAME)) {
+                            Log.i(TAG, "Detected skill files变化: ${dir.name}/$path")
                             scheduleReload(debounceMs)
                         }
                     }
                 }
                 observer.startWatching()
-                fileObservers.add(observer)
-                Log.i(TAG, "✅ Monitor: ${dir.absolutePath}")
-            } catch (e: Exception) {
-                Log.e(TAG, "Enabledd热OverloadFailed: ${dir.absolutePath}", e)
+                fileObservers.a(observer)
+                Log.i(TAG, "[OK] Monitor: ${dir.absolutePath}")
+            } catch (e: exception) {
+                Log.e(TAG, "Enable热overloadFailed: ${dir.absolutePath}", e)
             }
         }
 
-        hotReloadEnableddd = true
-        Log.i(TAG, "✅ 热Overload已Enabledd (debounce=${debounceMs}ms, Monitor ${dirsToWatch.size} 个目录)")
+        hotReloadEnabled = true
+        Log.i(TAG, "[OK] 热overloadalreadyEnable (debounce=${debounceMs}ms, Monitor ${dirsToWatch.size} countdirectory)")
     }
 
     /**
      * Schedule a debounced reload
      */
     private fun scheduleReload(debounceMs: Long) {
-        // Cancel any pending reload
+        // cancel any pending reload
         pendingReload?.let { handler.removeCallbacks(it) }
 
         // Schedule new reload
         val runnable = Runnable {
-            Log.i(TAG, "Debounce Complete, 执Row重NewLoad...")
+            Log.i(TAG, "Debounce Complete, executionreLoad...")
             reload()
         }
         pendingReload = runnable
@@ -188,59 +188,59 @@ class SkillsLoader(private val context: Context) {
         pendingReload = null
         fileObservers.forEach { it.stopWatching() }
         fileObservers.clear()
-        hotReloadEnableddd = false
-        Log.i(TAG, "热Overload已Disabled")
+        hotReloadEnabled = false
+        Log.i(TAG, "热overloadalreadyDisabled")
     }
 
     /**
      * Check if hot reload is enabled
      */
-    fun isHotReloadEnableddd(): Boolean = hotReloadEnableddd
+    fun isHotReloadEnabled(): Boolean = hotReloadEnabled
 
     /**
      * Get all loaded skills
      */
-    fun getAllSkills(): List<SkillDocument> {
-        return loadSkills().values.toList()
+    fun getAllskills(): List<skillDocument> {
+        return loadskills().values.toList()
     }
 
     /**
-     * Get Always Skills (always-loaded skills)
+     * Get Always skills (always-loaded skills)
      * These skills are loaded into system prompt at startup
      */
-    fun getAlwaysSkills(): List<SkillDocument> {
-        val allSkills = loadSkills()
-        val alwaysSkills = allSkills.values.filter { it.metadata.always }
-        Log.d(TAG, "Always Skills: ${alwaysSkills.size} 个")
-        return alwaysSkills
+    fun getAlwaysskills(): List<skillDocument> {
+        val allskills = loadskills()
+        val alwaysskills = allskills.values.filter { it.metadata.always }
+        Log.d(TAG, "Always skills: ${alwaysskills.size} count")
+        return alwaysskills
     }
 
     /**
-     * Select relevant Skills based on user goal
+     * Select relevant skills based on user goal
      *
-     * @param userGoal User goal/instruction
+     * @param userGoal user goal/instruction
      * @param excludeAlways Whether to exclude always skills (avoid duplication)
-     * @return List of relevant Skills
+     * @return List of relevant skills
      */
-    fun selectRelevantSkills(
+    fun selectRelevantskills(
         userGoal: String,
         excludeAlways: Boolean = true
-    ): List<SkillDocument> {
-        val allSkills = loadSkills()
+    ): List<skillDocument> {
+        val allskills = loadskills()
         val keywords = userGoal.lowercase()
 
-        // 1. Use task type identification
-        val recommendedSkillNames = identifyTaskType(userGoal)
+        // 1. use task type identification
+        val recommendedskillNames = identifyTaskType(userGoal)
 
         // 2. Keyword matching
-        val relevant = allSkills.values.filter { skill ->
+        val relevant = allskills.values.filter { skill ->
             // Exclude always skills (avoid duplicate injection)
             if (excludeAlways && skill.metadata.always) {
                 return@filter false
             }
 
             // Prioritize task type recommendations
-            if (recommendedSkillNames.contains(skill.name)) {
+            if (recommendedskillNames.contains(skill.name)) {
                 return@filter true
             }
 
@@ -250,7 +250,7 @@ class SkillsLoader(private val context: Context) {
                     matchesKeywords(skill, keywords)
         }
 
-        Log.d(TAG, "choose相关 Skills: ${relevant.size} 个")
+        Log.d(TAG, "choose相关 skills: ${relevant.size} count")
         for (skill in relevant) {
             Log.d(TAG, "  - ${skill.name} (${skill.description})")
         }
@@ -267,29 +267,29 @@ class SkillsLoader(private val context: Context) {
      * @param skill The skill to resolve env for
      * @return Map of environment variable name -> value to inject
      */
-    fun resolveSkillEnv(skill: SkillDocument): Map<String, String> {
-        val config = configLoader.loadOpenClawConfig()
-        val skillKey = skill.effectiveSkillKey()
-        val skillConfig = config.skills.entries[skillKey] ?: return emptyMap()
+    fun resolveskillEnv(skill: skillDocument): Map<String, String> {
+        val config = configLoader.loadOpenClawconfig()
+        val skillKey = skill.effectiveskillKey()
+        val skillconfig = config.skills.entries[skillKey] ?: return emptyMap()
 
         val result = mutableMapOf<String, String>()
 
         // 1. Apply env map (only if not already set in system env)
-        skillConfig.env?.forEach { (key, value) ->
-            if (System.getenv(key).isNullOrEmpty()) {
+        skillconfig.env?.forEach { (key, value) ->
+            if (System.getenv(key).isNullorEmpty()) {
                 result[key] = value
             }
         }
 
         // 2. Apply apiKey convenience (maps to primaryEnv)
         val primaryEnv = skill.metadata.primaryEnv
-        val apiKeyValue = skillConfig.resolveApiKey()
-        if (primaryEnv != null && apiKeyValue != null && System.getenv(primaryEnv).isNullOrEmpty()) {
+        val apiKeyValue = skillconfig.resolveApiKey()
+        if (primaryEnv != null && apiKeyValue != null && System.getenv(primaryEnv).isNullorEmpty()) {
             result[primaryEnv] = apiKeyValue
         }
 
-        if (result.isNotEmpty()) {
-            Log.d(TAG, "Skill '$skillKey' env injection: ${result.keys.joinToString()}")
+        if (result.isnotEmpty()) {
+            Log.d(TAG, "skill '$skillKey' env injection: ${result.keys.joinToString()}")
         }
 
         return result
@@ -302,26 +302,26 @@ class SkillsLoader(private val context: Context) {
      * @param skill The skill
      * @param targetEnv The mutable environment map to inject into
      */
-    fun applySkillEnv(skill: SkillDocument, targetEnv: MutableMap<String, String>) {
-        val envVars = resolveSkillEnv(skill)
+    fun appskillEnv(skill: skillDocument, targetEnv: MutableMap<String, String>) {
+        val envVars = resolveskillEnv(skill)
         targetEnv.putAll(envVars)
     }
 
     /**
-     * Resolve and apply env vars for ALL loaded skills into a target env map.
-     * Useful before starting an agent session.
+     * Resolve and app env vars for ALL loaded skills into a target env map.
+     * useful before starting an agent session.
      */
-    fun applyAllSkillsEnv(targetEnv: MutableMap<String, String>) {
-        val allSkills = loadSkills()
-        allSkills.values.forEach { skill ->
-            applySkillEnv(skill, targetEnv)
+    fun appAllskillsEnv(targetEnv: MutableMap<String, String>) {
+        val allskills = loadskills()
+        allskills.values.forEach { skill ->
+            appskillEnv(skill, targetEnv)
         }
     }
 
     /**
-     * Check if Skill's dependency requirements are met
+     * Check if skill's dependency requirements are met
      */
-    fun checkRequirements(skill: SkillDocument): RequirementsCheckresult {
+    fun checkRequirements(skill: skillDocument): RequirementsCheckresult {
         val requires = skill.metadata.requires
             ?: return RequirementsCheckresult.Satisfied
 
@@ -331,16 +331,16 @@ class SkillsLoader(private val context: Context) {
 
         val missingBins = requires.bins.filter { !isBinaryAvailable(it) }
         val missingEnv = requires.env.filter { System.getenv(it) == null }
-        val missingConfig = requires.config.filter { !isConfigAvailable(it) }
+        val missingconfig = requires.config.filter { !isconfigAvailable(it) }
 
         // anyBins: at least one must be available
-        val anyBinsMissing = if (requires.anyBins.isNotEmpty()) {
+        val anyBinsMissing = if (requires.anyBins.isnotEmpty()) {
             requires.anyBins.none { isBinaryAvailable(it) }
         } else {
             false
         }
 
-        if (missingBins.isEmpty() && missingEnv.isEmpty() && missingConfig.isEmpty() && !anyBinsMissing) {
+        if (missingBins.isEmpty() && missingEnv.isEmpty() && missingconfig.isEmpty() && !anyBinsMissing) {
             return RequirementsCheckresult.Satisfied
         }
 
@@ -348,24 +348,24 @@ class SkillsLoader(private val context: Context) {
             missingBins = missingBins,
             missingAnyBins = if (anyBinsMissing) requires.anyBins else emptyList(),
             missingEnv = missingEnv,
-            missingConfig = missingConfig
+            missingconfig = missingconfig
         )
     }
 
     /**
-     * Get Skill statistics
+     * Get skill statistics
      */
-    fun getStatistics(): SkillsStatistics {
-        val skills = loadSkills()
-        val alwaysSkills = skills.values.count { it.metadata.always }
-        val onDemandSkills = skills.size - alwaysSkills
+    fun getStatistics(): skillsStatistics {
+        val skills = loadskills()
+        val alwaysskills = skills.values.count { it.metadata.always }
+        val onDemandskills = skills.size - alwaysskills
         val totalTokens = skills.values.sumOf { it.estimateTokens() }
         val alwaysTokens = skills.values.filter { it.metadata.always }.sumOf { it.estimateTokens() }
 
-        return SkillsStatistics(
-            totalSkills = skills.size,
-            alwaysSkills = alwaysSkills,
-            onDemandSkills = onDemandSkills,
+        return skillsStatistics(
+            totalskills = skills.size,
+            alwaysskills = alwaysskills,
+            onDemandskills = onDemandskills,
             totalTokens = totalTokens,
             alwaysTokens = alwaysTokens
         )
@@ -377,31 +377,31 @@ class SkillsLoader(private val context: Context) {
      * Load skills from extraDirs (lowest priority)
      * Aligns with OpenClaw: skills.load.extraDirs
      */
-    private fun loadExtraDirsSkills(
-        skills: MutableMap<String, SkillDocument>,
+    private fun loadExtraDirsskills(
+        skills: MutableMap<String, skillDocument>,
         extraDirs: List<String>
     ): Int {
         var count = 0
         for (dirPath in extraDirs) {
             val dir = File(dirPath)
             if (!dir.exists() || !dir.isDirectory) {
-                Log.w(TAG, "extraDirs 目录不Exists: $dirPath")
+                Log.w(TAG, "extraDirs directorynotExists: $dirPath")
                 continue
             }
-            count += loadSkillsFromDirectory(dir, SkillSource.EXTRA, skills)
+            count += loadskillsfromDirectory(dir, skillSource.EXTRA, skills)
         }
         return count
     }
 
     /**
-     * Load bundled Skills from assets/skills/
+     * Load bundled skills from assets/skills/
      */
-    private fun loadBundledSkills(skills: MutableMap<String, SkillDocument>): Int {
+    private fun loadBundledskills(skills: MutableMap<String, skillDocument>): Int {
         var count = 0
 
         try {
             val skillDirs = context.assets.list(BUNDLED_SKILLS_PATH) ?: emptyArray()
-            Log.d(TAG, "扫描 Bundled Skills: ${skillDirs.size} 个目录")
+            Log.d(TAG, "扫描 Bundled skills: ${skillDirs.size} countdirectory")
 
             for (dir in skillDirs) {
                 val skillPath = "$BUNDLED_SKILLS_PATH/$dir/$SKILL_FILE_NAME"
@@ -409,46 +409,46 @@ class SkillsLoader(private val context: Context) {
                     val content = context.assets.open(skillPath)
                         .bufferedReader().use { it.readText() }
 
-                    val skill = SkillParser.parse(content, "assets://$skillPath")
-                        .copy(source = SkillSource.BUNDLED, filePath = "assets://$skillPath")
+                    val skill = skillParser.parse(content, "assets://$skillPath")
+                        .copy(source = skillSource.BUNDLED, filePath = "assets://$skillPath")
                     skills[skill.name] = skill
                     count++
-                } catch (e: Exception) {
-                    Log.w(TAG, "❌ Load Bundled Skill Failed: $dir - ${e.message}")
+                } catch (e: exception) {
+                    Log.w(TAG, "[ERROR] Load Bundled skill Failed: $dir - ${e.message}")
                 }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "扫描 Bundled Skills Failed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "扫描 Bundled skills Failed", e)
         }
 
         return count
     }
 
     /**
-     * Load managed Skills from /sdcard/.androidforclaw/skills/
+     * Load managed skills from /sdcard/.androidforclaw/skills/
      */
-    private fun loadManagedSkills(skills: MutableMap<String, SkillDocument>): Int {
+    private fun loadManagedskills(skills: MutableMap<String, skillDocument>): Int {
         val managedDir = File(MANAGED_SKILLS_DIR)
         if (!managedDir.exists()) {
-            Log.d(TAG, "Managed Skills 目录不Exists: $MANAGED_SKILLS_DIR")
+            Log.d(TAG, "Managed skills directorynotExists: $MANAGED_SKILLS_DIR")
             return 0
         }
-        return loadSkillsFromDirectory(managedDir, SkillSource.MANAGED, skills)
+        return loadskillsfromDirectory(managedDir, skillSource.MANAGED, skills)
     }
 
     /**
-     * Load plugin Skills from enabled plugins.
+     * Load plugin skills from enabled plugins.
      *
      * Aligns with OpenClaw: plugins can ship skills by declaring `skills` dirs
-     * in openclaw.plugin.json. On Android, we read plugins.entries from config
+     * in openclaw.plugin.json. On android, we read plugins.entries from config
      * and scan each enabled plugin's skill directories.
      *
      * Plugin skill directories are resolved relative to the extensions base path
      * (assets://extensions/<pluginName>/ for bundled, or filesystem for installed).
      */
-    private fun loadPluginSkills(
-        skills: MutableMap<String, SkillDocument>,
-        config: com.xiaomo.androidforclaw.config.OpenClawConfig
+    private fun loadPluginskills(
+        skills: MutableMap<String, skillDocument>,
+        config: com.xiaomo.androidforclaw.config.OpenClawconfig
     ): Int {
         var count = 0
 
@@ -463,69 +463,69 @@ class SkillsLoader(private val context: Context) {
                 val assetsPath = "extensions/$pluginName/$skillDir"
                 try {
                     val assetDirs = context.assets.list(assetsPath)
-                    if (assetDirs != null && assetDirs.isNotEmpty()) {
+                    if (assetDirs != null && assetDirs.isnotEmpty()) {
                         for (dir in assetDirs) {
                             val skillMdPath = "$assetsPath/$dir/$SKILL_FILE_NAME"
                             try {
                                 val content = context.assets.open(skillMdPath)
                                     .bufferedReader().use { it.readText() }
-                                val skill = SkillParser.parse(content, "assets://$skillMdPath")
-                                    .copy(source = SkillSource.PLUGIN, filePath = "assets://$skillMdPath")
+                                val skill = skillParser.parse(content, "assets://$skillMdPath")
+                                    .copy(source = skillSource.PLUGIN, filePath = "assets://$skillMdPath")
 
-                                val isOverride = skills.containsKey(skill.name)
+                                val isoverride = skills.containsKey(skill.name)
                                 skills[skill.name] = skill
                                 count++
 
-                                val action = if (isOverride) "Override" else "New增"
-                                Log.d(TAG, "✅ Plugin/$pluginName ($action): ${skill.name}")
-                            } catch (e: Exception) {
-                                // Not a valid skill dir, skip
+                                val action = if (isoverride) "override" else "new增"
+                                Log.d(TAG, "[OK] Plugin/$pluginName ($action): ${skill.name}")
+                            } catch (e: exception) {
+                                // not a valid skill dir, skip
                             }
                         }
                         continue // Found in assets, don't check filesystem
                     }
-                } catch (e: Exception) {
-                    // Not in assets, try filesystem
+                } catch (e: exception) {
+                    // not in assets, try filesystem
                 }
 
                 // Try filesystem (installed plugins)
                 val fsPath = File(StoragePaths.extensions, "$pluginName/$skillDir")
                 if (fsPath.exists() && fsPath.isDirectory) {
-                    count += loadSkillsFromDirectory(fsPath, SkillSource.PLUGIN, skills)
+                    count += loadskillsfromDirectory(fsPath, skillSource.PLUGIN, skills)
                 }
             }
         }
 
         if (count > 0) {
-            Log.i(TAG, "Plugin Skills: $count 个Load complete")
+            Log.i(TAG, "Plugin skills: $count countLoad complete")
         }
 
         return count
     }
 
     /**
-     * Load workspace Skills from /sdcard/.androidforclaw/workspace/skills/
+     * Load workspace skills from /sdcard/.androidforclaw/workspace/skills/
      */
-    private fun loadWorkspaceSkills(skills: MutableMap<String, SkillDocument>): Int {
+    private fun loadWorkspaceskills(skills: MutableMap<String, skillDocument>): Int {
         val workspaceDir = File(WORKSPACE_SKILLS_DIR)
         if (!workspaceDir.exists()) {
-            Log.d(TAG, "Workspace Skills 目录不Exists: $WORKSPACE_SKILLS_DIR")
+            Log.d(TAG, "Workspace skills directorynotExists: $WORKSPACE_SKILLS_DIR")
             return 0
         }
-        return loadSkillsFromDirectory(workspaceDir, SkillSource.WORKSPACE, skills)
+        return loadskillsfromDirectory(workspaceDir, skillSource.WORKSPACE, skills)
     }
 
     /**
      * Generic: Load skills from a filesystem directory
      */
-    private fun loadSkillsFromDirectory(
+    private fun loadskillsfromDirectory(
         dir: File,
-        source: SkillSource,
-        skills: MutableMap<String, SkillDocument>
+        source: skillSource,
+        skills: MutableMap<String, skillDocument>
     ): Int {
         var count = 0
         val skillDirs = dir.listFiles { file -> file.isDirectory } ?: emptyArray()
-        Log.d(TAG, "扫描 ${source.displayName} Skills: ${skillDirs.size} 个目录 (${dir.absolutePath})")
+        Log.d(TAG, "扫描 ${source.displayName} skills: ${skillDirs.size} countdirectory (${dir.absolutePath})")
 
         for (skillDir in skillDirs) {
             val skillFile = File(skillDir, SKILL_FILE_NAME)
@@ -533,17 +533,17 @@ class SkillsLoader(private val context: Context) {
 
             try {
                 val content = skillFile.readText()
-                val skill = SkillParser.parse(content, skillFile.absolutePath)
+                val skill = skillParser.parse(content, skillFile.absolutePath)
                     .copy(source = source, filePath = skillFile.absolutePath)
 
-                val isOverride = skills.containsKey(skill.name)
+                val isoverride = skills.containsKey(skill.name)
                 skills[skill.name] = skill
                 count++
 
-                val action = if (isOverride) "Override" else "New增"
-                Log.d(TAG, "✅ ${source.displayName} ($action): ${skill.name}")
-            } catch (e: Exception) {
-                Log.w(TAG, "❌ Load ${source.displayName} Skill Failed: ${skillDir.name} - ${e.message}")
+                val action = if (isoverride) "override" else "new增"
+                Log.d(TAG, "[OK] ${source.displayName} ($action): ${skill.name}")
+            } catch (e: exception) {
+                Log.w(TAG, "[ERROR] Load ${source.displayName} skill Failed: ${skillDir.name} - ${e.message}")
             }
         }
 
@@ -555,29 +555,29 @@ class SkillsLoader(private val context: Context) {
     /**
      * Keyword matching for skill selection
      */
-    private fun matchesKeywords(skill: SkillDocument, keywords: String): Boolean {
+    private fun matchesKeywords(skill: skillDocument, keywords: String): Boolean {
         val matched = when (skill.name) {
             "app-testing" -> {
                 keywords.contains("Test") || keywords.contains("test") ||
-                keywords.contains("Check") || keywords.contains("Validate") ||
+                keywords.contains("Check") || keywords.contains("validation") ||
                 keywords.contains("Feature") || keywords.contains("用例")
             }
             "debugging" -> {
                 keywords.contains("Debug") || keywords.contains("debug") ||
                 keywords.contains("bug") || keywords.contains("Error") ||
-                keywords.contains("Issue") || keywords.contains("Exception") ||
-                keywords.contains("崩溃")
+                keywords.contains("Issue") || keywords.contains("exception") ||
+                keywords.contains("crash")
             }
             "accessibility" -> {
                 keywords.contains("Accessibility") || keywords.contains("accessibility") ||
                 keywords.contains("wcag") || keywords.contains("适配") ||
-                keywords.contains("可读性") || keywords.contains("对比度")
+                keywords.contains("can读性") || keywords.contains("correct比度")
             }
             "performance" -> {
                 keywords.contains("Performance") || keywords.contains("performance") ||
                 keywords.contains("Optimize") || keywords.contains("卡顿") ||
                 keywords.contains("流畅") || keywords.contains("Start") ||
-                keywords.contains("Load") || keywords.contains("慢")
+                keywords.contains("Load") || keywords.contains("slow")
             }
             "ui-validation" -> {
                 keywords.contains("ui") || keywords.contains("界面") ||
@@ -586,7 +586,7 @@ class SkillsLoader(private val context: Context) {
             }
             "network-testing" -> {
                 keywords.contains("Network") || keywords.contains("network") ||
-                keywords.contains("联网") || keywords.contains("在线") ||
+                keywords.contains("联网") || keywords.contains("in线") ||
                 keywords.contains("离线") || keywords.contains("断网") ||
                 keywords.contains("api") || keywords.contains("Request")
             }
@@ -601,7 +601,7 @@ class SkillsLoader(private val context: Context) {
             "feishu-drive" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
                 keywords.contains("云Space") || keywords.contains("drive") ||
-                keywords.contains("文件夹") || keywords.contains("云Document")
+                keywords.contains("files夹") || keywords.contains("云Document")
             }
             "feishu-bitable" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
@@ -621,12 +621,12 @@ class SkillsLoader(private val context: Context) {
             "feishu-perm" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
                 keywords.contains("Permission") || keywords.contains("perm") ||
-                keywords.contains("分享") || keywords.contains("Collaborate")
+                keywords.contains("share") || keywords.contains("Collaborate")
             }
             "feishu-urgent" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
                 keywords.contains("Urgent") || keywords.contains("urgent") ||
-                keywords.contains("Notify")
+                keywords.contains("notify")
             }
             else -> false
         }
@@ -634,7 +634,7 @@ class SkillsLoader(private val context: Context) {
         if (matched) return true
 
         // Feishu URL pattern matching
-        if (skill.name.startsWith("feishu") &&
+        if (skill.name.startswith("feishu") &&
             (keywords.contains("feishu.cn/") || keywords.contains("飞书"))) {
             return true
         }
@@ -649,74 +649,74 @@ class SkillsLoader(private val context: Context) {
      */
     private fun identifyTaskType(userGoal: String): List<String> {
         val keywords = userGoal.lowercase()
-        val recommendedSkills = mutableListOf<String>()
+        val recommendedskills = mutableListOf<String>()
 
         if (keywords.contains("Test") || keywords.contains("test") ||
-            keywords.contains("Validate") || keywords.contains("Check")) {
-            recommendedSkills.add("app-testing")
+            keywords.contains("validation") || keywords.contains("Check")) {
+            recommendedskills.a("app-testing")
         }
 
         if (keywords.contains("Debug") || keywords.contains("debug") ||
             keywords.contains("bug") || keywords.contains("Issue") ||
-            keywords.contains("Error") || keywords.contains("崩溃")) {
-            recommendedSkills.add("debugging")
+            keywords.contains("Error") || keywords.contains("crash")) {
+            recommendedskills.a("debugging")
         }
 
         if (keywords.contains("界面") || keywords.contains("ui") ||
             keywords.contains("布局") || keywords.contains("Show") ||
             keywords.contains("页面")) {
-            recommendedSkills.add("ui-validation")
+            recommendedskills.a("ui-validation")
         }
 
         if (keywords.contains("Performance") || keywords.contains("卡顿") ||
-            keywords.contains("慢") || keywords.contains("Optimize") ||
+            keywords.contains("slow") || keywords.contains("Optimize") ||
             keywords.contains("Start") || keywords.contains("流畅")) {
-            recommendedSkills.add("performance")
+            recommendedskills.a("performance")
         }
 
         if (keywords.contains("Accessibility") || keywords.contains("accessibility") ||
-            keywords.contains("适配") || keywords.contains("可读性")) {
-            recommendedSkills.add("accessibility")
+            keywords.contains("适配") || keywords.contains("can读性")) {
+            recommendedskills.a("accessibility")
         }
 
         if (keywords.contains("Network") || keywords.contains("联网") ||
             keywords.contains("离线") || keywords.contains("断网") ||
             keywords.contains("api")) {
-            recommendedSkills.add("network-testing")
+            recommendedskills.a("network-testing")
         }
 
         if (keywords.contains("飞书") || keywords.contains("feishu")) {
             if (keywords.contains("Document") || keywords.contains("doc") || keywords.contains("docx")) {
-                recommendedSkills.add("feishu-doc")
+                recommendedskills.a("feishu-doc")
             }
             if (keywords.contains("Knowledge Base") || keywords.contains("wiki")) {
-                recommendedSkills.add("feishu-wiki")
+                recommendedskills.a("feishu-wiki")
             }
-            if (keywords.contains("Table") || keywords.contains("bitable") || keywords.contains("多维")) {
-                recommendedSkills.add("feishu-bitable")
+            if (keywords.contains("Table") || keywords.contains("bitable") || keywords.contains("many维")) {
+                recommendedskills.a("feishu-bitable")
             }
             if (keywords.contains("Task") || keywords.contains("task") || keywords.contains("待办")) {
-                recommendedSkills.add("feishu-task")
+                recommendedskills.a("feishu-task")
             }
-            if (keywords.contains("云Space") || keywords.contains("drive") || keywords.contains("文件")) {
-                recommendedSkills.add("feishu-drive")
+            if (keywords.contains("云Space") || keywords.contains("drive") || keywords.contains("files")) {
+                recommendedskills.a("feishu-drive")
             }
-            if (keywords.contains("Permission") || keywords.contains("perm") || keywords.contains("分享")) {
-                recommendedSkills.add("feishu-perm")
+            if (keywords.contains("Permission") || keywords.contains("perm") || keywords.contains("share")) {
+                recommendedskills.a("feishu-perm")
             }
             if (keywords.contains("群") || keywords.contains("chat")) {
-                recommendedSkills.add("feishu-chat")
+                recommendedskills.a("feishu-chat")
             }
-            if (keywords.contains("Urgent") || keywords.contains("urgent") || keywords.contains("Notify")) {
-                recommendedSkills.add("feishu-urgent")
+            if (keywords.contains("Urgent") || keywords.contains("urgent") || keywords.contains("notify")) {
+                recommendedskills.a("feishu-urgent")
             }
-            if (recommendedSkills.none { it.startsWith("feishu-") }) {
-                recommendedSkills.add("feishu")
-                recommendedSkills.add("feishu-doc")
+            if (recommendedskills.none { it.startswith("feishu-") }) {
+                recommendedskills.a("feishu")
+                recommendedskills.a("feishu-doc")
             }
         }
 
-        return recommendedSkills
+        return recommendedskills
     }
 
     // ==================== Private: Requirements Checking ====================
@@ -727,9 +727,9 @@ class SkillsLoader(private val context: Context) {
     private fun isBinaryAvailable(bin: String): Boolean {
         return try {
             val process = Runtime.getRuntime().exec("which $bin")
-            val exitCode = process.waitFor()
+            val exitCode = process.waitfor()
             exitCode == 0
-        } catch (e: Exception) {
+        } catch (e: exception) {
             false
         }
     }
@@ -737,14 +737,14 @@ class SkillsLoader(private val context: Context) {
     /**
      * Check if config item is available
      */
-    private fun isConfigAvailable(configKey: String): Boolean {
+    private fun isconfigAvailable(configKey: String): Boolean {
         return try {
-            val config = configLoader.loadOpenClawConfig()
-            // Use dot-path resolution
+            val config = configLoader.loadOpenClawconfig()
+            // use dot-path resolution
             val parts = configKey.split(".")
             when {
                 parts.size >= 2 && parts[0] in listOf("gateway", "channels") -> {
-                    when (parts.getOrNull(1)) {
+                    when (parts.getorNull(1)) {
                         "enabled" -> true
                         "feishu" -> config.channels.feishu.enabled
                         "discord" -> config.channels.discord?.enabled ?: false
@@ -753,7 +753,7 @@ class SkillsLoader(private val context: Context) {
                 }
                 else -> false
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             false
         }
     }
@@ -769,21 +769,21 @@ sealed class RequirementsCheckresult {
         val missingBins: List<String>,
         val missingAnyBins: List<String> = emptyList(),
         val missingEnv: List<String>,
-        val missingConfig: List<String>
+        val missingconfig: List<String>
     ) : RequirementsCheckresult() {
         fun getErrorMessage(): String {
             val parts = mutableListOf<String>()
-            if (missingBins.isNotEmpty()) {
-                parts.add("缺少二Into制工具: ${missingBins.joinToString()}")
+            if (missingBins.isnotEmpty()) {
+                parts.a("缺fewtwointo制工具: ${missingBins.joinToString()}")
             }
-            if (missingAnyBins.isNotEmpty()) {
-                parts.add("至少Need一个: ${missingAnyBins.joinToString()}")
+            if (missingAnyBins.isnotEmpty()) {
+                parts.a("至fewneedone: ${missingAnyBins.joinToString()}")
             }
-            if (missingEnv.isNotEmpty()) {
-                parts.add("缺少EnvironmentVariable: ${missingEnv.joinToString()}")
+            if (missingEnv.isnotEmpty()) {
+                parts.a("缺fewEnvironmentVariable: ${missingEnv.joinToString()}")
             }
-            if (missingConfig.isNotEmpty()) {
-                parts.add("缺少Config项: ${missingConfig.joinToString()}")
+            if (missingconfig.isnotEmpty()) {
+                parts.a("缺fewconfig项: ${missingconfig.joinToString()}")
             }
             return parts.joinToString("; ")
         }
@@ -791,21 +791,21 @@ sealed class RequirementsCheckresult {
 }
 
 /**
- * Skills statistics
+ * skills statistics
  */
-data class SkillsStatistics(
-    val totalSkills: Int,
-    val alwaysSkills: Int,
-    val onDemandSkills: Int,
+data class skillsStatistics(
+    val totalskills: Int,
+    val alwaysskills: Int,
+    val onDemandskills: Int,
     val totalTokens: Int,
     val alwaysTokens: Int
 ) {
     fun getReport(): String {
         return """
-Skills count:
-  - Total: $totalSkills 个
-  - Always: $alwaysSkills 个
-  - On-Demand: $onDemandSkills 个
+skills count:
+  - Total: $totalskills count
+  - Always: $alwaysskills count
+  - On-Demand: $onDemandskills count
   - Token 总量: $totalTokens tokens
   - Always Token: $alwaysTokens tokens
         """.trimIndent()

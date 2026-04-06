@@ -1,25 +1,25 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.updater
 
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import com.xiaomo.androidforclaw.logging.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 
 /**
- * WorkManager Worker that relaunches the app after process death.
+ * Workmanager Worker that relaunches the app after process death.
  */
-class RestartWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
+class RestartWorker(context: context, params: WorkerParameters) : Worker(context, params) {
     override fun doWork(): Result {
         Log.d("RestartWorker", "Relaunching app...")
-        val intent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
+        val intent = applicationcontext.packagemanager.getLaunchIntentforPackage(applicationcontext.packageName)
         if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            applicationContext.startActivity(intent)
+            intent.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            applicationcontext.startActivity(intent)
         }
         return Result.success()
     }

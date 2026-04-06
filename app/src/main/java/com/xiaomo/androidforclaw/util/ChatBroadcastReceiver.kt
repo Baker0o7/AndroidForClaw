@@ -1,11 +1,11 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
 import android.content.BroadcastReceiver
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import android.content.IntentFilter
 import com.xiaomo.androidforclaw.logging.Log
@@ -45,19 +45,19 @@ class ChatBroadcastReceiver() : BroadcastReceiver() {
         }
     }
 
-    override fun onReceive(context: Context?, intent: Intent?) {
+    override fun onReceive(context: context?, intent: Intent?) {
         Log.d(TAG, "onReceive called - action: ${intent?.action}")
         if (intent?.action == ACTION_SEND_MESSAGE) {
             val message = intent.getStringExtra(EXTRA_MESSAGE)
             Log.d(TAG, "Message content: $message")
-            if (message != null && message.isNotBlank()) {
+            if (message != null && message.isnotBlank()) {
                 Log.d(TAG, "Received ADB message: $message")
 
                 // Priority: use callback
                 if (onMessageReceived != null) {
                     onMessageReceived?.invoke(message)
                 } else {
-                    // Use global method to send message
+                    // use global method to send message
                     Log.d(TAG, "Send via MyApplication")
                     MyApplication.handleChatBroadcast(message)
                 }

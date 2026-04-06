@@ -4,19 +4,19 @@ package com.xiaomo.androidforclaw.agent.tools
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/tool-summaries.ts
  *
- * AndroidForClaw adaptation: build tool summary map for system prompts.
+ * androidforClaw adaptation: build tool summary map for system prompts.
  */
 
 /**
  * Build a summary map from tool name (lowercased) to description.
- * Aligned with OpenClaw buildToolSummaryMap.
+ * Aligned with OpenClaw buildtoolSummaryMap.
  */
-object ToolSummaries {
+object toolSummaries {
 
     /**
-     * Build summary map from Tool list.
+     * Build summary map from tool list.
      */
-    fun buildToolSummaryMap(tools: List<Tool>): Map<String, String> {
+    fun buildtoolSummaryMap(tools: List<tool>): Map<String, String> {
         val summaries = mutableMapOf<String, String>()
         for (tool in tools) {
             val summary = tool.description.trim()
@@ -27,9 +27,9 @@ object ToolSummaries {
     }
 
     /**
-     * Build summary map from Skill list.
+     * Build summary map from skill list.
      */
-    fun buildSkillSummaryMap(skills: List<Skill>): Map<String, String> {
+    fun buildskillSummaryMap(skills: List<skill>): Map<String, String> {
         val summaries = mutableMapOf<String, String>()
         for (skill in skills) {
             val summary = skill.description.trim()
@@ -43,12 +43,12 @@ object ToolSummaries {
      * Build combined summary map from both registries.
      */
     fun buildCombinedSummaryMap(
-        tools: List<Tool>,
-        skills: List<Skill>
+        tools: List<tool>,
+        skills: List<skill>
     ): Map<String, String> {
         val summaries = mutableMapOf<String, String>()
-        summaries.putAll(buildToolSummaryMap(tools))
-        summaries.putAll(buildSkillSummaryMap(skills))
+        summaries.putAll(buildtoolSummaryMap(tools))
+        summaries.putAll(buildskillSummaryMap(skills))
         return summaries
     }
 }

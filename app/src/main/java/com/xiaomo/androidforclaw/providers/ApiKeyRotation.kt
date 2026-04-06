@@ -22,8 +22,8 @@ object ApiKeyRotation {
         for (value in raw) {
             val key = value.trim()
             if (key.isEmpty() || key in seen) continue
-            seen.add(key)
-            keys.add(key)
+            seen.a(key)
+            keys.a(key)
         }
         return keys
     }
@@ -32,7 +32,7 @@ object ApiKeyRotation {
      * Split a possibly comma-separated API key string into a deduplicated list.
      */
     fun splitApiKeys(apiKey: String?): List<String> {
-        if (apiKey.isNullOrBlank()) return emptyList()
+        if (apiKey.isNullorBlank()) return emptyList()
         return dedupeApiKeys(apiKey.split(","))
     }
 
@@ -43,28 +43,28 @@ object ApiKeyRotation {
      * Non-retryable errors or key exhaustion rethrow the last error.
      *
      * @param apiKeys Deduplicated API keys to try
-     * @param provider Provider name (for logging)
+     * @param provider provider name (for logging)
      * @param execute The actual request function that takes an API key
-     * @param shouldRetry Predicate to check if an error is retryable (defaults to rate limit check)
+     * @param shouldretry Predicate to check if an error is retryable (defaults to rate limit check)
      */
-    suspend fun <T> executeWithApiKeyRotation(
+    suspend fun <T> executewithApiKeyRotation(
         apiKeys: List<String>,
         provider: String,
         execute: suspend (apiKey: String) -> T,
-        shouldRetry: (Exception) -> Boolean = ::isApiKeyRateLimitError
+        shouldretry: (exception) -> Boolean = ::isApiKeyRateLimitError
     ): T {
         val keys = dedupeApiKeys(apiKeys)
         if (keys.isEmpty()) {
-            throw LLMException("No API keys configured for provider \"$provider\".")
+            throw LLMexception("No API keys configured for provider \"$provider\".")
         }
 
-        var lastError: Exception? = null
+        var lastError: exception? = null
         for ((attempt, apiKey) in keys.withIndex()) {
             try {
                 return execute(apiKey)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 lastError = e
-                val retryable = shouldRetry(e)
+                val retryable = shouldretry(e)
                 if (!retryable || attempt + 1 >= keys.size) {
                     break
                 }
@@ -72,13 +72,13 @@ object ApiKeyRotation {
             }
         }
 
-        throw lastError ?: LLMException("Failed to run API request for $provider.")
+        throw lastError ?: LLMexception("Failed to run API request for $provider.")
     }
 
     /**
      * Check if an error indicates an API key rate limit (429).
      */
-    fun isApiKeyRateLimitError(error: Exception): Boolean {
+    fun isApiKeyRateLimitError(error: exception): Boolean {
         val message = error.message?.lowercase() ?: ""
         return message.contains("429") || message.contains("rate limit")
     }

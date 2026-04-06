@@ -2,35 +2,35 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * Back Skill
+ * back skill
  * Press back button
  */
-class BackSkill : Skill {
+class backskill : skill {
     companion object {
-        private const val TAG = "BackSkill"
+        private const val TAG = "backskill"
     }
 
     override val name = "back"
-    override val description = "Press Back button to go to previous screen"
+    override val description = "Press back button to go to previous screen"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = emptyMap(),
                     required = emptyList()
@@ -39,28 +39,28 @@ class BackSkill : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): skillResult {
         if (!AccessibilityProxy.isConnected.value!!) {
-            return SkillResult.error("Accessibility service not connected")
+            return skillResult.error("Accessibility service not connected")
         }
 
         Log.d(TAG, "Pressing back button")
         return try {
-            val success = AccessibilityProxy.pressBack()
+            val success = AccessibilityProxy.pressback()
             if (!success) {
-                return SkillResult.error("Back button press failed")
+                return skillResult.error("back button press failed")
             }
 
             // Wait for page return animation
             kotlinx.coroutines.delay(1000)
 
-            SkillResult.success(
-                "Back button pressed (waited 1000ms for transition)",
+            skillResult.success(
+                "back button pressed (waited 1000ms for transition)",
                 mapOf("wait_time_ms" to 1000)
             )
-        } catch (e: Exception) {
-            Log.e(TAG, "Back button press failed", e)
-            SkillResult.error("Back button press failed: ${e.message}")
+        } catch (e: exception) {
+            Log.e(TAG, "back button press failed", e)
+            skillResult.error("back button press failed: ${e.message}")
         }
     }
 }

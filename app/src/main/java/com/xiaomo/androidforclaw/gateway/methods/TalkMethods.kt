@@ -1,23 +1,23 @@
 package com.xiaomo.androidforclaw.gateway.methods
 
-import android.content.Context
+import android.content.context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Base64
 import com.xiaomo.androidforclaw.logging.Log
 import java.io.File
 import java.util.Locale
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CountnextLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * Talk RPC methods — Android TTS Implementation
+ * Talk RPC methods — android TTS implementation
  *
- * 提供 talk.speak(文字转语音)和 talk.config(语音Config). 
- * use Android Inside置 TextToSpeech 引擎合成 WAV, base64 EncodeReturn, 
- * 与 OpenClaw gateway talk.speak Protocolcompletely对齐. 
+ * 提供 talk.speak(文字转语音)and talk.config(语音config). 
+ * use android inside置 TextToSpeech 引擎合成 WAV, base64 EncodeReturn, 
+ * and OpenClaw gateway talk.speak Protocolcompletelycorrect齐. 
  */
-class TalkMethods private constructor(private val context: Context) {
+class TalkMethods private constructor(private val context: context) {
 
     companion object {
         private const val TAG = "TalkMethods"
@@ -29,29 +29,29 @@ class TalkMethods private constructor(private val context: Context) {
 
         /**
          * Get or create the shared TalkMethods instance.
-         * Avoids creating duplicate Android TTS engines.
+         * Avoids creating duplicate android TTS engines.
          */
-        fun getInstance(context: Context): TalkMethods {
+        fun getInstance(context: context): TalkMethods {
             return instance ?: synchronized(this) {
-                instance ?: TalkMethods(context.applicationContext).also { instance = it }
+                instance ?: TalkMethods(context.applicationcontext).also { instance = it }
             }
         }
     }
 
     private var tts: TextToSpeech? = null
     @Volatile private var ttsReady = false
-    private val initLatch = CountDownLatch(1)
+    private val initLatch = CountnextLatch(1)
 
     fun init() {
         tts = TextToSpeech(context) { status ->
             ttsReady = status == TextToSpeech.SUCCESS
             if (ttsReady) {
                 tts?.language = Locale.US
-                Log.i(TAG, "Android TTS engine initialized")
+                Log.i(TAG, "android TTS engine initialized")
             } else {
-                Log.e(TAG, "Android TTS init failed: $status")
+                Log.e(TAG, "android TTS init failed: $status")
             }
-            initLatch.countDown()
+            initLatch.countnext()
         }
     }
 
@@ -60,13 +60,13 @@ class TalkMethods private constructor(private val context: Context) {
         tts?.shutdown()
         tts = null
         ttsReady = false
-        Log.i(TAG, "Android TTS engine shut down")
+        Log.i(TAG, "android TTS engine shut down")
     }
 
     /**
-     * talk.config — Return语音Config(固定DefaultValue)
+     * talk.config — Return语音config(固定DefaultValue)
      */
-    fun talkConfig(@Suppress("UNUSED_PARAMETER") params: Any?): Map<String, Any?> {
+    fun talkconfig(@Suppress("UNUSED_PARAMETER") params: Any?): Map<String, Any?> {
         return mapOf(
             "config" to mapOf(
                 "talk" to mapOf(
@@ -90,7 +90,7 @@ class TalkMethods private constructor(private val context: Context) {
         @Suppress("UNCHECKED_CAST")
         val p = params as? Map<String, Any?> ?: emptyMap()
         val text = p["text"] as? String
-        if (text.isNullOrBlank()) {
+        if (text.isNullorBlank()) {
             return mapOf("error" to "text is required")
         }
 
@@ -118,27 +118,27 @@ class TalkMethods private constructor(private val context: Context) {
 
         // Synthesize to temp WAV file
         val tempFile = File(context.cacheDir, "tts_${System.currentTimeMillis()}.wav")
-        val synthLatch = CountDownLatch(1)
+        val synthLatch = CountnextLatch(1)
         var synthSuccess = false
 
         engine.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {}
             override fun onDone(utteranceId: String?) {
                 synthSuccess = true
-                synthLatch.countDown()
+                synthLatch.countnext()
             }
             @Deprecated("Deprecated in Java")
             override fun onError(utteranceId: String?) {
-                synthLatch.countDown()
+                synthLatch.countnext()
             }
             override fun onError(utteranceId: String?, errorCode: Int) {
                 Log.e(TAG, "TTS synthesis error: $errorCode")
-                synthLatch.countDown()
+                synthLatch.countnext()
             }
         })
 
         val utteranceId = "tts_${System.currentTimeMillis()}"
-        val bundle = Bundle().apply {
+        val bundle = Bundle().app {
             putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
         }
         val result = engine.synthesizeToFile(text, bundle, tempFile, utteranceId)
@@ -165,7 +165,7 @@ class TalkMethods private constructor(private val context: Context) {
         return mapOf(
             "audioBase64" to audioBase64,
             "provider" to "android-tts",
-            "outputFormat" to "wav",
+            "outputformat" to "wav",
             "mimeType" to "audio/wav",
             "fileExtension" to ".wav"
         )

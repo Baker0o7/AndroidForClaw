@@ -2,7 +2,7 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/cron/store.ts
  *
- * AndroidForClaw adaptation: cron scheduling.
+ * androidforClaw adaptation: cron scheduling.
  */
 package com.xiaomo.androidforclaw.cron
 
@@ -38,7 +38,7 @@ class CronStore(private val storePath: String) {
                 }
                 val json = file.readText()
                 gson.fromJson(json, CronStoreFile::class.java)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to load store", e)
                 CronStoreFile()
             }
@@ -63,7 +63,7 @@ class CronStore(private val storePath: String) {
                 tempFile.renameTo(file)
 
                 serializedCache[storePath] = json
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to save store", e)
             }
         }
@@ -71,29 +71,29 @@ class CronStore(private val storePath: String) {
 }
 
 class CronScheduleAdapter : JsonSerializer<CronSchedule>, JsonDeserializer<CronSchedule> {
-    override fun serialize(src: CronSchedule, typeOfSrc: java.lang.reflect.Type, context: JsonSerializationContext): JsonElement {
+    override fun serialize(src: CronSchedule, typeOfSrc: java.lang.reflect.Type, context: JsonSerializationcontext): JsonElement {
         val json = JsonObject()
         when (src) {
             is CronSchedule.At -> {
-                json.addProperty("kind", "at")
-                json.addProperty("at", src.at)
+                json.aProperty("kind", "at")
+                json.aProperty("at", src.at)
             }
             is CronSchedule.Every -> {
-                json.addProperty("kind", "every")
-                json.addProperty("everyMs", src.everyMs)
-                src.anchorMs?.let { json.addProperty("anchorMs", it) }
+                json.aProperty("kind", "every")
+                json.aProperty("everyMs", src.everyMs)
+                src.anchorMs?.let { json.aProperty("anchorMs", it) }
             }
             is CronSchedule.Cron -> {
-                json.addProperty("kind", "cron")
-                json.addProperty("expr", src.expr)
-                src.tz?.let { json.addProperty("tz", it) }
-                src.staggerMs?.let { json.addProperty("staggerMs", it) }
+                json.aProperty("kind", "cron")
+                json.aProperty("expr", src.expr)
+                src.tz?.let { json.aProperty("tz", it) }
+                src.staggerMs?.let { json.aProperty("staggerMs", it) }
             }
         }
         return json
     }
 
-    override fun deserialize(json: JsonElement, typeOfT: java.lang.reflect.Type, context: JsonDeserializationContext): CronSchedule {
+    override fun deserialize(json: JsonElement, typeOfT: java.lang.reflect.Type, context: JsonDeserializationcontext): CronSchedule {
         val obj = json.asJsonObject
         return when (obj.get("kind").asString) {
             "at" -> CronSchedule.At(obj.get("at").asString)
@@ -106,46 +106,46 @@ class CronScheduleAdapter : JsonSerializer<CronSchedule>, JsonDeserializer<CronS
                 obj.get("tz")?.asString,
                 obj.get("staggerMs")?.asLong
             )
-            else -> throw IllegalArgumentException("Unknown schedule kind")
+            else -> throw IllegalArgumentexception("Unknown schedule kind")
         }
     }
 }
 
 class CronPayloadAdapter : JsonSerializer<CronPayload>, JsonDeserializer<CronPayload> {
-    override fun serialize(src: CronPayload, typeOfSrc: java.lang.reflect.Type, context: JsonSerializationContext): JsonElement {
+    override fun serialize(src: CronPayload, typeOfSrc: java.lang.reflect.Type, context: JsonSerializationcontext): JsonElement {
         val json = JsonObject()
         when (src) {
             is CronPayload.SystemEvent -> {
-                json.addProperty("kind", "systemEvent")
-                json.addProperty("text", src.text)
+                json.aProperty("kind", "systemEvent")
+                json.aProperty("text", src.text)
             }
-            is CronPayload.AgentTurn -> {
-                json.addProperty("kind", "agentTurn")
-                json.addProperty("message", src.message)
-                src.model?.let { json.addProperty("model", it) }
+            is CronPayload.agentTurn -> {
+                json.aProperty("kind", "agentTurn")
+                json.aProperty("message", src.message)
+                src.model?.let { json.aProperty("model", it) }
                 src.fallbacks?.let { list ->
                     val arr = JsonArray()
-                    list.forEach { arr.add(it) }
-                    json.add("fallbacks", arr)
+                    list.forEach { arr.a(it) }
+                    json.a("fallbacks", arr)
                 }
-                src.thinking?.let { json.addProperty("thinking", it) }
-                src.timeoutSeconds?.let { json.addProperty("timeoutSeconds", it) }
-                src.deliver?.let { json.addProperty("deliver", it) }
-                src.channel?.let { json.addProperty("channel", it) }
-                src.to?.let { json.addProperty("to", it) }
-                src.bestEffortDeliver?.let { json.addProperty("bestEffortDeliver", it) }
-                src.lightContext?.let { json.addProperty("lightContext", it) }
-                src.allowUnsafeExternalContent?.let { json.addProperty("allowUnsafeExternalContent", it) }
+                src.thinking?.let { json.aProperty("thinking", it) }
+                src.timeoutSeconds?.let { json.aProperty("timeoutSeconds", it) }
+                src.deliver?.let { json.aProperty("deliver", it) }
+                src.channel?.let { json.aProperty("channel", it) }
+                src.to?.let { json.aProperty("to", it) }
+                src.bestEffortDeliver?.let { json.aProperty("bestEffortDeliver", it) }
+                src.lightcontext?.let { json.aProperty("lightcontext", it) }
+                src.allowUnsafeExternalContent?.let { json.aProperty("allowUnsafeExternalContent", it) }
             }
         }
         return json
     }
 
-    override fun deserialize(json: JsonElement, typeOfT: java.lang.reflect.Type, context: JsonDeserializationContext): CronPayload {
+    override fun deserialize(json: JsonElement, typeOfT: java.lang.reflect.Type, context: JsonDeserializationcontext): CronPayload {
         val obj = json.asJsonObject
         return when (obj.get("kind").asString) {
             "systemEvent" -> CronPayload.SystemEvent(obj.get("text").asString)
-            "agentTurn" -> CronPayload.AgentTurn(
+            "agentTurn" -> CronPayload.agentTurn(
                 message = obj.get("message").asString,
                 model = obj.get("model")?.asString,
                 fallbacks = obj.getAsJsonArray("fallbacks")?.map { it.asString },
@@ -155,10 +155,10 @@ class CronPayloadAdapter : JsonSerializer<CronPayload>, JsonDeserializer<CronPay
                 channel = obj.get("channel")?.asString,
                 to = obj.get("to")?.asString,
                 bestEffortDeliver = obj.get("bestEffortDeliver")?.asBoolean,
-                lightContext = obj.get("lightContext")?.asBoolean,
+                lightcontext = obj.get("lightcontext")?.asBoolean,
                 allowUnsafeExternalContent = obj.get("allowUnsafeExternalContent")?.asBoolean
             )
-            else -> throw IllegalArgumentException("Unknown payload kind")
+            else -> throw IllegalArgumentexception("Unknown payload kind")
         }
     }
 }

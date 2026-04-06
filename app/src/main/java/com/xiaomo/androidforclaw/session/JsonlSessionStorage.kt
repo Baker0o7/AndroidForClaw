@@ -2,11 +2,11 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/session-dirs.ts, command/session-store.ts
  *
- * AndroidForClaw adaptation: session persistence.
+ * androidforClaw adaptation: session persistence.
  */
 package com.xiaomo.androidforclaw.session
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.google.gson.Gson
@@ -16,18 +16,18 @@ import java.time.Instant
 import java.util.UUID
 
 /**
- * JSONL Session Storage
- * Aligned with OpenClaw 的 agents/main/sessions/ 架构
+ * JSONL session Storage
+ * Aligned with OpenClaw  agents/main/sessions/ 架构
  *
- * JSONL 格式:
- * - 每条Message一Row JSON
- * - 增量追加, 不Override整个文件
- * - 易于Parse和流式Read
+ * JSONL format:
+ * - 每messagesoneRow JSON
+ * - 增量追加, notoverride整countfiles
+ * - 易于Parseand流式Read
  */
-class JsonlSessionStorage(private val context: Context) {
+class JsonlsessionStorage(private val context: context) {
 
     companion object {
-        private const val TAG = "JsonlSessionStorage"
+        private const val TAG = "JsonlsessionStorage"
 
         // Align with OpenClaw: agents/main/sessions/
         private val SESSIONS_DIR = StoragePaths.sessions.absolutePath
@@ -43,164 +43,164 @@ class JsonlSessionStorage(private val context: Context) {
     }
 
     /**
-     * CreateNewSession
+     * Createnewsession
      */
-    fun createSession(title: String = "New Session"): String {
+    fun createsession(title: String = "new session"): String {
         val sessionId = UUID.randomUUID().toString()
         val now = Instant.now().toString()
 
         // Create session file
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
-        sessionFile.createNewFile()
+        sessionFile.createnewFile()
 
         // Update index
-        val index = loadSessionsIndex().toMutableMap()
-        index[sessionId] = SessionMetadata(
+        val index = loadsessionsIndex().toMutableMap()
+        index[sessionId] = sessionMetadata(
             title = title,
             createdAt = now,
             lastMessageAt = now,
             messageCount = 0
         )
-        saveSessionsIndex(index)
+        savesessionsIndex(index)
 
-        Log.i(TAG, "CreateNewSession: $sessionId")
+        Log.i(TAG, "Createnewsession: $sessionId")
         return sessionId
     }
 
     /**
-     * 追加Message到Session (JSONL 格式)
+     * 追加Messagetosession (JSONL format)
      */
-    fun appendMessage(sessionId: String, message: SessionMessage) {
+    fun appendMessage(sessionId: String, message: sessionMessage) {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         if (!sessionFile.exists()) {
-            Log.e(TAG, "Session文件不Exists: $sessionId")
+            Log.e(TAG, "sessionfilesnotExists: $sessionId")
             return
         }
 
-        // Append one line of JSON
+        // append one line of JSON
         val jsonLine = gson.toJson(message)
         sessionFile.appendText("$jsonLine\n")
 
         // Update index
-        updateSessionMetadata(sessionId) { metadata ->
+        updatesessionMetadata(sessionId) { metadata ->
             metadata.copy(
                 lastMessageAt = Instant.now().toString(),
                 messageCount = metadata.messageCount + 1
             )
         }
 
-        Log.d(TAG, "追加Message到Session $sessionId: ${message.role}")
+        Log.d(TAG, "追加Messagetosession $sessionId: ${message.role}")
     }
 
     /**
-     * ReadSessionAllMessage
+     * ReadsessionAllMessage
      */
-    fun loadSession(sessionId: String): List<SessionMessage> {
+    fun loadsession(sessionId: String): List<sessionMessage> {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         if (!sessionFile.exists()) {
-            Log.w(TAG, "Session文件不Exists: $sessionId")
+            Log.w(TAG, "sessionfilesnotExists: $sessionId")
             return emptyList()
         }
 
         return try {
             sessionFile.readLines()
-                .filter { it.isNotBlank() }
-                .mapNotNull { line ->
+                .filter { it.isnotBlank() }
+                .mapnotNull { line ->
                     try {
-                        gson.fromJson(line, SessionMessage::class.java)
-                    } catch (e: Exception) {
+                        gson.fromJson(line, sessionMessage::class.java)
+                    } catch (e: exception) {
                         Log.e(TAG, "ParseMessageFailed: $line", e)
                         null
                     }
                 }
-        } catch (e: Exception) {
-            Log.e(TAG, "LoadSessionFailed: $sessionId", e)
+        } catch (e: exception) {
+            Log.e(TAG, "LoadsessionFailed: $sessionId", e)
             emptyList()
         }
     }
 
     /**
-     * GetAllSessionList
+     * GetAllsessionList
      */
-    fun listSessions(): Map<String, SessionMetadata> {
-        return loadSessionsIndex()
+    fun listsessions(): Map<String, sessionMetadata> {
+        return loadsessionsIndex()
     }
 
     /**
-     * GetSession元Data
+     * Getsession元Data
      */
-    fun getSessionMetadata(sessionId: String): SessionMetadata? {
-        return loadSessionsIndex()[sessionId]
+    fun getsessionMetadata(sessionId: String): sessionMetadata? {
+        return loadsessionsIndex()[sessionId]
     }
 
     /**
-     * UpdateSessionTitle
+     * UpdatesessionTitle
      */
-    fun updateSessionTitle(sessionId: String, newTitle: String) {
-        updateSessionMetadata(sessionId) { metadata ->
+    fun updatesessionTitle(sessionId: String, newTitle: String) {
+        updatesessionMetadata(sessionId) { metadata ->
             metadata.copy(title = newTitle)
         }
     }
 
     /**
-     * DeleteSession
+     * Deletesession
      */
-    fun deleteSession(sessionId: String): Boolean {
+    fun deletesession(sessionId: String): Boolean {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         val deleted = sessionFile.delete()
 
         if (deleted) {
             // Remove from index
-            val index = loadSessionsIndex().toMutableMap()
+            val index = loadsessionsIndex().toMutableMap()
             index.remove(sessionId)
-            saveSessionsIndex(index)
-            Log.i(TAG, "DeleteSession: $sessionId")
+            savesessionsIndex(index)
+            Log.i(TAG, "Deletesession: $sessionId")
         }
 
         return deleted
     }
 
     /**
-     * 清NullSession(保留文件但清NullInside容)
+     * 清Nullsession(保留filesbut清Nullcontent)
      */
-    fun clearSession(sessionId: String) {
+    fun clearsession(sessionId: String) {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         if (sessionFile.exists()) {
             sessionFile.writeText("")
-            updateSessionMetadata(sessionId) { metadata ->
+            updatesessionMetadata(sessionId) { metadata ->
                 metadata.copy(
                     messageCount = 0,
                     lastMessageAt = Instant.now().toString()
                 )
             }
-            Log.i(TAG, "清NullSession: $sessionId")
+            Log.i(TAG, "清Nullsession: $sessionId")
         }
     }
 
     /**
-     * ExportSession为 JSONL 文件
+     * Exportsessionfor JSONL files
      */
-    fun exportSession(sessionId: String, outputPath: String): Boolean {
+    fun exportsession(sessionId: String, outputPath: String): Boolean {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         val outputFile = File(outputPath)
 
         return try {
             sessionFile.copyTo(outputFile, overwrite = true)
-            Log.i(TAG, "ExportSession $sessionId 到 $outputPath")
+            Log.i(TAG, "Exportsession $sessionId to $outputPath")
             true
-        } catch (e: Exception) {
-            Log.e(TAG, "ExportSessionFailed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "ExportsessionFailed", e)
             false
         }
     }
 
     /**
-     * Import JSONL Session文件
+     * Import JSONL sessionfiles
      */
-    fun importSession(inputPath: String, title: String? = null): String? {
+    fun importsession(inputPath: String, title: String? = null): String? {
         val inputFile = File(inputPath)
         if (!inputFile.exists()) {
-            Log.e(TAG, "Import文件不Exists: $inputPath")
+            Log.e(TAG, "ImportfilesnotExists: $inputPath")
             return null
         }
 
@@ -211,41 +211,41 @@ class JsonlSessionStorage(private val context: Context) {
             inputFile.copyTo(sessionFile)
 
             // Count messages
-            val messageCount = sessionFile.readLines().count { it.isNotBlank() }
+            val messageCount = sessionFile.readLines().count { it.isnotBlank() }
 
             // Create index
-            val index = loadSessionsIndex().toMutableMap()
-            index[sessionId] = SessionMetadata(
-                title = title ?: "Imported Session",
+            val index = loadsessionsIndex().toMutableMap()
+            index[sessionId] = sessionMetadata(
+                title = title ?: "Imported session",
                 createdAt = Instant.now().toString(),
                 lastMessageAt = Instant.now().toString(),
                 messageCount = messageCount
             )
-            saveSessionsIndex(index)
+            savesessionsIndex(index)
 
-            Log.i(TAG, "ImportSessionSuccess: $sessionId")
+            Log.i(TAG, "ImportsessionSuccess: $sessionId")
             sessionId
-        } catch (e: Exception) {
-            Log.e(TAG, "ImportSessionFailed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "ImportsessionFailed", e)
             null
         }
     }
 
     /**
-     * GetSessionStatistics info
+     * GetsessionStatistics info
      */
-    fun getSessionStats(sessionId: String): SessionStats? {
-        val messages = loadSession(sessionId)
+    fun getsessionStats(sessionId: String): sessionStats? {
+        val messages = loadsession(sessionId)
         if (messages.isEmpty()) return null
 
         val userMessages = messages.count { it.role == "user" }
         val assistantMessages = messages.count { it.role == "assistant" }
         val systemMessages = messages.count { it.role == "system" }
 
-        val firstMessage = messages.firstOrNull()
-        val lastMessage = messages.lastOrNull()
+        val firstMessage = messages.firstorNull()
+        val lastMessage = messages.lastorNull()
 
-        return SessionStats(
+        return sessionStats(
             sessionId = sessionId,
             totalMessages = messages.size,
             userMessages = userMessages,
@@ -262,14 +262,14 @@ class JsonlSessionStorage(private val context: Context) {
         val dir = File(SESSIONS_DIR)
         if (!dir.exists()) {
             dir.mkdirs()
-            Log.d(TAG, "Create sessions 目录: $SESSIONS_DIR")
+            Log.d(TAG, "Create sessions directory: $SESSIONS_DIR")
         }
     }
 
     /**
      * Load sessions.json Index
      */
-    private fun loadSessionsIndex(): Map<String, SessionMetadata> {
+    private fun loadsessionsIndex(): Map<String, sessionMetadata> {
         val indexFile = File(SESSIONS_INDEX_FILE)
         if (!indexFile.exists()) {
             return emptyMap()
@@ -277,9 +277,9 @@ class JsonlSessionStorage(private val context: Context) {
 
         return try {
             val json = indexFile.readText()
-            val wrapper = gson.fromJson(json, SessionsIndexWrapper::class.java)
+            val wrapper = gson.fromJson(json, sessionsIndexWrapper::class.java)
             wrapper.sessions
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Load sessions.json Failed", e)
             emptyMap()
         }
@@ -288,37 +288,37 @@ class JsonlSessionStorage(private val context: Context) {
     /**
      * Save sessions.json Index
      */
-    private fun saveSessionsIndex(sessions: Map<String, SessionMetadata>) {
+    private fun savesessionsIndex(sessions: Map<String, sessionMetadata>) {
         val indexFile = File(SESSIONS_INDEX_FILE)
 
         try {
-            val wrapper = SessionsIndexWrapper(sessions)
+            val wrapper = sessionsIndexWrapper(sessions)
             val json = gson.toJson(wrapper)
             indexFile.writeText(json)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Save sessions.json Failed", e)
         }
     }
 
     /**
-     * UpdateSession元Data
+     * Updatesession元Data
      */
-    private fun updateSessionMetadata(
+    private fun updatesessionMetadata(
         sessionId: String,
-        update: (SessionMetadata) -> SessionMetadata
+        update: (sessionMetadata) -> sessionMetadata
     ) {
-        val index = loadSessionsIndex().toMutableMap()
+        val index = loadsessionsIndex().toMutableMap()
         val metadata = index[sessionId] ?: return
 
         index[sessionId] = update(metadata)
-        saveSessionsIndex(index)
+        savesessionsIndex(index)
     }
 }
 
 /**
- * Session Message (JSONL 每Row一条)
+ * session Message (JSONL 每Rowonecount)
  */
-data class SessionMessage(
+data class sessionMessage(
     val role: String,              // "user" | "assistant" | "system" | "tool"
     val content: String,           // Message content
     val timestamp: String,         // ISO 8601 timestamp
@@ -328,9 +328,9 @@ data class SessionMessage(
 )
 
 /**
- * Session 元Data (sessions.json 中Storage)
+ * session 元Data (sessions.json 中Storage)
  */
-data class SessionMetadata(
+data class sessionMetadata(
     val title: String,
     val createdAt: String,
     val lastMessageAt: String,
@@ -340,14 +340,14 @@ data class SessionMetadata(
 /**
  * sessions.json Package装器
  */
-private data class SessionsIndexWrapper(
-    val sessions: Map<String, SessionMetadata>
+private data class sessionsIndexWrapper(
+    val sessions: Map<String, sessionMetadata>
 )
 
 /**
- * Session Statistics info
+ * session Statistics info
  */
-data class SessionStats(
+data class sessionStats(
     val sessionId: String,
     val totalMessages: Int,
     val userMessages: Int,

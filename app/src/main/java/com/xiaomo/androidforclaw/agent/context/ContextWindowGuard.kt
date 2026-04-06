@@ -2,40 +2,40 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/context-window-guard.ts (evaluateContextWindowGuard, resolveContextWindowInfo)
+ * - ../openclaw/src/agents/context-window-guard.ts (evaluatecontextWindowGuard, resolvecontextWindowInfo)
  * - ../openclaw/src/agents/context.ts (model context-window token resolution cache)
  *
- * AndroidForClaw adaptation: context budget guard + context window token resolution.
+ * androidforClaw adaptation: context budget guard + context window token resolution.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.config.ModelDefinition
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.config.modelDefinition
 
 /**
- * Context Window Guard — Gap 2 alignment with OpenClaw context-window-guard.ts
+ * context Window Guard — Gap 2 alignment with OpenClaw context-window-guard.ts
  *
  * Resolves the effective context window from config → model metadata → default,
  * with hard min / warn thresholds.
  */
-object ContextWindowGuard {
-    private const val TAG = "ContextWindowGuard"
+object contextWindowGuard {
+    private const val TAG = "contextWindowGuard"
 
     const val CONTEXT_WINDOW_HARD_MIN_TOKENS = 16_000
     const val CONTEXT_WINDOW_WARN_BELOW_TOKENS = 32_000
     const val DEFAULT_CONTEXT_WINDOW_TOKENS = 200_000  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS = 2e5
 
-    enum class ContextWindowSource { MODEL, MODELS_CONFIG, AGENT_CONTEXT_TOKENS, DEFAULT }
+    enum class contextWindowSource { MODEL, MODELS_CONFIG, AGENT_CONTEXT_TOKENS, DEFAULT }
 
-    data class ContextWindowInfo(
+    data class contextWindowInfo(
         val tokens: Int,
-        val source: ContextWindowSource
+        val source: contextWindowSource
     )
 
-    data class ContextWindowGuardResult(
+    data class contextWindowGuardResult(
         val tokens: Int,
-        val source: ContextWindowSource,
+        val source: contextWindowSource,
         val shouldWarn: Boolean,
         val shouldBlock: Boolean
     )
@@ -44,37 +44,37 @@ object ContextWindowGuard {
      * Resolve the effective context window info.
      *
      * Priority:
-     * 1. modelsConfig: model definition contextWindow from openclaw.json
+     * 1. modelsconfig: model definition contextWindow from openclaw.json
      * 2. modelMetadata: provider-reported context window
      * 3. default: DEFAULT_CONTEXT_WINDOW_TOKENS
      *
      * Then capped by agents.defaults.contextTokens if set.
      */
-    fun resolveContextWindowInfo(
-        configLoader: ConfigLoader?,
+    fun resolvecontextWindowInfo(
+        configLoader: configLoader?,
         providerName: String?,
         modelId: String?,
-        modelContextWindow: Int? = null,
+        modelcontextWindow: Int? = null,
         defaultTokens: Int = DEFAULT_CONTEXT_WINDOW_TOKENS
-    ): ContextWindowInfo {
+    ): contextWindowInfo {
         // 1. Try from models config
-        val fromModelsConfig = if (configLoader != null && providerName != null && modelId != null) {
-            val modelDef = configLoader.getModelDefinition(providerName, modelId)
+        val frommodelsconfig = if (configLoader != null && providerName != null && modelId != null) {
+            val modelDef = configLoader.getmodelDefinition(providerName, modelId)
             if (modelDef != null && modelDef.contextWindow > 0) modelDef.contextWindow else null
         } else null
 
         // 2. Try from model metadata
-        val fromModel = if (modelContextWindow != null && modelContextWindow > 0) modelContextWindow else null
+        val frommodel = if (modelcontextWindow != null && modelcontextWindow > 0) modelcontextWindow else null
 
         val baseInfo = when {
-            fromModelsConfig != null -> ContextWindowInfo(fromModelsConfig, ContextWindowSource.MODELS_CONFIG)
-            fromModel != null -> ContextWindowInfo(fromModel, ContextWindowSource.MODEL)
-            else -> ContextWindowInfo(defaultTokens, ContextWindowSource.DEFAULT)
+            frommodelsconfig != null -> contextWindowInfo(frommodelsconfig, contextWindowSource.MODELS_CONFIG)
+            frommodel != null -> contextWindowInfo(frommodel, contextWindowSource.MODEL)
+            else -> contextWindowInfo(defaultTokens, contextWindowSource.DEFAULT)
         }
 
         // 3. Cap by agents.defaults.contextTokens if set
-        // Note: OpenClaw has this config field; AndroidForClaw doesn't yet — placeholder for future
-        // configLoader?.loadOpenClawConfig()?.agents?.defaults?.contextTokens
+        // note: OpenClaw has this config field; androidforClaw doesn't yet — placeholder for future
+        // configLoader?.loadOpenClawconfig()?.agents?.defaults?.contextTokens
 
         Log.d(TAG, "Resolved context window: ${baseInfo.tokens} tokens (source: ${baseInfo.source})")
         return baseInfo
@@ -83,22 +83,22 @@ object ContextWindowGuard {
     /**
      * Evaluate whether the context window triggers warnings or blocks.
      */
-    fun evaluateContextWindowGuard(
-        info: ContextWindowInfo,
-        warnBelowTokens: Int = CONTEXT_WINDOW_WARN_BELOW_TOKENS,
+    fun evaluatecontextWindowGuard(
+        info: contextWindowInfo,
+        warnbelowTokens: Int = CONTEXT_WINDOW_WARN_BELOW_TOKENS,
         hardMinTokens: Int = CONTEXT_WINDOW_HARD_MIN_TOKENS
-    ): ContextWindowGuardResult {
+    ): contextWindowGuardResult {
         val tokens = maxOf(0, info.tokens)
-        val shouldWarn = tokens in 1 until warnBelowTokens
+        val shouldWarn = tokens in 1 until warnbelowTokens
         val shouldBlock = tokens in 1 until hardMinTokens
 
         if (shouldBlock) {
-            Log.e(TAG, "Context window too small: $tokens tokens (hard min: $hardMinTokens)")
+            Log.e(TAG, "context window too small: $tokens tokens (hard min: $hardMinTokens)")
         } else if (shouldWarn) {
-            Log.w(TAG, "Context window below recommended: $tokens tokens (recommend: $warnBelowTokens+)")
+            Log.w(TAG, "context window below recommended: $tokens tokens (recommend: $warnbelowTokens+)")
         }
 
-        return ContextWindowGuardResult(
+        return contextWindowGuardResult(
             tokens = tokens,
             source = info.source,
             shouldWarn = shouldWarn,
@@ -109,12 +109,12 @@ object ContextWindowGuard {
     /**
      * Convenience: resolve + evaluate in one call.
      */
-    fun resolveAndEvaluate(
-        configLoader: ConfigLoader?,
+    fun resolveandEvaluate(
+        configLoader: configLoader?,
         providerName: String?,
         modelId: String?
-    ): ContextWindowGuardResult {
-        val info = resolveContextWindowInfo(configLoader, providerName, modelId)
-        return evaluateContextWindowGuard(info)
+    ): contextWindowGuardResult {
+        val info = resolvecontextWindowInfo(configLoader, providerName, modelId)
+        return evaluatecontextWindowGuard(info)
     }
 }

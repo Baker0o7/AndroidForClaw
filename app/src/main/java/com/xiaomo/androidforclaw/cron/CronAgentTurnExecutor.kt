@@ -1,107 +1,107 @@
 /**
- * AndroidForClaw CronAgentTurnExecutor
+ * androidforClaw CronagentTurnExecutor
  *
  * Executes an agent loop turn from a cron job, then delivers the result
  * via the specified channel (feishu / weixin).
  *
- * Aligned with OpenClaw cron AgentTurn execution.
+ * Aligned with OpenClaw cron agentTurn execution.
  */
 package com.xiaomo.androidforclaw.cron
 
-import android.content.Context
-import com.xiaomo.androidforclaw.agent.context.ContextBuilder
-import com.xiaomo.androidforclaw.agent.context.ContextManager
-import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import android.content.context
+import com.xiaomo.androidforclaw.agent.context.contextBuilder
+import com.xiaomo.androidforclaw.agent.context.contextmanager
+import com.xiaomo.androidforclaw.agent.loop.agentloop
 import com.xiaomo.androidforclaw.agent.session.HistorySanitizer
-import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
-import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.core.MainEntryNew
+import com.xiaomo.androidforclaw.agent.tools.androidtoolRegistry
+import com.xiaomo.androidforclaw.agent.tools.toolRegistry
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.core.MainEntrynew
 import com.xiaomo.androidforclaw.core.MyApplication
-import com.xiaomo.androidforclaw.data.model.TaskDataManager
+import com.xiaomo.androidforclaw.data.model.TaskDatamanager
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.LegacyMessage
-import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
-import com.xiaomo.androidforclaw.providers.llm.toNewMessage
+import com.xiaomo.androidforclaw.providers.UnifiedLLMprovider
+import com.xiaomo.androidforclaw.providers.llm.tonewMessage
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 
-object CronAgentTurnExecutor {
-    private const val TAG = "CronAgentTurn"
+object CronagentTurnExecutor {
+    private const val TAG = "CronagentTurn"
 
     /**
      * Execute a cron agent turn.
      *
      * @param context Application context
-     * @param sessionId Session identifier (e.g. "cron_heartbeat" or "cron_isolated_<jobId>")
+     * @param sessionId session identifier (e.g. "cron_heartbeat" or "cron_isolated_<jobId>")
      * @param userMessage The message to send to the agent
      * @param model Optional model override
      * @param channel Delivery channel ("feishu" / "weixin" / null)
      * @param to Delivery target (chat_id for feishu, user_id for weixin)
-     * @param isolated If true, pass empty history (isolated session)
+     * @param isolated if true, pass empty history (isolated session)
      * @return CronRunResult
      */
     suspend fun execute(
-        context: Context,
+        context: context,
         sessionId: String,
         userMessage: String,
         model: String? = null,
         channel: String? = null,
         to: String? = null,
         isolated: Boolean = false
-    ): CronRunResult = withContext(Dispatchers.IO) {
+    ): CronRunResult = withcontext(Dispatchers.IO) {
         try {
-            Log.i(TAG, "⏰ Executing cron turn: session=$sessionId channel=$channel to=$to")
+            Log.i(TAG, "[TIME] Executing cron turn: session=$sessionId channel=$channel to=$to")
 
             // Build agent loop (same setup as processFeishuMessage)
-            val taskDataManager = TaskDataManager.getInstance()
-            val toolRegistry = ToolRegistry(
+            val taskDatamanager = TaskDatamanager.getInstance()
+            val toolRegistry = toolRegistry(
                 context = context,
-                taskDataManager = taskDataManager
+                taskDatamanager = taskDatamanager
             )
-            val androidToolRegistry = AndroidToolRegistry(
+            val androidtoolRegistry = androidtoolRegistry(
                 context = context,
-                taskDataManager = taskDataManager,
-                cameraCaptureManager = null
+                taskDatamanager = taskDatamanager,
+                cameraCapturemanager = null
             )
-            val configLoader = ConfigLoader(context)
-            val contextBuilder = ContextBuilder(
+            val configLoader = configLoader(context)
+            val contextBuilder = contextBuilder(
                 context = context,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
+                androidtoolRegistry = androidtoolRegistry,
                 configLoader = configLoader
             )
-            val llmProvider = UnifiedLLMProvider(context)
-            val contextManager = ContextManager(llmProvider)
+            val llmprovider = UnifiedLLMprovider(context)
+            val contextmanager = contextmanager(llmprovider)
 
-            val config = configLoader.loadOpenClawConfig()
+            val config = configLoader.loadOpenClawconfig()
             val maxIterations = config.agent.maxIterations
 
-            val agentLoop = AgentLoop(
-                llmProvider = llmProvider,
+            val agentloop = agentloop(
+                llmprovider = llmprovider,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
-                contextManager = contextManager,
+                androidtoolRegistry = androidtoolRegistry,
+                contextmanager = contextmanager,
                 maxIterations = maxIterations,
                 modelRef = model
             )
 
             // Build context history
-            if (MainEntryNew.getSessionManager() == null) {
-                MainEntryNew.initialize(context as android.app.Application)
+            if (MainEntrynew.getsessionmanager() == null) {
+                MainEntrynew.initialize(context as android.app.Application)
             }
-            val sessionManager = MainEntryNew.getSessionManager()
-                ?: return@withContext CronRunResult(RunStatus.ERROR, "SessionManager not initialized")
-            val session = sessionManager.getOrCreate(sessionId)
+            val sessionmanager = MainEntrynew.getsessionmanager()
+                ?: return@withcontext CronRunResult(RunStatus.ERROR, "sessionmanager not initialized")
+            val session = sessionmanager.getorCreate(sessionId)
             val contextHistory = if (isolated) {
                 emptyList()
             } else {
                 val rawHistory = session.getRecentMessages(20)
-                cleanupToolMessages(rawHistory).map { it.toNewMessage() }
+                cleanuptoolMessages(rawHistory).map { it.tonewMessage() }
             }
 
             // Build system prompt
-            val channelCtx = ContextBuilder.ChannelContext(
+            val channelCtx = contextBuilder.channelcontext(
                 channel = channel ?: "cron",
                 chatId = to ?: "",
                 chatType = "p2p",
@@ -112,41 +112,41 @@ object CronAgentTurnExecutor {
                 userGoal = userMessage,
                 packageName = "",
                 testMode = "cron",
-                channelContext = channelCtx
+                channelcontext = channelCtx
             )
 
             // Run agent loop
-            val result = agentLoop.run(
+            val result = agentloop.run(
                 systemPrompt = systemPrompt,
                 userMessage = userMessage,
                 contextHistory = contextHistory
             )
 
             // Save to session history
-            session.addMessage(LegacyMessage(
+            session.aMessage(LegacyMessage(
                 role = "user", content = userMessage
             ))
-            session.addMessage(LegacyMessage(
+            session.aMessage(LegacyMessage(
                 role = "assistant", content = result.finalContent
             ))
 
             // Deliver result
             val response = result.finalContent.trim()
-            if (response != "NO_REPLY" && response != "HEARTBEAT_OK" && response.isNotBlank()) {
+            if (response != "NO_REPLY" && response != "HEARTBEAT_OK" && response.isnotBlank()) {
                 val sanitized = HistorySanitizer
-                    .stripControlTokensFromText(response)
+                    .stripControlTokensfromText(response)
                     .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                     .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                     .trim()
 
-                if (sanitized.isNotBlank()) {
+                if (sanitized.isnotBlank()) {
                     // Resolve delivery target: explicit → last active chat
-                    val (lastChannel, lastChatId) = MyApplication.getLastActiveChat()
-                    val deliveryChannel = channel ?: lastChannel
+                    val (lastchannel, lastChatId) = MyApplication.getLastActiveChat()
+                    val deliverychannel = channel ?: lastchannel
                     val deliveryTo = to ?: lastChatId
 
-                    if (deliveryChannel != null && deliveryTo != null) {
-                        deliver(context, deliveryChannel, deliveryTo, sanitized)
+                    if (deliverychannel != null && deliveryTo != null) {
+                        deliver(context, deliverychannel, deliveryTo, sanitized)
                     } else {
                         Log.w(TAG, "No delivery target configured (no 'to' and no last active chat)")
                     }
@@ -158,7 +158,7 @@ object CronAgentTurnExecutor {
                 summary = result.finalContent.take(200),
                 delivered = channel != null || to != null || MyApplication.getLastActiveChat().second != null
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Cron agent turn failed", e)
             CronRunResult(
                 status = RunStatus.ERROR,
@@ -170,15 +170,15 @@ object CronAgentTurnExecutor {
     /**
      * Deliver a message to the specified channel.
      */
-    private suspend fun deliver(context: Context, channel: String, to: String, text: String) {
+    private suspend fun deliver(context: context, channel: String, to: String, text: String) {
         when (channel) {
             "feishu" -> {
-                val feishuChannel = MyApplication.getFeishuChannel()
-                if (feishuChannel != null) {
+                val feishuchannel = MyApplication.getFeishuchannel()
+                if (feishuchannel != null) {
                     try {
-                        feishuChannel.sender.sendTextMessage(to, text)
-                        Log.i(TAG, "📨 Delivered to feishu $to")
-                    } catch (e: Exception) {
+                        feishuchannel.sender.sendTextMessage(to, text)
+                        Log.i(TAG, "[MSG] Delivered to feishu $to")
+                    } catch (e: exception) {
                         Log.e(TAG, "Failed to deliver to feishu", e)
                     }
                 } else {
@@ -186,12 +186,12 @@ object CronAgentTurnExecutor {
                 }
             }
             "weixin" -> {
-                val weixinChannel = MyApplication.getWeixinChannel()
-                if (weixinChannel != null) {
+                val weixinchannel = MyApplication.getWeixinchannel()
+                if (weixinchannel != null) {
                     try {
-                        weixinChannel.sender?.sendText(to, text)
-                        Log.i(TAG, "📨 Delivered to weixin $to")
-                    } catch (e: Exception) {
+                        weixinchannel.sender?.sendText(to, text)
+                        Log.i(TAG, "[MSG] Delivered to weixin $to")
+                    } catch (e: exception) {
                         Log.e(TAG, "Failed to deliver to weixin", e)
                     }
                 } else {
@@ -203,9 +203,9 @@ object CronAgentTurnExecutor {
     }
 
     /**
-     * Clean up tool messages from history (same as MyApplication.cleanupToolMessages).
+     * Clean up tool messages from history (same as MyApplication.cleanuptoolMessages).
      */
-    private fun cleanupToolMessages(
+    private fun cleanuptoolMessages(
         messages: List<LegacyMessage>
     ): List<LegacyMessage> {
         return messages.filter { message ->

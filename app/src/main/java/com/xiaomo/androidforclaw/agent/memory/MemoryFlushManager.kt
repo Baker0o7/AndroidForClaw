@@ -2,31 +2,31 @@ package com.xiaomo.androidforclaw.agent.memory
 
 import android.content.SharedPreferences
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
+import com.xiaomo.androidforclaw.providers.UnifiedLLMprovider
 import com.xiaomo.androidforclaw.providers.llm.Message
-import java.text.SimpleDateFormat
+import java.text.SimpleDateformat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Memory Flush Manager — Pre-compaction memory persistence.
- * Aligned with OpenClaw runMemoryFlushIfNeeded().
+ * Memory Flush manager — Pre-compaction memory persistence.
+ * Aligned with OpenClaw runMemoryFlushifneeded().
  *
  * Key behaviors from OpenClaw:
- * - Before compaction, check if context is getting full
- * - If threshold exceeded, run a lightweight LLM call with memory flush prompt
+ * - before compaction, check if context is getting full
+ * - if threshold exceeded, run a lightweight LLM call with memory flush prompt
  * - LLM extracts durable memories and appends to daily memory file
- * - Android adaptation: stores in-memory ConcurrentHashMap (context-free)
+ * - android adaptation: stores in-memory ConcurrentHashMap (context-free)
  * - Daily format: memory/YYYY-MM-DD.md
  *
  * Threshold logic from OpenClaw:
  * - contextWindowTokens - reserveTokensFloor - softThresholdTokens = flush threshold
- * - If promptTokens + estimated newTokens >= threshold → trigger flush
+ * - if promptTokens + estimated newTokens >= threshold → trigger flush
  */
-class MemoryFlushManager {
+class MemoryFlushmanager {
     companion object {
-        private const val TAG = "MemoryFlushManager"
+        private const val TAG = "MemoryFlushmanager"
 
         // Threshold defaults (aligned with OpenClaw memoryFlush defaults)
         // reserveTokensFloor: reserve tokens for compaction summary + system prompt
@@ -39,7 +39,7 @@ class MemoryFlushManager {
 You are a memory extraction assistant. Review the conversation history and extract durable memories — things worth remembering across sessions.
 
 Focus on:
-- User preferences, opinions, and habits
+- user preferences, opinions, and habits
 - Decisions made and their reasoning
 - Lessons learned
 - Important context about the user or their projects
@@ -50,19 +50,19 @@ Do NOT extract:
 - Technical details that will be re-read from files
 - Temporary conversation state
 
-Format each memory as a bullet point. Be concise.
+format each memory as a bullet point. Be concise.
 """
 
         // Default memory flush system prompt (aligned with OpenClaw memoryFlush systemPrompt)
         private const val DEFAULT_MEMORY_FLUSH_SYSTEM_PROMPT = """
-Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md (create memory/ if needed). Treat workspace bootstrap/reference files such as MEMORY.md, SOUL.md, TOOLS.md, and AGENTS.md as read-only during this flush; never overwrite, replace, or edit them. If memory/2026-04-05.md already exists, APPEND new content only and do not overwrite existing entries. Do NOT create timestamped variant files (e.g., 2026-04-05-HHMM.md); always use the canonical 2026-04-05.md filename. If nothing to store, reply with NO_REPLY.
+Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md (create memory/ if needed). Treat workspace bootstrap/reference files such as MEMORY.md, SOUL.md, TOOLS.md, and AGENTS.md as read-only during this flush; never overwrite, replace, or edit them. if memory/2026-04-05.md already exists, APPEND new content only and do not overwrite existing entries. Do NOT create timestamped variant files (e.g., 2026-04-05-HHMM.md); always use the canonical 2026-04-05.md filename. if nothing to store, reply with NO_REPLY.
 """
 
         // In-memory daily memories store (thread-safe)
         private val dailyMemories = ConcurrentHashMap<String, String>()
     }
 
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    private val dateformat = SimpleDateformat("yyyy-MM-", Locale.US)
 
     /**
      * Memory flush settings (aligned with OpenClaw memoryFlushSettings).
@@ -103,25 +103,25 @@ Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md
 
     /**
      * Run memory flush — execute a lightweight LLM call to extract memories.
-     * Aligned with OpenClaw runMemoryFlushIfNeeded().
+     * Aligned with OpenClaw runMemoryFlushifneeded().
      *
-     * @param llmProvider LLM provider for the flush call
-     * @param modelRef Model reference to use
+     * @param llmprovider LLM provider for the flush call
+     * @param modelRef model reference to use
      * @param messages Current conversation messages
      * @return Flush result (memories extracted, or null if nothing)
      */
     suspend fun runFlush(
-        llmProvider: UnifiedLLMProvider,
+        llmprovider: UnifiedLLMprovider,
         modelRef: String,
         messages: List<Message>
     ): MemoryFlushResult {
         val settings = resolveSettings()
-        val today = dateFormat.format(Date())
+        val today = dateformat.format(Date())
         val prefsKey = "memory_$today"
 
         // Build flush prompt with existing memories context
         val existingMemories = dailyMemories[prefsKey] ?: ""
-        val existingContext = if (existingMemories.isNotBlank()) {
+        val existingcontext = if (existingMemories.isnotBlank()) {
             "\n\nExisting memories for today ($today):\n$existingMemories"
         } else {
             ""
@@ -129,20 +129,20 @@ Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md
 
         // Build the flush messages (include conversation history for context)
         val flushMessages = mutableListOf<Message>()
-        flushMessages.add(Message(role = "system", content = settings.systemPrompt))
+        flushMessages.a(Message(role = "system", content = settings.systemPrompt))
 
         // Include last N messages for context (avoid re-reading entire conversation)
         val recentMessages = messages.takeLast(20)
-        flushMessages.addAll(recentMessages)
+        flushMessages.aAll(recentMessages)
 
-        // Add the flush prompt
-        flushMessages.add(Message(role = "user", content = settings.prompt + existingContext))
+        // A the flush prompt
+        flushMessages.a(Message(role = "user", content = settings.prompt + existingcontext))
 
         return try {
             Log.d(TAG, "Running memory flush for $today...")
 
             // Execute the flush LLM call (non-streaming, no tools)
-            val response = llmProvider.chatWithTools(
+            val response = llmprovider.chatwithtools(
                 messages = flushMessages,
                 modelRef = modelRef,
                 tools = null // Memory flush doesn't use tools
@@ -150,7 +150,7 @@ Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md
 
             val memories = response?.content?.trim()
 
-            if (memories.isNullOrBlank() || memories.equals("NO_REPLY", ignoreCase = true)) {
+            if (memories.isNullorBlank() || memories.equals("NO_REPLY", ignoreCase = true)) {
                 Log.d(TAG, "Memory flush: nothing to store")
                 return MemoryFlushResult(
                     success = true,
@@ -160,7 +160,7 @@ Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md
             }
 
             // Store memories in dailyMemories (thread-safe in-memory store)
-            val updated = if (existingMemories.isNotBlank()) {
+            val updated = if (existingMemories.isnotBlank()) {
                 "$existingMemories\n\n---\n\n$memories"
             } else {
                 memories
@@ -174,7 +174,7 @@ Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md
                 storedDate = today,
                 memoriesContent = memories
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Memory flush failed: ${e.message}")
             MemoryFlushResult(
                 success = false,
@@ -194,7 +194,7 @@ Pre-compaction memory flush. Store durable memories only in memory/2026-04-05.md
      * Get today's memories.
      */
     fun getTodayMemories(): String {
-        return getMemories(dateFormat.format(Date()))
+        return getMemories(dateformat.format(Date()))
     }
 
     /**

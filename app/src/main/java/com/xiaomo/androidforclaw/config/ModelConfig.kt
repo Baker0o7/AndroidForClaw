@@ -4,61 +4,61 @@ package com.xiaomo.androidforclaw.config
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/models-config.ts, config/types.models.ts
  *
- * AndroidForClaw adaptation: provider/model config structures.
+ * androidforClaw adaptation: provider/model config structures.
  */
 
 
 /**
- * Model Configuration Data Classes
- * Parseby ConfigLoader 的 JSONObject Process, 不Dependency Gson Annotation. 
+ * model configuration Data Classes
+ * Parseby configLoader  JSONObject Process, notDependency Gson Annotation. 
  */
 
-data class ModelsConfig(
+data class modelsconfig(
     val mode: String = "merge",
-    val providers: Map<String, ProviderConfig> = emptyMap()
+    val providers: Map<String, providerconfig> = emptyMap()
 )
 
-data class ProviderConfig(
+data class providerconfig(
     val baseUrl: String,
     val apiKey: String? = null,
     val api: String = "openai-completions",
     val auth: String? = null,
     val authHeader: Boolean = true,
     val headers: Map<String, String>? = null,
-    val injectNumCtxForOpenAICompat: Boolean? = null,
-    val models: List<ModelDefinition> = emptyList()
+    val injectNumCtxforOpenAICompat: Boolean? = null,
+    val models: List<modelDefinition> = emptyList()
 )
 
-data class ModelDefinition(
+data class modelDefinition(
     val id: String,
     val name: String,
     val api: String? = null,
     val reasoning: Boolean = false,
     val input: List<Any> = listOf("text"),
-    val cost: CostConfig? = null,
+    val cost: Costconfig? = null,
     val contextWindow: Int = 128000,
     val maxTokens: Int = 8192,
     val headers: Map<String, String>? = null,
-    val compat: ModelCompatConfig? = null
+    val compat: modelCompatconfig? = null
 )
 
-data class ModelCompatConfig(
+data class modelCompatconfig(
     val supportsStore: Boolean? = null,
     val supportsReasoningEffort: Boolean? = null,
     val maxTokensField: String? = null,
-    val thinkingFormat: String? = null,
-    val requiresToolresultName: Boolean? = null,
-    val requiresAssistantAfterToolresult: Boolean? = null,
-    // OpenClaw model-compat.ts additions
-    val toolSchemaProfile: String? = null,
-    val nativeWebSearchTool: Boolean? = null,
+    val thinkingformat: String? = null,
+    val requirestoolresultName: Boolean? = null,
+    val requiresAssistantaftertoolresult: Boolean? = null,
+    // OpenClaw model-compat.ts aitions
+    val toolschemaProfile: String? = null,
+    val nativeWebSearchtool: Boolean? = null,
     val toolCallArgumentsEncoding: String? = null,
     val supportsDeveloperRole: Boolean? = null,
     val supportsUsageInStreaming: Boolean? = null,
     val supportsStrictMode: Boolean? = null
 )
 
-data class CostConfig(
+data class Costconfig(
     val input: Double = 0.0,
     val output: Double = 0.0,
     val cacheRead: Double = 0.0,
@@ -68,7 +68,7 @@ data class CostConfig(
 /**
  * API type constants
  */
-object ModelApi {
+object modelApi {
     const val OPENAI_COMPLETIONS = "openai-completions"
     const val OPENAI_RESPONSES = "openai-responses"
     const val OPENAI_CODEX_RESPONSES = "openai-codex-responses"

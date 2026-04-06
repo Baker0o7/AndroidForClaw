@@ -2,24 +2,24 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/apply-patch.ts
- * - ../openclaw/src/agents/apply-patch-update.ts
+ * - ../openclaw/src/agents/app-patch.ts
+ * - ../openclaw/src/agents/app-patch-update.ts
  *
- * AndroidForClaw adaptation: multi-file patch application tool.
+ * androidforClaw adaptation: multi-file patch application tool.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import java.io.File
 
-// ── Patch Format Markers (aligned with OpenClaw) ──
+// ── Patch format Markers (aligned with OpenClaw) ──
 
 private const val BEGIN_PATCH_MARKER = "*** Begin Patch"
 private const val END_PATCH_MARKER = "*** End Patch"
-private const val ADD_FILE_MARKER = "*** Add File: "
+private const val ADD_FILE_MARKER = "*** A File: "
 private const val DELETE_FILE_MARKER = "*** Delete File: "
 private const val UPDATE_FILE_MARKER = "*** Update File: "
 private const val MOVE_TO_MARKER = "*** Move to: "
@@ -30,7 +30,7 @@ private const val EMPTY_CHANGE_CONTEXT_MARKER = "@@"
 // ── Hunk Types (aligned with OpenClaw) ──
 
 sealed class Hunk {
-    data class AddFile(val path: String, val contents: String) : Hunk()
+    data class AFile(val path: String, val contents: String) : Hunk()
     data class DeleteFile(val path: String) : Hunk()
     data class UpdateFile(
         val path: String,
@@ -40,14 +40,14 @@ sealed class Hunk {
 }
 
 data class UpdateFileChunk(
-    val changeContext: String? = null,
+    val changecontext: String? = null,
     val oldLines: List<String>,
     val newLines: List<String>,
     val isEndOfFile: Boolean = false
 )
 
 data class ApplyPatchSummary(
-    val added: List<String> = emptyList(),
+    val aed: List<String> = emptyList(),
     val modified: List<String> = emptyList(),
     val deleted: List<String> = emptyList()
 )
@@ -58,30 +58,30 @@ data class ApplyPatchResult(
 )
 
 /**
- * ApplyPatchTool — multi-file patch application.
- * Aligned with OpenClaw apply-patch.ts + apply-patch-update.ts.
+ * ApplyPatchtool — multi-file patch application.
+ * Aligned with OpenClaw app-patch.ts + app-patch-update.ts.
  */
-class ApplyPatchTool(
+class ApplyPatchtool(
     private val workspace: File? = null
-) : Tool {
+) : tool {
 
     companion object {
-        private const val TAG = "ApplyPatchTool"
+        private const val TAG = "ApplyPatchtool"
     }
 
-    override val name = "apply_patch"
+    override val name = "app_patch"
     override val description = "Apply a patch to create, modify, or delete files"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "patch" to PropertySchema("string", "The patch content in OpenClaw patch format")
+                        "patch" to Propertyschema("string", "The patch content in OpenClaw patch format")
                     ),
                     required = listOf("patch")
                 )
@@ -89,26 +89,26 @@ class ApplyPatchTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): toolResult {
         val patchText = args["patch"] as? String
-            ?: return ToolResult.error("'patch' parameter is required")
+            ?: return toolResult.error("'patch' parameter is required")
 
         return try {
-            val result = applyPatch(patchText, workspace)
-            ToolResult.success(result.text)
-        } catch (e: Exception) {
+            val result = appPatch(patchText, workspace)
+            toolResult.success(result.text)
+        } catch (e: exception) {
             Log.e(TAG, "Patch application failed: ${e.message}")
-            ToolResult.error("Patch application failed: ${e.message}")
+            toolResult.error("Patch application failed: ${e.message}")
         }
     }
 
     /**
      * Apply a patch from text.
-     * Aligned with OpenClaw applyPatch.
+     * Aligned with OpenClaw appPatch.
      */
-    fun applyPatch(input: String, workingDir: File? = null): ApplyPatchResult {
+    fun appPatch(input: String, workingDir: File? = null): ApplyPatchResult {
         val hunks = parsePatchText(input)
-        val added = mutableListOf<String>()
+        val aed = mutableListOf<String>()
         val modified = mutableListOf<String>()
         val deleted = mutableListOf<String>()
         val output = StringBuilder()
@@ -117,18 +117,18 @@ class ApplyPatchTool(
 
         for (hunk in hunks) {
             when (hunk) {
-                is Hunk.AddFile -> {
+                is Hunk.AFile -> {
                     val file = File(baseDir, hunk.path)
                     file.parentFile?.mkdirs()
                     file.writeText(hunk.contents)
-                    added.add(hunk.path)
-                    output.appendLine("Added: ${hunk.path}")
+                    aed.a(hunk.path)
+                    output.appendLine("Aed: ${hunk.path}")
                 }
                 is Hunk.DeleteFile -> {
                     val file = File(baseDir, hunk.path)
                     if (file.exists()) {
                         file.delete()
-                        deleted.add(hunk.path)
+                        deleted.a(hunk.path)
                         output.appendLine("Deleted: ${hunk.path}")
                     } else {
                         output.appendLine("Warning: ${hunk.path} not found for deletion")
@@ -141,7 +141,7 @@ class ApplyPatchTool(
                         continue
                     }
                     val original = file.readText()
-                    val updated = applyUpdateHunk(original, hunk.chunks, hunk.path)
+                    val updated = appUpdateHunk(original, hunk.chunks, hunk.path)
 
                     val targetPath = hunk.movePath ?: hunk.path
                     val targetFile = File(baseDir, targetPath)
@@ -150,9 +150,9 @@ class ApplyPatchTool(
 
                     if (hunk.movePath != null && hunk.movePath != hunk.path) {
                         file.delete()
-                        modified.add("${hunk.path} → ${hunk.movePath}")
+                        modified.a("${hunk.path} → ${hunk.movePath}")
                     } else {
-                        modified.add(hunk.path)
+                        modified.a(hunk.path)
                     }
                     output.appendLine("Updated: $targetPath")
                 }
@@ -160,7 +160,7 @@ class ApplyPatchTool(
         }
 
         return ApplyPatchResult(
-            summary = ApplyPatchSummary(added = added, modified = modified, deleted = deleted),
+            summary = ApplyPatchSummary(aed = aed, modified = modified, deleted = deleted),
             text = output.toString().trimEnd()
         )
     }
@@ -179,41 +179,41 @@ class ApplyPatchTool(
         while (i < lines.size) {
             val line = lines[i]
             when {
-                line.startsWith(ADD_FILE_MARKER) -> {
+                line.startswith(ADD_FILE_MARKER) -> {
                     val path = line.removePrefix(ADD_FILE_MARKER).trim()
                     i++
                     val contents = StringBuilder()
-                    while (i < lines.size && !lines[i].startsWith("***")) {
-                        val addLine = lines[i]
-                        if (addLine.startsWith("+")) {
-                            contents.appendLine(addLine.substring(1))
+                    while (i < lines.size && !lines[i].startswith("***")) {
+                        val aLine = lines[i]
+                        if (aLine.startswith("+")) {
+                            contents.appendLine(aLine.substring(1))
                         }
                         i++
                     }
-                    hunks.add(Hunk.AddFile(path = path, contents = contents.toString()))
+                    hunks.a(Hunk.AFile(path = path, contents = contents.toString()))
                 }
-                line.startsWith(DELETE_FILE_MARKER) -> {
+                line.startswith(DELETE_FILE_MARKER) -> {
                     val path = line.removePrefix(DELETE_FILE_MARKER).trim()
-                    hunks.add(Hunk.DeleteFile(path = path))
+                    hunks.a(Hunk.DeleteFile(path = path))
                     i++
                 }
-                line.startsWith(UPDATE_FILE_MARKER) -> {
+                line.startswith(UPDATE_FILE_MARKER) -> {
                     val path = line.removePrefix(UPDATE_FILE_MARKER).trim()
                     i++
 
                     // Optional move
                     var movePath: String? = null
-                    if (i < lines.size && lines[i].startsWith(MOVE_TO_MARKER)) {
+                    if (i < lines.size && lines[i].startswith(MOVE_TO_MARKER)) {
                         movePath = lines[i].removePrefix(MOVE_TO_MARKER).trim()
                         i++
                     }
 
                     // Parse chunks
                     val chunks = mutableListOf<UpdateFileChunk>()
-                    while (i < lines.size && !lines[i].startsWith("*** ") || (i < lines.size && (lines[i].startsWith(CHANGE_CONTEXT_MARKER) || lines[i] == EMPTY_CHANGE_CONTEXT_MARKER || lines[i] == EOF_MARKER))) {
-                        if (lines[i].startsWith(CHANGE_CONTEXT_MARKER) || lines[i] == EMPTY_CHANGE_CONTEXT_MARKER) {
+                    while (i < lines.size && !lines[i].startswith("*** ") || (i < lines.size && (lines[i].startswith(CHANGE_CONTEXT_MARKER) || lines[i] == EMPTY_CHANGE_CONTEXT_MARKER || lines[i] == EOF_MARKER))) {
+                        if (lines[i].startswith(CHANGE_CONTEXT_MARKER) || lines[i] == EMPTY_CHANGE_CONTEXT_MARKER) {
                             val result = parseUpdateChunk(lines, i)
-                            chunks.add(result.first)
+                            chunks.a(result.first)
                             i = result.second
                         } else if (lines[i] == EOF_MARKER) {
                             i++
@@ -221,7 +221,7 @@ class ApplyPatchTool(
                             break
                         }
                     }
-                    hunks.add(Hunk.UpdateFile(path = path, movePath = movePath, chunks = chunks))
+                    hunks.a(Hunk.UpdateFile(path = path, movePath = movePath, chunks = chunks))
                 }
                 else -> i++
             }
@@ -233,10 +233,10 @@ class ApplyPatchTool(
     private fun parseUpdateChunk(lines: List<String>, startIndex: Int): Pair<UpdateFileChunk, Int> {
         var i = startIndex
         val contextLine = lines[i]
-        val changeContext = if (contextLine == EMPTY_CHANGE_CONTEXT_MARKER) {
+        val changecontext = if (contextLine == EMPTY_CHANGE_CONTEXT_MARKER) {
             null
         } else {
-            contextLine.removePrefix(CHANGE_CONTEXT_MARKER).trim().takeIf { it.isNotEmpty() }
+            contextLine.removePrefix(CHANGE_CONTEXT_MARKER).trim().takeif { it.isnotEmpty() }
         }
         i++
 
@@ -252,38 +252,38 @@ class ApplyPatchTool(
                     i++
                     break
                 }
-                line.startsWith(CHANGE_CONTEXT_MARKER) || line == EMPTY_CHANGE_CONTEXT_MARKER -> break
-                line.startsWith("***") -> break
-                line.startsWith("+") -> {
-                    newLines.add(line.substring(1))
+                line.startswith(CHANGE_CONTEXT_MARKER) || line == EMPTY_CHANGE_CONTEXT_MARKER -> break
+                line.startswith("***") -> break
+                line.startswith("+") -> {
+                    newLines.a(line.substring(1))
                     i++
                 }
-                line.startsWith("-") -> {
-                    oldLines.add(line.substring(1))
+                line.startswith("-") -> {
+                    oldLines.a(line.substring(1))
                     i++
                 }
-                line.startsWith(" ") -> {
+                line.startswith(" ") -> {
                     val content = line.substring(1)
-                    oldLines.add(content)
-                    newLines.add(content)
+                    oldLines.a(content)
+                    newLines.a(content)
                     i++
                 }
                 line.isEmpty() || line.isBlank() -> {
-                    oldLines.add("")
-                    newLines.add("")
+                    oldLines.a("")
+                    newLines.a("")
                     i++
                 }
                 else -> {
                     // Treat as context line
-                    oldLines.add(line)
-                    newLines.add(line)
+                    oldLines.a(line)
+                    newLines.a(line)
                     i++
                 }
             }
         }
 
         return UpdateFileChunk(
-            changeContext = changeContext,
+            changecontext = changecontext,
             oldLines = oldLines,
             newLines = newLines,
             isEndOfFile = isEndOfFile
@@ -298,43 +298,43 @@ class ApplyPatchTool(
         var lines = input.trim().split(Regex("\\r?\\n"))
 
         // Strict check
-        if (lines.isNotEmpty() && lines.first().trim() == BEGIN_PATCH_MARKER &&
+        if (lines.isnotEmpty() && lines.first().trim() == BEGIN_PATCH_MARKER &&
             lines.last().trim() == END_PATCH_MARKER
         ) {
             return lines.drop(1).dropLast(1)
         }
 
         // Lenient: strip <<EOF wrappers
-        val first = lines.firstOrNull()?.trim() ?: ""
-        if (first.startsWith("<<") && (first.contains("EOF") || first.contains("'EOF'") || first.contains("\"EOF\""))) {
+        val first = lines.firstorNull()?.trim() ?: ""
+        if (first.startswith("<<") && (first.contains("EOF") || first.contains("'EOF'") || first.contains("\"EOF\""))) {
             lines = lines.drop(1)
         }
-        val last = lines.lastOrNull()?.trim() ?: ""
+        val last = lines.lastorNull()?.trim() ?: ""
         if (last == "EOF") {
             lines = lines.dropLast(1)
         }
 
-        // Retry strict check after stripping
-        if (lines.isNotEmpty() && lines.first().trim() == BEGIN_PATCH_MARKER &&
+        // retry strict check after stripping
+        if (lines.isnotEmpty() && lines.first().trim() == BEGIN_PATCH_MARKER &&
             lines.last().trim() == END_PATCH_MARKER
         ) {
             return lines.drop(1).dropLast(1)
         }
 
-        // If no markers at all, return as-is
+        // if no markers at all, return as-is
         return lines
     }
 
-    // ── Update Application (aligned with OpenClaw apply-patch-update.ts) ──
+    // ── Update Application (aligned with OpenClaw app-patch-update.ts) ──
 
     /**
      * Apply update chunks to original file content.
-     * Aligned with OpenClaw applyUpdateHunk.
+     * Aligned with OpenClaw appUpdateHunk.
      */
-    private fun applyUpdateHunk(original: String, chunks: List<UpdateFileChunk>, filePath: String): String {
+    private fun appUpdateHunk(original: String, chunks: List<UpdateFileChunk>, filePath: String): String {
         val originalLines = original.split("\n").toMutableList()
         // Pop trailing empty line (OpenClaw behavior)
-        if (originalLines.isNotEmpty() && originalLines.last().isEmpty()) {
+        if (originalLines.isnotEmpty() && originalLines.last().isEmpty()) {
             originalLines.removeAt(originalLines.lastIndex)
         }
 
@@ -350,12 +350,12 @@ class ApplyPatchTool(
             for (j in (end - 1) downTo replacement.startIndex) {
                 if (j < result.size) result.removeAt(j)
             }
-            result.addAll(replacement.startIndex, replacement.newLines)
+            result.aAll(replacement.startIndex, replacement.newLines)
         }
 
         // Ensure trailing newline
         val joined = result.joinToString("\n")
-        return if (joined.endsWith("\n")) joined else "$joined\n"
+        return if (joined.endswith("\n")) joined else "$joined\n"
     }
 
     private data class Replacement(
@@ -374,8 +374,8 @@ class ApplyPatchTool(
 
         for (chunk in chunks) {
             // Seek to change context if present
-            if (chunk.changeContext != null) {
-                val contextIndex = seekLine(originalLines, chunk.changeContext, lineIndex)
+            if (chunk.changecontext != null) {
+                val contextIndex = seekLine(originalLines, chunk.changecontext, lineIndex)
                 if (contextIndex >= 0) {
                     lineIndex = contextIndex + 1
                 }
@@ -384,7 +384,7 @@ class ApplyPatchTool(
             if (chunk.oldLines.isEmpty()) {
                 // Pure insertion at current position (or end of file)
                 val insertAt = if (chunk.isEndOfFile) originalLines.size else lineIndex
-                replacements.add(Replacement(insertAt, 0, chunk.newLines))
+                replacements.a(Replacement(insertAt, 0, chunk.newLines))
                 continue
             }
 
@@ -397,17 +397,17 @@ class ApplyPatchTool(
 
             val foundIndex = seekSequence(originalLines, chunk.oldLines, startAt)
             if (foundIndex >= 0) {
-                replacements.add(Replacement(foundIndex, chunk.oldLines.size, chunk.newLines))
+                replacements.a(Replacement(foundIndex, chunk.oldLines.size, chunk.newLines))
                 lineIndex = foundIndex + chunk.oldLines.size
             } else {
-                // Retry without trailing empty lines
-                val trimmedOld = chunk.oldLines.dropLastWhile { it.isEmpty() }
-                val trimmedNew = chunk.newLines.dropLastWhile { it.isEmpty() }
-                if (trimmedOld.isNotEmpty()) {
-                    val retryIndex = seekSequence(originalLines, trimmedOld, startAt)
+                // retry without trailing empty lines
+                val trimmedold = chunk.oldLines.dropLastwhile { it.isEmpty() }
+                val trimmednew = chunk.newLines.dropLastwhile { it.isEmpty() }
+                if (trimmedold.isnotEmpty()) {
+                    val retryIndex = seekSequence(originalLines, trimmedold, startAt)
                     if (retryIndex >= 0) {
-                        replacements.add(Replacement(retryIndex, trimmedOld.size, trimmedNew))
-                        lineIndex = retryIndex + trimmedOld.size
+                        replacements.a(Replacement(retryIndex, trimmedold.size, trimmednew))
+                        lineIndex = retryIndex + trimmedold.size
                     } else {
                         Log.w(TAG, "Could not find matching sequence in $filePath at line $startAt")
                     }
@@ -422,19 +422,19 @@ class ApplyPatchTool(
      * Seek a single line in the original, with progressive matching.
      * Aligned with OpenClaw seekSequence for single-line context.
      */
-    private fun seekLine(lines: List<String>, target: String, startFrom: Int): Int {
+    private fun seekLine(lines: List<String>, target: String, startfrom: Int): Int {
         // Pass 1: exact match
-        for (i in startFrom until lines.size) {
+        for (i in startfrom until lines.size) {
             if (lines[i] == target) return i
         }
         // Pass 2: trimEnd match
         val targetTrimmed = target.trimEnd()
-        for (i in startFrom until lines.size) {
+        for (i in startfrom until lines.size) {
             if (lines[i].trimEnd() == targetTrimmed) return i
         }
         // Pass 3: trim match
         val targetFullTrim = target.trim()
-        for (i in startFrom until lines.size) {
+        for (i in startfrom until lines.size) {
             if (lines[i].trim() == targetFullTrim) return i
         }
         return -1
@@ -444,24 +444,24 @@ class ApplyPatchTool(
      * Seek a sequence of lines in the original, with progressive matching (4 passes).
      * Aligned with OpenClaw seekSequence.
      */
-    private fun seekSequence(lines: List<String>, pattern: List<String>, startFrom: Int): Int {
-        if (pattern.isEmpty()) return startFrom
+    private fun seekSequence(lines: List<String>, pattern: List<String>, startfrom: Int): Int {
+        if (pattern.isEmpty()) return startfrom
         val maxStart = lines.size - pattern.size
 
         // Pass 1: exact match
-        for (i in startFrom..maxStart) {
+        for (i in startfrom..maxStart) {
             if (matchesExact(lines, pattern, i)) return i
         }
         // Pass 2: trimEnd match
-        for (i in startFrom..maxStart) {
+        for (i in startfrom..maxStart) {
             if (matchesTrimEnd(lines, pattern, i)) return i
         }
         // Pass 3: trim match
-        for (i in startFrom..maxStart) {
+        for (i in startfrom..maxStart) {
             if (matchesTrim(lines, pattern, i)) return i
         }
         // Pass 4: normalized punctuation match
-        for (i in startFrom..maxStart) {
+        for (i in startfrom..maxStart) {
             if (matchesNormalized(lines, pattern, i)) return i
         }
         return -1

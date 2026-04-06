@@ -4,28 +4,28 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
-import android.content.Context
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import android.content.context
+import com.xiaomo.androidforclaw.config.configLoader
 
 /**
- * Models RPC methods implementation
+ * models RPC methods implementation
  *
  * Provides model listing and management
  */
-class ModelsMethods(
-    private val context: Context
+class modelsMethods(
+    private val context: context
 ) {
-    private val configLoader = ConfigLoader(context)
+    private val configLoader = configLoader(context)
 
     /**
      * models.list() - List all available models
      *
      * Returns all models from all providers in openclaw.json
      */
-    fun modelsList(): ModelsListResult {
+    fun modelsList(): modelsListResult {
         val models = try {
-            configLoader.listAllModels().map { (provider, modelDef) ->
-                ModelInfo(
+            configLoader.listAllmodels().map { (provider, modelDef) ->
+                modelInfo(
                     id = modelDef.id,
                     name = modelDef.name ?: modelDef.id,
                     provider = provider,
@@ -34,7 +34,7 @@ class ModelsMethods(
                     reasoning = modelDef.reasoning ?: false,
                     input = modelDef.input?.map { it.toString() } ?: listOf("text"),
                     cost = modelDef.cost?.let { c ->
-                        ModelCost(
+                        modelCost(
                             input = c.input,
                             output = c.output,
                             cacheWrite = c.cacheWrite,
@@ -43,25 +43,25 @@ class ModelsMethods(
                     }
                 )
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             emptyList()
         }
 
-        return ModelsListResult(models = models)
+        return modelsListResult(models = models)
     }
 }
 
 /**
- * Models list result
+ * models list result
  */
-data class ModelsListResult(
-    val models: List<ModelInfo>
+data class modelsListResult(
+    val models: List<modelInfo>
 )
 
 /**
- * Model information
+ * model information
  */
-data class ModelInfo(
+data class modelInfo(
     val id: String,
     val name: String,
     val provider: String,
@@ -69,13 +69,13 @@ data class ModelInfo(
     val maxTokens: Int,
     val reasoning: Boolean,
     val input: List<String>,
-    val cost: ModelCost? = null
+    val cost: modelCost? = null
 )
 
 /**
- * Model cost information
+ * model cost information
  */
-data class ModelCost(
+data class modelCost(
     val input: Double,
     val output: Double,
     val cacheWrite: Double? = null,

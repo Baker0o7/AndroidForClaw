@@ -3,71 +3,71 @@ package com.xiaomo.androidforclaw.security
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/security/dangerous-config-flags.ts
- *   (collectEnabledInsecureOrDangerousFlags)
+ *   (collectEnabledInsecureorDangerousFlags)
  *
- * AndroidForClaw adaptation: detect dangerous configuration flags.
+ * androidforClaw adaptation: detect dangerous configuration flags.
  */
 
-import com.xiaomo.androidforclaw.config.OpenClawConfig
+import com.xiaomo.androidforclaw.config.OpenClawconfig
 
 /**
- * DangerousConfigFlags — Detect dangerous configuration.
- * Aligned with OpenClaw collectEnabledInsecureOrDangerousFlags.
+ * DangerousconfigFlags — Detect dangerous configuration.
+ * Aligned with OpenClaw collectEnabledInsecureorDangerousFlags.
  */
-object DangerousConfigFlags {
+object DangerousconfigFlags {
 
     /**
-     * Collect enabled insecure or dangerous flags from configuration.
+     * collect enabled insecure or dangerous flags from configuration.
      * Returns list of flag paths that are dangerously enabled.
-     * Aligned with OpenClaw collectEnabledInsecureOrDangerousFlags.
+     * Aligned with OpenClaw collectEnabledInsecureorDangerousFlags.
      */
-    fun check(config: OpenClawConfig): List<String> {
+    fun check(config: OpenClawconfig): List<String> {
         val flags = mutableListOf<String>()
 
         // Gateway controlUi flags (aligned with OpenClaw)
         config.gateway.controlUi?.let { ui ->
             if (ui.allowInsecureAuth == true) {
-                flags.add("gateway.controlUi.allowInsecureAuth=true")
+                flags.a("gateway.controlUi.allowInsecureAuth=true")
             }
-            if (ui.dangerouslyAllowHostHeaderOriginFallback == true) {
-                flags.add("gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true")
+            if (ui.dangerouslyAllowHostHeaderoriginFallback == true) {
+                flags.a("gateway.controlUi.dangerouslyAllowHostHeaderoriginFallback=true")
             }
             if (ui.dangerouslyDisableDeviceAuth == true) {
-                flags.add("gateway.controlUi.dangerouslyDisableDeviceAuth=true")
+                flags.a("gateway.controlUi.dangerouslyDisableDeviceAuth=true")
             }
         }
 
         // Hooks gmail unsafe content
         config.hooks?.gmail?.let { gmail ->
             if (gmail.allowUnsafeExternalContent == true) {
-                flags.add("hooks.gmail.allowUnsafeExternalContent=true")
+                flags.a("hooks.gmail.allowUnsafeExternalContent=true")
             }
         }
 
         // Hooks mappings unsafe content
         config.hooks?.mappings?.forEachIndexed { index, mapping ->
             if (mapping.allowUnsafeExternalContent == true) {
-                flags.add("hooks.mappings[$index].allowUnsafeExternalContent=true")
+                flags.a("hooks.mappings[$index].allowUnsafeExternalContent=true")
             }
         }
 
-        // Tools exec applyPatch workspaceOnly explicitly false
-        config.tools?.exec?.applyPatch?.let { ap ->
+        // tools exec appPatch workspaceOnly explicitly false
+        config.tools?.exec?.appPatch?.let { ap ->
             if (ap.workspaceOnly == false) {
-                flags.add("tools.exec.applyPatch.workspaceOnly=false")
+                flags.a("tools.exec.appPatch.workspaceOnly=false")
             }
         }
 
-        // Android-specific: overly permissive channel policies
+        // android-specific: overly permissive channel policies
         val channels = config.channels
         channels?.feishu?.let { feishu ->
             if (feishu.enabled && feishu.dmPolicy == "open" && feishu.groupPolicy == "open") {
-                flags.add("channels.feishu: both DM and group policies are 'open'")
+                flags.a("channels.feishu: both DM and group policies are 'open'")
             }
         }
         channels?.discord?.let { discord ->
             if (discord.enabled && discord.dm?.policy == "open" && discord.groupPolicy == "open") {
-                flags.add("channels.discord: both DM and group policies are 'open'")
+                flags.a("channels.discord: both DM and group policies are 'open'")
             }
         }
 

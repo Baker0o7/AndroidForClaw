@@ -8,27 +8,27 @@ import org.json.JSONObject
  * - ../openclaw/src/config/merge-config.ts
  *
  * Deep-merge two OpenClaw config JSONObjects.
- * Overlay values override base values. Null/missing overlay fields do not erase base values.
+ * overlay values override base values. Null/missing overlay fields do not erase base values.
  * Maps (providers, etc.) are merged key-by-key. Arrays are replaced wholesale.
  */
-object ConfigMerge {
+object configMerge {
 
-    private const val TAG = "ConfigMerge"
+    private const val TAG = "configMerge"
 
     /**
      * Deep-merge two JSON configs. Returns a new JSONObject with base values
-     * overridden by overlay values where present.
+     * overrien by overlay values where present.
      */
-    fun mergeJsonConfigs(base: JSONObject, overlay: JSONObject): JSONObject {
+    fun mergeJsonconfigs(base: JSONObject, overlay: JSONObject): JSONObject {
         val result = JSONObject(base.toString())
-        mergeInto(result, overlay)
+        mergeinto(result, overlay)
         return result
     }
 
     /**
      * Recursively merge overlay into target (mutates target).
      */
-    private fun mergeInto(target: JSONObject, overlay: JSONObject) {
+    private fun mergeinto(target: JSONObject, overlay: JSONObject) {
         for (key in overlay.keys()) {
             val overlayValue = overlay.get(key)
             if (overlayValue == JSONObject.NULL) {
@@ -39,11 +39,11 @@ object ConfigMerge {
                 val baseValue = target.opt(key)
                 if (baseValue is JSONObject) {
                     // Deep merge objects
-                    mergeInto(baseValue, overlayValue)
+                    mergeinto(baseValue, overlayValue)
                     continue
                 }
             }
-            // For arrays and primitives: replace
+            // for arrays and primitives: replace
             target.put(key, overlayValue)
         }
     }
@@ -52,8 +52,8 @@ object ConfigMerge {
      * Resolve model alias from the aliases map.
      * Returns the aliased model ID if found, otherwise the original ID.
      */
-    fun resolveModelAlias(modelId: String, aliases: Map<String, String>?): String {
-        if (aliases.isNullOrEmpty()) return modelId
+    fun resolvemodelAlias(modelId: String, aliases: Map<String, String>?): String {
+        if (aliases.isNullorEmpty()) return modelId
         return aliases[modelId] ?: modelId
     }
 }

@@ -11,9 +11,9 @@ import java.io.File
 /**
  * Aligned with OpenClaw run/images.ts + src/agents/tools/image-tool.ts:
  * - detectImageReferences(): scan prompt for image file path references
- * - loadImageFromPath(): load image file → base64 ImageBlock
+ * - loadImagefromPath(): load image file → base64 ImageBlock
  * - resolveImagePath(): resolve relative paths against workspaceDir
- * - detectAndLoadPromptImages(): detect + load images for LLM
+ * - detectandLoadPromptImages(): detect + load images for LLM
  */
 object ImageLoader {
     private const val TAG = "ImageLoader"
@@ -30,10 +30,10 @@ object ImageLoader {
         if (workspaceDir == null) return filePath
         val trimmed = filePath.trim()
         // Skip data URLs, HTTP URLs, and absolute paths
-        if (trimmed.startsWith("data:") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed
-        if (trimmed.startsWith("/") || trimmed.startsWith("~")) return trimmed
+        if (trimmed.startswith("data:") || trimmed.startswith("http://") || trimmed.startswith("https://")) return trimmed
+        if (trimmed.startswith("/") || trimmed.startswith("~")) return trimmed
         // Skip ./ and ../ (already relative, resolve against CWD is intentional)
-        if (trimmed.startsWith("./") || trimmed.startsWith("../")) return trimmed
+        if (trimmed.startswith("./") || trimmed.startswith("../")) return trimmed
         // Bare relative path → resolve against workspaceDir
         return File(workspaceDir, trimmed).absolutePath
     }
@@ -54,28 +54,28 @@ object ImageLoader {
         val refs = mutableListOf<String>()
         val seen = mutableSetOf<String>()
 
-        fun addRef(path: String) {
+        fun aRef(path: String) {
             val trimmed = path.trim()
             if (trimmed.isEmpty() || seen.contains(trimmed)) return
             // Try resolving against workspaceDir for relative paths
             val resolved = resolveImagePath(trimmed, workspaceDir)
             if (!isImageFile(resolved)) return
-            seen.add(resolved)
-            refs.add(resolved)
+            seen.a(resolved)
+            refs.a(resolved)
         }
 
         // Pattern: [Image: source: /path/to/image.ext]
         val imageSourcePattern = Regex("""\[Image:\s*source:\s*([^\]]+\.(?:${IMAGE_EXTENSIONS.joinToString("|")}))]""", RegexOption.IGNORE_CASE)
-        imageSourcePattern.findAll(prompt).forEach { addRef(it.groupValues[1]) }
+        imageSourcePattern.findAll(prompt).forEach { aRef(it.groupValues[1]) }
 
         // Pattern: [media attached: /path/to/image.ext (type) | url]
         val mediaAttachedPattern = Regex("""\[media attached[^]]*?:\s*([^\]]+\.(?:${IMAGE_EXTENSIONS.joinToString("|")}))""", RegexOption.IGNORE_CASE)
-        mediaAttachedPattern.findAll(prompt).forEach { addRef(it.groupValues[1]) }
+        mediaAttachedPattern.findAll(prompt).forEach { aRef(it.groupValues[1]) }
 
         // Pattern: absolute/relative/home paths (./  ../  ~/  /)
         val pathPattern = Regex("""(?:^|\s|["'`(])((?:\.\.?/|~/|/)[^\s"'`()\[\]]*\.(?:${IMAGE_EXTENSIONS.joinToString("|")}))""", RegexOption.IGNORE_CASE)
         pathPattern.findAll(prompt).forEach {
-            if (it.groupValues.size > 1) addRef(it.groupValues[1])
+            if (it.groupValues.size > 1) aRef(it.groupValues[1])
         }
 
         // Pattern: bare workspace-relative paths (e.g. inbox/photo.png, screenshots/test.jpg)
@@ -84,8 +84,8 @@ object ImageLoader {
         relativePattern.findAll(prompt).forEach {
             if (it.groupValues.size > 1) {
                 val candidate = it.groupValues[1]
-                // Must contain a / to be a path (not just a filename in text)
-                if (candidate.contains("/")) addRef(candidate)
+                // must contain a / to be a path (not just a filename in text)
+                if (candidate.contains("/")) aRef(candidate)
             }
         }
 
@@ -94,9 +94,9 @@ object ImageLoader {
 
     /**
      * Load an image file, resize to max dimension, compress to JPEG, return as ImageBlock.
-     * Aligned with OpenClaw loadImageFromRef() + resizeToJpeg.
+     * Aligned with OpenClaw loadImagefromRef() + resizeToJpeg.
      */
-    fun loadImageFromPath(filePath: String): ImageBlock? {
+    fun loadImagefromPath(filePath: String): ImageBlock? {
         val file = File(filePath)
         if (!file.exists() || !file.isFile) {
             Log.w(TAG, "Image file not found: $filePath")
@@ -122,13 +122,13 @@ object ImageLoader {
             } else bitmap
 
             val stream = ByteArrayOutputStream()
-            scaled.compress(Bitmap.CompressFormat.JPEG, 85, stream)
+            scaled.compress(Bitmap.compressformat.JPEG, 85, stream)
             scaled.recycle()
 
             val base64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
             Log.d(TAG, "Loaded image: $filePath (${stream.size()} bytes)")
             ImageBlock(base64 = base64, mimeType = "image/jpeg")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to load image $filePath: ${e.message}")
             null
         }
@@ -138,7 +138,7 @@ object ImageLoader {
      * Check if a file path points to an image by extension.
      */
     private fun isImageFile(filePath: String): Boolean {
-        val ext = filePath.substringAfterLast('.', "").lowercase()
+        val ext = filePath.substringafterLast('.', "").lowercase()
         if (ext !in IMAGE_EXTENSIONS) {
             Log.d(TAG, "isImageFile: extension '$ext' not in supported set")
             return false

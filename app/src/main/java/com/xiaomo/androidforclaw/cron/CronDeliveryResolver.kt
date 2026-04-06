@@ -5,7 +5,7 @@ package com.xiaomo.androidforclaw.cron
  * - ../openclaw/src/cron/delivery.ts
  *   (resolveCronDeliveryPlan, resolveFailureDestination)
  *
- * AndroidForClaw adaptation: cron job output delivery resolution.
+ * androidforClaw adaptation: cron job output delivery resolution.
  * Aligned with OpenClaw delivery.ts.
  */
 
@@ -49,7 +49,7 @@ object CronDeliveryResolver {
 
     // ── Normalization helpers (aligned with OpenClaw) ──
 
-    private fun normalizeChannel(value: Any?): String? {
+    private fun normalizechannel(value: Any?): String? {
         if (value !is String) return null
         val trimmed = value.trim().lowercase()
         return trimmed.ifEmpty { null }
@@ -97,7 +97,7 @@ object CronDeliveryResolver {
      * Resolve "last" channel to the most recently active chat.
      * Returns Pair(channel, chatId) or null if no recent chat available.
      */
-    private fun resolveLastChannel(): Pair<String, String>? {
+    private fun resolveLastchannel(): Pair<String, String>? {
         val (channel, chatId) = MyApplication.getLastActiveChat()
         if (channel != null && chatId != null) {
             return Pair(channel, chatId)
@@ -113,17 +113,17 @@ object CronDeliveryResolver {
      * Aligned with OpenClaw resolveCronDeliveryPlan.
      */
     fun resolveDeliveryPlan(job: CronJob): CronDeliveryPlan {
-        val payload = job.payload as? CronPayload.AgentTurn
+        val payload = job.payload as? CronPayload.agentTurn
         val delivery = job.delivery
 
-        val payloadChannel = if (payload != null) normalizeChannel(payload.channel) else null
+        val payloadchannel = if (payload != null) normalizechannel(payload.channel) else null
         val payloadTo = if (payload != null) normalizeTo(payload.to) else null
 
-        val deliveryChannel = normalizeChannel(delivery?.channel)
+        val deliverychannel = normalizechannel(delivery?.channel)
         val deliveryTo = normalizeTo(delivery?.to)
 
         // channel defaults to "last" when neither delivery nor payload specifies one
-        val channel = deliveryChannel ?: payloadChannel ?: "last"
+        val channel = deliverychannel ?: payloadchannel ?: "last"
         val to = deliveryTo ?: payloadTo
         val deliveryAccountId = normalizeAccountId(delivery?.accountId)
 
@@ -183,17 +183,17 @@ object CronDeliveryResolver {
     fun resolveFailureDestination(
         job: CronJob,
         globalFailureMode: String? = null,
-        globalFailureChannel: String? = null,
+        globalFailurechannel: String? = null,
         globalFailureTo: String? = null,
         globalFailureAccountId: String? = null
     ): CronFailureDeliveryPlan? {
         // Start with global defaults
         var mode = normalizeFailureMode(globalFailureMode)
-        var channel = normalizeChannel(globalFailureChannel)
+        var channel = normalizechannel(globalFailurechannel)
         var to = normalizeTo(globalFailureTo)
         var accountId = normalizeAccountId(globalFailureAccountId)
 
-        // Overlay job-level failure destination
+        // overlay job-level failure destination
         val jobFailure = job.delivery?.failureDestination
         if (jobFailure != null) {
             val jobMode = normalizeFailureMode(jobFailure.mode)
@@ -202,12 +202,12 @@ object CronDeliveryResolver {
             val hasJobToField = jobFailure.to != null
             val jobToExplicitValue = hasJobToField && normalizeTo(jobFailure.to) != null
 
-            if (jobFailure.channel != null) channel = normalizeChannel(jobFailure.channel)
+            if (jobFailure.channel != null) channel = normalizechannel(jobFailure.channel)
             if (hasJobToField) to = normalizeTo(jobFailure.to)
             if (jobFailure.accountId != null) accountId = normalizeAccountId(jobFailure.accountId)
 
             if (jobMode != null) {
-                // When mode changes between global and job level, clear inherited `to`
+                // when mode changes between global and job level, clear inherited `to`
                 // (URL semantics differ between announce and webhook)
                 val globalMode = globalFailureMode ?: "announce"
                 if (!jobToExplicitValue && globalMode != jobMode) {
@@ -257,11 +257,11 @@ object CronDeliveryResolver {
             return primaryMode == "webhook" && normalizeTo(delivery.to) == failurePlan.to
         }
 
-        val primaryChannel = normalizeChannel(delivery.channel) ?: "last"
-        val failureChannel = failurePlan.channel ?: "last"
+        val primarychannel = normalizechannel(delivery.channel) ?: "last"
+        val failurechannel = failurePlan.channel ?: "last"
 
         return (
-            failureChannel == primaryChannel &&
+            failurechannel == primarychannel &&
             normalizeTo(delivery.to) == failurePlan.to &&
             normalizeAccountId(delivery.accountId) == failurePlan.accountId
         )
@@ -277,11 +277,11 @@ object CronDeliveryResolver {
         val delivery = job.delivery
         if (delivery?.bestEffort != null) return delivery.bestEffort
 
-        val payload = job.payload as? CronPayload.AgentTurn
+        val payload = job.payload as? CronPayload.agentTurn
         return payload?.bestEffortDeliver ?: false
     }
 
-    // ── Helpers ──
+    // ── helpers ──
 
     fun formatResultMessage(jobId: String, jobDescription: String?, result: String): String {
         val desc = jobDescription ?: jobId

@@ -1,25 +1,25 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
+import android.content.pm.Packagemanager
 import android.os.Build
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.core.MyApplication
 
 /**
  * App information scanner tool
- * Used to quickly get app name, package name and main Activity of installed apps on device
+ * used to quickly get app name, package name and main Activity of installed apps on device
  *
  * Usage:
- * 1. Call in code:AppInfoScanner.scanAndExport(context)
+ * 1. Call in code:AppInfoScanner.scanandExport(context)
  * 2. View Logcat (tag: AppInfoScanner) to get output
- * 3. Or call AppInfoScanner.exportToFile(context) to export to file
+ * 3. or call AppInfoScanner.exportToFile(context) to export to file
  */
 object AppInfoScanner {
 
@@ -36,12 +36,12 @@ object AppInfoScanner {
 
     /**
      * Scan all installed apps and output to Logcat
-     * @param context Context
+     * @param context context
      * @param includeSystemApps Whether to include system apps, default false
      * @param filterKeywords Filter keywords list
      */
-    fun scanAndExport(
-        context: Context,
+    fun scanandExport(
+        context: context,
         includeSystemApps: Boolean = false,
         filterKeywords: List<String> = listOf(
             "android.",
@@ -206,16 +206,16 @@ object AppInfoScanner {
         val appInfoList = scanApps(context, includeSystemApps, filterKeywords)
 
         if (appInfoList.isEmpty()) {
-            Log.w(TAG, "未找到任何apply")
+            Log.w(TAG, "not找to任何app")
             return
         }
 
-        // Output到 Logcat
+        // Outputto Logcat
         Log.d(TAG, "=".repeat(100))
-        Log.d(TAG, "StartOutputApp info(共 ${appInfoList.size} 个apply)")
+        Log.d(TAG, "StartOutputApp info(共 ${appInfoList.size} countapp)")
         Log.d(TAG, "=".repeat(100))
 
-        // 按apply名Sort
+        // 按app名Sort
         val sortedList = appInfoList.sortedBy { it.appName }
 
         sortedList.forEach { appInfo ->
@@ -229,34 +229,34 @@ object AppInfoScanner {
 
         // Output statistics
         Log.d(TAG, "\nStatistics info: ")
-        Log.d(TAG, "总apply数: ${appInfoList.size}")
+        Log.d(TAG, "总app数: ${appInfoList.size}")
         val launchableCount = appInfoList.count { it.mainActivity != null }
         val unlaunchableCount = appInfoList.count { it.mainActivity == null }
-        Log.d(TAG, "HasMain Activity的apply: $launchableCount")
-        Log.d(TAG, "NoneMain Activity的apply: $unlaunchableCount")
+        Log.d(TAG, "HasMain Activityapp: $launchableCount")
+        Log.d(TAG, "NoneMain Activityapp: $unlaunchableCount")
         if (unlaunchableCount > 0) {
-            Log.d(TAG, "\nillustrate: NoneMain Activity的applyusuallyYes以DownType: ")
-            Log.d(TAG, "1. ServiceClassapply(Service)- such as com.vendor.aiasst.service")
-            Log.d(TAG, "2. 系统Group件和库 - such as com.vendor.analytics")
-            Log.d(TAG, "3. Back台Service - such as com.google.android.ext.services")
-            Log.d(TAG, "4. 这些applyCannot通过普通方式Start, thereforeNoneMain Activity")
+            Log.d(TAG, "\nillustrate: NoneMain ActivityappusuallyYesbynextType: ")
+            Log.d(TAG, "1. serviceClassapp(service)- such as com.vendor.aiasst.service")
+            Log.d(TAG, "2. 系统Group件and库 - such as com.vendor.analytics")
+            Log.d(TAG, "3. backgroundservice - such as com.google.android.ext.services")
+            Log.d(TAG, "4. thissomeappcannotthrough普通方式Start, thereforeNoneMain Activity")
         }
     }
 
     /**
-     * 扫描All已Installapply
+     * 扫描AllalreadyInstallapp
      */
     private fun scanApps(
-        context: Context,
+        context: context,
         includeSystemApps: Boolean,
         filterKeywords: List<String>
     ): List<AppInfo> {
         val appInfoList = mutableListOf<AppInfo>()
 
         try {
-            val pm = context.packageManager
+            val pm = context.packagemanager
             val packages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
+                pm.getInstalledPackages(Packagemanager.PackageInfoFlags.of(0))
             } else {
                 @Suppress("DEPRECATION")
                 pm.getInstalledPackages(0)
@@ -268,136 +268,136 @@ object AppInfoScanner {
                 // Filter system apps
                 if (!includeSystemApps) {
                     val isSystemApp = filterKeywords.any {
-                        packageName.startsWith(it, ignoreCase = true)
+                        packageName.startswith(it, ignoreCase = true)
                     }
                     if (isSystemApp) return@forEach
                 }
 
-                // Getapply名
+                // Getapp名
                 val appName = try {
                     val ai = pm.getApplicationInfo(packageName, 0)
                     pm.getApplicationLabel(ai).toString()
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     packageName
                 }
 
-                // GetMain Activity(use多种MethodTry)
+                // GetMain Activity(usemany种MethodTry)
                 val mainActivity = getMainActivity(context, packageName, pm)
 
-                appInfoList.add(AppInfo(packageName, appName, mainActivity))
+                appInfoList.a(AppInfo(packageName, appName, mainActivity))
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "扫描applyFailed: ${e.message}", e)
-            LayoutExceptionLogger.log("AppInfoScanner#scanApps", e)
+        } catch (e: exception) {
+            Log.e(TAG, "扫描appFailed: ${e.message}", e)
+            LayoutexceptionLogger.log("AppInfoScanner#scanApps", e)
         }
 
         return appInfoList
     }
 
     /**
-     * Getapply的Main Activity(use多种Method)
-     * Method1: use getLaunchIntentForPackage(most快, 但possibly受Package可见性Limit)
+     * GetappMain Activity(usemany种Method)
+     * Method1: use getLaunchIntentforPackage(mostfast, butpossibly受Packagecan见性Limit)
      * Method2: Parse PackageInfo Find MAIN/LAUNCHER Activity(moreReliable)
      */
     private fun getMainActivity(
-        context: Context,
+        context: context,
         packageName: String,
-        pm: PackageManager
+        pm: Packagemanager
     ): String? {
-        // Method1: use getLaunchIntentForPackage(优先use, becausemost快)
+        // Method1: use getLaunchIntentforPackage(优先use, becausemostfast)
         try {
-            val intent = pm.getLaunchIntentForPackage(packageName)
+            val intent = pm.getLaunchIntentforPackage(packageName)
             val className = intent?.component?.className
-            if (!className.isNullOrEmpty()) {
+            if (!className.isNullorEmpty()) {
                 return className
             }
-        } catch (e: Exception) {
-            Log.d(TAG, "getLaunchIntentForPackage Failed ($packageName): ${e.message}")
+        } catch (e: exception) {
+            Log.d(TAG, "getLaunchIntentforPackage Failed ($packageName): ${e.message}")
         }
 
-        // Method2: use queryIntentActivities 直接FindAll可Start的 Activity(moreEfficient)
+        // Method2: use queryIntentActivities 直接FindAllcanStart Activity(moreEfficient)
         try {
-            val intent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
+            val intent = Intent(Intent.ACTION_MAIN).app {
+                aCategory(Intent.CATEGORY_LAUNCHER)
             }
 
             val resolveInfoList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                @Suppress("NewApi")
+                @Suppress("newApi")
                 pm.queryIntentActivities(
                     intent,
-                    PackageManager.ResolveInfoFlags.of(0)
+                    Packagemanager.ResolveInfoFlags.of(0)
                 )
             } else {
                 @Suppress("DEPRECATION")
                 pm.queryIntentActivities(intent, 0)
             }
 
-            // Findmatch当FrontPackage name的First Activity
+            // FindmatchwhenFrontPackage namefirst Activity
             for (resolveInfo in resolveInfoList) {
                 if (resolveInfo.activityInfo.packageName == packageName) {
                     return resolveInfo.activityInfo.name
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.d(TAG, "queryIntentActivities Failed ($packageName): ${e.message}")
         }
 
-        // Method3: Parse PackageInfo Find MAIN/LAUNCHER Activity(mostBack的备用Method)
-        // Note: 某些apply(such asServiceClassapply、系统Group件)possiblyNoneMain Activity, 这Yes正常的
+        // Method3: Parse PackageInfo Find MAIN/LAUNCHER Activity(mostback备用Method)
+        // note: 某someapp(such asserviceClassapp、系统Group件)possiblyNoneMain Activity, thisYes正常
         try {
             val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getPackageInfo(
                     packageName,
-                    PackageManager.PackageInfoFlags.of(
-                        PackageManager.GET_ACTIVITIES.toLong() or
-                        PackageManager.MATCH_DISABLED_COMPONENTS.toLong()
+                    Packagemanager.PackageInfoFlags.of(
+                        Packagemanager.GET_ACTIVITIES.toLong() or
+                        Packagemanager.MATCH_DISABLED_COMPONENTS.toLong()
                     )
                 )
             } else {
                 @Suppress("DEPRECATION")
                 pm.getPackageInfo(
                     packageName,
-                    PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS
+                    Packagemanager.GET_ACTIVITIES or Packagemanager.MATCH_DISABLED_COMPONENTS
                 )
             }
 
-            // ifapplyNone任何 Activity, illustratepossiblyYesServiceClassapply
+            // ifappNone任何 Activity, illustratepossiblyYesserviceClassapp
             val activities = packageInfo.activities
             if (activities == null || activities.isEmpty()) {
-                Log.d(TAG, "apply $packageName None Activity(possiblyYesServiceClassapply)")
+                Log.d(TAG, "app $packageName None Activity(possiblyYesserviceClassapp)")
                 return null
             }
 
-            // Find带Has MAIN/LAUNCHER intent-filter 的 Activity
+            // Find带Has MAIN/LAUNCHER intent-filter  Activity
             packageInfo.activities?.forEach { activityInfo ->
                 try {
-                    // Check Activity YesNoHas MAIN/LAUNCHER intent-filter
-                    val intent = Intent(Intent.ACTION_MAIN).apply {
-                        addCategory(Intent.CATEGORY_LAUNCHER)
+                    // Check Activity whetherHas MAIN/LAUNCHER intent-filter
+                    val intent = Intent(Intent.ACTION_MAIN).app {
+                        aCategory(Intent.CATEGORY_LAUNCHER)
                         setPackage(packageName)
                         setClassName(packageName, activityInfo.name)
                     }
 
                     val resolveInfoList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        @Suppress("NewApi")
+                        @Suppress("newApi")
                         pm.queryIntentActivities(
                             intent,
-                            PackageManager.ResolveInfoFlags.of(0)
+                            Packagemanager.ResolveInfoFlags.of(0)
                         )
                     } else {
                         @Suppress("DEPRECATION")
                         pm.queryIntentActivities(intent, 0)
                     }
 
-                    if (resolveInfoList.isNotEmpty()) {
+                    if (resolveInfoList.isnotEmpty()) {
                         return activityInfo.name
                     }
-                } catch (e: Exception) {
-                    // IgnoreSingle Activity 的QueryError
+                } catch (e: exception) {
+                    // IgnoreSingle Activity QueryError
                 }
             }
-        } catch (e: Exception) {
-            // ifGet PackageInfo Failed, possiblyYesPermissionIssue或apply不Exists
+        } catch (e: exception) {
+            // ifGet PackageInfo Failed, possiblyYesPermissionIssueorappnotExists
             Log.d(TAG, "Parse PackageInfo Failed ($packageName): ${e.message}")
         }
 
@@ -407,20 +407,20 @@ object AppInfoScanner {
     }
 
     /**
-     * FormatSingleapply的 AppIntentInfo 代码
+     * formatSingleapp AppIntentInfo code
      */
     private fun formatAppIntentInfo(appInfo: AppInfo): String {
-        // 清理apply名, 移除特殊字符
+        // 清理app名, remove特殊characters
         val cleanAppName = appInfo.appName
             .replace("\"", "\\\"")
             .replace("\n", " ")
             .trim()
 
-        // 生成 appNameList(DefaultContainsapply名)
+        // 生成 appNameList(DefaultContainsapp名)
         val appNameList = mutableListOf<String>()
-        appNameList.add(cleanAppName)
+        appNameList.a(cleanAppName)
 
-        // ifPackage nameHas意义, AlsoAdd到List中
+        // ifPackage nameHas意义, AlsoAtoList中
         val packageNameParts = appInfo.packageName.split(".")
         if (packageNameParts.size > 1) {
             val lastPart = packageNameParts.last()
@@ -428,11 +428,11 @@ object AppInfoScanner {
                 !lastPart.equals(cleanAppName, ignoreCase = true) &&
                 !lastPart.contains("overlay", ignoreCase = true) &&
                 !lastPart.contains("rro", ignoreCase = true)) {
-                appNameList.add(lastPart)
+                appNameList.a(lastPart)
             }
         }
 
-        // ifHasMain Activity, Output完整格式；No则只Output基本Info
+        // ifHasMain Activity, Output完整format；Nothen只Output基本Info
         return if (appInfo.mainActivity != null) {
             """
     AppIntentInfo(
@@ -454,30 +454,30 @@ object AppInfoScanner {
     }
 
     /**
-     * Fast扫描(use MyApplication 的 context)
+     * Fast扫描(use MyApplication  context)
      */
     fun quickScan() {
         val context = MyApplication.application
-        scanAndExport(context)
+        scanandExport(context)
     }
 
     /**
-     * 扫描并Export为Text格式(便于Copy)
-     * @param context Context
-     * @return Format的TextString
+     * 扫描并ExportforTextformat(便于Copy)
+     * @param context context
+     * @return formatTextString
      */
-    fun exportAsText(context: Context): String {
+    fun exportAsText(context: context): String {
         val appInfoList = scanApps(context, includeSystemApps = false, filterKeywords = emptyList())
         val sortedList = appInfoList.sortedBy { it.appName }
 
         val sb = StringBuilder()
         sb.appendLine("=".repeat(100))
-        sb.appendLine("App infoList(共 ${appInfoList.size} 个apply)")
+        sb.appendLine("App infoList(共 ${appInfoList.size} countapp)")
         sb.appendLine("=".repeat(100))
         sb.appendLine()
 
         sortedList.forEach { appInfo ->
-            sb.appendLine("apply名: ${appInfo.appName}")
+            sb.appendLine("app名: ${appInfo.appName}")
             sb.appendLine("Package name: ${appInfo.packageName}")
             sb.appendLine("Main Activity: ${appInfo.mainActivity ?: "None"}")
             sb.appendLine("-".repeat(80))
@@ -487,22 +487,22 @@ object AppInfoScanner {
     }
 
     /**
-     * 只GetHasMain Activity的apply(可Start的apply)
+     * 只GetHasMain Activityapp(canStartapp)
      */
-    fun scanLaunchableApps(context: Context): List<AppInfo> {
+    fun scanLaunchableApps(context: context): List<AppInfo> {
         return scanApps(context, includeSystemApps = false, filterKeywords = emptyList())
             .filter { it.mainActivity != null }
     }
 
     /**
-     * OutputFormat的 AppIntentInfo 代码(仅ContainsHasMain Activity的apply)
+     * Outputformat AppIntentInfo code(仅ContainsHasMain Activityapp)
      */
-    fun exportAppIntentInfoCode(context: Context): String {
+    fun exportAppIntentInfoCode(context: context): String {
         val launchableApps = scanLaunchableApps(context)
         val sortedList = launchableApps.sortedBy { it.appName }
 
         val sb = StringBuilder()
-        sb.appendLine("// 共 ${launchableApps.size} 个可Startapply")
+        sb.appendLine("// 共 ${launchableApps.size} countcanStartapp")
         sb.appendLine()
 
         sortedList.forEach { appInfo ->

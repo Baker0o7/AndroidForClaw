@@ -7,11 +7,11 @@ package com.xiaomo.androidforclaw.secrets
  * - ../openclaw/src/secrets/resolve.ts (resolveSecretRef)
  * - ../openclaw/src/secrets/target-registry.ts
  *
- * AndroidForClaw adaptation: runtime secrets management.
+ * androidforClaw adaptation: runtime secrets management.
  * Manages secrets lifecycle (prepare → activate → query → clear).
  */
 
-import com.xiaomo.androidforclaw.config.OpenClawConfig
+import com.xiaomo.androidforclaw.config.OpenClawconfig
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
@@ -44,18 +44,18 @@ data class AuthStoreSnapshot(
 
 /**
  * Web tools metadata.
- * Aligned with OpenClaw RuntimeWebToolsMetadata.
+ * Aligned with OpenClaw RuntimeWebtoolsMetadata.
  */
-data class RuntimeWebToolsMetadata(
+data class RuntimeWebtoolsMetadata(
     val search: RuntimeWebSearchMetadata = RuntimeWebSearchMetadata(),
     val fetchFirecrawlActive: Boolean = false,
     val diagnostics: List<String> = emptyList()
 )
 
 data class RuntimeWebSearchMetadata(
-    val providerConfigured: String? = null,
+    val providerconfigured: String? = null,
     val providerSource: String = "none",  // "configured" | "auto-detect" | "none"
-    val selectedProvider: String? = null,
+    val selectedprovider: String? = null,
     val diagnostics: List<String> = emptyList()
 )
 
@@ -64,10 +64,10 @@ data class RuntimeWebSearchMetadata(
  * Aligned with OpenClaw PreparedSecretsRuntimeSnapshot.
  */
 data class SecretsRuntimeSnapshot(
-    val sourceConfig: OpenClawConfig,
-    val config: OpenClawConfig,
+    val sourceconfig: OpenClawconfig,
+    val config: OpenClawconfig,
     val authStores: List<AuthStoreSnapshot> = emptyList(),
-    val webTools: RuntimeWebToolsMetadata = RuntimeWebToolsMetadata(),
+    val webtools: RuntimeWebtoolsMetadata = RuntimeWebtoolsMetadata(),
     val warnings: List<SecretResolverWarning>,
     val preparedAt: Long = System.currentTimeMillis()
 )
@@ -100,9 +100,9 @@ object SecretsRuntime {
         SecretTarget("channels.telegram.botToken", "Telegram Bot Token", true),
         SecretTarget("channels.slack.botToken", "Slack Bot Token", true),
         SecretTarget("channels.slack.appToken", "Slack App Token"),
-        SecretTarget("channels.whatsapp.phoneNumber", "WhatsApp Phone Number"),
+        SecretTarget("channels.whatsapp.phoneNumber", "whatsApp Phone Number"),
         SecretTarget("gateway.authToken", "Gateway Auth Token", true),
-        SecretTarget("models.providers.*.apiKey", "Provider API Key", true)
+        SecretTarget("models.providers.*.apiKey", "provider API Key", true)
     )
 
     /**
@@ -110,14 +110,14 @@ object SecretsRuntime {
      * Aligned with OpenClaw prepareSecretsRuntimeSnapshot.
      */
     fun prepare(
-        config: OpenClawConfig,
+        config: OpenClawconfig,
         authStores: List<AuthStoreSnapshot> = emptyList()
     ): SecretsRuntimeSnapshot {
         val warnings = mutableListOf<SecretResolverWarning>()
         validateSecretTargets(config, warnings)
 
         return SecretsRuntimeSnapshot(
-            sourceConfig = config,
+            sourceconfig = config,
             config = config,
             authStores = authStores,
             warnings = warnings
@@ -146,11 +146,11 @@ object SecretsRuntime {
             "env" -> System.getenv(ref.key) ?: ref.fallback
             "config" -> {
                 val config = activeSnapshot?.config
-                resolveConfigPath(config, ref.key) ?: ref.fallback
+                resolveconfigPath(config, ref.key) ?: ref.fallback
             }
             "exec" -> {
-                // On Android, exec source is not supported (no shell spawning)
-                Log.w(TAG, "Secret source 'exec' not supported on Android: ${ref.key}")
+                // On android, exec source is not supported (no shell spawning)
+                Log.w(TAG, "Secret source 'exec' not supported on android: ${ref.key}")
                 ref.fallback
             }
             "file" -> {
@@ -158,7 +158,7 @@ object SecretsRuntime {
                 try {
                     val content = java.io.File(ref.key).readText().trim()
                     content.ifEmpty { ref.fallback }
-                } catch (_: Exception) {
+                } catch (_: exception) {
                     ref.fallback
                 }
             }
@@ -168,18 +168,18 @@ object SecretsRuntime {
 
     /**
      * Get active web tools metadata.
-     * Aligned with OpenClaw getActiveRuntimeWebToolsMetadata.
+     * Aligned with OpenClaw getActiveRuntimeWebtoolsMetadata.
      */
-    fun getActiveWebToolsMetadata(): RuntimeWebToolsMetadata? {
-        return activeSnapshot?.webTools
+    fun getActiveWebtoolsMetadata(): RuntimeWebtoolsMetadata? {
+        return activeSnapshot?.webtools
     }
 
-    private fun validateSecretTargets(config: OpenClawConfig, warnings: MutableList<SecretResolverWarning>) {
+    private fun validateSecretTargets(config: OpenClawconfig, warnings: MutableList<SecretResolverWarning>) {
         for (target in SECRET_TARGETS) {
             if (!target.required) continue
-            val value = resolveConfigPath(config, target.configPath)
-            if (value.isNullOrBlank()) {
-                warnings.add(SecretResolverWarning(
+            val value = resolveconfigPath(config, target.configPath)
+            if (value.isNullorBlank()) {
+                warnings.a(SecretResolverWarning(
                     path = target.configPath,
                     message = "${target.description} is not configured"
                 ))
@@ -187,7 +187,7 @@ object SecretsRuntime {
         }
     }
 
-    private fun resolveConfigPath(config: OpenClawConfig?, path: String): String? {
+    private fun resolveconfigPath(config: OpenClawconfig?, path: String): String? {
         if (config == null) return null
         return when (path) {
             "channels.feishu.appSecret" -> config.channels?.feishu?.appSecret

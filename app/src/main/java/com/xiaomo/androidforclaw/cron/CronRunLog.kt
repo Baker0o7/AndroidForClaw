@@ -2,7 +2,7 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/cron/run-log.ts
  *
- * AndroidForClaw adaptation: cron scheduling.
+ * androidforClaw adaptation: cron scheduling.
  */
 package com.xiaomo.androidforclaw.cron
 
@@ -13,7 +13,7 @@ import java.io.FileOutputStream
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class CronRunLog(private val runsDir: String, private val config: CronRunLogConfig) {
+class CronRunLog(private val runsDir: String, private val config: CronRunLogconfig) {
     companion object {
         private const val TAG = "CronRunLog"
     }
@@ -34,8 +34,8 @@ class CronRunLog(private val runsDir: String, private val config: CronRunLogConf
                     it.write("$json\n".toByteArray())
                 }
 
-                pruneIfNeeded(logFile)
-            } catch (e: Exception) {
+                pruneifneeded(logFile)
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to append log", e)
             }
         }
@@ -48,10 +48,10 @@ class CronRunLog(private val runsDir: String, private val config: CronRunLogConf
                 if (!logFile.exists()) return emptyList()
 
                 val lines = logFile.readLines()
-                val entries = lines.mapNotNull {
+                val entries = lines.mapnotNull {
                     try {
                         gson.fromJson(it, CronRunLogEntry::class.java)
-                    } catch (e: Exception) {
+                    } catch (e: exception) {
                         null
                     }
                 }
@@ -61,7 +61,7 @@ class CronRunLog(private val runsDir: String, private val config: CronRunLogConf
                 } else entries
 
                 filtered.reversed().take(limit)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to query log", e)
                 emptyList()
             }
@@ -72,13 +72,13 @@ class CronRunLog(private val runsDir: String, private val config: CronRunLogConf
         lock.withLock {
             try {
                 File(runsDir, "$jobId.jsonl").delete()
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to delete log", e)
             }
         }
     }
 
-    private fun pruneIfNeeded(logFile: File) {
+    private fun pruneifneeded(logFile: File) {
         try {
             if (logFile.length() <= config.maxBytes) return
 
@@ -88,7 +88,7 @@ class CronRunLog(private val runsDir: String, private val config: CronRunLogConf
             FileOutputStream(logFile).use { out ->
                 toKeep.forEach { out.write("$it\n".toByteArray()) }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to prune log", e)
         }
     }

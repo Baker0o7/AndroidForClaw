@@ -3,9 +3,9 @@ package com.xiaomo.androidforclaw.core.channel
 /**
  * Abstraction over per-channel differences in the message processing pipeline.
  * Each channel (Discord, Telegram, Slack, Signal) implements this interface
- * so that [ChannelMessageProcessor] can run the common pipeline.
+ * so that [channelMessageProcessor] can run the common pipeline.
  */
-interface ChannelAdapter {
+interface channelAdapter {
     val channelName: String       // "discord" / "telegram" / "slack" / "signal"
     val sessionPrefix: String     // used as session key prefix, e.g. "telegram"
     val messageCharLimit: Int     // max characters per outbound message chunk
@@ -13,23 +13,23 @@ interface ChannelAdapter {
     val supportsTyping: Boolean
 
     // --- Reactions ---
-    suspend fun addThinkingReaction()
+    suspend fun aThinkingReaction()
     suspend fun removeThinkingReaction()
-    suspend fun addCompletionReaction()
-    suspend fun addErrorReaction()
+    suspend fun aCompletionReaction()
+    suspend fun aErrorReaction()
 
     // --- Typing indicator ---
     fun startTyping()
     fun stopTyping()
 
     // --- Outbound messaging ---
-    suspend fun sendMessageChunk(text: String, isFirstChunk: Boolean)
+    suspend fun sendMessageChunk(text: String, isfirstChunk: Boolean)
     suspend fun sendErrorMessage(error: String)
 
     // --- Message context ---
-    fun isGroupContext(): Boolean
-    fun getUserMessage(): String
-    fun getSessionKey(): String   // e.g. "telegram_${chatId}"
+    fun isGroupcontext(): Boolean
+    fun getuserMessage(): String
+    fun getsessionKey(): String   // e.g. "telegram_${chatId}"
 
     // --- System prompt ---
     fun buildSystemPrompt(): String

@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/browser/pw-role-snapshot.ts (buildRoleSnapshotFromAriaSnapshot)
+ * - ../openclaw/src/browser/pw-role-snapshot.ts (buildRoleSnapshotfromAriaSnapshot)
  * - ../openclaw/src/browser/pw-tools-core.snapshot.ts
  *
  * Output format matches Playwright's aria snapshot YAML:
@@ -14,7 +14,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
  * - tree: full hierarchy with bounds (debug use)
  */
 
-object SnapshotFormatter {
+object Snapshotformatter {
 
     /** Playwright INTERACTIVE_ROLES — always included with ref. */
     private val INTERACTIVE_ROLES = setOf(
@@ -30,7 +30,7 @@ object SnapshotFormatter {
      * Output example:
      *   - heading "Settings" [ref=e1] [level=1]
      *   - button "Save" [ref=e2]
-     *   - textbox "Username" [ref=e3]
+     *   - textbox "username" [ref=e3]
      *   - checkbox "Remember me" [ref=e4] [checked]
      */
     fun compact(nodes: List<RefNode>, screenWidth: Int, screenHeight: Int, appName: String?): String {
@@ -51,11 +51,11 @@ object SnapshotFormatter {
      *
      * Output example:
      *   - button "Save" [ref=e2] (540, 1200)
-     *   - textbox "Username" [ref=e3] (540, 800)
+     *   - textbox "username" [ref=e3] (540, 800)
      */
     fun interactive(nodes: List<RefNode>, appName: String?): String {
         val sb = StringBuilder()
-        sb.appendLine("[Screen: ${appName ?: "Android"}] Interactive elements:")
+        sb.appendLine("[Screen: ${appName ?: "android"}] Interactive elements:")
         sb.appendLine()
 
         val interactiveNodes = nodes.filter { it.role in INTERACTIVE_ROLES }
@@ -95,7 +95,7 @@ object SnapshotFormatter {
     }
 
     /**
-     * Format a single node in Playwright's aria snapshot syntax:
+     * format a single node in Playwright's aria snapshot syntax:
      *   role "name" [ref=eN] [checked] [disabled] [expanded] [level=N] [pressed] [selected]
      */
     private fun formatNodePlaywright(node: RefNode): String {

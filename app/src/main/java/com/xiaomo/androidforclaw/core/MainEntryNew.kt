@@ -11,27 +11,27 @@ import java.util.concurrent.ConcurrentHashMap
 import android.os.Build
 import android.text.TextUtils
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.agent.context.ContextBuilder
-import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
+import com.xiaomo.androidforclaw.agent.context.contextBuilder
+import com.xiaomo.androidforclaw.agent.tools.androidtoolRegistry
 import com.xiaomo.androidforclaw.workspace.StoragePaths
-import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
-import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.tools.toolRegistry
+import com.xiaomo.androidforclaw.agent.loop.agentloop
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
-import com.xiaomo.androidforclaw.agent.session.SessionManager
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.data.model.TaskDataManager
+import com.xiaomo.androidforclaw.agent.session.sessionmanager
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.data.model.TaskDatamanager
 import kotlinx.coroutines.flow.asSharedFlow
 import com.xiaomo.androidforclaw.ext.mmkv
 import com.xiaomo.androidforclaw.ext.simpleSafeLaunch
-import com.xiaomo.androidforclaw.providers.llm.toNewMessage
+import com.xiaomo.androidforclaw.providers.llm.tonewMessage
 import com.xiaomo.androidforclaw.providers.llm.toLegacyMessage
-import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
-import com.xiaomo.androidforclaw.util.LayoutExceptionLogger
+import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderservice
+import com.xiaomo.androidforclaw.util.LayoutexceptionLogger
 import com.xiaomo.androidforclaw.util.MMKVKeys
-import com.xiaomo.androidforclaw.util.WakeLockManager
+import com.xiaomo.androidforclaw.util.WakeLockmanager
 import com.xiaomo.androidforclaw.util.ReasoningTagFilter
-import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
-import com.xiaomo.androidforclaw.BuildConfig
+import com.xiaomo.androidforclaw.ui.float.sessionFloatWindow
+import com.xiaomo.androidforclaw.Buildconfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,16 +45,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * New MainEntry - Refactored version based on Nanobot architecture
+ * new MainEntry - Refactored version based on Nanobot architecture
  *
  * Core changes:
- * 1. Use AgentLoop instead of fixed process
- * 2. Use LLM Provider (Claude Opus 4.6 + Reasoning)
- * 3. Toolize all operations
+ * 1. use agentloop instead of fixed process
+ * 2. use LLM provider (Claude Opus 4.6 + Reasoning)
+ * 3. toolize all operations
  * 4. Dynamic decision-making instead of hardcoded flow
  */
-object MainEntryNew {
-    private const val TAG = "MainEntryNew"
+object MainEntrynew {
+    private const val TAG = "MainEntrynew"
     const val ACTION_AGENT_PROGRESS = "com.xiaomo.androidforclaw.ACTION_AGENT_PROGRESS"
     const val EXTRA_PROGRESS_TYPE = "type"
     const val EXTRA_PROGRESS_TITLE = "title"
@@ -62,12 +62,12 @@ object MainEntryNew {
 
     // ================ Core Components ================
     private lateinit var application: Application
-    private lateinit var toolRegistry: ToolRegistry
-    private lateinit var androidToolRegistry: AndroidToolRegistry
-    private lateinit var agentLoop: AgentLoop
-    private lateinit var contextBuilder: ContextBuilder
-    private lateinit var sessionManager: SessionManager
-    private lateinit var configLoader: ConfigLoader
+    private lateinit var toolRegistry: toolRegistry
+    private lateinit var androidtoolRegistry: androidtoolRegistry
+    private lateinit var agentloop: agentloop
+    private lateinit var contextBuilder: contextBuilder
+    private lateinit var sessionmanager: sessionmanager
+    private lateinit var configLoader: configLoader
     private var subagentSpawner: com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner? = null
 
     // ================ State Management ================
@@ -76,11 +76,11 @@ object MainEntryNew {
     private var currentDocId: String? = null
     private val sessionJobs = ConcurrentHashMap<String, Job>()
     @Volatile
-    private var activeSessionId: String? = null  // For block reply broadcasting
+    private var activesessionId: String? = null  // for block reply broadcasting
     @Volatile
     private var lastBlockReplyText: String? = null  // Track last sent block reply to avoid duplicate final
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val taskDataManager: TaskDataManager = TaskDataManager.getInstance()
+    private val taskDatamanager: TaskDatamanager = TaskDatamanager.getInstance()
 
     // Document sync completion state
     private val _docSyncFinished = MutableStateFlow(false)
@@ -100,216 +100,216 @@ object MainEntryNew {
     val uiProgressFlow: SharedFlow<UiProgressEvent> = _uiProgressFlow
 
     /**
-     * Get SessionManager (for Gateway use)
+     * Get sessionmanager (for Gateway use)
      */
-    fun getSessionManager(): SessionManager? {
-        return if (::sessionManager.isInitialized) sessionManager else null
+    fun getsessionmanager(): sessionmanager? {
+        return if (::sessionmanager.isInitialized) sessionmanager else null
     }
 
     /**
-     * Get ToolRegistry (for registering extension tools like feishu)
+     * Get toolRegistry (for registering extension tools like feishu)
      */
-    fun getToolRegistry(): ToolRegistry? {
+    fun gettoolRegistry(): toolRegistry? {
         return if (::toolRegistry.isInitialized) toolRegistry else null
     }
 
     /**
-     * Initialize - Must be called before use
+     * Initialize - must be called before use
      */
     fun initialize(app: Application) {
-        // Use sessionManager (the last critical component) as the initialization gate,
+        // use sessionmanager (the last critical component) as the initialization gate,
         // not application. Prevents partial-init → early-return → permanent null state.
-        if (::sessionManager.isInitialized) {
+        if (::sessionmanager.isInitialized) {
             Log.w(TAG, "Already initialized")
             return
         }
 
-        Log.d(TAG, "Initializing MainEntryNew...")
+        Log.d(TAG, "Initializing MainEntrynew...")
 
         try {
             application = app
-            // 0. Initialize ConfigLoader
-            configLoader = ConfigLoader(application)
-            Log.d(TAG, "✓ ConfigLoader initialized")
+            // 0. Initialize configLoader
+            configLoader = configLoader(application)
+            Log.d(TAG, "✓ configLoader initialized")
 
-            // 1. Initialize LLM Provider (unified Provider - supports all OpenClaw-compatible APIs)
-            val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(application)
-            Log.d(TAG, "✓ UnifiedLLMProvider initialized (supports multi-model APIs)")
+            // 1. Initialize LLM provider (unified provider - supports all OpenClaw-compatible APIs)
+            val llmprovider = com.xiaomo.androidforclaw.providers.UnifiedLLMprovider(application)
+            Log.d(TAG, "✓ UnifiedLLMprovider initialized (supports multi-model APIs)")
 
-            // 2. Initialize ToolRegistry (universal tools - from Pi Coding Agent)
-            toolRegistry = ToolRegistry(
+            // 2. Initialize toolRegistry (universal tools - from Pi Coding agent)
+            toolRegistry = toolRegistry(
                 context = application,
-                taskDataManager = taskDataManager
+                taskDatamanager = taskDatamanager
             )
-            Log.d(TAG, "✓ ToolRegistry initialized (${toolRegistry.getToolCount()} universal tools)")
+            Log.d(TAG, "✓ toolRegistry initialized (${toolRegistry.gettoolCount()} universal tools)")
 
-            // 3. Initialize MemoryManager (memory management + hybrid search index)
+            // 3. Initialize Memorymanager (memory management + hybrid search index)
             val workspacePath = StoragePaths.workspace.absolutePath
-            val openClawCfg = configLoader.loadOpenClawConfig()
-            val embeddingProviders = openClawCfg.resolveProviders()
-            // Try to find an OpenAI-compatible provider for embeddings
-            val embeddingBaseUrl = embeddingProviders.values.firstOrNull()?.baseUrl ?: ""
-            val embeddingApiKey = embeddingProviders.values.firstOrNull()?.apiKey ?: ""
-            val memoryManager = com.xiaomo.androidforclaw.agent.memory.MemoryManager(
+            val openClawCfg = configLoader.loadOpenClawconfig()
+            val embeingproviders = openClawCfg.resolveproviders()
+            // Try to find an OpenAI-compatible provider for embeings
+            val embeingBaseUrl = embeingproviders.values.firstorNull()?.baseUrl ?: ""
+            val embeingApiKey = embeingproviders.values.firstorNull()?.apiKey ?: ""
+            val memorymanager = com.xiaomo.androidforclaw.agent.memory.Memorymanager(
                 workspacePath = workspacePath,
                 context = application,
-                embeddingBaseUrl = embeddingBaseUrl,
-                embeddingApiKey = embeddingApiKey
+                embeingBaseUrl = embeingBaseUrl,
+                embeingApiKey = embeingApiKey
             )
 
-            // 4. Initialize AndroidToolRegistry (Android platform tools)
-            androidToolRegistry = AndroidToolRegistry(
+            // 4. Initialize androidtoolRegistry (android platform tools)
+            androidtoolRegistry = androidtoolRegistry(
                 context = application,
-                taskDataManager = taskDataManager,
-                memoryManager = memoryManager,
+                taskDatamanager = taskDatamanager,
+                memorymanager = memorymanager,
                 workspacePath = workspacePath,
-                cameraCaptureManager = MyApplication.getCameraCaptureManager(),
+                cameraCapturemanager = MyApplication.getCameraCapturemanager(),
             )
-            Log.d(TAG, "✓ AndroidToolRegistry initialized (${androidToolRegistry.getToolCount()} Android tools)")
+            Log.d(TAG, "✓ androidtoolRegistry initialized (${androidtoolRegistry.gettoolCount()} android tools)")
 
             // 5. Initialize context builder (OpenClaw style)
-            contextBuilder = ContextBuilder(
+            contextBuilder = contextBuilder(
                 context = application,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
+                androidtoolRegistry = androidtoolRegistry,
                 configLoader = configLoader
             )
-            Log.d(TAG, "✓ ContextBuilder initialized")
+            Log.d(TAG, "✓ contextBuilder initialized")
 
             // 5. Initialize session manager (use workspace directory, aligned with OpenClaw)
             val workspaceDir = com.xiaomo.androidforclaw.workspace.StoragePaths.workspace.also {
                 it.mkdirs()
                 Log.d(TAG, "Workspace: ${it.absolutePath}")
             }
-            sessionManager = SessionManager(
+            sessionmanager = sessionmanager(
                 workspace = workspaceDir
             )
-            Log.d(TAG, "✓ SessionManager initialized (workspace: ${workspaceDir.absolutePath})")
+            Log.d(TAG, "✓ sessionmanager initialized (workspace: ${workspaceDir.absolutePath})")
 
             // 6. Initialize context manager (OpenClaw-aligned context overflow handling)
-            val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
-            Log.d(TAG, "✓ ContextManager initialized")
+            val contextmanager = com.xiaomo.androidforclaw.agent.context.contextmanager(llmprovider)
+            Log.d(TAG, "✓ contextmanager initialized")
 
             // Load maxIterations from config
-            val config = configLoader.loadOpenClawConfig()
+            val config = configLoader.loadOpenClawconfig()
             val maxIterations = config.agent.maxIterations
 
-            // 7. Initialize AgentLoop
-            agentLoop = AgentLoop(
-                llmProvider = llmProvider,
+            // 7. Initialize agentloop
+            agentloop = agentloop(
+                llmprovider = llmprovider,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
-                contextManager = contextManager,
+                androidtoolRegistry = androidtoolRegistry,
+                contextmanager = contextmanager,
                 maxIterations = maxIterations,
-                modelRef = null,  // Use default model
+                modelRef = null,  // use default model
                 configLoader = configLoader  // Gap 2: context window resolution
             )
-            Log.d(TAG, "✓ AgentLoop initialized (maxIterations: $maxIterations)")
+            Log.d(TAG, "✓ agentloop initialized (maxIterations: $maxIterations)")
 
             // 8. Initialize Subagent system (aligned with OpenClaw subagent-spawn.ts)
-            val subagentsConfig = config.agents?.defaults?.subagents
-                ?: com.xiaomo.androidforclaw.config.SubagentsConfig()
-            if (subagentsConfig.enabled) {
+            val subagentsconfig = config.agents?.defaults?.subagents
+                ?: com.xiaomo.androidforclaw.config.Subagentsconfig()
+            if (subagentsconfig.enabled) {
                 val registryStore = com.xiaomo.androidforclaw.agent.subagent.SubagentRegistryStore()
                 val registry = com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry(registryStore)
-                registry.restoreFromDisk()
+                registry.restorefromDisk()
                 val spawner = com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner(
                     registry = registry,
                     configLoader = configLoader,
-                    llmProvider = llmProvider,
+                    llmprovider = llmprovider,
                     toolRegistry = toolRegistry,
-                    androidToolRegistry = androidToolRegistry,
+                    androidtoolRegistry = androidtoolRegistry,
                 )
                 subagentSpawner = spawner
 
-                // Wire subagent tools into main AgentLoop (depth=0)
-                val subagentTools = com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner.buildSubagentTools(
+                // Wire subagent tools into main agentloop (depth=0)
+                val subagenttools = com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner.buildSubagenttools(
                     spawner = spawner,
-                    parentSessionKey = "agent:main:main",
-                    parentAgentLoop = agentLoop,
+                    parentsessionKey = "agent:main:main",
+                    parentagentloop = agentloop,
                     parentDepth = 0,
                     configLoader = configLoader,
                 )
-                agentLoop.extraTools = subagentTools
-                Log.d(TAG, "✓ Subagent system initialized (${subagentTools.size} tools)")
+                agentloop.extratools = subagenttools
+                Log.d(TAG, "✓ Subagent system initialized (${subagenttools.size} tools)")
             } else {
                 Log.d(TAG, "⏭ Subagent system disabled in config")
             }
 
             Log.d(TAG, "========== Initialization Complete ==========")
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Initialization failed", e)
-            throw RuntimeException("Failed to initialize MainEntryNew", e)
+            throw Runtimeexception("Failed to initialize MainEntrynew", e)
         }
     }
 
-    // registerAllTools() removed
-    // Tools are now divided into:
-    // - ToolRegistry: Universal tools (read, write, exec, web_fetch)
-    // - AndroidToolRegistry: Android platform tools (tap, screenshot, open_app)
+    // registerAlltools() removed
+    // tools are now divided into:
+    // - toolRegistry: Universal tools (read, write, exec, web_fetch)
+    // - androidtoolRegistry: android platform tools (tap, screenshot, open_app)
 
     /**
-     * Run Agent with session management - Supports multi-turn conversations
+     * Run agent with session management - Supports multi-turn conversations
      */
-    fun runWithSession(
+    fun runwithsession(
         userInput: String,
         sessionId: String?,
         application: Application
     ) {
         // Ensure initialized
-        if (!::agentLoop.isInitialized) {
+        if (!::agentloop.isInitialized) {
             initialize(application)
         }
 
-        val effectiveSessionId = sessionId ?: "default"
-        activeSessionId = effectiveSessionId  // Set for block reply broadcasting
+        val effectivesessionId = sessionId ?: "default"
+        activesessionId = effectivesessionId  // Set for block reply broadcasting
         lastBlockReplyText = null  // Reset block reply tracking
-        Log.d(TAG, "🆔 [Session] Session ID: $effectiveSessionId")
+        Log.d(TAG, "🆔 [session] session ID: $effectivesessionId")
 
         // Get or create session
-        val session = sessionManager.getOrCreate(effectiveSessionId)
-        Log.d(TAG, "📋 [Session] History message count: ${session.messageCount()}")
+        val session = sessionmanager.getorCreate(effectivesessionId)
+        Log.d(TAG, "[CLIP] [session] History message count: ${session.messageCount()}")
 
         // Get history messages (recent 20) and convert to new format
         // Aligned with OpenClaw: limitHistoryTurns (by user turn count)
         // 1. Fetch all session messages
         // 2. Apply limitHistoryTurns with configurable dmHistoryLimit
-        // 3. Context pruning in AgentLoop handles the rest
-        // Aligned with OpenClaw: getHistoryLimitFromSessionKey → limitHistoryTurns
+        // 3. context pruning in agentloop handles the rest
+        // Aligned with OpenClaw: getHistoryLimitfromsessionKey → limitHistoryTurns
         // 1. Read dmHistoryLimit from config (per-channel, per-user)
-        // 2. If not configured → no truncation (undefined → limitHistoryTurns returns all)
-        // 3. AgentLoop's context pruning (soft trim / hard clear) handles oversized context
+        // 2. if not configured → no truncation (undefined → limitHistoryTurns returns all)
+        // 3. agentloop's context pruning (soft trim / hard clear) handles oversized context
         val dmHistoryLimit: Int? = try {
-            val openClawConfig = configLoader?.loadOpenClawConfig()
+            val openClawconfig = configLoader?.loadOpenClawconfig()
             // Check channels.feishu.dmHistoryLimit (or channels.android.dmHistoryLimit)
-            openClawConfig?.channels?.feishu?.dmHistoryLimit
-        } catch (_: Exception) { null }
+            openClawconfig?.channels?.feishu?.dmHistoryLimit
+        } catch (_: exception) { null }
 
         // Aligned with OpenClaw: if dmHistoryLimit not configured, send all history
-        // AgentLoop's context pruning (pruneHistoryForContextShare-aligned) handles oversized context
+        // agentloop's context pruning (pruneHistoryforcontextShare-aligned) handles oversized context
         val allMessages = if (dmHistoryLimit != null && dmHistoryLimit > 0) {
-            val raw = session.getRecentMessages(dmHistoryLimit * 4).map { it.toNewMessage() }
+            val raw = session.getRecentMessages(dmHistoryLimit * 4).map { it.tonewMessage() }
             com.xiaomo.androidforclaw.agent.session.HistorySanitizer
                 .limitHistoryTurns(raw.toMutableList(), dmHistoryLimit)
         } else {
-            session.getRecentMessages(session.messages.size).map { it.toNewMessage() }
+            session.getRecentMessages(session.messages.size).map { it.tonewMessage() }
         }
         val contextHistory = allMessages
-        Log.d(TAG, "📥 [History] total=${session.messages.size} raw=${allMessages.size} → context=${contextHistory.size} (dmHistoryLimit=${dmHistoryLimit ?: "unlimited"})")
-        Log.d(TAG, "📥 [Session] Loaded context: ${contextHistory.size} messages")
+        Log.d(TAG, "[RECV] [History] total=${session.messages.size} raw=${allMessages.size} → context=${contextHistory.size} (dmHistoryLimit=${dmHistoryLimit ?: "unlimited"})")
+        Log.d(TAG, "[RECV] [session] Loaded context: ${contextHistory.size} messages")
 
         if (TextUtils.isEmpty(user)) {
             user = Build.MODEL
         }
 
-        // Cancel previous run for THE SAME session only (prevents stuck state).
+        // cancel previous run for THE SAME session only (prevents stuck state).
         // Different sessions are independent and must not cancel each other.
-        sessionJobs[effectiveSessionId]?.let { oldJob ->
+        sessionJobs[effectivesessionId]?.let { oldJob ->
             if (oldJob.isActive) {
-                Log.w(TAG, "🛑 [Session] Cancelling previous run for session $effectiveSessionId")
-                // Only cancel the coroutine job — do NOT call agentLoop.stop() here,
-                // because agentLoop is shared and stop() would kill ALL sessions' loops.
+                Log.w(TAG, "🛑 [session] cancelling previous run for session $effectivesessionId")
+                // Only cancel the coroutine job — do NOT call agentloop.stop() here,
+                // because agentloop is shared and stop() would kill ALL sessions' loops.
                 oldJob.cancel()
             }
         }
@@ -317,129 +317,129 @@ object MainEntryNew {
         // Start coroutine execution (without showing floating window)
         val job = scope.simpleSafeLaunch(
             {
-                Log.d(TAG, "========== Agent Session Execution Start ==========")
-                Log.d(TAG, "🆔 Session ID: $effectiveSessionId")
-                Log.d(TAG, "💬 User input: $userInput")
-                Log.d(TAG, "📋 Context messages: ${contextHistory.size}")
+                Log.d(TAG, "========== agent session Execution Start ==========")
+                Log.d(TAG, "🆔 session ID: $effectivesessionId")
+                Log.d(TAG, "[CHAT] user input: $userInput")
+                Log.d(TAG, "[CLIP] context messages: ${contextHistory.size}")
 
                 // 1. Build system prompt
-                Log.d(TAG, "💬 Building system prompt...")
+                Log.d(TAG, "[CHAT] Building system prompt...")
                 val systemPrompt = contextBuilder.buildSystemPrompt(
                     userGoal = userInput,
                     packageName = "",
                     testMode = "chat"
-                    // Use default FULL mode to align with OpenClaw
+                    // use default FULL mode to align with OpenClaw
                 )
-                Log.d(TAG, "✅ System prompt built (${systemPrompt.length} chars)")
+                Log.d(TAG, "[OK] System prompt built (${systemPrompt.length} chars)")
 
                 // 2. Broadcast user message
-                Log.d(TAG, "📤 [Broadcast] Broadcasting user message...")
+                Log.d(TAG, "[SEND] [Broadcast] Broadcasting user message...")
                 com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
-                    effectiveSessionId, "user", userInput
+                    effectivesessionId, "user", userInput
                 )
 
                 // 3. Start progress listening
                 val progressJob = launch {
-                    agentLoop.progressFlow.collect { update ->
+                    agentloop.progressFlow.collect { update ->
                         handleProgressUpdate(update)
                     }
                 }
 
-                // 4. Run AgentLoop (with context history)
-                val result = agentLoop.run(
+                // 4. Run agentloop (with context history)
+                val result = agentloop.run(
                     systemPrompt = systemPrompt,
                     userMessage = userInput,
                     contextHistory = contextHistory,
-                    reasoningEnableddd = true  // Reasoning enabled by default
+                    reasoningEnabled = true  // Reasoning enabled by default
                 )
 
                 val cleanFinalContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(
                     ReasoningTagFilter.stripReasoningTags(result.finalContent)
                 )
-                Log.d(TAG, "========== AgentLoop Complete ==========")
+                Log.d(TAG, "========== agentloop Complete ==========")
                 Log.d(TAG, "Iterations: ${result.iterations}")
                 Log.d(TAG, "Final result: ${cleanFinalContent}")
 
                 // 5. Broadcast AI response (skip if already sent via block reply)
-                if (cleanFinalContent.isNotEmpty()) {
+                if (cleanFinalContent.isnotEmpty()) {
                     // Update floating window with latest AI response
-                    com.xiaomo.androidforclaw.ui.float.SessionFloatWindow.updateLatestMessage(cleanFinalContent)
+                    com.xiaomo.androidforclaw.ui.float.sessionFloatWindow.updateLatestMessage(cleanFinalContent)
 
                     if (lastBlockReplyText?.trim() == cleanFinalContent.trim()) {
-                        Log.d(TAG, "✅ Final content matches last block reply, skipping broadcast")
+                        Log.d(TAG, "[OK] Final content matches last block reply, skipping broadcast")
                     } else {
-                        Log.d(TAG, "📤 [Broadcast] Broadcasting AI response...")
+                        Log.d(TAG, "[SEND] [Broadcast] Broadcasting AI response...")
                         com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
-                            effectiveSessionId, "assistant", cleanFinalContent
+                            effectivesessionId, "assistant", cleanFinalContent
                         )
                     }
                 }
                 lastBlockReplyText = null  // Reset for next run
 
                 // 6. Save messages to session (convert back to legacy format)
-                Log.d(TAG, "💾 [Session] Saving messages to session...")
+                Log.d(TAG, "[SAVE] [session] Saving messages to session...")
                 result.messages.forEach { message ->
                     val sanitizedMessage = if (message.role == "assistant") {
                         message.copy(content = ReasoningTagFilter.stripReasoningTags(message.content))
                     } else message
-                    session.addMessage(sanitizedMessage.toLegacyMessage())
+                    session.aMessage(sanitizedMessage.toLegacyMessage())
                 }
-                sessionManager.save(session)
-                Log.d(TAG, "✅ [Session] Session saved, total messages: ${session.messageCount()}")
+                sessionmanager.save(session)
+                Log.d(TAG, "[OK] [session] session saved, total messages: ${session.messageCount()}")
 
-                // Cancel progress listening
+                // cancel progress listening
                 progressJob.cancel()
 
             },
             { exception ->
-                Log.e(TAG, "❌ Agent session execution failed", exception)
+                Log.e(TAG, "[ERROR] agent session execution failed", exception)
 
                 // Build友okErrorMessage
                 val errorMessage = buildString {
-                    append("❌ 执Row出错:\n\n")
+                    append("[ERROR] execution出wrong:\n\n")
                     append("**Error**: ${exception.message}\n\n")
 
-                    // ifYes LLM Exception, Addmore详细的Info
-                    if (exception is com.xiaomo.androidforclaw.providers.LLMException) {
+                    // ifYes LLM exception, Amore详细Info
+                    if (exception is com.xiaomo.androidforclaw.providers.LLMexception) {
                         append("**Type**: API callFailed\n")
-                        append("**suggest**: 请Check模型Config和 API key\n\n")
+                        append("**suggest**: pleaseCheck模型configand API key\n\n")
                     }
 
-                    // AddHeapStacktrack (Front500字符)
+                    // AHeapStacktrack (Front500characters)
                     append("**HeapStacktrack**:\n```\n")
                     append(exception.stackTraceToString().take(500))
                     append("\n```")
                 }
 
-                // BroadcastErrorMessage到Chat界面
+                // BroadcastErrorMessagetoChat界面
                 try {
                     com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
-                        effectiveSessionId, "assistant", errorMessage
+                        effectivesessionId, "assistant", errorMessage
                     )
-                    Log.d(TAG, "📤 [Broadcast] Error message sent to user")
-                } catch (e: Exception) {
+                    Log.d(TAG, "[SEND] [Broadcast] Error message sent to user")
+                } catch (e: exception) {
                     Log.e(TAG, "Failed to broadcast error message", e)
                 }
 
-                // SaveError到 session
+                // SaveErrorto session
                 try {
-                    session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
+                    session.aMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
                         role = "assistant",
                         content = errorMessage
                     ))
-                    sessionManager.save(session)
-                    Log.d(TAG, "💾 [Session] Error saved to session")
-                } catch (e: Exception) {
+                    sessionmanager.save(session)
+                    Log.d(TAG, "[SAVE] [session] Error saved to session")
+                } catch (e: exception) {
                     Log.e(TAG, "Failed to save error to session", e)
                 }
             }
         )
-        sessionJobs[effectiveSessionId] = job
-        job.invokeOnCompletion { sessionJobs.remove(effectiveSessionId) }
+        sessionJobs[effectivesessionId] = job
+        job.invokeOnCompletion { sessionJobs.remove(effectivesessionId) }
     }
 
     /**
-     * Run test task - New architecture version
+     * Run test task - new architecture version
      */
     fun run(
         userInput: String,
@@ -448,8 +448,8 @@ object MainEntryNew {
         existingPackageName: String? = null,
         onSummaryFinished: (() -> Job)? = null
     ) {
-        // Ensure已Initialize
-        if (!::agentLoop.isInitialized) {
+        // EnsurealreadyInitialize
+        if (!::agentloop.isInitialized) {
             initialize(application)
         }
 
@@ -460,114 +460,114 @@ object MainEntryNew {
             user = Build.MODEL
         }
 
-        // 先回到桌面
+        // 先returnto桌面
         safePressHome()
 
-        // CreateNewTask
+        // CreatenewTask
         val newTaskId = generateTaskId()
-        taskDataManager.startNewTask(newTaskId, existingPackageName ?: "")
+        taskDatamanager.startnewTask(newTaskId, existingPackageName ?: "")
         currentTaskId = newTaskId
-        Log.d(TAG, "========== NewTestTask: $newTaskId ==========")
+        Log.d(TAG, "========== newTestTask: $newTaskId ==========")
 
         // Read mode from openclaw.json instead of MMKV
-        val openClawConfig = configLoader.loadOpenClawConfig()
-        val testMode = openClawConfig.agent.mode
-        Log.d(TAG, "TestSchema: $testMode (from openclaw.json)")
+        val openClawconfig = configLoader.loadOpenClawconfig()
+        val testMode = openClawconfig.agent.mode
+        Log.d(TAG, "Testschema: $testMode (from openclaw.json)")
 
         // Set new task as running
-        val newTaskData = taskDataManager.getCurrentTaskData()
+        val newTaskData = taskDatamanager.getCurrentTaskData()
         newTaskData?.setIsRunning(true)
 
         // Acquire screen wake lock
-        WakeLockManager.acquireScreenWakeLock()
-        Log.d(TAG, "已GetScreenWakeLock")
+        WakeLockmanager.acquireScreenWakeLock()
+        Log.d(TAG, "alreadyGetScreenWakeLock")
 
-        // Cancel previous local task only
-        val localSessionKey = "__local__"
-        sessionJobs[localSessionKey]?.let { oldJob ->
+        // cancel previous local task only
+        val localsessionKey = "__local__"
+        sessionJobs[localsessionKey]?.let { oldJob ->
             if (oldJob.isActive) {
-                Log.w(TAG, "🛑 Cancelling previous local task")
+                Log.w(TAG, "🛑 cancelling previous local task")
                 oldJob.cancel()
             }
         }
 
         // Start coroutine to execute test
-        Log.d(TAG, "🚀 About to start coroutine for test task...")
+        Log.d(TAG, "[START] About to start coroutine for test task...")
         val job = scope.simpleSafeLaunch(
             {
-                Log.d(TAG, "✅ Coroutine started, executing test task...")
+                Log.d(TAG, "[OK] Coroutine started, executing test task...")
 
                 // 1. Build system prompt
-                Log.d(TAG, "💬 Step 1: Building system prompt...")
+                Log.d(TAG, "[CHAT] Step 1: Building system prompt...")
                 val packageName = existingPackageName ?: ""
                 val systemPrompt = contextBuilder.buildSystemPrompt(
                     userGoal = userInput,
                     packageName = packageName,
                     testMode = testMode
-                    // Use default FULL mode to align with OpenClaw
+                    // use default FULL mode to align with OpenClaw
                 )
 
-                Log.d(TAG, "✅ System prompt built (${systemPrompt.length} chars)")
-                Log.d(TAG, "✅ Estimated Tokens: ~${systemPrompt.length / 4}")
+                Log.d(TAG, "[OK] System prompt built (${systemPrompt.length} chars)")
+                Log.d(TAG, "[OK] Estimated Tokens: ~${systemPrompt.length / 4}")
 
-                // Print Skills statistics
-                val skillsStats = contextBuilder.getSkillsStatistics()
-                if (skillsStats.isNotEmpty()) {
-                    Log.d(TAG, "📊 Skills statistics:")
+                // Print skills statistics
+                val skillsStats = contextBuilder.getskillsStatistics()
+                if (skillsStats.isnotEmpty()) {
+                    Log.d(TAG, "[STATS] skills statistics:")
                     skillsStats.lines().forEach { line ->
                         Log.d(TAG, "   $line")
                     }
                 }
 
-                // 2. Listen to AgentLoop progress (listen before start)
+                // 2. Listen to agentloop progress (listen before start)
                 Log.d(TAG, "👂 Step 2: Starting progress listening...")
                 val progressJob = launch {
-                    Log.d(TAG, "✅ Progress listening coroutine started")
-                    agentLoop.progressFlow.collect { update ->
-                        Log.d(TAG, "📥 Received progress update: ${update.javaClass.simpleName}")
+                    Log.d(TAG, "[OK] Progress listening coroutine started")
+                    agentloop.progressFlow.collect { update ->
+                        Log.d(TAG, "[RECV] Received progress update: ${update.javaClass.simpleName}")
                         handleProgressUpdate(update)
                     }
                 }
-                Log.d(TAG, "✅ Progress listening set up")
+                Log.d(TAG, "[OK] Progress listening set up")
 
-                // 3. Run AgentLoop
-                Log.d(TAG, "========== Starting AgentLoop ==========")
+                // 3. Run agentloop
+                Log.d(TAG, "========== Starting agentloop ==========")
                 Log.d(TAG, "System prompt length: ${systemPrompt.length}")
-                Log.d(TAG, "User input: $userInput")
-                Log.d(TAG, "Universal tools: ${toolRegistry.getToolCount()}")
-                Log.d(TAG, "Android tools: ${androidToolRegistry.getToolCount()}")
+                Log.d(TAG, "user input: $userInput")
+                Log.d(TAG, "Universal tools: ${toolRegistry.gettoolCount()}")
+                Log.d(TAG, "android tools: ${androidtoolRegistry.gettoolCount()}")
 
-                val result = agentLoop.run(
+                val result = agentloop.run(
                     systemPrompt = systemPrompt,
                     userMessage = userInput,
-                    reasoningEnableddd = true
+                    reasoningEnabled = true
                 )
 
-                Log.d(TAG, "========== AgentLoop Complete ==========")
+                Log.d(TAG, "========== agentloop Complete ==========")
                 Log.d(TAG, "Iterations: ${result.iterations}")
-                Log.d(TAG, "Tools used: ${result.toolsUsed.joinToString(", ")}")
+                Log.d(TAG, "tools used: ${result.toolsused.joinToString(", ")}")
                 Log.d(TAG, "Final result: ${result.finalContent}")
 
                 // 4. Release resources
-                WakeLockManager.releaseScreenWakeLock()
+                WakeLockmanager.releaseScreenWakeLock()
                 _summaryFinished.value = true
                 onSummaryFinished?.invoke()
 
-                Log.d(TAG, "TestTask执RowComplete")
+                Log.d(TAG, "TestTaskexecutionComplete")
 
             },
             { error ->
-                Log.e(TAG, "TestTask执RowFailed", error)
-                LayoutExceptionLogger.log("MainEntryNew#run", error)
+                Log.e(TAG, "TestTaskexecutionFailed", error)
+                LayoutexceptionLogger.log("MainEntrynew#run", error)
 
                 // Release resources
-                WakeLockManager.releaseScreenWakeLock()
+                WakeLockmanager.releaseScreenWakeLock()
 
                 _summaryFinished.value = true
             }
         )
-        sessionJobs[localSessionKey] = job
-        job.invokeOnCompletion { sessionJobs.remove(localSessionKey) }
+        sessionJobs[localsessionKey] = job
+        job.invokeOnCompletion { sessionJobs.remove(localsessionKey) }
     }
 
     private fun emitProgressToUi(type: String, title: String, content: String) {
@@ -582,31 +582,31 @@ object MainEntryNew {
         when (update) {
             is ProgressUpdate.Iteration -> {
                 Log.d(TAG, ">>> Iteration ${update.number}")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "Iterate ${update.number}",
-                    content = "正在think..."
+                sessionFloatWindow.updatesessionInfo(
+                    title = "iteration ${update.number}",
+                    content = "currentlythink..."
                 )
             }
 
             is ProgressUpdate.Thinking -> {
-                Log.d(TAG, "💭 Thinking: 正在Process第 ${update.iteration} 步...")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "正在think",
-                    content = "正在Process第 ${update.iteration} 步..."
+                Log.d(TAG, "💭 Thinking: currentlyProcess第 ${update.iteration} step...")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "currentlythink",
+                    content = "currentlyProcess第 ${update.iteration} step..."
                 )
-                emitProgressToUi("thinking", "正在think", "正在Process第 ${update.iteration} 步...")
+                emitProgressToUi("thinking", "currentlythink", "currentlyProcess第 ${update.iteration} step...")
             }
 
             is ProgressUpdate.Reasoning -> {
-                Log.d(TAG, "🧠 Reasoning (${update.content.length} chars, ${update.llmDuration}ms)")
-                SessionFloatWindow.updateSessionInfo(
+                Log.d(TAG, "[BRAIN] Reasoning (${update.content.length} chars, ${update.llmDuration}ms)")
+                sessionFloatWindow.updatesessionInfo(
                     title = "thinkComplete",
                     content = update.content.take(100) + if (update.content.length > 100) "..." else ""
                 )
             }
 
-            is ProgressUpdate.ToolCall -> {
-                Log.d(TAG, "🔧 Tool: ${update.name}")
+            is ProgressUpdate.toolCall -> {
+                Log.d(TAG, "[WRENCH] tool: ${update.name}")
 
                 val argsText = if (update.arguments.isEmpty()) {
                     "NoneParameters"
@@ -616,58 +616,58 @@ object MainEntryNew {
                     }
                 }
 
-                SessionFloatWindow.updateSessionInfo(
-                    title = "执Row: ${update.name}",
+                sessionFloatWindow.updatesessionInfo(
+                    title = "execution: ${update.name}",
                     content = argsText.take(100)
                 )
-                emitProgressToUi("tool_call", "执Row: ${update.name}", argsText)
+                emitProgressToUi("tool_call", "execution: ${update.name}", argsText)
             }
 
-            is ProgressUpdate.Toolresult -> {
-                Log.d(TAG, "✅ result: ${update.result.take(100)}, ${update.execDuration}ms")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "执RowComplete",
+            is ProgressUpdate.toolresult -> {
+                Log.d(TAG, "[OK] result: ${update.result.take(100)}, ${update.execDuration}ms")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "executionComplete",
                     content = update.result.take(100) + if (update.result.length > 100) "..." else ""
                 )
-                emitProgressToUi("tool_result", "执RowComplete", update.result)
+                emitProgressToUi("tool_result", "executionComplete", update.result)
             }
 
             is ProgressUpdate.IterationComplete -> {
-                Log.d(TAG, "🏁 Iteration ${update.number} complete: total=${update.iterationDuration}ms, llm=${update.llmDuration}ms, exec=${update.execDuration}ms")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "Iterate ${update.number} Complete",
-                    content = "耗时: ${update.iterationDuration}ms"
+                Log.d(TAG, "[FLAG] Iteration ${update.number} complete: total=${update.iterationDuration}ms, llm=${update.llmDuration}ms, exec=${update.execDuration}ms")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "iteration ${update.number} Complete",
+                    content = "time spent: ${update.iterationDuration}ms"
                 )
             }
 
-            is ProgressUpdate.ContextOverflow -> {
-                Log.w(TAG, "🔄 Context overflow: ${update.message}")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "UpDown文超限",
+            is ProgressUpdate.contextoverflow -> {
+                Log.w(TAG, "[SYNC] context overflow: ${update.message}")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "context超限",
                     content = update.message
                 )
             }
 
-            is ProgressUpdate.ContextRecovered -> {
-                Log.d(TAG, "✅ Context recovered: ${update.strategy} (attempt ${update.attempt})")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "UpDown文已Resume",
+            is ProgressUpdate.contextRecovered -> {
+                Log.d(TAG, "[OK] context recovered: ${update.strategy} (attempt ${update.attempt})")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "contextalreadyresume",
                     content = "Policy: ${update.strategy}"
                 )
             }
 
-            is ProgressUpdate.LoopDetected -> {
-                val logLevel = if (update.critical) "🚨" else "⚠️"
-                Log.w(TAG, "$logLevel Loop detected: ${update.detector} (count: ${update.count})")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "${if (update.critical) "严重" else "Warning"}: Loop检测",
-                    content = "${update.detector}: ${update.count} 次"
+            is ProgressUpdate.loopDetected -> {
+                val logLevel = if (update.critical) "🚨" else "[WARN]"
+                Log.w(TAG, "$logLevel loop detected: ${update.detector} (count: ${update.count})")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "${if (update.critical) "严重" else "Warning"}: loop检测",
+                    content = "${update.detector}: ${update.count} times"
                 )
             }
 
             is ProgressUpdate.Error -> {
-                Log.e(TAG, "❌ Error: ${update.message}")
-                SessionFloatWindow.updateSessionInfo(
+                Log.e(TAG, "[ERROR] Error: ${update.message}")
+                sessionFloatWindow.updatesessionInfo(
                     title = "Error",
                     content = update.message.take(100)
                 )
@@ -675,41 +675,41 @@ object MainEntryNew {
             }
 
             is ProgressUpdate.BlockReply -> {
-                Log.d(TAG, "📤 Block reply: ${update.text.take(200)}")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "中间回复",
+                Log.d(TAG, "[SEND] Block reply: ${update.text.take(200)}")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "中间return复",
                     content = update.text.take(100) + if (update.text.length > 100) "..." else ""
                 )
-                emitProgressToUi("block_reply", "中间回复", update.text)
-                // For Gateway WebUI sessions, broadcast intermediate text immediately
+                emitProgressToUi("block_reply", "中间return复", update.text)
+                // for Gateway WebUI sessions, broadcast intermediate text immediately
                 lastBlockReplyText = update.text
-                activeSessionId?.let { sessionId ->
+                activesessionId?.let { sessionId ->
                     com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
                         sessionId, "assistant", update.text
                     )
                 }
             }
 
-            is ProgressUpdate.SteerMessageInjected -> {
-                Log.d(TAG, "🎯 Steer message injected: ${update.content.take(100)}")
-                SessionFloatWindow.updateSessionInfo(
+            is ProgressUpdate.steerMessageInjected -> {
+                Log.d(TAG, "[TARGET] steer message injected: ${update.content.take(100)}")
+                sessionFloatWindow.updatesessionInfo(
                     title = "Message注入",
                     content = update.content.take(100) + if (update.content.length > 100) "..." else ""
                 )
             }
 
             is ProgressUpdate.SubagentSpawned -> {
-                Log.i(TAG, "🚀 Subagent spawned: ${update.label} (${update.runId})")
-                SessionFloatWindow.updateSessionInfo(
-                    title = "子Proxy已Start",
+                Log.i(TAG, "[START] Subagent spawned: ${update.label} (${update.runId})")
+                sessionFloatWindow.updatesessionInfo(
+                    title = "子ProxyalreadyStart",
                     content = update.label
                 )
-                emitProgressToUi("subagent_spawned", "子Proxy已Start", update.label)
+                emitProgressToUi("subagent_spawned", "子ProxyalreadyStart", update.label)
             }
 
             is ProgressUpdate.SubagentAnnounced -> {
                 Log.i(TAG, "📣 Subagent announced: ${update.label} status=${update.status} (${update.runId})")
-                SessionFloatWindow.updateSessionInfo(
+                sessionFloatWindow.updatesessionInfo(
                     title = "子ProxyComplete",
                     content = "${update.label}: ${update.status}"
                 )
@@ -717,69 +717,69 @@ object MainEntryNew {
             }
 
             is ProgressUpdate.Yielded -> {
-                Log.i(TAG, "⏸️ Agent loop yielded, waiting for subagent results")
-                SessionFloatWindow.updateSessionInfo(
+                Log.i(TAG, "[PAUSE] agent loop yielded, waiting for subagent results")
+                sessionFloatWindow.updatesessionInfo(
                     title = "Wait子Proxy",
-                    content = "已Pause, Wait子Proxyresult..."
+                    content = "alreadyPause, Wait子Proxyresult..."
                 )
-                emitProgressToUi("yielded", "Wait子Proxy", "已Pause, Wait子Proxyresult...")
+                emitProgressToUi("yielded", "Wait子Proxy", "alreadyPause, Wait子Proxyresult...")
             }
 
             is ProgressUpdate.ReasoningDelta -> {
-                // 流式增量 reasoning — 不Update float window(太频繁)
+                // 流式增量 reasoning — notUpdate float window(太频繁)
             }
 
             is ProgressUpdate.ContentDelta -> {
-                // 流式增量 content — 不Update float window(太频繁)
+                // 流式增量 content — notUpdate float window(太频繁)
             }
         }
     }
 
 
     /**
-     * Cancel current task
+     * cancel current task
      */
     fun cancelCurrentJob(isRunning: Boolean) {
         Log.d(TAG, "cancelCurrentJob")
 
-        WakeLockManager.releaseScreenWakeLock()
+        WakeLockmanager.releaseScreenWakeLock()
 
         currentTaskId = null
-        taskDataManager.clearCurrentTask()
-        // Cancel all session jobs
+        taskDatamanager.clearCurrentTask()
+        // cancel all session jobs
         sessionJobs.forEach { (id, j) ->
-            Log.d(TAG, "Cancelling job for session: $id")
+            Log.d(TAG, "cancelling job for session: $id")
             j.cancel()
         }
         sessionJobs.clear()
 
-        val currentTaskData = taskDataManager.getCurrentTaskData()
+        val currentTaskData = taskDatamanager.getCurrentTaskData()
         currentTaskData?.setIsRunning(isRunning)
 
         _summaryFinished.value = true
 
-        // Stop AgentLoop
-        if (::agentLoop.isInitialized) {
-            agentLoop.stop()
+        // Stop agentloop
+        if (::agentloop.isInitialized) {
+            agentloop.stop()
         }
     }
 
     /**
-     * Cancel current task without clearing TaskData
+     * cancel current task without clearing TaskData
      */
-    private fun cancelCurrentJobWithoutClearingTaskData() {
-        Log.d(TAG, "cancelCurrentJobWithoutClearingTaskData")
+    private fun cancelCurrentJobwithoutClearingTaskData() {
+        Log.d(TAG, "cancelCurrentJobwithoutClearingTaskData")
 
-        WakeLockManager.releaseScreenWakeLock()
-        // Cancel local task only
+        WakeLockmanager.releaseScreenWakeLock()
+        // cancel local task only
         sessionJobs["__local__"]?.cancel()
         sessionJobs.remove("__local__")
 
-        val currentTaskData = taskDataManager.getCurrentTaskData()
+        val currentTaskData = taskDatamanager.getCurrentTaskData()
         currentTaskData?.setIsRunning(false)
     }
 
-    // ================ Helper Methods ================
+    // ================ helper Methods ================
 
     private fun generateTaskId(): String {
         return "task_${System.currentTimeMillis()}"
@@ -787,9 +787,9 @@ object MainEntryNew {
 
     private fun safePressHome() {
         try {
-            AccessibilityBinderService.serviceInstance?.pressHomeButton()
-        } catch (e: Exception) {
-            LayoutExceptionLogger.log("MainEntryNew#safePressHome", e)
+            AccessibilityBinderservice.serviceInstance?.pressHomebutton()
+        } catch (e: exception) {
+            LayoutexceptionLogger.log("MainEntrynew#safePressHome", e)
         }
     }
 }

@@ -8,20 +8,20 @@ package com.xiaomo.androidforclaw.core
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Queue for executing async tasks serially by key
+ * queue for executing async tasks serially by key
  *
- * Aligned with OpenClaw's KeyedAsyncQueue implementation:
+ * Aligned with OpenClaw's KeyedAsyncqueue implementation:
  * - Tasks with the same key execute serially
  * - Tasks with different keys can execute concurrently
  * - Guarantees message order (messages from same session processed in received order)
  *
  * Reference: openclaw/src/plugin-sdk/keyed-async-queue.ts
  */
-class KeyedAsyncQueue {
+class KeyedAsyncqueue {
 
     // Store the last task (tail) for each key
     private val tails = ConcurrentHashMap<String, CompletableDeferred<Unit>>()
@@ -29,12 +29,12 @@ class KeyedAsyncQueue {
     /**
      * Enqueue task
      *
-     * @param key Queue key (usually sessionId or channelId)
+     * @param key queue key (usually sessionId or channelId)
      * @param task Task to execute
      * @return Task execution result
      */
     suspend fun <T> enqueue(key: String, task: suspend () -> T): T {
-        return withContext(Dispatchers.IO) {
+        return withcontext(Dispatchers.IO) {
             // Get current queue's tail task
             val previousTail = tails[key]
 
@@ -48,7 +48,7 @@ class KeyedAsyncQueue {
                 // Wait for previous task to complete (ignore errors)
                 try {
                     previousTail?.await()
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     // Ignore previous task's error
                 }
 
@@ -64,7 +64,7 @@ class KeyedAsyncQueue {
                 }
 
                 result
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 // Mark current task as complete (even if failed)
                 newTail.complete(Unit)
 

@@ -5,7 +5,7 @@ package com.xiaomo.androidforclaw.agent.context
  * - ../openclaw/src/agents/system-prompt.ts (MEMORY.md load guard in shared contexts)
  * - ../openclaw/openclaw-android/.../WorkspaceInitializer.kt (prompt-level guard)
  *
- * AndroidForClaw adaptation: code-level enforcement of context security.
+ * androidforClaw adaptation: code-level enforcement of context security.
  * Supplements the prompt-level instruction in SOUL.md ("ONLY load in main session")
  * with hard code gates that cannot be bypassed by the LLM.
  */
@@ -14,14 +14,14 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.logging.SensitiveTextRedactor
 
 /**
- * ContextSecurityGuard — Code-level security for shared/group contexts.
+ * contextSecurityGuard — Code-level security for shared/group contexts.
  * Aligned with OpenClaw's multi-layer defense:
  * 1. Prompt-level: SOUL.md "DO NOT load in shared contexts"
  * 2. Code-level: This guard (hard gate for MEMORY.md, tool filtering, outbound redaction)
  */
-object ContextSecurityGuard {
+object contextSecurityGuard {
 
-    private const val TAG = "ContextSecurityGuard"
+    private const val TAG = "contextSecurityGuard"
 
     /** Chat types considered "shared" (multi-user, not private DM) */
     private val SHARED_CHAT_TYPES = setOf("group", "channel", "thread")
@@ -30,12 +30,12 @@ object ContextSecurityGuard {
      * Determine if a channel context represents a shared (multi-user) environment.
      * Aligned with OpenClaw's group/channel/thread classification.
      *
-     * @param channelContext The current channel context (null = local Android app = not shared)
+     * @param channelcontext The current channel context (null = local android app = not shared)
      * @return true if the context is shared (group chat, channel, thread)
      */
-    fun isSharedContext(channelContext: ContextBuilder.ChannelContext?): Boolean {
-        if (channelContext == null) return false
-        val chatType = channelContext.chatType?.lowercase() ?: return false
+    fun isSharedcontext(channelcontext: contextBuilder.channelcontext?): Boolean {
+        if (channelcontext == null) return false
+        val chatType = channelcontext.chatType?.lowercase() ?: return false
         // Normalize "p2p" → not shared
         if (chatType == "p2p" || chatType == "direct") return false
         return chatType in SHARED_CHAT_TYPES
@@ -47,13 +47,13 @@ object ContextSecurityGuard {
      * "ONLY load in main session (direct chats with your human)"
      * "DO NOT load in shared contexts (Discord, group chats, sessions with other people)"
      *
-     * @param channelContext The current channel context
+     * @param channelcontext The current channel context
      * @return true if MEMORY.md should be loaded (private/DM context)
      */
-    fun shouldLoadMemory(channelContext: ContextBuilder.ChannelContext?): Boolean {
-        val shared = isSharedContext(channelContext)
+    fun shouldLoadMemory(channelcontext: contextBuilder.channelcontext?): Boolean {
+        val shared = isSharedcontext(channelcontext)
         if (shared) {
-            Log.i(TAG, "MEMORY.md blocked in shared context (chatType=${channelContext?.chatType})")
+            Log.i(TAG, "MEMORY.md blocked in shared context (chatType=${channelcontext?.chatType})")
         }
         return !shared
     }
@@ -65,7 +65,7 @@ object ContextSecurityGuard {
      * @param text The text to potentially redact
      * @return Redacted text (secrets masked)
      */
-    fun redactForSharedContext(text: String): String {
+    fun redactforSharedcontext(text: String): String {
         val (redacted, wasRedacted) = SensitiveTextRedactor.redactSensitiveText(text)
         if (wasRedacted) {
             Log.i(TAG, "Redacted sensitive content in outbound group message")

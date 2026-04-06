@@ -4,10 +4,10 @@ package com.xiaomo.androidforclaw.agent
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/fast-mode.ts
  *
- * AndroidForClaw adaptation: fast mode resolution.
+ * androidforClaw adaptation: fast mode resolution.
  */
 
-import com.xiaomo.androidforclaw.config.OpenClawConfig
+import com.xiaomo.androidforclaw.config.OpenClawconfig
 
 /**
  * Source of fast mode state.
@@ -52,11 +52,11 @@ object FastMode {
 
     /**
      * Resolve configured fast mode from config.
-     * Aligned with OpenClaw resolveConfiguredFastMode.
+     * Aligned with OpenClaw resolveconfiguredFastMode.
      */
-    fun resolveConfiguredFastMode(cfg: OpenClawConfig, provider: String, model: String): Boolean? {
+    fun resolveconfiguredFastMode(cfg: OpenClawconfig, provider: String, model: String): Boolean? {
         // Per-model config (agents.defaults.models[key].params.fastMode)
-        // Not yet in Android config schema — placeholder for future
+        // not yet in android config schema — placeholder for future
         return null
     }
 
@@ -67,18 +67,18 @@ object FastMode {
      * Aligned with OpenClaw resolveFastModeState.
      */
     fun resolveFastModeState(
-        cfg: OpenClawConfig,
+        cfg: OpenClawconfig,
         provider: String = "",
         model: String = "",
-        sessionOverride: Boolean? = null
+        sessionoverride: Boolean? = null
     ): FastModeState {
         // Level 1: session override
-        if (sessionOverride != null) {
-            return FastModeState(enabled = sessionOverride, source = FastModeSource.SESSION)
+        if (sessionoverride != null) {
+            return FastModeState(enabled = sessionoverride, source = FastModeSource.SESSION)
         }
 
         // Level 2: per-model config
-        val configValue = resolveConfiguredFastMode(cfg, provider, model)
+        val configValue = resolveconfiguredFastMode(cfg, provider, model)
         if (configValue != null) {
             return FastModeState(enabled = configValue, source = FastModeSource.CONFIG)
         }

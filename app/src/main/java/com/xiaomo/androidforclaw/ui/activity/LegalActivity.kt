@@ -1,6 +1,6 @@
 package com.xiaomo.androidforclaw.ui.activity
 
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Arrowback
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,8 +25,8 @@ class LegalActivity : ComponentActivity() {
         const val TYPE_PRIVACY = "privacy"
         const val TYPE_TERMS = "terms"
 
-        fun start(context: Context, type: String) {
-            context.startActivity(Intent(context, LegalActivity::class.java).apply {
+        fun start(context: context, type: String) {
+            context.startActivity(Intent(context, LegalActivity::class.java).app {
                 putExtra(EXTRA_TYPE, type)
             })
         }
@@ -40,7 +40,7 @@ class LegalActivity : ComponentActivity() {
             MaterialTheme(colorScheme = dynamicDarkColorScheme()) {
                 LegalScreen(
                     type = type,
-                    onBack = { finish() }
+                    onback = { finish() }
                 )
             }
         }
@@ -56,17 +56,17 @@ class LegalActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun dynamicDarkColorScheme(context: Context): ColorScheme {
+    private fun dynamicDarkColorScheme(context: context): ColorScheme {
         return androidx.compose.material3.dynamicDarkColorScheme(context)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LegalScreen(type: String, onBack: () -> Unit) {
+private fun LegalScreen(type: String, onback: () -> Unit) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val title = if (type == LegalActivity.TYPE_PRIVACY) "隐私政策" else "UserProtocol"
-    val content = if (type == LegalActivity.TYPE_PRIVACY) privacyPolicyText() else termsOfServiceText()
+    val title = if (type == LegalActivity.TYPE_PRIVACY) "隐私政策" else "userProtocol"
+    val content = if (type == LegalActivity.TYPE_PRIVACY) privacyPolicyText() else termsOfserviceText()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -74,20 +74,20 @@ private fun LegalScreen(type: String, onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(title) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Return")
+                    Iconbutton(onClick = onback) {
+                        Icon(Icons.AutoMirrored.Filled.Arrowback, contentDescription = "Return")
                     }
                 },
                 scrollBehavior = scrollBehavior,
             )
         }
-    ) { padding ->
+    ) { paing ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .paing(paing)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .paing(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             content.forEach { section ->
@@ -115,103 +115,103 @@ private fun LegalScreen(type: String, onBack: () -> Unit) {
 private data class TextSection(val text: String, val isHeading: Boolean = false)
 
 private fun privacyPolicyText(): List<TextSection> = listOf(
-    TextSection("ForClaw 隐私政策", isHeading = true),
-    TextSection("mostBackUpdateDate: 2025年3月22日"),
+    TextSection("forClaw 隐私政策", isHeading = true),
+    TextSection("mostbackUpdateDate: 2025year3month22day"),
 
-    TextSection("一、概述", isHeading = true),
-    TextSection("ForClaw(以Down简称\u201C本apply\u201D)Yes一款 AI Agent RunTime tool, Run在 Android DeviceUp. 我们very重视您的隐私保护. 本隐私政策旨在Help您了解我们such as何收集、use和保护您的Info. "),
+    TextSection("one、概述", isHeading = true),
+    TextSection("forClaw(bynext简称\u201C本app\u201D)Yesone款 AI agent RunTime tool, Runin android DeviceUp. 我们very重视您隐私保护. 本隐私政策旨inHelp您解我们such as何collect、useand保护您Info. "),
 
-    TextSection("二、Info收集与use", isHeading = true),
-    TextSection("""本apply在Run过程中possibly涉及以DownData: 
+    TextSection("two、Infocollectanduse", isHeading = true),
+    TextSection("""本appinRunover程中possibly涉及bynextData: 
 
-1. AI ConversationData: 您与 AI 助手的ConversationInside容仅Storage在您的Device本地, 不会Upload至我们的Service器. ConversationInside容会send至您Config的第三方 AI Service提供商(such as OpenAI、Anthropic 等)以Get AI 回复. 
+1. AI ConversationData: 您and AI 助手Conversationcontent仅Storagein您Device本地, notwillUpload至我们service器. Conversationcontentwillsend至您config第three方 AI service提供商(such as OpenAI、Anthropic 等)byGet AI return复. 
 
-2. DeviceInfo: 为提供Accessibility辅助Feature, 本applypossiblyReadScreenInside容和App info. 这些Data仅在Device本地Process, 不会Upload. 
+2. DeviceInfo: for提供Accessibility辅助Feature, 本apppossiblyReadScreencontentandApp info. thissomeData仅inDevice本地Process, notwillUpload. 
 
-3. Network通信: 本applyNeedNetworkConnect以call AI API Service. NetworkRequest仅Contains您主动send的ConversationInside容和必要的 API AuthenticateInfo. 
+3. Network通信: 本appneednetwork connectionbycall AI API service. NetworkRequest仅Contains您proactivesendConversationcontentand必need API AuthenticateInfo. 
 
-4. 文件访问: 本applypossibly读写DeviceStorage中的Config文件和SessionRecord, All文件均Storage在apply专属目录或您Authorize的目录中. """),
+4. filesaccess: 本apppossiblyread/writeDeviceStorage中configfilesandsessionRecord, Allfiles均Storageinapp专属directoryor您Authorizedirectory中. """),
 
-    TextSection("三、Permissionillustrate", isHeading = true),
-    TextSection("""本applyapply以DownPermission及Its用途: 
+    TextSection("three、Permissionillustrate", isHeading = true),
+    TextSection("""本appappbynextPermission及Its用途: 
 
-• AccessibilityService: 用于辅助Action手机界面, 执Row AI Agent 的Auto化Task. 
-• 悬浮窗: 用于Show AI Session悬浮Window, 方便您在useIts他apply时与 AI 交互. 
-• 录屏/Screenshot: 用于GetScreenInside容, Help AI 理解当Front界面Status. 
-• Network访问: Used for calling AI API Service和Message渠道(飞书、Discord 等). 
-• Storage访问: 用于读写Config文件、SessionRecord和工作Space文件. 
-• Notification监听: 用于Read和ManageDeviceNotification, SupportNotification相关的Auto化Task. 
-• Installapply: 用于applyInsideAutoUpdateFeature. """),
+• Accessibilityservice: 用于辅助Action手机界面, execution AI agent Auto化Task. 
+• 悬浮窗: 用于Show AI session悬浮Window, 方便您inuseIts他apphourand AI interaction. 
+• 录屏/Screenshot: 用于GetScreencontent, Help AI 理解whenFront界面Status. 
+• Networkaccess: used for calling AI API serviceandMessage渠道(飞书、Discord 等). 
+• Storageaccess: 用于read/writeconfigfiles、sessionRecordand工作Spacefiles. 
+• notification监听: 用于ReadandManageDevicenotification, Supportnotification相关Auto化Task. 
+• Installapp: 用于appinsideAutoUpdateFeature. """),
 
-    TextSection("四、第三方Service", isHeading = true),
-    TextSection("""本applypossibly会将Datasend至以Down第三方Service: 
+    TextSection("four、第three方service", isHeading = true),
+    TextSection("""本apppossiblywillwillDatasend至bynext第three方service: 
 
-1. AI Service提供商: Package括但不限于 OpenAI、Anthropic、Google 等, 用于Process您的 AI ConversationRequest. Concreteuse哪个Servicedepend on您的Config. 
+1. AI service提供商: Package括butnot限于 OpenAI、Anthropic、Google 等, 用于Process您 AI ConversationRequest. Concreteusewhichcountservicedepend on您config. 
 
-2. Message渠道: Package括飞书、Discord、Telegram、Slack 等, 仅在您主动Enabledd并Config相关渠道Back才会use. 
+2. Message渠道: Package括飞书、Discord、Telegram、Slack 等, 仅in您proactiveEnable并config相关渠道back才willuse. 
 
-请Note, 第三方Service的DataProcess受Its各自的隐私政策Constraint. """),
+pleasenote, 第three方serviceDataProcess受Its各自隐私政策Constraint. """),
 
-    TextSection("五、DataStorage与Safe", isHeading = true),
-    TextSection("""• AllUserData均Storage在您的Device本地. 
-• API Key等敏感Infouse Android EncryptedSharedPreferences EncryptStorage. 
-• 本apply不设立独立Service器, 不收集、不Storage任何UserData到云端. 
-• Network传输use HTTPS Encrypt(Connect AI API 时). """),
+    TextSection("five、DataStorageandSafe", isHeading = true),
+    TextSection("""• AlluserData均Storagein您Device本地. 
+• API Key等敏感Infouse android EncryptedSharedPreferences EncryptStorage. 
+• 本appnot设立独立service器, notcollect、notStorage任何userDatato云端. 
+• Network传输use HTTPS Encrypt(Connect AI API hour). """),
 
-    TextSection("六、User权利", isHeading = true),
-    TextSection("""您Cananytime: 
-• 在applySettings中View和Modify您的ConfigInfo. 
-• clearapplyData以DeleteAll本地Storage的ConversationRecord和Config. 
-• Uninstallapply以completelyDeleteAll相关Data. 
-• 在系统Settings中undo本apply的任何Permission. """),
+    TextSection("six、user权利", isHeading = true),
+    TextSection("""您cananytime: 
+• inappSettings中ViewandModify您configInfo. 
+• clearappDatabyDeleteAll本地StorageConversationRecordandconfig. 
+• UninstallappbycompletelyDeleteAll相关Data. 
+• in系统Settings中undo本app任何Permission. """),
 
-    TextSection("七、儿童隐私", isHeading = true),
-    TextSection("本apply不面向 13 岁以Down的儿童. 我们不会Has意收集 13 岁以Down儿童的个人Info. "),
+    TextSection("seven、儿童隐私", isHeading = true),
+    TextSection("本appnot面向 13 岁bynext儿童. 我们notwillHas意collect 13 岁bynext儿童count人Info. "),
 
-    TextSection("八、隐私政策Update", isHeading = true),
-    TextSection("我们possibly会不时Update本隐私政策. UpdateBack的隐私政策将在applyInside公布. Continueuse本applythat isTable示您agreeUpdateBack的隐私政策. "),
+    TextSection("eight、隐私政策Update", isHeading = true),
+    TextSection("我们possiblywillnothourUpdate本隐私政策. Updateback隐私政策willinappinside公布. Continueuse本appthat isTable示您agreeUpdateback隐私政策. "),
 
-    TextSection("九、联系我们", isHeading = true),
-    TextSection("if您对本隐私政策Has任何疑问, 请通过以Down方式联系我们: \n\n邮箱: xiaomochn@gmail.com\nGitHub: https://github.com/SelectXn00b/AndroidForClaw"),
+    TextSection("nine、联系我们", isHeading = true),
+    TextSection("if您correct本隐私政策Has任何疑问, pleasethroughbynext方式联系我们: \n\n邮箱: xiaomochn@gmail.com\nGitHub: https://github.com/SelectXn00b/androidforClaw"),
 )
 
-private fun termsOfServiceText(): List<TextSection> = listOf(
-    TextSection("ForClaw UserProtocol", isHeading = true),
-    TextSection("mostBackUpdateDate: 2025年3月22日"),
+private fun termsOfserviceText(): List<TextSection> = listOf(
+    TextSection("forClaw userProtocol", isHeading = true),
+    TextSection("mostbackUpdateDate: 2025year3month22day"),
 
-    TextSection("一、Serviceillustrate", isHeading = true),
-    TextSection("ForClaw Yes一款Run在 Android DeviceUp的 AI Agent RunTime tool. 本apply为您提供 AI Conversation、Auto化Action和多渠道Message接入等Feature. use本applythat isTable示您agree遵守本Protocol. "),
+    TextSection("one、serviceillustrate", isHeading = true),
+    TextSection("forClaw Yesone款Runin android DeviceUp AI agent RunTime tool. 本appfor您提供 AI Conversation、Auto化Actionandmany渠道Message接入等Feature. use本appthat isTable示您agree遵守本Protocol. "),
 
-    TextSection("二、useCondition", isHeading = true),
-    TextSection("""use本apply, 您Need: 
+    TextSection("two、useCondition", isHeading = true),
+    TextSection("""use本app, 您need: 
 
-1. 拥Has合法的 AI Service API Key(such as OpenAI、Anthropic 等). 本apply本身不提供 AI Service, 仅作为Client工具. 
+1. 拥Has合法 AI service API Key(such as OpenAI、Anthropic 等). 本app本身not提供 AI service, 仅作forClient工具. 
 
-2. Ensure您use AI Service的方式meet相应Service提供商的use条款. 
+2. Ensure您use AI service方式meet相shouldservice提供商usecount款. 
 
-3. 对use本apply产生的All AI 交互result自Row承担责任. """),
+3. correctuse本app产生All AI interactionresult自Row承担责任. """),
 
-    TextSection("三、User责任", isHeading = true),
+    TextSection("three、user责任", isHeading = true),
     TextSection("""您agree: 
 
-• 不use本applyIntoRow任何违法违规活动. 
-• 不utilize本apply的Auto化Feature骚扰他人或破坏Its他apply/Service. 
-• 妥善保管您的 API Key和相关ConfigInfo. 
-• 对通过本apply执Row的AllAction承担责任. """),
+• notuse本appintoRow任何违法违规活动. 
+• notutilize本appAuto化Feature骚扰他人or破badIts他app/service. 
+• 妥善保管您 API Keyand相关configInfo. 
+• correctthrough本appexecutionAllAction承担责任. """),
 
-    TextSection("四、免责声明", isHeading = true),
-    TextSection("""• 本apply按\u201C现状\u201D提供, 不作任何明示或暗示的保证. 
-• AI 生成的Inside容possibly不accurately或ContainsError, 请您自Row甄别. 
-• 本apply的Auto化Actionpossibly产生非预期result, 请在useFront充分了解相关Feature. 
-• 因第三方 AI Servicechange、Interrupt或Terminate导致的Feature不Available, 我们不承担责任. 
-• 因UserConfig不当导致的Datalose或SafeIssue, 我们不承担责任. """),
+    TextSection("four、免责声明", isHeading = true),
+    TextSection("""• 本app按\u201C现状\u201D提供, not作任何明示or暗示保证. 
+• AI 生成contentpossiblynotaccuratelyorContainsError, please您自Row甄别. 
+• 本appAuto化Actionpossibly产生非预期result, pleaseinuseFront充minute解相关Feature. 
+• because第three方 AI servicechange、interruptorTerminate导致FeaturenotAvailable, 我们not承担责任. 
+• becauseuserconfignotwhen导致DataloseorSafeIssue, 我们not承担责任. """),
 
-    TextSection("五、知识产权", isHeading = true),
-    TextSection("本apply的代码基于开源Project开发, follow相应的开源Protocol. applyInside的 UI Design、Icon和Its他原创Inside容的知识产权归开发者All. "),
+    TextSection("five、知识产权", isHeading = true),
+    TextSection("本appcode基于开源Project开发, follow相should开源Protocol. appinside UI Design、IconandIts他原创content知识产权归开发者All. "),
 
-    TextSection("六、Protocolchange", isHeading = true),
-    TextSection("我们保留anytimeModify本Protocol的权利. ModifyBack的Protocol将在applyInside公布. Continueuse本applythat isTable示您agreeModifyBack的Protocol. "),
+    TextSection("six、Protocolchange", isHeading = true),
+    TextSection("我们保留anytimeModify本Protocol权利. ModifybackProtocolwillinappinside公布. Continueuse本appthat isTable示您agreeModifybackProtocol. "),
 
-    TextSection("七、联系方式", isHeading = true),
-    TextSection("if您对本ProtocolHas任何疑问, 请通过以Down方式联系我们: \n\n邮箱: xiaomochn@gmail.com\nGitHub: https://github.com/SelectXn00b/AndroidForClaw"),
+    TextSection("seven、联系方式", isHeading = true),
+    TextSection("if您correct本ProtocolHas任何疑问, pleasethroughbynext方式联系我们: \n\n邮箱: xiaomochn@gmail.com\nGitHub: https://github.com/SelectXn00b/androidforClaw"),
 )

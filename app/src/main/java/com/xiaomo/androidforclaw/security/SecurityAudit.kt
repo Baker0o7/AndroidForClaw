@@ -6,12 +6,12 @@ package com.xiaomo.androidforclaw.security
  * - ../openclaw/src/security/audit-channel.ts
  * - ../openclaw/src/security/audit-tool-policy.ts
  *
- * AndroidForClaw adaptation: runtime security audit for Android agent.
+ * androidforClaw adaptation: runtime security audit for android agent.
  * Checks config, tool policies, channel security, and file permissions.
  */
 
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.agent.context.ToolPolicyResolver
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.androidforclaw.agent.context.toolPolicyResolver
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
@@ -53,7 +53,7 @@ data class SecurityAuditReport(
 )
 
 /**
- * SecurityAudit — Runtime security audit for the Android agent.
+ * SecurityAudit — Runtime security audit for the android agent.
  * Aligned with OpenClaw runSecurityAudit.
  */
 object SecurityAudit {
@@ -64,26 +64,26 @@ object SecurityAudit {
      * Run a comprehensive security audit.
      * Aligned with OpenClaw runSecurityAudit.
      */
-    fun runAudit(configLoader: ConfigLoader?): SecurityAuditReport {
+    fun runAudit(configLoader: configLoader?): SecurityAuditReport {
         val findings = mutableListOf<SecurityAuditFinding>()
         val config = try {
-            configLoader?.loadOpenClawConfig()
-        } catch (_: Exception) { null }
+            configLoader?.loadOpenClawconfig()
+        } catch (_: exception) { null }
 
-        // 1. Config security checks
-        findings.addAll(auditConfig(config))
+        // 1. config security checks
+        findings.aAll(auditconfig(config))
 
-        // 2. Channel security checks
-        findings.addAll(auditChannelSecurity(config))
+        // 2. channel security checks
+        findings.aAll(auditchannelSecurity(config))
 
-        // 3. Tool policy checks
-        findings.addAll(auditToolPolicy())
+        // 3. tool policy checks
+        findings.aAll(audittoolPolicy())
 
         // 4. Gateway security checks
-        findings.addAll(auditGatewaySecurity(config))
+        findings.aAll(auditGatewaySecurity(config))
 
         // 5. File permission checks
-        findings.addAll(auditFilePermissions())
+        findings.aAll(auditFilePermissions())
 
         val summary = SecurityAuditSummary(
             critical = findings.count { it.severity == SecurityAuditSeverity.CRITICAL },
@@ -104,11 +104,11 @@ object SecurityAudit {
     /**
      * Audit configuration for security issues.
      */
-    private fun auditConfig(config: com.xiaomo.androidforclaw.config.OpenClawConfig?): List<SecurityAuditFinding> {
+    private fun auditconfig(config: com.xiaomo.androidforclaw.config.OpenClawconfig?): List<SecurityAuditFinding> {
         val findings = mutableListOf<SecurityAuditFinding>()
 
         if (config == null) {
-            findings.add(SecurityAuditFinding(
+            findings.a(SecurityAuditFinding(
                 checkId = "config-missing",
                 severity = SecurityAuditSeverity.WARN,
                 title = "No configuration loaded",
@@ -121,19 +121,19 @@ object SecurityAudit {
         // Check if any channel has open DM policy without allowlist
         config.channels?.feishu?.let { feishu ->
             if (feishu.enabled && feishu.dmPolicy == "open") {
-                findings.add(SecurityAuditFinding(
+                findings.a(SecurityAuditFinding(
                     checkId = "feishu-dm-open",
                     severity = SecurityAuditSeverity.WARN,
                     title = "Feishu DM policy is 'open'",
                     detail = "Anyone can message the bot in DM without access control.",
-                    remediation = "Set dmPolicy to 'pairing' or 'allowlist' with specific allowFrom"
+                    remediation = "Set dmPolicy to 'pairing' or 'allowlist' with specific allowfrom"
                 ))
             }
         }
 
         config.channels?.discord?.let { discord ->
             if (discord.enabled && discord.dm?.policy == "open") {
-                findings.add(SecurityAuditFinding(
+                findings.a(SecurityAuditFinding(
                     checkId = "discord-dm-open",
                     severity = SecurityAuditSeverity.WARN,
                     title = "Discord DM policy is 'open'",
@@ -145,8 +145,8 @@ object SecurityAudit {
 
         // Check for missing gateway auth token
         config.gateway.let { gateway ->
-            if (gateway.auth?.token.isNullOrBlank()) {
-                findings.add(SecurityAuditFinding(
+            if (gateway.auth?.token.isNullorBlank()) {
+                findings.a(SecurityAuditFinding(
                     checkId = "gateway-no-auth",
                     severity = SecurityAuditSeverity.CRITICAL,
                     title = "Gateway has no auth token",
@@ -163,22 +163,22 @@ object SecurityAudit {
      * Audit channel security settings.
      * Aligned with OpenClaw audit-channel.ts.
      */
-    private fun auditChannelSecurity(config: com.xiaomo.androidforclaw.config.OpenClawConfig?): List<SecurityAuditFinding> {
+    private fun auditchannelSecurity(config: com.xiaomo.androidforclaw.config.OpenClawconfig?): List<SecurityAuditFinding> {
         val findings = mutableListOf<SecurityAuditFinding>()
 
         // Check for channels with open group policy
         config?.channels?.feishu?.let { feishu ->
             if (feishu.enabled && feishu.groupPolicy == "open") {
-                findings.add(SecurityAuditFinding(
+                findings.a(SecurityAuditFinding(
                     checkId = "feishu-group-open",
                     severity = SecurityAuditSeverity.INFO,
                     title = "Feishu group policy is 'open'",
-                    detail = "Bot will respond in any group it's added to.",
-                    remediation = "Set groupPolicy to 'allowlist' with specific groupAllowFrom"
+                    detail = "Bot will respond in any group it's aed to.",
+                    remediation = "Set groupPolicy to 'allowlist' with specific groupAllowfrom"
                 ))
             }
             if (feishu.enabled && feishu.requireMention != true) {
-                findings.add(SecurityAuditFinding(
+                findings.a(SecurityAuditFinding(
                     checkId = "feishu-no-mention-required",
                     severity = SecurityAuditSeverity.INFO,
                     title = "Feishu does not require @mention in groups",
@@ -195,18 +195,18 @@ object SecurityAudit {
      * Audit tool policy configuration.
      * Aligned with OpenClaw audit-tool-policy.ts.
      */
-    private fun auditToolPolicy(): List<SecurityAuditFinding> {
+    private fun audittoolPolicy(): List<SecurityAuditFinding> {
         val findings = mutableListOf<SecurityAuditFinding>()
 
         // Verify that group-restricted tools are properly configured
-        val restricted = ToolPolicyResolver.getRestrictedToolNames()
+        val restricted = toolPolicyResolver.getRestrictedtoolNames()
         if (restricted.isEmpty()) {
-            findings.add(SecurityAuditFinding(
+            findings.a(SecurityAuditFinding(
                 checkId = "tool-policy-no-restrictions",
                 severity = SecurityAuditSeverity.WARN,
                 title = "No tools restricted in group chats",
                 detail = "GROUP_RESTRICTED_TOOLS is empty. Memory and config tools may be exposed in shared contexts.",
-                remediation = "Add sensitive tools to GROUP_RESTRICTED_TOOLS in ToolPolicy.kt"
+                remediation = "A sensitive tools to GROUP_RESTRICTED_TOOLS in toolPolicy.kt"
             ))
         }
 
@@ -216,13 +216,13 @@ object SecurityAudit {
     /**
      * Audit gateway security settings.
      */
-    private fun auditGatewaySecurity(config: com.xiaomo.androidforclaw.config.OpenClawConfig?): List<SecurityAuditFinding> {
+    private fun auditGatewaySecurity(config: com.xiaomo.androidforclaw.config.OpenClawconfig?): List<SecurityAuditFinding> {
         val findings = mutableListOf<SecurityAuditFinding>()
 
         config?.gateway?.let { gateway ->
-            // Check bind address
+            // Check bind aress
             if (gateway.bind != "loopback" && gateway.bind != "localhost") {
-                findings.add(SecurityAuditFinding(
+                findings.a(SecurityAuditFinding(
                     checkId = "gateway-bind-all",
                     severity = SecurityAuditSeverity.WARN,
                     title = "Gateway binds to all interfaces",
@@ -241,13 +241,13 @@ object SecurityAudit {
     private fun auditFilePermissions(): List<SecurityAuditFinding> {
         val findings = mutableListOf<SecurityAuditFinding>()
 
-        // On Android, app-private files are automatically sandboxed.
-        // Check if openclaw.json is world-readable (unlikely on Android but good to verify)
-        findings.add(SecurityAuditFinding(
+        // On android, app-private files are automatically sandboxed.
+        // Check if openclaw.json is world-readable (unlikely on android but good to verify)
+        findings.a(SecurityAuditFinding(
             checkId = "android-sandbox-ok",
             severity = SecurityAuditSeverity.INFO,
-            title = "Android app sandbox active",
-            detail = "Files are protected by Android's app sandbox (SELinux + UID isolation)."
+            title = "android app sandbox active",
+            detail = "Files are protected by android's app sandbox (SELinux + UID isolation)."
         ))
 
         return findings

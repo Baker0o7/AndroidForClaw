@@ -29,7 +29,7 @@ class WebSocketConnection(
             val json: String = serializer.serialize(frame)
             socket.send(json)
             updateActivity()
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e("WebSocketConnection", "Failed to send frame to $clientId", e)
         }
     }

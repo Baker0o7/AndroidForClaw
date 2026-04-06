@@ -4,7 +4,7 @@ package com.xiaomo.androidforclaw.agent.session
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/session-file-repair.ts
  *
- * AndroidForClaw adaptation: corrupted session file repair.
+ * androidforClaw adaptation: corrupted session file repair.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
@@ -15,7 +15,7 @@ import java.io.File
  * Repair report for a session file.
  * Aligned with OpenClaw RepairReport.
  */
-data class SessionFileRepairReport(
+data class sessionFileRepairReport(
     val repaired: Boolean,
     val droppedLines: Int = 0,
     val backupPath: String? = null,
@@ -23,33 +23,33 @@ data class SessionFileRepairReport(
 )
 
 /**
- * Session file repair — fixes corrupted JSONL session files.
+ * session file repair — fixes corrupted JSONL session files.
  * Aligned with OpenClaw session-file-repair.ts.
  */
-object SessionFileRepair {
+object sessionFileRepair {
 
-    private const val TAG = "SessionFileRepair"
+    private const val TAG = "sessionFileRepair"
 
     /**
      * Repair a session file if needed.
      * Reads line-by-line, drops malformed JSON lines, validates header.
      *
-     * Aligned with OpenClaw repairSessionFileIfNeeded.
+     * Aligned with OpenClaw repairsessionFileifneeded.
      */
-    fun repairSessionFileIfNeeded(file: File): SessionFileRepairReport {
+    fun repairsessionFileifneeded(file: File): sessionFileRepairReport {
         if (!file.exists()) {
-            return SessionFileRepairReport(repaired = false, reason = "File does not exist")
+            return sessionFileRepairReport(repaired = false, reason = "File does not exist")
         }
 
         val lines = try {
             file.readLines()
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to read session file: ${e.message}")
-            return SessionFileRepairReport(repaired = false, reason = "Read error: ${e.message}")
+            return sessionFileRepairReport(repaired = false, reason = "Read error: ${e.message}")
         }
 
         if (lines.isEmpty()) {
-            return SessionFileRepairReport(repaired = false, reason = "Empty file")
+            return sessionFileRepairReport(repaired = false, reason = "Empty file")
         }
 
         val validLines = mutableListOf<String>()
@@ -61,15 +61,15 @@ object SessionFileRepair {
 
             try {
                 JSONObject(trimmed)
-                validLines.add(trimmed)
-            } catch (_: Exception) {
+                validLines.a(trimmed)
+            } catch (_: exception) {
                 droppedCount++
                 Log.w(TAG, "Dropped malformed line $index in ${file.name}")
             }
         }
 
-        // Validate header: first entry must be a session header
-        if (validLines.isNotEmpty()) {
+        // validation header: first entry must be a session header
+        if (validLines.isnotEmpty()) {
             try {
                 val header = JSONObject(validLines[0])
                 val type = header.optString("type", "")
@@ -78,23 +78,23 @@ object SessionFileRepair {
                     Log.w(TAG, "Invalid session header in ${file.name}: type=$type, id=$id")
                     // Don't repair if header is invalid — the file is likely not a session file
                     if (droppedCount == 0) {
-                        return SessionFileRepairReport(repaired = false, reason = "Invalid header")
+                        return sessionFileRepairReport(repaired = false, reason = "Invalid header")
                     }
                 }
-            } catch (_: Exception) {
+            } catch (_: exception) {
                 // Header parse failed — should have been caught above
             }
         }
 
         if (droppedCount == 0) {
-            return SessionFileRepairReport(repaired = false, reason = "No repair needed")
+            return sessionFileRepairReport(repaired = false, reason = "No repair needed")
         }
 
         // Write backup
         val backupFile = File(file.parent, "${file.name}.backup")
         try {
             file.copyTo(backupFile, overwrite = true)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Failed to create backup: ${e.message}")
         }
 
@@ -103,14 +103,14 @@ object SessionFileRepair {
         try {
             tempFile.writeText(validLines.joinToString("\n") + "\n")
             tempFile.renameTo(file)
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to write repaired file: ${e.message}")
             tempFile.delete()
-            return SessionFileRepairReport(repaired = false, reason = "Write error: ${e.message}")
+            return sessionFileRepairReport(repaired = false, reason = "Write error: ${e.message}")
         }
 
         Log.i(TAG, "Repaired ${file.name}: dropped $droppedCount lines, backup at ${backupFile.name}")
-        return SessionFileRepairReport(
+        return sessionFileRepairReport(
             repaired = true,
             droppedLines = droppedCount,
             backupPath = backupFile.absolutePath

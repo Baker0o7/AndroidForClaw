@@ -6,13 +6,13 @@ package com.xiaomo.androidforclaw.agent.tools.memory
  */
 
 
-import com.xiaomo.androidforclaw.agent.memory.MemoryManager
-import com.xiaomo.androidforclaw.agent.tools.Skill
-import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import com.xiaomo.androidforclaw.agent.memory.Memorymanager
+import com.xiaomo.androidforclaw.agent.tools.skill
+import com.xiaomo.androidforclaw.agent.tools.skillResult
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import java.io.File
 
 /**
@@ -21,31 +21,31 @@ import java.io.File
  *
  * Read specific memory file or log
  */
-class MemoryGetSkill(
-    private val memoryManager: MemoryManager,
+class MemoryGetskill(
+    private val memorymanager: Memorymanager,
     private val workspacePath: String
-) : Skill {
+) : skill {
     override val name = "memory_get"
-    override val description = "Read a specific memory file or daily log. Use this to retrieve stored memories, user preferences, or past session notes."
+    override val description = "Read a specific memory file or daily log. use this to retrieve stored memories, user preferences, or past session notes."
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema(
+                        "path" to Propertyschema(
                             type = "string",
                             description = "Path to the memory file, relative to workspace. Examples: 'MEMORY.md', 'memory/2024-03-07.md', 'memory/projects.md'"
                         ),
-                        "from" to PropertySchema(
+                        "from" to Propertyschema(
                             type = "number",
                             description = "Line number to start reading from (1-indexed, optional)"
                         ),
-                        "lines" to PropertySchema(
+                        "lines" to Propertyschema(
                             type = "number",
                             description = "Number of lines to read (optional, default: all)"
                         )
@@ -56,41 +56,41 @@ class MemoryGetSkill(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): skillResult {
         val path = args["path"] as? String
-            ?: return SkillResult.error("Missing required parameter: path")
+            ?: return skillResult.error("Missing required parameter: path")
 
         val startLine = (args["from"] as? Number)?.toInt()
         val lineCount = (args["lines"] as? Number)?.toInt()
 
         return try {
-            // Validate path security (prevent directory traversal attacks)
-            if (path.contains("..") || path.startsWith("/")) {
-                return SkillResult.error("Invalid path: path must be relative and cannot contain '..'")
+            // validation path security (prevent directory traversal attacks)
+            if (path.contains("..") || path.startswith("/")) {
+                return skillResult.error("Invalid path: path must be relative and cannot contain '..'")
             }
 
             // Build full path
             val file = File(workspacePath, path)
 
             // Verify file is within workspace
-            if (!file.canonicalPath.startsWith(File(workspacePath).canonicalPath)) {
-                return SkillResult.error("Invalid path: file must be within workspace")
+            if (!file.canonicalPath.startswith(File(workspacePath).canonicalPath)) {
+                return skillResult.error("Invalid path: file must be within workspace")
             }
 
             // Verify file exists
             if (!file.exists()) {
-                return SkillResult.error("File not found: $path")
+                return skillResult.error("File not found: $path")
             }
 
             // Verify is Markdown file
-            if (!file.name.endsWith(".md")) {
-                return SkillResult.error("Invalid file type: only .md files are allowed")
+            if (!file.name.endswith(".md")) {
+                return skillResult.error("Invalid file type: only .md files are allowed")
             }
 
             // Read file content
             val content = file.readText()
 
-            // If line range specified, extract corresponding lines
+            // if line range specified, extract corresponding lines
             val result = if (startLine != null) {
                 val lines = content.lines()
                 val start = (startLine - 1).coerceIn(0, lines.size)
@@ -102,7 +102,7 @@ class MemoryGetSkill(
                 content
             }
 
-            SkillResult.success(
+            skillResult.success(
                 content = result,
                 metadata = mapOf(
                     "path" to path,
@@ -110,8 +110,8 @@ class MemoryGetSkill(
                     "lines" to result.lines().size
                 )
             )
-        } catch (e: Exception) {
-            SkillResult.error("Failed to read memory file: ${e.message}")
+        } catch (e: exception) {
+            skillResult.error("Failed to read memory file: ${e.message}")
         }
     }
 }

@@ -1,12 +1,12 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
+import android.content.Clipboardmanager
+import android.content.context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -20,7 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Arrowback
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
@@ -29,25 +29,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.Localcontext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool
+import com.xiaomo.androidforclaw.agent.tools.TermuxBridgetool
 import com.xiaomo.androidforclaw.core.TermuxSshdLauncher
 import com.xiaomo.androidforclaw.agent.tools.TermuxSetupStep
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 
 class TermuxSetupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                TermuxSetupScreen(onBack = { finish() })
+                TermuxSetupScreen(onback = { finish() })
             }
         }
     }
@@ -55,10 +55,10 @@ class TermuxSetupActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TermuxSetupScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
+fun TermuxSetupScreen(onback: () -> Unit) {
+    val context = Localcontext.current
     val scope = rememberCoroutineScope()
-    val bridge = remember { TermuxBridgeTool(context) }
+    val bridge = remember { TermuxBridgetool(context) }
 
     // Status
     var termuxInstalled by remember { mutableStateOf(false) }
@@ -72,12 +72,12 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
 
     fun refreshStatus() {
         scope.launch {
-            val status = withContext(Dispatchers.IO) { bridge.getStatus() }
+            val status = withcontext(Dispatchers.IO) { bridge.getStatus() }
             termuxInstalled = status.termuxInstalled
             keypairReady = status.keypairPresent
             sshReachable = status.sshReachable
             sshAuthOk = status.sshAuthOk
-            publicKey = withContext(Dispatchers.IO) { bridge.getPublicKey() }
+            publicKey = withcontext(Dispatchers.IO) { bridge.getPublicKey() }
             checking = false
         }
     }
@@ -86,54 +86,54 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
     LaunchedEffect(Unit) {
         // Ensure BouncyCastle
         try {
-            val bc = org.bouncycastle.jce.provider.BouncyCastleProvider()
-            java.security.Security.removeProvider(bc.name)
-            java.security.Security.insertProviderAt(bc, 1)
-        } catch (_: Exception) {}
+            val bc = org.bouncycastle.jce.provider.BouncyCastleprovider()
+            java.security.Security.removeprovider(bc.name)
+            java.security.Security.insertproviderAt(bc, 1)
+        } catch (_: exception) {}
         refreshStatus()
 
-        // Into入Config页时: Connect池已Connect则Skip, No则按需Start
-        val initStatus = withContext(Dispatchers.IO) { bridge.getStatus() }
+        // into入config页hour: Connect池alreadyConnectthenSkip, Nothenon-demand start
+        val initStatus = withcontext(Dispatchers.IO) { bridge.getStatus() }
         val alreadyConnected = com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.isConnected
         if (!alreadyConnected && initStatus.keypairPresent && !initStatus.sshReachable && initStatus.termuxInstalled) {
             launchingSshd = true
-            sshdLaunchMessage = "正在AutoStart sshd..."
+            sshdLaunchMessage = "currentlyAutoStart sshd..."
             try {
-                withContext(Dispatchers.IO) {
-                    com.xiaomo.androidforclaw.core.TermuxSshdLauncher.ensureAndLaunch(context)
+                withcontext(Dispatchers.IO) {
+                    com.xiaomo.androidforclaw.core.TermuxSshdLauncher.ensureandLaunch(context)
                 }
-                // Termux 被拉起Back, 切回当Front Activity(不Yes首页)
+                // Termux 被拉upback, 切returnwhenFront Activity(notYes首页)
                 val backIntent = android.content.Intent(context, TermuxSetupActivity::class.java)
-                backIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                backIntent.aFlags(android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 context.startActivity(backIntent)
                 // 轮询Wait + Auto注入公钥
                 var keyInjected = false
                 for (attempt in 1..15) {
                     delay(1000)
-                    val s = withContext(Dispatchers.IO) { bridge.getStatus() }
+                    val s = withcontext(Dispatchers.IO) { bridge.getStatus() }
                     refreshStatus()
                     if (s.ready) {
-                        sshdLaunchMessage = "✅ sshd 已Ready"
+                        sshdLaunchMessage = "[OK] sshd alreadyReady"
                         com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(context)
                         break
                     }
                     if (s.sshReachable && !s.sshAuthOk && !keyInjected) {
-                        val pubKey = withContext(Dispatchers.IO) { bridge.getPublicKey() }
+                        val pubKey = withcontext(Dispatchers.IO) { bridge.getPublicKey() }
                         if (pubKey != null) {
                             com.xiaomo.androidforclaw.core.TermuxSshdLauncher.injectPublicKey(context, pubKey)
                             keyInjected = true
-                            sshdLaunchMessage = "正在Config SSH Key..."
+                            sshdLaunchMessage = "currentlyconfig SSH Key..."
                         }
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 sshdLaunchMessage = "AutoStartFailed: ${e.message}"
             } finally {
                 launchingSshd = false
                 refreshStatus()
             }
         } else if (alreadyConnected) {
-            sshdLaunchMessage = null // 已Connect, 不Show任何Hint
+            sshdLaunchMessage = null // alreadyConnect, notShow任何Hint
         }
 
         // 持续RefreshStatus
@@ -155,18 +155,18 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text("Termux \u914d\u7f6e") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "\u8fd4\u56de")
+                    Iconbutton(onClick = onback) {
+                        Icon(Icons.Filled.Arrowback, "\u8fd4\u56de")
                     }
                 }
             )
         }
-    ) { paddingValues ->
+    ) { paingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .paing(paingValues)
+                .paing(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -192,11 +192,11 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                 )
                 if (!termuxInstalled) {
                     Spacer(Modifier.height(8.dp))
-                    Button(onClick = {
+                    button(onClick = {
                         try {
                             context.startActivity(Intent(Intent.ACTION_VIEW,
                                 Uri.parse("https://f-droid.org/packages/com.termux/")))
-                        } catch (_: Exception) {
+                        } catch (_: exception) {
                             Toast.makeText(context, "\u8bf7\u624b\u52a8\u641c\u7d22\u5b89\u88c5 Termux", Toast.LENGTH_SHORT).show()
                         }
                     }) {
@@ -218,9 +218,9 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                 )
                 if (!keypairReady) {
                     Spacer(Modifier.height(8.dp))
-                    Button(onClick = {
+                    button(onClick = {
                         scope.launch {
-                            withContext(Dispatchers.IO) { bridge.ensureKeypair() }
+                            withcontext(Dispatchers.IO) { bridge.ensureKeypair() }
                             refreshStatus()
                         }
                     }) {
@@ -265,7 +265,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                 )
             }
 
-            // ============ Step 5: Configure key ============
+            // ============ Step 5: configure key ============
             SetupStepCard(
                 step = 5,
                 title = "\u914d\u7f6e SSH \u5bc6\u94a5",
@@ -308,19 +308,19 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     context = context
                 )
                 Spacer(Modifier.height(8.dp))
-                // 一KeyStart sshd 按钮
-                Button(
+                // oneKeyStart sshd button
+                button(
                     onClick = {
                         launchingSshd = true
                         sshdLaunchMessage = null
                         scope.launch {
                             try {
-                                TermuxSshdLauncher.ensureAndLaunch(context)
+                                TermuxSshdLauncher.ensureandLaunch(context)
                                 sshdLaunchMessage = "\u5df2\u53d1\u9001\u542f\u52a8\u547d\u4ee4\uff0c\u7b49\u5f85 sshd \u542f\u52a8..."
-                                // Wait sshd StartBackRefreshStatus
+                                // Wait sshd StartbackRefreshStatus
                                 delay(3000)
                                 refreshStatus()
-                            } catch (e: Exception) {
+                            } catch (e: exception) {
                                 sshdLaunchMessage = "\u542f\u52a8\u5931\u8d25: ${e.message}\n\u8bf7\u624b\u52a8\u5728 Termux \u4e2d\u6267\u884c sshd"
                             } finally {
                                 launchingSshd = false
@@ -347,7 +347,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     Text(
                         text = sshdLaunchMessage!!,
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (sshdLaunchMessage!!.startsWith("\u542f\u52a8\u5931\u8d25"))
+                        color = if (sshdLaunchMessage!!.startswith("\u542f\u52a8\u5931\u8d25"))
                             MaterialTheme.colorScheme.error
                         else
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -381,13 +381,13 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     )
                 } else {
                     Text(
-                        "\u7b49\u5f85\u8fde\u63a5... \u8bf7\u786e\u4fdd Termux \u5df2\u6253\u5f00\u4e14 sshd \u5df2\u8fd0\u884c\u3002",
+                        "\u7b49\u5f85\u8fde\u63a5... \u8bf7\u786e\u4f Termux \u5df2\u6253\u5f00\u4e14 sshd \u5df2\u8fd0\u884c\u3002",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(Modifier.height(8.dp))
-                OutlinedButton(
+                Outlinedbutton(
                     onClick = {
                         checking = true
                         refreshStatus()
@@ -405,7 +405,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                        modifier = Modifier.paing(20.dp).fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
@@ -426,7 +426,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(Modifier.height(12.dp))
-                        Button(onClick = onBack) {
+                        button(onClick = onback) {
                             Text("\u5b8c\u6210")
                         }
                     }
@@ -436,7 +436,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
             // Loading
             if (checking) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp)
+                    modifier = Modifier.align(Alignment.CenterHorizontally).paing(8.dp)
                 )
             }
 
@@ -454,7 +454,7 @@ private fun SetupStepCard(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.paing(16.dp),
             verticalAlignment = Alignment.Top
         ) {
             // Step indicator
@@ -498,14 +498,14 @@ private fun SetupStepCard(
 }
 
 @Composable
-private fun CommandBox(command: String, context: Context) {
+private fun CommandBox(command: String, context: context) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         color = Color(0xFF1E1E1E)
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.paing(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -516,9 +516,9 @@ private fun CommandBox(command: String, context: Context) {
                 lineHeight = 18.sp,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(
+            Iconbutton(
                 onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clipboard = context.getSystemservice(context.CLIPBOARD_SERVICE) as Clipboardmanager
                     clipboard.setPrimaryClip(ClipData.newPlainText("command", command))
                     Toast.makeText(context, "\u5df2\u590d\u5236", Toast.LENGTH_SHORT).show()
                 },

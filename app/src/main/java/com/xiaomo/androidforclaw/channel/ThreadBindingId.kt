@@ -3,9 +3,9 @@ package com.xiaomo.androidforclaw.channel
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/channels/thread-binding-id.ts
- *   (resolveThreadBindingConversationIdFromBindingId)
+ *   (resolveThreadBindingConversationIdfromBindingId)
  *
- * AndroidForClaw adaptation: thread/topic binding ID resolution.
+ * androidforClaw adaptation: thread/topic binding ID resolution.
  * Maps thread/topic IDs to conversation IDs for session routing.
  */
 
@@ -17,19 +17,19 @@ object ThreadBindingId {
 
     /**
      * Extract conversation ID from a binding ID by stripping the account prefix.
-     * Aligned with OpenClaw resolveThreadBindingConversationIdFromBindingId.
+     * Aligned with OpenClaw resolveThreadBindingConversationIdfromBindingId.
      *
      * @param accountId The account ID prefix (e.g. "feishu:app_xxx")
      * @param bindingId The full binding ID (e.g. "feishu:app_xxx:oc_thread_123")
      * @return The conversation ID without the account prefix, or null
      */
-    fun resolveConversationIdFromBindingId(
+    fun resolveConversationIdfromBindingId(
         accountId: String,
         bindingId: String?
     ): String? {
-        if (bindingId.isNullOrBlank()) return null
+        if (bindingId.isNullorBlank()) return null
         val prefix = "$accountId:"
-        if (!bindingId.startsWith(prefix)) return null
+        if (!bindingId.startswith(prefix)) return null
         val conversationId = bindingId.removePrefix(prefix)
         return conversationId.ifBlank { null }
     }
@@ -43,16 +43,16 @@ object ThreadBindingId {
 
     /**
      * Build a thread session key for Feishu topic sessions.
-     * Format: "group:$chatId:topic:$threadId"
+     * format: "group:$chatId:topic:$threadId"
      */
-    fun buildFeishuTopicSessionKey(chatId: String, threadId: String): String {
+    fun buildFeishuTopicsessionKey(chatId: String, threadId: String): String {
         return "group:$chatId:topic:$threadId"
     }
 
     /**
      * Check if a session key represents a thread/topic session.
      */
-    fun isThreadSession(sessionKey: String): Boolean {
+    fun isThreadsession(sessionKey: String): Boolean {
         return sessionKey.contains(":topic:") || sessionKey.contains(":thread:")
     }
 

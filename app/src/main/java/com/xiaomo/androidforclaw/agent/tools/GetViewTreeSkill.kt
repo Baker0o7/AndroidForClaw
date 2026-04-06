@@ -2,40 +2,40 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.DeviceController
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 
 /**
- * Get View Tree Skill
+ * Get View Tree skill
  * Get current screen UI tree structure (processed clean version)
  *
  * Prefer using this tool to understand interface - it's lighter and faster than screenshot.
  * Only use screenshot when visual information is needed or operation fails.
  */
-class GetViewTreeSkill(private val context: Context) : Skill {
+class GetViewTreeskill(private val context: context) : skill {
     companion object {
-        private const val TAG = "GetViewTreeSkill"
+        private const val TAG = "GetViewTreeskill"
     }
 
     override val name = "get_view_tree"
     override val description = "Get screen UI tree with element positions (preferred for screen operations)"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = emptyMap(),
                     required = emptyList()
@@ -44,25 +44,25 @@ class GetViewTreeSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         Log.d(TAG, "Getting view tree (processed)...")
         return try {
-            if (!AccessibilityProxy.isServiceReady()) {
-                return Skillresult.error("Accessibility service not ready")
+            if (!AccessibilityProxy.isserviceReady()) {
+                return skillresult.error("Accessibility service not ready")
             }
 
             // Get original UI tree and processed UI tree
             val iconresult = DeviceController.detectIcons(context)
             if (iconresult == null) {
-                return Skillresult.error("CannotGet UI Tree. 请Check: \n1. AccessibilityServiceYesNo已Enabledd\n2. 当FrontapplyYesNo允许访问")
+                return skillresult.error("cannotGet UI Tree. pleaseCheck: \n1. AccessibilityservicewhetheralreadyEnable\n2. whenFrontappwhether允许access")
             }
             val (originalNodes, processedNodes) = iconresult
 
-            Log.d(TAG, "Original nodes: ${originalNodes.size}, Processed nodes: ${processedNodes.size}")
+            Log.d(TAG, "original nodes: ${originalNodes.size}, Processed nodes: ${processedNodes.size}")
 
-            // Use processed nodes (deduplicated, empty removed)
+            // use processed nodes (deduplicated, empty removed)
             val uiInfo = buildString {
-                appendLine("【Screen UI ElementList】(共 ${processedNodes.size} 个AvailableElement)")
+                appendLine("【Screen UI ElementList】(共 ${processedNodes.size} countAvailableElement)")
                 appendLine()
 
                 processedNodes.forEachIndexed { index, node ->
@@ -70,34 +70,34 @@ class GetViewTreeSkill(private val context: Context) : Skill {
                 }
 
                 appendLine()
-                appendLine("Hint: useElement的坐标 (x,y) IntoRow tap Action")
+                appendLine("Hint: useElement坐标 (x,y) intoRow tap Action")
             }
 
-            Skillresult.success(
+            skillresult.success(
                 uiInfo,
                 mapOf(
                     "view_count" to processedNodes.size,
                     "original_count" to originalNodes.size
                 )
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Get view tree failed", e)
-            Skillresult.error("Get view tree failed: ${e.message}")
+            skillresult.error("Get view tree failed: ${e.message}")
         }
     }
 
     /**
-     * Format single node information
+     * format single node information
      */
     private fun formatNode(node: com.xiaomo.androidforclaw.accessibility.service.ViewNode): String {
         return buildString {
             // Type (simplified)
-            val simpleClass = node.className?.substringAfterLast('.') ?: "View"
+            val simpleClass = node.className?.substringafterLast('.') ?: "View"
             append("<$simpleClass>")
 
             // Text content
-            val text = node.text?.takeIf { it.isNotBlank() }
-            val desc = node.contentDesc?.takeIf { it.isNotBlank() }
+            val text = node.text?.takeif { it.isnotBlank() }
+            val desc = node.contentDesc?.takeif { it.isnotBlank() }
             if (text != null) {
                 append(" text=\"$text\"")
             }
@@ -106,7 +106,7 @@ class GetViewTreeSkill(private val context: Context) : Skill {
             }
 
             // Resource ID (very useful for buttons without text)
-            val resId = node.resourceId?.takeIf { it.isNotBlank() }
+            val resId = node.resourceId?.takeif { it.isnotBlank() }
             if (resId != null) {
                 append(" id=$resId")
             }
@@ -116,8 +116,8 @@ class GetViewTreeSkill(private val context: Context) : Skill {
             append(" bounds=[${node.left},${node.top},${node.right},${node.bottom}]")
 
             // Clickable / scrollable state
-            if (node.clickable) append(" [可click]")
-            if (node.scrollable) append(" [可滚动]")
+            if (node.clickable) append(" [canclick]")
+            if (node.scrollable) append(" [can滚动]")
         }
     }
 }

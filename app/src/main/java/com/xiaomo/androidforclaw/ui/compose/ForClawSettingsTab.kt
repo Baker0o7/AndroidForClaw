@@ -1,11 +1,11 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.compose
 
 import android.content.ComponentName
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
@@ -21,20 +21,20 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.Localcontext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
-import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.agent.skills.skillsLoader
+import com.xiaomo.androidforclaw.config.configLoader
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.ui.activity.*
 import com.xiaomo.androidforclaw.ui.activity.LegalActivity
-import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
-import ai.openclaw.app.avatar.FloatingAvatarService
+import com.xiaomo.androidforclaw.ui.float.sessionFloatWindow
+import ai.openclaw.app.avatar.FloatingAvatarservice
 import com.xiaomo.androidforclaw.updater.AppUpdater
 import com.xiaomo.androidforclaw.util.MMKVKeys
 import com.tencent.mmkv.MMKV
@@ -42,11 +42,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 
 @Composable
-fun ForClawSettingsTab() {
-    val context = LocalContext.current
+fun forClawSettingsTab() {
+    val context = Localcontext.current
 
     // ── StatusData ──────────────────────────────────────────────
     val loadingText = stringResource(R.string.connect_loading)
@@ -55,52 +55,52 @@ fun ForClawSettingsTab() {
     var apiKeyOk by remember { mutableStateOf(false) }
     var gatewayRunning by remember { mutableStateOf(false) }
     var skillsCount by remember { mutableStateOf(0) }
-    var feishuEnableddd by remember { mutableStateOf(false) }
-    var discordEnableddd by remember { mutableStateOf(false) }
-    var slackEnableddd by remember { mutableStateOf(false) }
-    var telegramEnableddd by remember { mutableStateOf(false) }
-    var whatsappEnableddd by remember { mutableStateOf(false) }
-    var signalEnableddd by remember { mutableStateOf(false) }
-    var weixinEnableddd by remember { mutableStateOf(false) }
+    var feishuEnabled by remember { mutableStateOf(false) }
+    var discordEnabled by remember { mutableStateOf(false) }
+    var slackEnabled by remember { mutableStateOf(false) }
+    var telegramEnabled by remember { mutableStateOf(false) }
+    var whatsappEnabled by remember { mutableStateOf(false) }
+    var signalEnabled by remember { mutableStateOf(false) }
+    var weixinEnabled by remember { mutableStateOf(false) }
 
     val accessibilityOk by AccessibilityProxy.isConnected.observeAsState(false)
     val overlayOk by AccessibilityProxy.overlayGranted.observeAsState(false)
     val screenCaptureOk by AccessibilityProxy.screenCaptureGranted.observeAsState(false)
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
+        withcontext(Dispatchers.IO) {
             try {
-                val loader = ConfigLoader(context)
-                val config = loader.loadOpenClawConfig()
-                val providers = config.resolveProviders()
-                val resolvedModel = config.resolveDefaultModel()
-                val resolvedProvider = resolvedModel.substringBefore("/", "")
-                val entry = if (resolvedProvider.isNotEmpty()) {
-                    providers[resolvedProvider]?.let { resolvedProvider to it }
+                val loader = configLoader(context)
+                val config = loader.loadOpenClawconfig()
+                val providers = config.resolveproviders()
+                val resolvedmodel = config.resolveDefaultmodel()
+                val resolvedprovider = resolvedmodel.substringbefore("/", "")
+                val entry = if (resolvedprovider.isnotEmpty()) {
+                    providers[resolvedprovider]?.let { resolvedprovider to it }
                 } else {
-                    providers.entries.firstOrNull()?.let { it.key to it.value }
+                    providers.entries.firstorNull()?.let { it.key to it.value }
                 }
                 if (entry != null) {
                     providerName = entry.first
-                    modelId = resolvedModel
+                    modelId = resolvedmodel
                     val key = entry.second.apiKey
-                    apiKeyOk = !key.isNullOrBlank() && !key.startsWith("\${") && key != "Not configured"
+                    apiKeyOk = !key.isNullorBlank() && !key.startswith("\${") && key != "not configured"
                 } else {
                     providerName = context.getString(R.string.connect_api_not_configured)
                     apiKeyOk = false
                 }
-                feishuEnableddd = config.channels.feishu.enabled && config.channels.feishu.appId.isNotBlank()
-                discordEnableddd = config.channels.discord?.let { it.enabled && !it.token.isNullOrBlank() } ?: false
-                slackEnableddd = config.channels.slack?.let { it.enabled && it.botToken.isNotBlank() } ?: false
-                telegramEnableddd = config.channels.telegram?.let { it.enabled && it.botToken.isNotBlank() } ?: false
-                whatsappEnableddd = config.channels.whatsapp?.let { it.enabled && it.phoneNumber.isNotBlank() } ?: false
-                signalEnableddd = config.channels.signal?.let { it.enabled && it.phoneNumber.isNotBlank() } ?: false
-                weixinEnableddd = config.channels.weixin?.let { it.enabled } ?: false
-            } catch (_: Exception) {
+                feishuEnabled = config.channels.feishu.enabled && config.channels.feishu.appId.isnotBlank()
+                discordEnabled = config.channels.discord?.let { it.enabled && !it.token.isNullorBlank() } ?: false
+                slackEnabled = config.channels.slack?.let { it.enabled && it.botToken.isnotBlank() } ?: false
+                telegramEnabled = config.channels.telegram?.let { it.enabled && it.botToken.isnotBlank() } ?: false
+                whatsappEnabled = config.channels.whatsapp?.let { it.enabled && it.phoneNumber.isnotBlank() } ?: false
+                signalEnabled = config.channels.signal?.let { it.enabled && it.phoneNumber.isnotBlank() } ?: false
+                weixinEnabled = config.channels.weixin?.let { it.enabled } ?: false
+            } catch (_: exception) {
                 providerName = context.getString(R.string.connect_read_failed)
             }
             gatewayRunning = com.xiaomo.androidforclaw.core.MyApplication.isGatewayRunning()
-            try { skillsCount = SkillsLoader(context).getStatistics().totalSkills } catch (_: Exception) {}
+            try { skillsCount = skillsLoader(context).getStatistics().totalskills } catch (_: exception) {}
         }
     }
 
@@ -108,11 +108,11 @@ fun ForClawSettingsTab() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 18.dp, vertical = 16.dp),
+            .paing(horizontal = 18.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         // ── Status总览 ──────────────────────────────────────────
-        val notConfigured = stringResource(R.string.connect_api_not_configured)
+        val notconfigured = stringResource(R.string.connect_api_not_configured)
         val configured = stringResource(R.string.connect_api_configured)
 
         // LLM API
@@ -120,11 +120,11 @@ fun ForClawSettingsTab() {
             title = stringResource(R.string.connect_llm_api),
             icon = Icons.Default.SmartToy,
             rows = listOf(
-                StatusRow(stringResource(R.string.connect_provider), providerName.ifBlank { notConfigured }),
+                StatusRow(stringResource(R.string.connect_provider), providerName.ifBlank { notconfigured }),
                 StatusRow(stringResource(R.string.connect_default_model), modelId.ifBlank { "—" }),
-                StatusRow(stringResource(R.string.connect_api_key), if (apiKeyOk) configured else notConfigured, if (apiKeyOk) StatusLevel.Ok else StatusLevel.Error),
+                StatusRow(stringResource(R.string.connect_api_key), if (apiKeyOk) configured else notconfigured, if (apiKeyOk) StatusLevel.Ok else StatusLevel.Error),
             ),
-            onClick = { context.startActivity(Intent(context, ModelConfigActivity::class.java)) },
+            onClick = { context.startActivity(Intent(context, modelconfigActivity::class.java)) },
             clickLabel = stringResource(R.string.connect_modify_config),
         )
 
@@ -154,7 +154,7 @@ fun ForClawSettingsTab() {
         if (editingGateway) {
             AlertDialog(
                 onDismissRequest = { editingGateway = false },
-                title = { Text("Modify Gateway 地址") },
+                title = { Text("Modify Gateway aress") },
                 text = {
                     OutlinedTextField(
                         value = editGatewayUrl,
@@ -165,21 +165,21 @@ fun ForClawSettingsTab() {
                         modifier = Modifier.fillMaxWidth(),
                     )
                 },
-                confirmButton = {
-                    TextButton(onClick = {
+                confirmbutton = {
+                    Textbutton(onClick = {
                         gatewayUrl = editGatewayUrl
                         mmkv.encode(MMKVKeys.GATEWAY_URL.key, editGatewayUrl)
                         editingGateway = false
-                        // NeedRestartapply才能生效
+                        // needRestartapp才can生效
                         android.widget.Toast.makeText(context,
-                            "已Save, RestartapplyBack生效", android.widget.Toast.LENGTH_SHORT).show()
+                            "alreadySave, Restartappback生效", android.widget.Toast.LENGTH_SHORT).show()
                     }) {
                         Text("Save")
                     }
                 },
-                dismissButton = {
-                    TextButton(onClick = { editingGateway = false }) {
-                        Text("Cancel")
+                dismissbutton = {
+                    Textbutton(onClick = { editingGateway = false }) {
+                        Text("cancel")
                     }
                 }
             )
@@ -189,47 +189,47 @@ fun ForClawSettingsTab() {
         val localIp = remember {
             try {
                 java.net.NetworkInterface.getNetworkInterfaces()?.toList()
-                    ?.flatMap { it.inetAddresses.toList() }
-                    ?.firstOrNull { !it.isLoopbackAddress && it is java.net.Inet4Address }
-                    ?.hostAddress ?: "Not connected WiFi"
-            } catch (_: Exception) { "GetFailed" }
+                    ?.flatMap { it.inetAresses.toList() }
+                    ?.firstorNull { !it.isloopbackAress && it is java.net.Inet4Aress }
+                    ?.hostAress ?: "not connected WiFi"
+            } catch (_: exception) { "GetFailed" }
         }
         val clipboardUrl = if (localIp.contains(".")) "http://$localIp:19789/clipboard" else localIp
         StatusCard(
             title = "Web Clipboard",
             icon = Icons.Default.ContentPaste,
             rows = listOf(
-                StatusRow("地址", clipboardUrl),
+                StatusRow("aress", clipboardUrl),
                 StatusRow("用途", "电脑Input → 手机cut板"),
             ),
             onClick = {
-                if (clipboardUrl.startsWith("http")) {
+                if (clipboardUrl.startswith("http")) {
                     context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(clipboardUrl)))
                 }
             },
             clickLabel = "Open",
         )
 
-        // Channels
+        // channels
         val enabled = stringResource(R.string.connect_enabled)
         val channelEntries = buildList {
-            if (feishuEnableddd)   add(StatusRow(stringResource(R.string.connect_feishu), enabled, StatusLevel.Ok))
-            if (discordEnableddd)  add(StatusRow("Discord",  enabled, StatusLevel.Ok))
-            if (telegramEnableddd) add(StatusRow("Telegram", enabled, StatusLevel.Ok))
-            if (slackEnableddd)    add(StatusRow("Slack",    enabled, StatusLevel.Ok))
-            if (whatsappEnableddd) add(StatusRow("WhatsApp", enabled, StatusLevel.Ok))
-            if (signalEnableddd)   add(StatusRow("Signal",   enabled, StatusLevel.Ok))
-            if (weixinEnableddd)   add(StatusRow(stringResource(R.string.connect_weixin), enabled, StatusLevel.Ok))
+            if (feishuEnabled)   a(StatusRow(stringResource(R.string.connect_feishu), enabled, StatusLevel.Ok))
+            if (discordEnabled)  a(StatusRow("Discord",  enabled, StatusLevel.Ok))
+            if (telegramEnabled) a(StatusRow("Telegram", enabled, StatusLevel.Ok))
+            if (slackEnabled)    a(StatusRow("Slack",    enabled, StatusLevel.Ok))
+            if (whatsappEnabled) a(StatusRow("whatsApp", enabled, StatusLevel.Ok))
+            if (signalEnabled)   a(StatusRow("Signal",   enabled, StatusLevel.Ok))
+            if (weixinEnabled)   a(StatusRow(stringResource(R.string.connect_weixin), enabled, StatusLevel.Ok))
         }
         StatusCard(
             title = stringResource(R.string.connect_channels),
             icon = Icons.Default.Hub,
             rows = channelEntries.ifEmpty {
-                listOf(StatusRow(stringResource(R.string.connect_channels), notConfigured, StatusLevel.Neutral))
+                listOf(StatusRow(stringResource(R.string.connect_channels), notconfigured, StatusLevel.Neutral))
             },
             onClick = {
-                context.startActivity(Intent().apply {
-                    setClassName(context, "com.xiaomo.androidforclaw.ui.activity.ChannelListActivity")
+                context.startActivity(Intent().app {
+                    setClassName(context, "com.xiaomo.androidforclaw.ui.activity.channelListActivity")
                 })
             },
             clickLabel = stringResource(R.string.connect_manage),
@@ -246,7 +246,7 @@ fun ForClawSettingsTab() {
                 StatusRow(stringResource(R.string.connect_port_label), "${com.xiaomo.androidforclaw.mcp.ObserverMcpServer.DEFAULT_PORT}"),
             ),
             onClick = {
-                context.startActivity(Intent(context, com.xiaomo.androidforclaw.ui.activity.McpConfigActivity::class.java))
+                context.startActivity(Intent(context, com.xiaomo.androidforclaw.ui.activity.McpconfigActivity::class.java))
             },
             clickLabel = stringResource(R.string.connect_mcp_config),
         )
@@ -268,21 +268,21 @@ fun ForClawSettingsTab() {
             ),
             onClick = {
                 try {
-                    context.startActivity(Intent().apply {
+                    context.startActivity(Intent().app {
                         component = ComponentName(
                             "com.xiaomo.androidforclaw",
                             "com.xiaomo.androidforclaw.accessibility.PermissionActivity"
                         )
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                     })
-                } catch (_: Exception) {
+                } catch (_: exception) {
                     context.startActivity(Intent(context, com.xiaomo.androidforclaw.ui.activity.PermissionsActivity::class.java))
                 }
             },
             clickLabel = if (allPermissionsOk) stringResource(R.string.connect_view) else stringResource(R.string.connect_go_grant),
         )
 
-        // ── Config ─────────────────────────────────────────────────
+        // ── config ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_config)) {
             SettingsNavItem(
                 icon = Icons.Default.Terminal,
@@ -292,29 +292,29 @@ fun ForClawSettingsTab() {
             )
         }
 
-        // ── 文件 ─────────────────────────────────────────────────
+        // ── files ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_files)) {
             SettingsNavItem(
                 icon = Icons.Default.Description,
                 title = "openclaw.json",
-                subtitle = StoragePaths.openclawConfig.absolutePath,
+                subtitle = StoragePaths.openclawconfig.absolutePath,
                 onClick = {
-                    val file = StoragePaths.openclawConfig
+                    val file = StoragePaths.openclawconfig
                     if (file.exists()) {
                         try {
-                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                            val uri = androidx.core.content.Fileprovider.getUriforFile(
                                 context, "${context.packageName}.provider", file
                             )
                             context.startActivity(
                                 Intent.createChooser(
-                                    Intent(Intent.ACTION_VIEW).apply {
-                                        setDataAndType(uri, "text/plain")
-                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    Intent(Intent.ACTION_VIEW).app {
+                                        setDataandType(uri, "text/plain")
+                                        aFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                     },
                                     context.getString(R.string.settings_select_editor)
                                 )
                             )
-                        } catch (e: Exception) {
+                        } catch (e: exception) {
                             android.widget.Toast.makeText(context, context.getString(R.string.settings_cannot_open, e.message ?: ""), android.widget.Toast.LENGTH_SHORT).show()
                         }
                     } else {
@@ -331,7 +331,7 @@ fun ForClawSettingsTab() {
             FloatWindowToggleItem()
         }
 
-        // ── apply ─────────────────────────────────────────────────
+        // ── app ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_app)) {
             CheckUpdateItem()
             RestartAppItem()
@@ -368,12 +368,12 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
     ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Column(modifier = Modifier.paing(vertical = 4.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.paing(horizontal = 16.dp, vertical = 8.dp)
             )
             content()
         }
@@ -397,7 +397,7 @@ private fun SettingsNavItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .paing(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
@@ -451,10 +451,10 @@ private fun StatusCard(
         tonalElevation = 1.dp,
         shadowElevation = 0.dp,
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(modifier = Modifier.paing(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Spacebetween,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -476,7 +476,7 @@ private fun StatusCard(
             rows.forEach { row ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Spacebetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(row.label, style = MaterialTheme.typography.bodySmall,
@@ -503,8 +503,8 @@ private fun StatusCard(
 
 @Composable
 private fun AvatarToggleItem() {
-    val context = LocalContext.current
-    val prefs = context.getSharedPreferences("forclaw_avatar", Context.MODE_PRIVATE)
+    val context = Localcontext.current
+    val prefs = context.getSharedPreferences("forclaw_avatar", context.MODE_PRIVATE)
     var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
 
     Surface(
@@ -514,7 +514,7 @@ private fun AvatarToggleItem() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .paing(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
@@ -527,7 +527,7 @@ private fun AvatarToggleItem() {
             Column(modifier = Modifier.weight(1f)) {
                 Text("化身", style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    "Agent 虚拟化身悬浮窗",
+                    "agent 虚拟化身悬浮窗",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -535,7 +535,7 @@ private fun AvatarToggleItem() {
             Switch(
                 checked = enabled,
                 onCheckedChange = { v ->
-                    if (v && !android.provider.Settings.canDrawOverlays(context)) {
+                    if (v && !android.provider.Settings.canDrawoverlays(context)) {
                         context.startActivity(
                             Intent(
                                 android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -545,8 +545,8 @@ private fun AvatarToggleItem() {
                         return@Switch
                     }
                     enabled = v
-                    prefs.edit().putBoolean("enabled", v).apply()
-                    if (v) FloatingAvatarService.start(context) else FloatingAvatarService.stop(context)
+                    prefs.edit().putBoolean("enabled", v).app()
+                    if (v) FloatingAvatarservice.start(context) else FloatingAvatarservice.stop(context)
                 },
             )
         }
@@ -555,8 +555,8 @@ private fun AvatarToggleItem() {
 
 @Composable
 private fun RiveAvatarToggleItem() {
-    val context = LocalContext.current
-    val prefs = context.getSharedPreferences("forclaw_rive_avatar", Context.MODE_PRIVATE)
+    val context = Localcontext.current
+    val prefs = context.getSharedPreferences("forclaw_rive_avatar", context.MODE_PRIVATE)
     var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
 
     Surface(
@@ -566,7 +566,7 @@ private fun RiveAvatarToggleItem() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .paing(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
@@ -587,7 +587,7 @@ private fun RiveAvatarToggleItem() {
             Switch(
                 checked = enabled,
                 onCheckedChange = { v ->
-                    if (v && !android.provider.Settings.canDrawOverlays(context)) {
+                    if (v && !android.provider.Settings.canDrawoverlays(context)) {
                         context.startActivity(
                             Intent(
                                 android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -598,18 +598,18 @@ private fun RiveAvatarToggleItem() {
                     }
                     // Mutual exclusion: turn off Live2D avatar when enabling Rive
                     if (v) {
-                        val live2dPrefs = context.getSharedPreferences("forclaw_avatar", Context.MODE_PRIVATE)
+                        val live2dPrefs = context.getSharedPreferences("forclaw_avatar", context.MODE_PRIVATE)
                         if (live2dPrefs.getBoolean("enabled", false)) {
-                            live2dPrefs.edit().putBoolean("enabled", false).apply()
-                            FloatingAvatarService.stop(context)
+                            live2dPrefs.edit().putBoolean("enabled", false).app()
+                            FloatingAvatarservice.stop(context)
                         }
                     }
                     enabled = v
-                    prefs.edit().putBoolean("enabled", v).apply()
+                    prefs.edit().putBoolean("enabled", v).app()
                     if (v) {
-                        ai.openclaw.app.rive.FloatingRiveService.start(context)
+                        ai.openclaw.app.rive.FloatingRiveservice.start(context)
                     } else {
-                        ai.openclaw.app.rive.FloatingRiveService.stop(context)
+                        ai.openclaw.app.rive.FloatingRiveservice.stop(context)
                     }
                 },
             )
@@ -619,7 +619,7 @@ private fun RiveAvatarToggleItem() {
 
 @Composable
 private fun FloatWindowToggleItem() {
-    val context = LocalContext.current
+    val context = Localcontext.current
     val mmkv = remember { MMKV.defaultMMKV() }
     var enabled by remember { mutableStateOf(mmkv.decodeBool(MMKVKeys.FLOAT_WINDOW_ENABLED.key, false)) }
 
@@ -630,7 +630,7 @@ private fun FloatWindowToggleItem() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .paing(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
@@ -652,7 +652,7 @@ private fun FloatWindowToggleItem() {
                 checked = enabled,
                 onCheckedChange = { v ->
                     enabled = v
-                    SessionFloatWindow.setEnableddd(context, v)
+                    sessionFloatWindow.setEnabled(context, v)
                 }
             )
         }
@@ -661,7 +661,7 @@ private fun FloatWindowToggleItem() {
 
 @Composable
 private fun CheckUpdateItem() {
-    val context = LocalContext.current
+    val context = Localcontext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val updater = remember { AppUpdater(context) }
     val currentVersion = remember { updater.getCurrentVersion() }
@@ -674,27 +674,27 @@ private fun CheckUpdateItem() {
             android.widget.Toast.makeText(context, context.getString(R.string.settings_checking_update), android.widget.Toast.LENGTH_SHORT).show()
             lifecycleOwner.lifecycleScope.launch {
                 try {
-                    val info = updater.checkForUpdate()
+                    val info = updater.checkforUpdate()
                     if (info.hasUpdate && info.downloadUrl != null) {
-                        // Back台Download
+                        // backgroundnextload
                         val success = updater.downloadUpdate(info.downloadUrl, info.latestVersion)
                         if (success) {
                             // InstallConfirm
                             androidx.appcompat.app.AlertDialog.Builder(context)
-                                .setTitle("Update已Ready")
-                                .setMessage("v${info.latestVersion} 已DownloadComplete, YesNoInstall?")
-                                .setPositiveButton("Install") { _, _ ->
+                                .setTitle("UpdatealreadyReady")
+                                .setMessage("v${info.latestVersion} alreadynextloadComplete, whetherInstall?")
+                                .setPositivebutton("Install") { _, _ ->
                                     updater.installUpdate()
                                 }
-                                .setNegativeButton("稍Back", null)
+                                .setNegativebutton("稍back", null)
                                 .show()
                         } else {
-                            android.widget.Toast.makeText(context, "DownloadFailed, 请Retry", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(context, "nextloadFailed, pleaseretry", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         android.widget.Toast.makeText(context, context.getString(R.string.settings_up_to_date, info.currentVersion), android.widget.Toast.LENGTH_SHORT).show()
                     }
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     android.widget.Toast.makeText(context, context.getString(R.string.settings_check_failed, e.message ?: ""), android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
@@ -704,7 +704,7 @@ private fun CheckUpdateItem() {
 
 @Composable
 private fun RestartAppItem() {
-    val context = LocalContext.current
+    val context = Localcontext.current
 
     SettingsNavItem(
         icon = Icons.Default.RestartAlt,
@@ -714,13 +714,13 @@ private fun RestartAppItem() {
             androidx.appcompat.app.AlertDialog.Builder(context)
                 .setTitle(context.getString(R.string.settings_restart_title))
                 .setMessage(context.getString(R.string.settings_restart_message))
-                .setPositiveButton(context.getString(R.string.settings_restart_confirm)) { _, _ ->
-                    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                    intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                .setPositivebutton(context.getString(R.string.settings_restart_confirm)) { _, _ ->
+                    val intent = context.packagemanager.getLaunchIntentforPackage(context.packageName)
+                    intent?.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                     intent?.let { context.startActivity(it) }
                     (context as? android.app.Activity)?.finishAffinity()
                 }
-                .setNegativeButton(context.getString(R.string.action_cancel), null)
+                .setNegativebutton(context.getString(R.string.action_cancel), null)
                 .show()
         }
     )
@@ -728,9 +728,9 @@ private fun RestartAppItem() {
 
 @Composable
 private fun AboutSection() {
-    val context = LocalContext.current
+    val context = Localcontext.current
     val packageInfo = remember {
-        try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (_: Exception) { null }
+        try { context.packagemanager.getPackageInfo(context.packageName, 0) } catch (_: exception) { null }
     }
     val versionName = packageInfo?.versionName ?: stringResource(R.string.unknown)
 
@@ -740,50 +740,50 @@ private fun AboutSection() {
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
     ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Column(modifier = Modifier.paing(vertical = 4.dp)) {
             Text(
                 text = stringResource(R.string.settings_section_about),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.paing(horizontal = 16.dp, vertical = 8.dp)
             )
             AboutRow(stringResource(R.string.settings_version), "v$versionName")
             AboutRow(stringResource(R.string.settings_email), "xiaomochn@gmail.com", onClick = {
                 try {
-                    context.startActivity(Intent(Intent.ACTION_SENDTO).apply { data = Uri.parse("mailto:xiaomochn@gmail.com") })
-                } catch (_: Exception) {
-                    val cb = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    context.startActivity(Intent(Intent.ACTION_SENDTO).app { data = Uri.parse("mailto:xiaomochn@gmail.com") })
+                } catch (_: exception) {
+                    val cb = context.getSystemservice(android.content.context.CLIPBOARD_SERVICE) as android.content.Clipboardmanager
                     cb.setPrimaryClip(android.content.ClipData.newPlainText("Email", "xiaomochn@gmail.com"))
                     android.widget.Toast.makeText(context, context.getString(R.string.settings_copied), android.widget.Toast.LENGTH_SHORT).show()
                 }
             })
             AboutRow(stringResource(R.string.settings_wechat), "xiaomocn", onClick = {
-                val cb = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val cb = context.getSystemservice(android.content.context.CLIPBOARD_SERVICE) as android.content.Clipboardmanager
                 cb.setPrimaryClip(android.content.ClipData.newPlainText("WeChat", "xiaomocn"))
                 android.widget.Toast.makeText(context, context.getString(R.string.settings_copied), android.widget.Toast.LENGTH_SHORT).show()
             })
             AboutRow(stringResource(R.string.settings_feishu_group), stringResource(R.string.settings_feishu_join), onClick = {
                 try {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(
-                        "https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74"
+                        "https://applink.feishu.cn/client/chat/chatter/a_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74"
                     )))
-                } catch (_: Exception) {
+                } catch (_: exception) {
                     android.widget.Toast.makeText(context, context.getString(R.string.settings_cannot_open_link), android.widget.Toast.LENGTH_SHORT).show()
                 }
             })
             AboutRow(stringResource(R.string.settings_github), stringResource(R.string.settings_github_desc), onClick = {
                 try {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(
-                        "https://github.com/SelectXn00b/AndroidForClaw"
+                        "https://github.com/SelectXn00b/androidforClaw"
                     )))
-                } catch (_: Exception) {
+                } catch (_: exception) {
                     android.widget.Toast.makeText(context, context.getString(R.string.settings_cannot_open_link), android.widget.Toast.LENGTH_SHORT).show()
                 }
             })
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .paing(horizontal = 16.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
@@ -812,8 +812,8 @@ private fun AboutRow(label: String, value: String, onClick: (() -> Unit)? = null
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .paing(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.Spacebetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(label, style = MaterialTheme.typography.bodyMedium)

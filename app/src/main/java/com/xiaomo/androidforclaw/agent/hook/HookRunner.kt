@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.hook
 
 /**
  * Hook system for agent lifecycle events.
- * Aligned with OpenClaw hook runner (src/agents/pi-embedded-runner/runner-hooks.ts).
+ * Aligned with OpenClaw hook runner (src/agents/pi-embeed-runner/runner-hooks.ts).
  *
  * Provides registration and execution of lifecycle hooks:
  * - before_compaction: runs before context compaction
@@ -24,7 +24,7 @@ data class HookEvent(
  * Hook context passed to hook handlers.
  * Provides access to session state that hooks can inspect/modify.
  */
-data class HookContext(
+data class Hookcontext(
     val sessionKey: String?,
     val agentId: String?,
     val provider: String,
@@ -36,19 +36,19 @@ data class HookContext(
  */
 data class HookResult(
     val success: Boolean = true,
-    val shouldCancel: Boolean = false,
+    val shouldcancel: Boolean = false,
     val modifiedData: Map<String, Any?>? = null
 )
 
 /**
  * Hook handler function type.
- * Returns HookResult; if shouldCancel=true, the caller should abort the operation.
+ * Returns HookResult; if shouldcancel=true, the caller should abort the operation.
  */
-typealias HookHandler = suspend (HookEvent, HookContext) -> HookResult
+typealias HookHandler = suspend (HookEvent, Hookcontext) -> HookResult
 
 /**
  * Hook runner — registers and executes lifecycle hooks.
- * Aligned with OpenClaw EmbeddedAgentHookRunner.
+ * Aligned with OpenClaw EmbeedagentHookRunner.
  */
 class HookRunner {
 
@@ -66,7 +66,7 @@ class HookRunner {
      * Register a hook handler for a given phase.
      */
     fun on(phase: String, handler: HookHandler) {
-        hooks.getOrPut(phase) { mutableListOf() }.add(handler)
+        hooks.getorPut(phase) { mutableListOf() }.a(handler)
     }
 
     /**
@@ -74,15 +74,15 @@ class HookRunner {
      * Aligned with OpenClaw hookRunner.hasHooks().
      */
     fun hasHooks(phase: String): Boolean {
-        return hooks[phase]?.isNotEmpty() == true
+        return hooks[phase]?.isnotEmpty() == true
     }
 
     /**
      * Run all hooks for a given phase.
      * Returns the last result, or a default success result if no hooks exist.
-     * Aligned with OpenClaw hookRunner.runBeforeCompaction().
+     * Aligned with OpenClaw hookRunner.runbeforeCompaction().
      */
-    suspend fun run(phase: String, event: HookEvent, context: HookContext): HookResult {
+    suspend fun run(phase: String, event: HookEvent, context: Hookcontext): HookResult {
         val phaseHooks = hooks[phase] ?: return HookResult(success = true)
         var lastResult = HookResult(success = true)
 
@@ -90,10 +90,10 @@ class HookRunner {
             try {
                 val result = handler(event, context)
                 lastResult = result
-                if (result.shouldCancel) {
+                if (result.shouldcancel) {
                     return result
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 // Log but don't fail — aligned with OpenClaw hook error handling
                 android.util.Log.w("HookRunner", "Hook $phase failed: ${e.message}")
                 lastResult = HookResult(success = false)
@@ -105,11 +105,11 @@ class HookRunner {
 
     /**
      * Run before_compaction hook (convenience method).
-     * Aligned with OpenClaw hookRunner.runBeforeCompaction().
+     * Aligned with OpenClaw hookRunner.runbeforeCompaction().
      */
-    suspend fun runBeforeCompaction(
+    suspend fun runbeforeCompaction(
         data: Map<String, Any?>,
-        context: HookContext
+        context: Hookcontext
     ): HookResult {
         return run(BEFORE_COMPACTION, HookEvent(phase = BEFORE_COMPACTION, data = data), context)
     }
@@ -117,9 +117,9 @@ class HookRunner {
     /**
      * Run after_compaction hook (convenience method).
      */
-    suspend fun runAfterCompaction(
+    suspend fun runafterCompaction(
         data: Map<String, Any?>,
-        context: HookContext
+        context: Hookcontext
     ): HookResult {
         return run(AFTER_COMPACTION, HookEvent(phase = AFTER_COMPACTION, data = data), context)
     }
@@ -127,10 +127,10 @@ class HookRunner {
     /**
      * Run before_tool_call hook.
      */
-    suspend fun runBeforeToolCall(
+    suspend fun runbeforetoolCall(
         toolName: String,
         arguments: String,
-        context: HookContext
+        context: Hookcontext
     ): HookResult {
         return run(BEFORE_TOOL_CALL, HookEvent(
             phase = BEFORE_TOOL_CALL,
@@ -141,12 +141,12 @@ class HookRunner {
     /**
      * Run after_tool_call hook.
      */
-    suspend fun runAfterToolCall(
+    suspend fun runaftertoolCall(
         toolName: String,
         arguments: String,
         result: String,
         success: Boolean,
-        context: HookContext
+        context: Hookcontext
     ): HookResult {
         return run(AFTER_TOOL_CALL, HookEvent(
             phase = AFTER_TOOL_CALL,

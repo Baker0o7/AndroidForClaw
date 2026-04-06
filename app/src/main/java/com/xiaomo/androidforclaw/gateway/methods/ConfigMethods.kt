@@ -4,51 +4,51 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
-import android.content.Context
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import android.content.context
+import com.xiaomo.androidforclaw.config.configLoader
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File
 
 /**
- * Config RPC methods implementation
+ * config RPC methods implementation
  *
  * Provides configuration management
  */
-class ConfigMethods(
-    private val context: Context
+class configMethods(
+    private val context: context
 ) {
-    private val configLoader = ConfigLoader(context)
+    private val configLoader = configLoader(context)
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-    private val configPath = StoragePaths.openclawConfig.absolutePath
+    private val configPath = StoragePaths.openclawconfig.absolutePath
 
     /**
      * config.get() - Get current configuration
      */
-    fun configGet(params: Any?): ConfigGetResult {
+    fun configGet(params: Any?): configGetResult {
         @Suppress("UNCHECKED_CAST")
         val paramsMap = params as? Map<String, Any?>
         val path = paramsMap?.get("path") as? String
 
         return try {
-            val config = configLoader.loadOpenClawConfig()
+            val config = configLoader.loadOpenClawconfig()
             val configMap = gson.fromJson(gson.toJson(config), Map::class.java)
 
-            // If path is specified, return specific field
+            // if path is specified, return specific field
             val value = if (path != null) {
                 getValueByPath(configMap, path)
             } else {
                 configMap
             }
 
-            ConfigGetResult(
+            configGetResult(
                 success = true,
                 config = value,
                 path = configPath
             )
-        } catch (e: Exception) {
-            ConfigGetResult(
+        } catch (e: exception) {
+            configGetResult(
                 success = false,
                 error = "Failed to get config: ${e.message}",
                 path = configPath
@@ -59,21 +59,21 @@ class ConfigMethods(
     /**
      * config.set() - Set configuration value
      */
-    fun configSet(params: Any?): ConfigSetResult {
+    fun configSet(params: Any?): configSetResult {
         @Suppress("UNCHECKED_CAST")
         val paramsMap = params as? Map<String, Any?>
-            ?: return ConfigSetResult(false, "params must be an object")
+            ?: return configSetResult(false, "params must be an object")
 
         val path = paramsMap["path"] as? String
-            ?: return ConfigSetResult(false, "path required")
+            ?: return configSetResult(false, "path required")
 
         val value = paramsMap["value"]
-            ?: return ConfigSetResult(false, "value required")
+            ?: return configSetResult(false, "value required")
 
         return try {
             val configFile = File(configPath)
             if (!configFile.exists()) {
-                return ConfigSetResult(false, "Config file not found")
+                return configSetResult(false, "config file not found")
             }
 
             val configText = configFile.readText()
@@ -86,13 +86,13 @@ class ConfigMethods(
             // Write back to file
             configFile.writeText(gson.toJson(config))
 
-            ConfigSetResult(
+            configSetResult(
                 success = true,
-                message = "Config updated: $path",
+                message = "config updated: $path",
                 path = configPath
             )
-        } catch (e: Exception) {
-            ConfigSetResult(
+        } catch (e: exception) {
+            configSetResult(
                 success = false,
                 message = "Failed to set config: ${e.message}"
             )
@@ -102,15 +102,15 @@ class ConfigMethods(
     /**
      * config.reload() - Reload configuration
      */
-    fun configReload(): ConfigReloadResult {
+    fun configReload(): configReloadResult {
         return try {
-            configLoader.loadOpenClawConfig()
-            ConfigReloadResult(
+            configLoader.loadOpenClawconfig()
+            configReloadResult(
                 success = true,
-                message = "Config reloaded"
+                message = "config reloaded"
             )
-        } catch (e: Exception) {
-            ConfigReloadResult(
+        } catch (e: exception) {
+            configReloadResult(
                 success = false,
                 message = "Failed to reload config: ${e.message}"
             )
@@ -159,9 +159,9 @@ class ConfigMethods(
 }
 
 /**
- * Config get result
+ * config get result
  */
-data class ConfigGetResult(
+data class configGetResult(
     val success: Boolean,
     val config: Any? = null,
     val error: String? = null,
@@ -169,18 +169,18 @@ data class ConfigGetResult(
 )
 
 /**
- * Config set result
+ * config set result
  */
-data class ConfigSetResult(
+data class configSetResult(
     val success: Boolean,
     val message: String,
     val path: String? = null
 )
 
 /**
- * Config reload result
+ * config reload result
  */
-data class ConfigReloadResult(
+data class configReloadResult(
     val success: Boolean,
     val message: String
 )

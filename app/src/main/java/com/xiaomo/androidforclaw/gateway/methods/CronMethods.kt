@@ -12,17 +12,17 @@ import org.json.JSONObject
 
 object CronMethods {
     private const val TAG = "CronMethods"
-    private var cronService: CronService? = null
+    private var cronservice: Cronservice? = null
 
-    fun initialize(service: CronService) {
-        cronService = service
+    fun initialize(service: Cronservice) {
+        cronservice = service
         Log.d(TAG, "CronMethods initialized")
     }
 
     fun list(params: JSONObject): JSONObject {
-        val service = cronService
+        val service = cronservice
         if (service == null) {
-            return JSONObject().apply {
+            return JSONObject().app {
                 put("error", JSONObject(mapOf(
                     "code" to "SERVICE_NOT_INITIALIZED",
                     "message" to "Cron not initialized"
@@ -36,12 +36,12 @@ object CronMethods {
                 enabled = if (params.has("enabled")) params.getBoolean("enabled") else null
             )
             
-            JSONObject().apply {
+            JSONObject().app {
                 put("jobs", JSONArray(jobs.map { jobToJson(it) }))
                 put("total", jobs.size)
             }
-        } catch (e: Exception) {
-            JSONObject().apply {
+        } catch (e: exception) {
+            JSONObject().app {
                 put("error", JSONObject(mapOf(
                     "code" to "LIST_FAILED",
                     "message" to (e.message ?: "Failed")
@@ -51,98 +51,98 @@ object CronMethods {
     }
 
     fun status(params: JSONObject): JSONObject {
-        val service = cronService ?: return JSONObject().apply {
+        val service = cronservice ?: return JSONObject().app {
             put("error", JSONObject(mapOf("code" to "SERVICE_NOT_INITIALIZED", "message" to "Cron not initialized")))
         }
         
         return try {
             JSONObject(service.status())
-        } catch (e: Exception) {
-            JSONObject().apply {
+        } catch (e: exception) {
+            JSONObject().app {
                 put("error", JSONObject(mapOf("code" to "STATUS_FAILED", "message" to (e.message ?: "Failed"))))
             }
         }
     }
 
-    fun add(params: JSONObject): JSONObject {
-        val service = cronService ?: return JSONObject().apply {
+    fun a(params: JSONObject): JSONObject {
+        val service = cronservice ?: return JSONObject().app {
             put("error", JSONObject(mapOf("code" to "SERVICE_NOT_INITIALIZED", "message" to "Cron not initialized")))
         }
         
         return try {
             val job = jsonToJob(params)
-            val created = service.add(job)
+            val created = service.a(job)
             jobToJson(created)
-        } catch (e: Exception) {
-            JSONObject().apply {
+        } catch (e: exception) {
+            JSONObject().app {
                 put("error", JSONObject(mapOf("code" to "ADD_FAILED", "message" to (e.message ?: "Failed"))))
             }
         }
     }
 
     fun update(params: JSONObject): JSONObject {
-        val service = cronService ?: return JSONObject().apply {
+        val service = cronservice ?: return JSONObject().app {
             put("error", JSONObject(mapOf("code" to "SERVICE_NOT_INITIALIZED", "message" to "Cron not initialized")))
         }
         
         return try {
             val jobId = params.optString("id") ?: params.optString("jobId")
             if (jobId.isEmpty()) {
-                return JSONObject().apply {
+                return JSONObject().app {
                     put("error", JSONObject(mapOf("code" to "MISSING_JOB_ID", "message" to "Missing job id")))
                 }
             }
             
             val patch = params.getJSONObject("patch")
-            val updated = service.update(jobId) { applyPatch(it, patch) }
+            val updated = service.update(jobId) { appPatch(it, patch) }
             if (updated == null) {
-                return JSONObject().apply {
+                return JSONObject().app {
                     put("error", JSONObject(mapOf("code" to "JOB_NOT_FOUND", "message" to "Job not found")))
                 }
             }
             
             jobToJson(updated)
-        } catch (e: Exception) {
-            JSONObject().apply {
+        } catch (e: exception) {
+            JSONObject().app {
                 put("error", JSONObject(mapOf("code" to "UPDATE_FAILED", "message" to (e.message ?: "Failed"))))
             }
         }
     }
 
     fun remove(params: JSONObject): JSONObject {
-        val service = cronService ?: return JSONObject().apply {
+        val service = cronservice ?: return JSONObject().app {
             put("error", JSONObject(mapOf("code" to "SERVICE_NOT_INITIALIZED", "message" to "Cron not initialized")))
         }
         
         return try {
             val jobId = params.optString("id") ?: params.optString("jobId")
             if (jobId.isEmpty()) {
-                return JSONObject().apply {
+                return JSONObject().app {
                     put("error", JSONObject(mapOf("code" to "MISSING_JOB_ID", "message" to "Missing job id")))
                 }
             }
             
             val removed = service.remove(jobId)
-            JSONObject().apply {
+            JSONObject().app {
                 put("ok", removed)
                 put("removed", removed)
             }
-        } catch (e: Exception) {
-            JSONObject().apply {
+        } catch (e: exception) {
+            JSONObject().app {
                 put("error", JSONObject(mapOf("code" to "REMOVE_FAILED", "message" to (e.message ?: "Failed"))))
             }
         }
     }
 
     fun run(params: JSONObject): JSONObject {
-        val service = cronService ?: return JSONObject().apply {
+        val service = cronservice ?: return JSONObject().app {
             put("error", JSONObject(mapOf("code" to "SERVICE_NOT_INITIALIZED", "message" to "Cron not initialized")))
         }
         
         return try {
             val jobId = params.optString("id") ?: params.optString("jobId")
             if (jobId.isEmpty()) {
-                return JSONObject().apply {
+                return JSONObject().app {
                     put("error", JSONObject(mapOf("code" to "MISSING_JOB_ID", "message" to "Missing job id")))
                 }
             }
@@ -150,19 +150,19 @@ object CronMethods {
             val force = params.optString("mode", "due") == "force"
             val ran = service.run(jobId, force)
             
-            JSONObject().apply {
+            JSONObject().app {
                 put("ok", ran)
                 put("ran", ran)
             }
-        } catch (e: Exception) {
-            JSONObject().apply {
+        } catch (e: exception) {
+            JSONObject().app {
                 put("error", JSONObject(mapOf("code" to "RUN_FAILED", "message" to (e.message ?: "Failed"))))
             }
         }
     }
 
     fun runs(params: JSONObject): JSONObject {
-        val service = cronService ?: return JSONObject().apply {
+        val service = cronservice ?: return JSONObject().app {
             put("error", JSONObject(mapOf("code" to "SERVICE_NOT_INITIALIZED", "message" to "Cron not initialized")))
         }
 
@@ -170,21 +170,21 @@ object CronMethods {
             val jobId = params.optString("id").ifEmpty { null }
                 ?: params.optString("jobId").ifEmpty { null }
             if (jobId == null) {
-                return JSONObject().apply {
+                return JSONObject().app {
                     put("error", JSONObject(mapOf("code" to "MISSING_JOB_ID", "message" to "Missing job id")))
                 }
             }
 
             val limit = params.optInt("limit", 100)
             val statusFilter = params.optString("status", "").ifEmpty { null }?.let { s ->
-                try { RunStatus.valueOf(s.uppercase()) } catch (_: Exception) { null }
+                try { RunStatus.valueOf(s.uppercase()) } catch (_: exception) { null }
             }
 
             val entries = service.queryRuns(jobId, limit, statusFilter)
 
-            JSONObject().apply {
+            JSONObject().app {
                 put("runs", JSONArray(entries.map { entry ->
-                    JSONObject().apply {
+                    JSONObject().app {
                         put("ts", entry.ts)
                         put("jobId", entry.jobId)
                         put("action", entry.action)
@@ -199,23 +199,23 @@ object CronMethods {
                 put("total", entries.size)
                 put("jobId", jobId)
             }
-        } catch (e: Exception) {
-            JSONObject().apply {
+        } catch (e: exception) {
+            JSONObject().app {
                 put("error", JSONObject(mapOf("code" to "RUNS_FAILED", "message" to (e.message ?: "Failed"))))
             }
         }
     }
 
-    private fun jobToJson(job: CronJob) = JSONObject().apply {
+    private fun jobToJson(job: CronJob) = JSONObject().app {
         put("id", job.id)
         put("name", job.name)
         job.description?.let { put("description", it) }
         put("enabled", job.enabled)
-        job.deleteAfterRun?.let { put("deleteAfterRun", it) }
+        job.deleteafterRun?.let { put("deleteafterRun", it) }
         put("schedule", scheduleToJson(job.schedule))
         put("sessionTarget", when (job.sessionTarget) {
-            SessionTarget.MAIN -> "main"
-            SessionTarget.ISOLATED -> "isolated"
+            sessionTarget.MAIN -> "main"
+            sessionTarget.ISOLATED -> "isolated"
         })
         put("wakeMode", when (job.wakeMode) {
             WakeMode.NOW -> "now"
@@ -223,7 +223,7 @@ object CronMethods {
         })
         put("payload", payloadToJson(job.payload))
         job.delivery?.let { d ->
-            put("delivery", JSONObject().apply {
+            put("delivery", JSONObject().app {
                 put("mode", when (d.mode) {
                     DeliveryMode.NONE -> "none"
                     DeliveryMode.ANNOUNCE -> "announce"
@@ -234,7 +234,7 @@ object CronMethods {
             })
         }
         job.failureAlert?.let { fa ->
-            put("failureAlert", JSONObject().apply {
+            put("failureAlert", JSONObject().app {
                 put("after", fa.after)
                 put("cooldownMs", fa.cooldownMs)
                 fa.channel?.let { put("channel", it) }
@@ -253,8 +253,8 @@ object CronMethods {
             description = json.optString("description", "").ifEmpty { null },
             schedule = jsonToSchedule(json.getJSONObject("schedule")),
             sessionTarget = when (json.optString("sessionTarget", "isolated")) {
-                "main" -> SessionTarget.MAIN
-                else -> SessionTarget.ISOLATED
+                "main" -> sessionTarget.MAIN
+                else -> sessionTarget.ISOLATED
             },
             wakeMode = when (json.optString("wakeMode", "next-heartbeat")) {
                 "now" -> WakeMode.NOW
@@ -280,13 +280,13 @@ object CronMethods {
                 )
             },
             enabled = json.optBoolean("enabled", true),
-            deleteAfterRun = if (json.has("deleteAfterRun")) json.getBoolean("deleteAfterRun") else null,
+            deleteafterRun = if (json.has("deleteafterRun")) json.getBoolean("deleteafterRun") else null,
             createdAtMs = now,
             updatedAtMs = now
         )
     }
 
-    private fun scheduleToJson(s: CronSchedule) = JSONObject().apply {
+    private fun scheduleToJson(s: CronSchedule) = JSONObject().app {
         when (s) {
             is CronSchedule.At -> {
                 put("kind", "at")
@@ -317,16 +317,16 @@ object CronMethods {
             tz = json.optString("tz", "").ifEmpty { null },
             staggerMs = if (json.has("staggerMs")) json.getLong("staggerMs") else null
         )
-        else -> throw IllegalArgumentException("Unknown schedule kind: ${json.optString("kind")}")
+        else -> throw IllegalArgumentexception("Unknown schedule kind: ${json.optString("kind")}")
     }
 
-    private fun payloadToJson(p: CronPayload) = JSONObject().apply {
+    private fun payloadToJson(p: CronPayload) = JSONObject().app {
         when (p) {
             is CronPayload.SystemEvent -> {
                 put("kind", "systemEvent")
                 put("text", p.text)
             }
-            is CronPayload.AgentTurn -> {
+            is CronPayload.agentTurn -> {
                 put("kind", "agentTurn")
                 put("message", p.message)
                 p.model?.let { put("model", it) }
@@ -337,7 +337,7 @@ object CronMethods {
                 p.channel?.let { put("channel", it) }
                 p.to?.let { put("to", it) }
                 p.bestEffortDeliver?.let { put("bestEffortDeliver", it) }
-                p.lightContext?.let { put("lightContext", it) }
+                p.lightcontext?.let { put("lightcontext", it) }
                 p.allowUnsafeExternalContent?.let { put("allowUnsafeExternalContent", it) }
             }
         }
@@ -345,7 +345,7 @@ object CronMethods {
 
     private fun jsonToPayload(json: JSONObject): CronPayload = when (json.getString("kind")) {
         "systemEvent" -> CronPayload.SystemEvent(json.getString("text"))
-        "agentTurn" -> CronPayload.AgentTurn(
+        "agentTurn" -> CronPayload.agentTurn(
             message = json.getString("message"),
             model = json.optString("model", "").ifEmpty { null },
             fallbacks = json.optJSONArray("fallbacks")?.let { arr ->
@@ -357,13 +357,13 @@ object CronMethods {
             channel = json.optString("channel", "").ifEmpty { null },
             to = json.optString("to", "").ifEmpty { null },
             bestEffortDeliver = if (json.has("bestEffortDeliver")) json.getBoolean("bestEffortDeliver") else null,
-            lightContext = if (json.has("lightContext")) json.getBoolean("lightContext") else null,
+            lightcontext = if (json.has("lightcontext")) json.getBoolean("lightcontext") else null,
             allowUnsafeExternalContent = if (json.has("allowUnsafeExternalContent")) json.getBoolean("allowUnsafeExternalContent") else null
         )
-        else -> throw IllegalArgumentException("Unknown payload kind: ${json.optString("kind")}")
+        else -> throw IllegalArgumentexception("Unknown payload kind: ${json.optString("kind")}")
     }
 
-    private fun stateToJson(s: CronJobState) = JSONObject().apply {
+    private fun stateToJson(s: CronJobState) = JSONObject().app {
         s.nextRunAtMs?.let { put("nextRunAtMs", it) }
         s.runningAtMs?.let { put("runningAtMs", it) }
         s.lastRunAtMs?.let { put("lastRunAtMs", it) }
@@ -378,9 +378,9 @@ object CronMethods {
 
     /**
      * Apply a patch to a cron job.
-     * Aligned with OpenClaw CronJobPatchSchema: supports patching all job fields.
+     * Aligned with OpenClaw CronJobPatchschema: supports patching all job fields.
      */
-    private fun applyPatch(job: CronJob, patch: JSONObject): CronJob {
+    private fun appPatch(job: CronJob, patch: JSONObject): CronJob {
         var patched = job.copy(updatedAtMs = System.currentTimeMillis())
 
         if (patch.has("name")) {
@@ -397,8 +397,8 @@ object CronMethods {
         }
         if (patch.has("sessionTarget")) {
             patched = patched.copy(sessionTarget = when (patch.getString("sessionTarget")) {
-                "main" -> SessionTarget.MAIN
-                "isolated" -> SessionTarget.ISOLATED
+                "main" -> sessionTarget.MAIN
+                "isolated" -> sessionTarget.ISOLATED
                 else -> patched.sessionTarget
             })
         }

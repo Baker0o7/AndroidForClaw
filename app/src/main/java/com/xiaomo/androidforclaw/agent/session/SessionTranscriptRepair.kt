@@ -4,60 +4,60 @@ package com.xiaomo.androidforclaw.agent.session
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/session-transcript-repair.ts
  *
- * AndroidForClaw adaptation: tool call/result pairing repair in session transcripts.
+ * androidforClaw adaptation: tool call/result pairing repair in session transcripts.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.llm.Message
-import com.xiaomo.androidforclaw.providers.llm.ToolCall
+import com.xiaomo.androidforclaw.providers.llm.toolCall
 
 /**
- * Tool call input repair report.
- * Aligned with OpenClaw ToolCallInputRepairReport.
+ * tool call input repair report.
+ * Aligned with OpenClaw toolCallInputRepairReport.
  */
-data class ToolCallInputRepairReport(
+data class toolCallInputRepairReport(
     val droppedCalls: Int = 0,
     val droppedMessages: Int = 0
 )
 
 /**
- * Tool use/result pairing repair report.
- * Aligned with OpenClaw ToolUseRepairReport.
+ * tool use/result pairing repair report.
+ * Aligned with OpenClaw tooluseRepairReport.
  */
-data class ToolUseRepairReport(
+data class tooluseRepairReport(
     val insertedResults: Int = 0,
     val droppedDuplicates: Int = 0,
     val movedResults: Int = 0,
-    val droppedOrphans: Int = 0
+    val droppedorphans: Int = 0
 )
 
 /**
- * Session transcript repair — ensures valid tool call/result pairing.
+ * session transcript repair — ensures valid tool call/result pairing.
  * Aligned with OpenClaw session-transcript-repair.ts.
  */
-object SessionTranscriptRepair {
+object sessionTranscriptRepair {
 
-    private const val TAG = "SessionTranscriptRepair"
+    private const val TAG = "sessionTranscriptRepair"
 
     /**
      * Repair tool call inputs: drop calls with missing ID, input, or unknown names.
-     * Aligned with OpenClaw repairToolCallInputs.
+     * Aligned with OpenClaw repairtoolCallInputs.
      */
-    fun repairToolCallInputs(
+    fun repairtoolCallInputs(
         messages: List<Message>,
-        knownToolNames: Set<String>? = null
-    ): Pair<List<Message>, ToolCallInputRepairReport> {
+        knowntoolNames: Set<String>? = null
+    ): Pair<List<Message>, toolCallInputRepairReport> {
         var droppedCalls = 0
         var droppedMessages = 0
 
-        val result = messages.mapNotNull { msg ->
-            if (msg.role != "assistant" || msg.toolCalls.isNullOrEmpty()) return@mapNotNull msg
+        val result = messages.mapnotNull { msg ->
+            if (msg.role != "assistant" || msg.toolCalls.isNullorEmpty()) return@mapnotNull msg
 
             val validCalls = msg.toolCalls.filter { call ->
-                val valid = call.id.isNotEmpty() &&
-                    call.name.isNotEmpty() &&
-                    call.arguments.isNotEmpty() &&
-                    (knownToolNames == null || call.name in knownToolNames)
+                val valid = call.id.isnotEmpty() &&
+                    call.name.isnotEmpty() &&
+                    call.arguments.isnotEmpty() &&
+                    (knowntoolNames == null || call.name in knowntoolNames)
                 if (!valid) {
                     droppedCalls++
                     Log.d(TAG, "Dropped invalid tool call: id=${call.id}, name=${call.name}")
@@ -66,7 +66,7 @@ object SessionTranscriptRepair {
             }
 
             if (validCalls.isEmpty()) {
-                // If no valid calls remain and message has no text content, drop the whole message
+                // if no valid calls remain and message has no text content, drop the whole message
                 if (msg.content.isBlank()) {
                     droppedMessages++
                     null
@@ -80,17 +80,17 @@ object SessionTranscriptRepair {
             }
         }
 
-        return result to ToolCallInputRepairReport(droppedCalls, droppedMessages)
+        return result to toolCallInputRepairReport(droppedCalls, droppedMessages)
     }
 
     /**
      * Repair tool use/result pairing: ensure every tool call has a matching result.
-     * Aligned with OpenClaw repairToolUseResultPairing.
+     * Aligned with OpenClaw repairtooluseResultPairing.
      */
-    fun repairToolUseResultPairing(messages: List<Message>): Pair<List<Message>, ToolUseRepairReport> {
+    fun repairtooluseResultPairing(messages: List<Message>): Pair<List<Message>, tooluseRepairReport> {
         var insertedResults = 0
         var droppedDuplicates = 0
-        var droppedOrphans = 0
+        var droppedorphans = 0
 
         val result = mutableListOf<Message>()
         val pendingCallIds = mutableSetOf<String>()
@@ -99,16 +99,16 @@ object SessionTranscriptRepair {
         for (msg in messages) {
             when (msg.role) {
                 "assistant" -> {
-                    result.add(msg)
+                    result.a(msg)
                     // Track tool call IDs that need results
                     msg.toolCalls?.forEach { call ->
-                        pendingCallIds.add(call.id)
+                        pendingCallIds.a(call.id)
                     }
                 }
                 "tool" -> {
                     val callId = msg.toolCallId
                     if (callId == null) {
-                        droppedOrphans++
+                        droppedorphans++
                         Log.d(TAG, "Dropped orphaned tool result (no callId)")
                         continue
                     }
@@ -120,26 +120,26 @@ object SessionTranscriptRepair {
                     }
 
                     if (callId !in pendingCallIds) {
-                        droppedOrphans++
+                        droppedorphans++
                         Log.d(TAG, "Dropped orphaned tool result for callId=$callId (no matching call)")
                         continue
                     }
 
-                    seenResultIds.add(callId)
+                    seenResultIds.a(callId)
                     pendingCallIds.remove(callId)
-                    result.add(msg)
+                    result.a(msg)
                 }
                 else -> {
-                    // Before adding a non-tool message, insert missing results for pending calls
+                    // before aing a non-tool message, insert missing results for pending calls
                     for (pendingId in pendingCallIds.toList()) {
                         if (pendingId !in seenResultIds) {
-                            result.add(makeMissingToolResult(pendingId, null))
-                            seenResultIds.add(pendingId)
+                            result.a(makeMissingtoolResult(pendingId, null))
+                            seenResultIds.a(pendingId)
                             insertedResults++
                         }
                     }
                     pendingCallIds.clear()
-                    result.add(msg)
+                    result.a(msg)
                 }
             }
         }
@@ -147,23 +147,23 @@ object SessionTranscriptRepair {
         // Handle remaining pending calls at the end
         for (pendingId in pendingCallIds) {
             if (pendingId !in seenResultIds) {
-                result.add(makeMissingToolResult(pendingId, null))
+                result.a(makeMissingtoolResult(pendingId, null))
                 insertedResults++
             }
         }
 
-        return result to ToolUseRepairReport(
+        return result to tooluseRepairReport(
             insertedResults = insertedResults,
             droppedDuplicates = droppedDuplicates,
-            droppedOrphans = droppedOrphans
+            droppedorphans = droppedorphans
         )
     }
 
     /**
      * Generate a synthetic error tool result for a missing result.
-     * Aligned with OpenClaw makeMissingToolResult.
+     * Aligned with OpenClaw makeMissingtoolResult.
      */
-    fun makeMissingToolResult(callId: String, toolName: String?): Message {
+    fun makeMissingtoolResult(callId: String, toolName: String?): Message {
         return Message(
             role = "tool",
             content = "[Error: tool execution was interrupted or result was lost]",
@@ -174,9 +174,9 @@ object SessionTranscriptRepair {
 
     /**
      * Strip tool result detail blocks (for security during compaction).
-     * Aligned with OpenClaw stripToolResultDetails.
+     * Aligned with OpenClaw striptoolResultDetails.
      */
-    fun stripToolResultDetails(messages: List<Message>): List<Message> {
+    fun striptoolResultDetails(messages: List<Message>): List<Message> {
         return messages.map { msg ->
             if (msg.role == "tool" && msg.content.length > 1000) {
                 val truncated = msg.content.take(1000) + "\n[...truncated for compaction]"

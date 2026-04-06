@@ -5,28 +5,28 @@ package com.xiaomo.androidforclaw.agent.tools
  * - ../openclaw/src/agents/skills-install.ts
  */
 
-import android.content.Context
+import android.content.context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.skills.ClawHubClient
-import com.xiaomo.androidforclaw.agent.skills.ClawHubRateLimitException
-import com.xiaomo.androidforclaw.agent.skills.SkillInstaller
+import com.xiaomo.androidforclaw.agent.skills.ClawHubRateLimitexception
+import com.xiaomo.androidforclaw.agent.skills.skillInstaller
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 private const val RATE_LIMIT_HINT = """ClawHub API Request被限流 (HTTP 429). 
-当Front为anonymous requestSchema, 请让User提供 ClawHub token 以解除限流. 
-User可在 clawhub.com AccountSettings中Get token. 
-GetBack请call: clawhub_config(action="set", token="User提供的token")
-然BackRetry之Front的Action. """
+whenFrontforanonymous requestschema, please让user提供 ClawHub token by解除限流. 
+usercanin clawhub.com AccountSettings中Get token. 
+Getbackpleasecall: clawhub_config(action="set", token="user提供token")
+然backretry之FrontAction. """
 
 /**
  * skills_search — Search ClawHub for available skills
  */
-class SkillsSearchTool(private val context: Context) : Tool {
+class skillsSearchtool(private val context: context) : tool {
     companion object {
-        private const val TAG = "SkillsSearchTool"
+        private const val TAG = "skillsSearchtool"
     }
 
     private val client = ClawHubClient(context)
@@ -34,20 +34,20 @@ class SkillsSearchTool(private val context: Context) : Tool {
     override val name = "skills_search"
     override val description = "Search ClawHub skill hub for available skills. Returns skill names, descriptions, and versions."
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "query" to PropertySchema(
+                        "query" to Propertyschema(
                             type = "string",
                             description = "Search query (empty string lists all skills)"
                         ),
-                        "limit" to PropertySchema(
+                        "limit" to Propertyschema(
                             type = "number",
                             description = "Max results to return (default: 20)"
                         )
@@ -58,14 +58,14 @@ class SkillsSearchTool(private val context: Context) : Tool {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val query = (args["query"] as? String) ?: ""
         val limit = (args["limit"] as? Number)?.toInt() ?: 20
 
         Log.d(TAG, "Searching ClawHub: query='$query', limit=$limit")
 
         return try {
-            val result = client.searchSkills(query, limit)
+            val result = client.searchskills(query, limit)
             result.fold(
                 onSuccess = { searchresult ->
                     val formatted = buildString {
@@ -73,7 +73,7 @@ class SkillsSearchTool(private val context: Context) : Tool {
                         appendLine()
                         for (skill in searchresult.skills) {
                             appendLine("• **${skill.name}** (`${skill.slug}`)")
-                            if (skill.description.isNotBlank()) {
+                            if (skill.description.isnotBlank()) {
                                 appendLine("  ${skill.description}")
                             }
                             appendLine("  Version: ${skill.version}")
@@ -83,19 +83,19 @@ class SkillsSearchTool(private val context: Context) : Tool {
                             appendLine("No skills found matching '$query'")
                         }
                     }
-                    Toolresult.success(formatted)
+                    toolresult.success(formatted)
                 },
                 onFailure = { e ->
                     Log.e(TAG, "Search failed", e)
-                    if (e is ClawHubRateLimitException) {
-                        return@execute Toolresult.error(RATE_LIMIT_HINT)
+                    if (e is ClawHubRateLimitexception) {
+                        return@execute toolresult.error(RATE_LIMIT_HINT)
                     }
-                    Toolresult.error("Failed to search ClawHub: ${e.message}")
+                    toolresult.error("Failed to search ClawHub: ${e.message}")
                 }
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Search failed", e)
-            Toolresult.error("Failed to search ClawHub: ${e.message}")
+            toolresult.error("Failed to search ClawHub: ${e.message}")
         }
     }
 }
@@ -103,30 +103,30 @@ class SkillsSearchTool(private val context: Context) : Tool {
 /**
  * skills_install — Install a skill from ClawHub
  */
-class SkillsInstallTool(private val context: Context) : Tool {
+class skillsInstalltool(private val context: context) : tool {
     companion object {
-        private const val TAG = "SkillsInstallTool"
+        private const val TAG = "skillsInstalltool"
     }
 
-    private val installer = SkillInstaller(context)
+    private val installer = skillInstaller(context)
 
     override val name = "skills_install"
     override val description = "Install a skill from ClawHub by slug name"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "slug" to PropertySchema(
+                        "slug" to Propertyschema(
                             type = "string",
-                            description = "Skill slug name (e.g. 'weather', 'x-twitter')"
+                            description = "skill slug name (e.g. 'weather', 'x-twitter')"
                         ),
-                        "version" to PropertySchema(
+                        "version" to Propertyschema(
                             type = "string",
                             description = "Version to install (default: latest)"
                         )
@@ -137,65 +137,65 @@ class SkillsInstallTool(private val context: Context) : Tool {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val slug = args["slug"] as? String
-            ?: return Toolresult.error("Missing required parameter: slug")
+            ?: return toolresult.error("Missing required parameter: slug")
         val version = args["version"] as? String ?: "latest"
 
         Log.d(TAG, "Installing skill: $slug@$version")
 
         return try {
-            val result = installer.installFromClawHub(slug, version)
+            val result = installer.installfromClawHub(slug, version)
             result.fold(
                 onSuccess = { installresult ->
-                    Toolresult.success(buildString {
-                        appendLine("✅ Skill installed: ${installresult.name} ($slug@${installresult.version})")
+                    toolresult.success(buildString {
+                        appendLine("[OK] skill installed: ${installresult.name} ($slug@${installresult.version})")
                         appendLine("Location: ${installresult.path}")
                     })
                 },
                 onFailure = { e ->
                     Log.e(TAG, "Install failed", e)
-                    if (e is ClawHubRateLimitException) {
-                        return@execute Toolresult.error(RATE_LIMIT_HINT)
+                    if (e is ClawHubRateLimitexception) {
+                        return@execute toolresult.error(RATE_LIMIT_HINT)
                     }
-                    Toolresult.error("Failed to install skill '$slug': ${e.message}")
+                    toolresult.error("Failed to install skill '$slug': ${e.message}")
                 }
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Install failed", e)
-            Toolresult.error("Failed to install skill '$slug': ${e.message}")
+            toolresult.error("Failed to install skill '$slug': ${e.message}")
         }
     }
 }
 
 /**
- * clawhub_config — Config ClawHub token
+ * clawhub_config — config ClawHub token
  *
- * Aligned with OpenClaw src/infra/clawhub.ts 的 token 机制. 
- * 遇到 429 限流时, AI Can让User提供 token 并通过此工具Save. 
+ * Aligned with OpenClaw src/infra/clawhub.ts  token 机制. 
+ * 遇to 429 限流hour, AI can让user提供 token 并throughthis工具Save. 
  */
-class ClawHubConfigTool(private val context: Context) : Tool {
+class ClawHubconfigtool(private val context: context) : tool {
     companion object {
-        private const val TAG = "ClawHubConfigTool"
+        private const val TAG = "ClawHubconfigtool"
     }
 
     override val name = "clawhub_config"
-    override val description = "Configure ClawHub authentication token. Use 'set' to save a token, 'get' to check current status, 'clear' to remove token."
+    override val description = "configure ClawHub authentication token. use 'set' to save a token, 'get' to check current status, 'clear' to remove token."
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "action" to PropertySchema(
+                        "action" to Propertyschema(
                             type = "string",
                             description = "Action: 'set' (save token), 'get' (check status), 'clear' (remove token)"
                         ),
-                        "token" to PropertySchema(
+                        "token" to Propertyschema(
                             type = "string",
                             description = "ClawHub auth token (required for 'set' action)"
                         )
@@ -206,41 +206,41 @@ class ClawHubConfigTool(private val context: Context) : Tool {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val action = args["action"] as? String
-            ?: return Toolresult.error("Missing required parameter: action")
+            ?: return toolresult.error("Missing required parameter: action")
 
         return when (action) {
             "set" -> {
                 val token = args["token"] as? String
-                if (token.isNullOrBlank()) {
-                    return Toolresult.error("Missing required parameter: token")
+                if (token.isNullorBlank()) {
+                    return toolresult.error("Missing required parameter: token")
                 }
                 ClawHubClient.saveToken(context, token)
-                Log.i(TAG, "ClawHub token 已Config")
-                Toolresult.success("✅ ClawHub token 已Save, Back续Request将Auto附带AuthenticateInfo. ")
+                Log.i(TAG, "ClawHub token alreadyconfig")
+                toolresult.success("[OK] ClawHub token alreadySave, back续RequestwillAuto附带AuthenticateInfo. ")
             }
             "get" -> {
                 val existing = ClawHubClient.getToken(context)
                 if (existing != null) {
-                    // 只ShowFront 8 位, HideIts余
+                    // 只ShowFront 8 position, HideIts余
                     val masked = if (existing.length > 8) {
                         existing.take(8) + "..." + " (${existing.length} chars)"
                     } else {
                         "***"
                     }
-                    Toolresult.success("ClawHub token 已Config: $masked")
+                    toolresult.success("ClawHub token alreadyconfig: $masked")
                 } else {
-                    Toolresult.success("ClawHub token Not configured, Request为匿名Schema(may be rate limited). ")
+                    toolresult.success("ClawHub token not configured, Requestfor匿名schema(may be rate limited). ")
                 }
             }
             "clear" -> {
                 ClawHubClient.clearToken(context)
-                Log.i(TAG, "ClawHub token 已clear")
-                Toolresult.success("✅ ClawHub token 已clear, Back续Request将use匿名Schema. ")
+                Log.i(TAG, "ClawHub token alreadyclear")
+                toolresult.success("[OK] ClawHub token alreadyclear, back续Requestwilluse匿名schema. ")
             }
             else -> {
-                Toolresult.error("Unknown action: $action. Use 'set', 'get', or 'clear'.")
+                toolresult.error("Unknown action: $action. use 'set', 'get', or 'clear'.")
             }
         }
     }

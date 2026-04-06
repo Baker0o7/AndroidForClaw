@@ -2,7 +2,7 @@
  * OpenClaw Source Reference:
  * - ../openclaw/src/gateway/server-ws-runtime.ts, server-shared.ts
  *
- * AndroidForClaw adaptation: gateway server and RPC methods.
+ * androidforClaw adaptation: gateway server and RPC methods.
  */
 package com.xiaomo.androidforclaw.gateway.protocol
 
@@ -111,17 +111,17 @@ data class Policy(
 data class ErrorShape(
     val code: String,  // Error code (e.g., "METHOD_NOT_FOUND", "INTERNAL_ERROR")
     val message: String,  // Human-readable error message
-    val details: Any? = null,  // Additional error details
+    val details: Any? = null,  // Aitional error details
     val retryable: Boolean? = null,  // Whether the operation can be retried
-    val retryAfterMs: Long? = null  // Suggested retry delay in milliseconds
+    val retryafterMs: Long? = null  // Suggested retry delay in milliseconds
 )
 
-// ===== Agent Method Types =====
+// ===== agent Method Types =====
 
 /**
- * Agent execution parameters
+ * agent execution parameters
  */
-data class AgentParams(
+data class agentParams(
     val sessionKey: String,
     val message: String,
     val thinking: String? = "medium",
@@ -129,50 +129,50 @@ data class AgentParams(
 )
 
 /**
- * Agent run response
+ * agent run response
  */
-data class AgentRunResponse(
+data class agentRunResponse(
     val runId: String,
     val acceptedAt: Long
 )
 
 /**
- * Agent wait parameters
+ * agent wait parameters
  */
-data class AgentWaitParams(
+data class agentWaitParams(
     val runId: String,
     val timeout: Long? = null
 )
 
 /**
- * Agent wait response
+ * agent wait response
  */
-data class AgentWaitResponse(
+data class agentWaitResponse(
     val runId: String,
     val status: String,
     val result: Any? = null
 )
 
 /**
- * Agent identity result
+ * agent identity result
  */
-data class AgentIdentityResult(
+data class agentIdentityResult(
     val name: String,
     val version: String,
     val platform: String,
     val capabilities: List<String>
 )
 
-// ===== Session Method Types =====
+// ===== session Method Types =====
 
 /**
- * Session list result
+ * session list result
  */
-data class SessionListResult(
-    val sessions: List<SessionInfo>
+data class sessionListResult(
+    val sessions: List<sessionInfo>
 )
 
-data class SessionInfo(
+data class sessionInfo(
     val key: String,
     val messageCount: Int,
     val createdAt: Long,       // epoch ms (client expects Long)
@@ -181,14 +181,14 @@ data class SessionInfo(
 )
 
 /**
- * Session preview result
+ * session preview result
  */
-data class SessionPreviewResult(
+data class sessionPreviewResult(
     val key: String,
-    val messages: List<SessionMessage>
+    val messages: List<sessionMessage>
 )
 
-data class SessionMessage(
+data class sessionMessage(
     val role: String,
     val content: String,
     val timestamp: Long
@@ -210,8 +210,8 @@ data class HealthResult(
  */
 data class StatusResult(
     val gateway: GatewayStatus,
-    val agent: AgentStatus,
-    val sessions: SessionStatus,
+    val agent: agentStatus,
+    val sessions: sessionStatus,
     val system: SystemStatus
 )
 
@@ -222,12 +222,12 @@ data class GatewayStatus(
     val authenticated: Boolean
 )
 
-data class AgentStatus(
+data class agentStatus(
     val activeRuns: Int,
     val toolsLoaded: Int
 )
 
-data class SessionStatus(
+data class sessionStatus(
     val total: Int,
     val active: Int
 )

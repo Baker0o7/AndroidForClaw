@@ -1,20 +1,20 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.updater
 
-import android.content.Context
+import android.content.context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.pm.Packagemanager
 import android.net.Uri
 import android.os.Build
 import com.xiaomo.androidforclaw.logging.Log
-import androidx.core.content.FileProvider
+import androidx.core.content.Fileprovider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -25,15 +25,15 @@ import java.util.concurrent.TimeUnit
  * App Auto-Updater — in-app download, single APK cache.
  *
  * Version check: https://claw.devset.top/files/version.json
- * Download: OkHttp → app internal cache, only one APK kept.
+ * nextload: OkHttp → app internal cache, only one APK kept.
  *
  * Flow:
- * 1. checkForUpdate() → queries server version.json
- * 2. If newer: downloadUpdate() → OkHttp download to cache dir (auto or manual)
+ * 1. checkforUpdate() → queries server version.json
+ * 2. if newer: downloadUpdate() → OkHttp download to cache dir (auto or manual)
  * 3. installUpdate() → triggers install from cached APK
- * 4. onResume: if downloaded but not installed, prompt user
+ * 4. onresume: if downloaded but not installed, prompt user
  */
-class AppUpdater(private val context: Context) {
+class AppUpdater(private val context: context) {
 
     companion object {
         private const val TAG = "AppUpdater"
@@ -50,11 +50,11 @@ class AppUpdater(private val context: Context) {
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
 
-    /** Download state for UI observation */
-    enum class DownloadState { IDLE, DOWNLOADING, DOWNLOADED, FAILED }
+    /** nextload state for UI observation */
+    enum class nextloadState { IDLE, DOWNLOADING, DOWNLOADED, FAILED }
 
-    private val _downloadState = MutableStateFlow(DownloadState.IDLE)
-    val downloadState: StateFlow<DownloadState> = _downloadState
+    private val _downloadState = MutableStateFlow(nextloadState.IDLE)
+    val downloadState: StateFlow<nextloadState> = _downloadState
 
     private val _downloadProgress = MutableStateFlow(0)
     val downloadProgress: StateFlow<Int> = _downloadProgress
@@ -69,7 +69,7 @@ class AppUpdater(private val context: Context) {
         val latestVersion: String,
         val currentVersion: String,
         val downloadUrl: String? = null,
-        val releaseNotes: String? = null,
+        val releasenotes: String? = null,
         val releaseUrl: String? = null,
         val fileSize: Long = 0,
         val publishedAt: String? = null
@@ -78,20 +78,20 @@ class AppUpdater(private val context: Context) {
     /**
      * Check our file server for the latest version
      */
-    suspend fun checkForUpdate(): UpdateInfo = withContext(Dispatchers.IO) {
+    suspend fun checkforUpdate(): UpdateInfo = withcontext(Dispatchers.IO) {
         try {
             val currentVersion = getCurrentVersion()
             Log.d(TAG, "Current: $currentVersion, checking $VERSION_JSON_URL")
 
             val request = Request.Builder()
                 .url(VERSION_JSON_URL)
-                .header("User-Agent", "AndroidForClaw/$currentVersion")
+                .header("user-agent", "androidforClaw/$currentVersion")
                 .build()
 
             val response = httpClient.newCall(request).execute()
             if (!response.isSuccessful) {
                 Log.w(TAG, "Version check returned ${response.code}")
-                return@withContext UpdateInfo(
+                return@withcontext UpdateInfo(
                     hasUpdate = false,
                     latestVersion = currentVersion,
                     currentVersion = currentVersion
@@ -101,30 +101,30 @@ class AppUpdater(private val context: Context) {
             val json = JSONObject(response.body?.string() ?: "{}")
             val latestVersion = json.optString("latestVersion", currentVersion)
             val downloadUrl = json.optString("downloadUrl", "")
-            val releaseNotes = json.optString("releaseNotes", "")
+            val releasenotes = json.optString("releasenotes", "")
             val releaseUrl = json.optString("releaseUrl", "")
             val fileSize = json.optLong("fileSize", 0)
             val publishedAt = json.optString("publishedAt", "")
 
-            val hasUpdate = isNewerVersion(latestVersion, currentVersion)
+            val hasUpdate = isnewerVersion(latestVersion, currentVersion)
             Log.d(TAG, "Latest: $latestVersion, Current: $currentVersion, hasUpdate: $hasUpdate")
 
             // Check if we already have this version downloaded
-            if (hasUpdate && getDownloadedVersion() == latestVersion) {
-                _downloadState.value = DownloadState.DOWNLOADED
+            if (hasUpdate && getnextloadedVersion() == latestVersion) {
+                _downloadState.value = nextloadState.DOWNLOADED
             }
 
             UpdateInfo(
                 hasUpdate = hasUpdate,
                 latestVersion = latestVersion,
                 currentVersion = currentVersion,
-                downloadUrl = if (hasUpdate && downloadUrl.isNotEmpty()) downloadUrl else null,
-                releaseNotes = releaseNotes,
+                downloadUrl = if (hasUpdate && downloadUrl.isnotEmpty()) downloadUrl else null,
+                releasenotes = releasenotes,
                 releaseUrl = releaseUrl,
                 fileSize = fileSize,
                 publishedAt = publishedAt
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Update check failed", e)
             val currentVersion = getCurrentVersion()
             UpdateInfo(
@@ -136,14 +136,14 @@ class AppUpdater(private val context: Context) {
     }
 
     /**
-     * Download APK in-app via OkHttp. Saves to internal cache, only one file kept.
+     * nextload APK in-app via OkHttp. Saves to internal cache, only one file kept.
      * Returns true on success.
      */
-    suspend fun downloadUpdate(downloadUrl: String, version: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun downloadUpdate(downloadUrl: String, version: String): Boolean = withcontext(Dispatchers.IO) {
         try {
-            _downloadState.value = DownloadState.DOWNLOADING
+            _downloadState.value = nextloadState.DOWNLOADING
             _downloadProgress.value = 0
-            Log.d(TAG, "Downloading: $downloadUrl")
+            Log.d(TAG, "nextloading: $downloadUrl")
 
             val client = httpClient.newBuilder()
                 .readTimeout(DOWNLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -151,19 +151,19 @@ class AppUpdater(private val context: Context) {
 
             val request = Request.Builder()
                 .url(downloadUrl)
-                .header("User-Agent", "AndroidForClaw/${getCurrentVersion()}")
+                .header("user-agent", "androidforClaw/${getCurrentVersion()}")
                 .build()
 
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
-                Log.e(TAG, "Download failed: ${response.code}")
-                _downloadState.value = DownloadState.FAILED
-                return@withContext false
+                Log.e(TAG, "nextload failed: ${response.code}")
+                _downloadState.value = nextloadState.FAILED
+                return@withcontext false
             }
 
             val body = response.body ?: run {
-                _downloadState.value = DownloadState.FAILED
-                return@withContext false
+                _downloadState.value = nextloadState.FAILED
+                return@withcontext false
             }
 
             val contentLength = body.contentLength()
@@ -190,15 +190,15 @@ class AppUpdater(private val context: Context) {
             getVersionMarkerFile().writeText(version)
             downloadedVersion = version
 
-            _downloadState.value = DownloadState.DOWNLOADED
+            _downloadState.value = nextloadState.DOWNLOADED
             _downloadProgress.value = 100
-            Log.d(TAG, "Download complete: ${apkFile.absolutePath} (${apkFile.length()} bytes)")
+            Log.d(TAG, "nextload complete: ${apkFile.absolutePath} (${apkFile.length()} bytes)")
             true
-        } catch (e: Exception) {
-            Log.e(TAG, "Download failed", e)
-            _downloadState.value = DownloadState.FAILED
+        } catch (e: exception) {
+            Log.e(TAG, "nextload failed", e)
+            _downloadState.value = nextloadState.FAILED
             // Clean up partial file
-            try { getApkFile().delete() } catch (_: Exception) {}
+            try { getApkFile().delete() } catch (_: exception) {}
             false
         }
     }
@@ -215,7 +215,7 @@ class AppUpdater(private val context: Context) {
 
         try {
             val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                FileProvider.getUriForFile(
+                Fileprovider.getUriforFile(
                     context,
                     "${context.packageName}.fileprovider",
                     apkFile
@@ -224,16 +224,16 @@ class AppUpdater(private val context: Context) {
                 Uri.fromFile(apkFile)
             }
 
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "application/vnd.android.package-archive")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val intent = Intent(Intent.ACTION_VIEW).app {
+                setDataandType(uri, "application/vnd.android.package-archive")
+                aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                aFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
             context.startActivity(intent)
             Log.d(TAG, "Install intent launched: ${apkFile.absolutePath}")
             return true
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Install failed", e)
             return false
         }
@@ -242,7 +242,7 @@ class AppUpdater(private val context: Context) {
     /**
      * Check if we have a downloaded APK ready to install
      */
-    fun hasDownloadedUpdate(): Boolean {
+    fun hasnextloadedUpdate(): Boolean {
         val apkFile = getApkFile()
         return apkFile.exists() && apkFile.length() > 1024 * 1024 // at least 1MB
     }
@@ -250,7 +250,7 @@ class AppUpdater(private val context: Context) {
     /**
      * Get the version of the downloaded APK (from marker file)
      */
-    fun getDownloadedVersion(): String? {
+    fun getnextloadedVersion(): String? {
         if (downloadedVersion != null) return downloadedVersion
         val marker = getVersionMarkerFile()
         if (!marker.exists()) return null
@@ -261,15 +261,15 @@ class AppUpdater(private val context: Context) {
     /**
      * Delete cached APK and marker
      */
-    fun clearDownloadedUpdate() {
+    fun clearnextloadedUpdate() {
         try {
             getApkFile().delete()
             getVersionMarkerFile().delete()
             downloadedVersion = null
-            _downloadState.value = DownloadState.IDLE
+            _downloadState.value = nextloadState.IDLE
             _downloadProgress.value = 0
             Log.d(TAG, "Cleared cached APK")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to clear cache", e)
         }
     }
@@ -291,9 +291,9 @@ class AppUpdater(private val context: Context) {
      */
     fun getCurrentVersion(): String {
         return try {
-            val info = context.packageManager.getPackageInfo(context.packageName, 0)
+            val info = context.packagemanager.getPackageInfo(context.packageName, 0)
             info.versionName ?: "0.0.0"
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (e: Packagemanager.NamenotFoundexception) {
             "0.0.0"
         }
     }
@@ -301,20 +301,20 @@ class AppUpdater(private val context: Context) {
     /**
      * Compare semantic versions (e.g. "1.0.3" > "1.0.2")
      */
-    fun isNewerVersion(latest: String, current: String): Boolean {
+    fun isnewerVersion(latest: String, current: String): Boolean {
         try {
-            val latestParts = latest.split(".").map { it.toIntOrNull() ?: 0 }
-            val currentParts = current.split(".").map { it.toIntOrNull() ?: 0 }
+            val latestParts = latest.split(".").map { it.tointorNull() ?: 0 }
+            val currentParts = current.split(".").map { it.tointorNull() ?: 0 }
 
             val maxLen = maxOf(latestParts.size, currentParts.size)
             for (i in 0 until maxLen) {
-                val l = latestParts.getOrElse(i) { 0 }
-                val c = currentParts.getOrElse(i) { 0 }
+                val l = latestParts.getorElse(i) { 0 }
+                val c = currentParts.getorElse(i) { 0 }
                 if (l > c) return true
                 if (l < c) return false
             }
             return false
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.w(TAG, "Version compare failed: $latest vs $current", e)
             return false
         }

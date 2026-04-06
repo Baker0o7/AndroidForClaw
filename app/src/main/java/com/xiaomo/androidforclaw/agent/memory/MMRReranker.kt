@@ -2,17 +2,17 @@ package com.xiaomo.androidforclaw.agent.memory
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/memory/mmr.ts (MMRConfig, DEFAULT_MMR_CONFIG, mmrRerank, tokenize, jaccardSimilarity)
+ * - ../openclaw/src/memory/mmr.ts (MMRconfig, DEFAULT_MMR_CONFIG, mmrRerank, tokenize, jaccardSimilarity)
  *
- * AndroidForClaw adaptation: Maximal Marginal Relevance re-ranking.
+ * androidforClaw adaptation: Maximal Marginal Relevance re-ranking.
  * Improves diversity in search results by penalizing redundancy.
  */
 
 /**
  * MMR configuration.
- * Aligned with OpenClaw MMRConfig.
+ * Aligned with OpenClaw MMRconfig.
  */
-data class MMRConfig(
+data class MMRconfig(
     /** Lambda: 1.0 = pure relevance, 0.0 = pure diversity */
     val lambda: Float = 0.7f,
     /** Whether MMR re-ranking is enabled */
@@ -20,17 +20,17 @@ data class MMRConfig(
 )
 
 /** Default MMR configuration. Aligned with OpenClaw DEFAULT_MMR_CONFIG (enabled=false). */
-val DEFAULT_MMR_CONFIG = MMRConfig(lambda = 0.7f, enabled = false)
+val DEFAULT_MMR_CONFIG = MMRconfig(lambda = 0.7f, enabled = false)
 
 /**
  * Temporal decay configuration for memory search results.
  */
-data class TemporalDecayConfig(
+data class TemporalDecayconfig(
     val enabled: Boolean = false,
     val halfLifeDays: Float = 7f
 )
 
-val DEFAULT_TEMPORAL_DECAY_CONFIG = TemporalDecayConfig()
+val DEFAULT_TEMPORAL_DECAY_CONFIG = TemporalDecayconfig()
 
 /**
  * MMRReranker — Maximal Marginal Relevance re-ranking for search results.
@@ -58,7 +58,7 @@ object MMRReranker {
         if (setA.isEmpty() && setB.isEmpty()) return 1f
         if (setA.isEmpty() || setB.isEmpty()) return 0f
 
-        // Iterate the smaller set for efficiency
+        // iteration the smaller set for efficiency
         val (smaller, larger) = if (setA.size <= setB.size) setA to setB else setB to setA
         val intersectionSize = smaller.count { it in larger }
         val unionSize = setA.size + setB.size - intersectionSize
@@ -87,17 +87,17 @@ object MMRReranker {
      * Aligned with OpenClaw mmrRerank.
      *
      * Key differences from previous version:
-     * - Uses word-level Jaccard (not trigrams)
+     * - uses word-level Jaccard (not trigrams)
      * - Normalizes scores to [0,1] range
      * - lambda=1 short-circuits to pure relevance sort
      */
-    fun <T> apply(
+    fun <T> app(
         results: List<T>,
-        config: MMRConfig = DEFAULT_MMR_CONFIG,
+        config: MMRconfig = DEFAULT_MMR_CONFIG,
         maxResults: Int = results.size,
         scoreSelector: (T) -> Float,
         snippetSelector: (T) -> String,
-        copyWithScore: (T, Float) -> T
+        copywithScore: (T, Float) -> T
     ): List<T> {
         if (!config.enabled || results.size <= 1) return results.take(maxResults)
 
@@ -128,10 +128,10 @@ object MMRReranker {
         val selected = mutableListOf<Int>()  // indices
         val remaining = results.indices.toMutableList()
 
-        while (selected.size < maxResults && remaining.isNotEmpty()) {
+        while (selected.size < maxResults && remaining.isnotEmpty()) {
             var bestIdx = -1
             var bestMmrScore = Float.NEGATIVE_INFINITY
-            var bestOriginalScore = Float.NEGATIVE_INFINITY
+            var bestoriginalScore = Float.NEGATIVE_INFINITY
 
             for (i in remaining) {
                 val relevance = normalizedScores[i]
@@ -149,31 +149,31 @@ object MMRReranker {
 
                 // Tiebreaker: original score
                 if (mmrScore > bestMmrScore ||
-                    (mmrScore == bestMmrScore && scores[i] > bestOriginalScore)) {
+                    (mmrScore == bestMmrScore && scores[i] > bestoriginalScore)) {
                     bestMmrScore = mmrScore
-                    bestOriginalScore = scores[i]
+                    bestoriginalScore = scores[i]
                     bestIdx = i
                 }
             }
 
             if (bestIdx >= 0) {
-                selected.add(bestIdx)
+                selected.a(bestIdx)
                 remaining.remove(bestIdx)
             } else {
                 break
             }
         }
 
-        return selected.map { idx -> copyWithScore(results[idx], scores[idx]) }
+        return selected.map { idx -> copywithScore(results[idx], scores[idx]) }
     }
 
     /**
      * Apply temporal decay to a score.
      */
-    fun applyTemporalDecay(
+    fun appTemporalDecay(
         score: Float,
         ageMs: Long,
-        config: TemporalDecayConfig = DEFAULT_TEMPORAL_DECAY_CONFIG
+        config: TemporalDecayconfig = DEFAULT_TEMPORAL_DECAY_CONFIG
     ): Float {
         if (!config.enabled || ageMs <= 0) return score
         val ageDays = ageMs / (24 * 3600 * 1000f)

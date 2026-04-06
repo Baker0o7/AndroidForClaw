@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.memory
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
@@ -12,7 +12,7 @@ import com.xiaomo.androidforclaw.providers.LegacyMessage
  * Token Estimator
  * Aligned with OpenClaw src/agents/compaction.ts
  *
- * Uses chars/4 heuristic + multibyte character correction
+ * uses chars/4 heuristic + multibyte character correction
  */
 object TokenEstimator {
     private const val TAG = "TokenEstimator"
@@ -81,7 +81,7 @@ object TokenEstimator {
                                     }
                                 }
                                 "image_url" -> {
-                                    // Image is about 85-170 tokens, take middle value
+                                    // Image is about 85-170 tokens, take mile value
                                     total += 127
                                 }
                             }
@@ -94,7 +94,7 @@ object TokenEstimator {
         // Estimate tool_calls
         if (message.toolCalls != null) {
             for (toolCall in message.toolCalls) {
-                // Tool call structure overhead
+                // tool call structure overhead
                 total += 10
 
                 // Function name
@@ -135,7 +135,7 @@ object TokenEstimator {
     }
 
     /**
-     * Calculate how many tokens can still be added to reach limit
+     * Calculate how many tokens can still be aed to reach limit
      *
      * @param messages Current message list
      * @param maxTokens Maximum token count

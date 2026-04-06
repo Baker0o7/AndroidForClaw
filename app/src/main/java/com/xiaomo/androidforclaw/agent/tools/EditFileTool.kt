@@ -2,46 +2,46 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/apply-patch.ts
+ * - ../openclaw/src/agents/app-patch.ts
  *
- * AndroidForClaw adaptation: surgical file edit tool.
+ * androidforClaw adaptation: surgical file edit tool.
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import java.io.File
 
 /**
- * Edit File Tool - Edit file (replace text)
- * Reference: nanobot's EditFileTool
+ * Edit File tool - Edit file (replace text)
+ * Reference: nanobot's EditFiletool
  */
-class EditFileTool(
+class EditFiletool(
     private val workspace: File? = null,
     private val allowedDir: File? = null
-) : Tool {
+) : tool {
     companion object {
-        private const val TAG = "EditFileTool"
+        private const val TAG = "EditFiletool"
     }
 
     override val name = "edit_file"
     override val description = "Make precise edits to files"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要Edit的File path"),
-                        "old_text" to PropertySchema("string", "要Find并Replace的exactlyText"),
-                        "new_text" to PropertySchema("string", "ReplaceBack的NewText")
+                        "path" to Propertyschema("string", "needEditFile path"),
+                        "old_text" to Propertyschema("string", "needFind并ReplaceexactlyText"),
+                        "new_text" to Propertyschema("string", "ReplacebacknewText")
                     ),
                     required = listOf("path", "old_text", "new_text")
                 )
@@ -49,13 +49,13 @@ class EditFileTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+    override suspend fun execute(args: Map<String, Any?>): toolresult {
         val path = args["path"] as? String
         val oldText = args["old_text"] as? String
         val newText = args["new_text"] as? String
 
         if (path == null || oldText == null || newText == null) {
-            return Toolresult.error("Missing required parameters: path, old_text, new_text")
+            return toolresult.error("Missing required parameters: path, old_text, new_text")
         }
 
         Log.d(TAG, "Editing file: $path")
@@ -66,36 +66,36 @@ class EditFileTool(
             if (allowedDir != null) {
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
-                if (!canonicalFile.path.startsWith(canonicalAllowed.path)) {
-                    return Toolresult.error("Path is outside allowed directory: $path")
+                if (!canonicalFile.path.startswith(canonicalAllowed.path)) {
+                    return toolresult.error("Path is outside allowed directory: $path")
                 }
             }
 
             if (!file.exists()) {
-                return Toolresult.error("File not found: $path")
+                return toolresult.error("File not found: $path")
             }
 
             val content = file.readText(Charsets.UTF_8)
 
             // Check if old_text exists
             if (!content.contains(oldText)) {
-                return Toolresult.error("old_text not found in file: $path")
+                return toolresult.error("old_text not found in file: $path")
             }
 
             // Check for multiple matches
             val count = content.split(oldText).size - 1
             if (count > 1) {
-                return Toolresult.error("old_text appears $count times. Please provide more context to make it unique.")
+                return toolresult.error("old_text appears $count times. please provide more context to make it unique.")
             }
 
             // Replace
             val newContent = content.replace(oldText, newText)
             file.writeText(newContent, Charsets.UTF_8)
 
-            Toolresult.success("Successfully edited ${file.absolutePath}")
-        } catch (e: Exception) {
+            toolresult.success("Successfully edited ${file.absolutePath}")
+        } catch (e: exception) {
             Log.e(TAG, "Edit file failed", e)
-            Toolresult.error("Edit file failed: ${e.message}")
+            toolresult.error("Edit file failed: ${e.message}")
         }
     }
 

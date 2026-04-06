@@ -3,9 +3,9 @@ package com.xiaomo.androidforclaw.security
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/security/safe-regex.ts
- *   (compileSafeRegex, compileSafeRegexDetailed, hasNestedRepetition, testRegexWithBoundedInput)
+ *   (compileSafeRegex, compileSafeRegexDetailed, hasNestedRepetition, testRegexwithBoundedInput)
  *
- * AndroidForClaw adaptation: safe regex compilation with ReDoS protection.
+ * androidforClaw adaptation: safe regex compilation with ReDoS protection.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
@@ -51,7 +51,7 @@ object SafeRegex {
      * Check if a regex source has nested repetition (ReDoS-prone).
      * Aligned with OpenClaw hasNestedRepetition.
      *
-     * Uses a stack-based parser that tracks:
+     * uses a stack-based parser that tracks:
      * - Whether a group contains a quantifier
      * - Whether alternation branches have different lengths (ambiguous alternation)
      * - Nested quantifier detection: group with quantifier followed by outer quantifier
@@ -67,7 +67,7 @@ object SafeRegex {
         )
 
         val stack = ArrayDeque<Frame>()
-        stack.addLast(Frame())  // root frame
+        stack.aLast(Frame())  // root frame
 
         var i = 0
         while (i < source.length) {
@@ -92,7 +92,7 @@ object SafeRegex {
                     frame.branchMaxLength++
                 }
                 c == '(' -> {
-                    stack.addLast(Frame())
+                    stack.aLast(Frame())
                 }
                 c == ')' -> {
                     if (stack.size <= 1) { i++; continue }
@@ -192,12 +192,12 @@ object SafeRegex {
             else -> {
                 try {
                     val options = mutableSetOf<RegexOption>()
-                    if ('i' in flags) options.add(RegexOption.IGNORE_CASE)
-                    if ('m' in flags) options.add(RegexOption.MULTILINE)
-                    if ('s' in flags) options.add(RegexOption.DOT_MATCHES_ALL)
+                    if ('i' in flags) options.a(RegexOption.IGNORE_CASE)
+                    if ('m' in flags) options.a(RegexOption.MULTILINE)
+                    if ('s' in flags) options.a(RegexOption.DOT_MATCHES_ALL)
                     val regex = Regex(trimmed, options)
                     SafeRegexCompileResult(regex, trimmed, flags, null)
-                } catch (e: Exception) {
+                } catch (e: exception) {
                     Log.w(TAG, "Invalid regex: $trimmed — ${e.message}")
                     SafeRegexCompileResult(null, trimmed, flags, SafeRegexRejectReason.INVALID_REGEX)
                 }
@@ -221,9 +221,9 @@ object SafeRegex {
 
     /**
      * Test regex against bounded input.
-     * Aligned with OpenClaw testRegexWithBoundedInput.
+     * Aligned with OpenClaw testRegexwithBoundedInput.
      */
-    fun testWithBoundedInput(
+    fun testwithBoundedInput(
         regex: Regex,
         input: String,
         maxWindow: Int = TEST_WINDOW

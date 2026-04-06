@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-payloads.ts (legacy)
+ * - ../openclaw/src/agents/pi-embeed-payloads.ts (legacy)
  */
 
 
@@ -16,14 +16,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 
 /**
- * Legacy LLM API Provider - OpenAI 兼容格式
- * Uses /v1/chat/completions endpoint
+ * Legacy LLM API provider - OpenAI 兼容format
+ * uses /v1/chat/completions endpoint
  * Supports standard OpenAI function calling format
  */
-class LegacyProviderOpenAI(
+class LegacyproviderOpenAI(
     private val apiKey: String,
     private val apiBase: String = "https://openrouter.ai/api/v1",
     private val providerId: String = "openrouter",
@@ -31,7 +31,7 @@ class LegacyProviderOpenAI(
     private val customHeaders: Map<String, String>? = null  // Custom headers
 ) {
     companion object {
-        private const val TAG = "LegacyProviderOpenAI"
+        private const val TAG = "LegacyproviderOpenAI"
         private const val DEFAULT_TIMEOUT_SECONDS = 300L
     }
 
@@ -42,20 +42,20 @@ class LegacyProviderOpenAI(
         .build()
 
     private val gson: Gson = GsonBuilder()
-        .disableHtmlEscaping()  // 避免转义 HTML 字符
+        .disableHtmlEscaping()  // 避免转义 HTML characters
         .serializeNulls()        // Serialize null Value
         .create()
 
     /**
-     * sendChatRequest (OpenAI Chat Completions API 格式)
+     * sendChatRequest (OpenAI Chat Completions API format)
      */
     suspend fun chat(
         messages: List<LegacyMessage>,
-        tools: List<ToolDefinition>? = null,
+        tools: List<toolDefinition>? = null,
         model: String = "mimo-v2-flash",
         maxTokens: Int = 4096,
         temperature: Double = 0.7
-    ): LegacyResponse = withContext(Dispatchers.IO) {
+    ): LegacyResponse = withcontext(Dispatchers.IO) {
 
         // Build OpenAI format request
         val requestBody = OpenAIChatRequest(
@@ -63,21 +63,21 @@ class LegacyProviderOpenAI(
             messages = messages.map { convertToOpenAIMessage(it) },
             maxTokens = maxTokens,
             temperature = temperature,
-            tools = tools?.map { convertToolToOpenAIFormat(it) },
-            toolChoice = if (tools != null && tools.isNotEmpty()) "auto" else null
+            tools = tools?.map { converttoolToOpenAIformat(it) },
+            toolChoice = if (tools != null && tools.isnotEmpty()) "auto" else null
         )
 
         val jsonBody = normalizeOpenAiTokenField(model, gson.toJson(requestBody))
         val endpoint = "$apiBase/chat/completions"
         Log.d(TAG, "Request to $endpoint")
-        Log.d(TAG, "Model: $model")
+        Log.d(TAG, "model: $model")
         Log.d(TAG, "Messages: ${messages.size}")
-        Log.d(TAG, "Tools: ${tools?.size ?: 0}")
+        Log.d(TAG, "tools: ${tools?.size ?: 0}")
 
         // Debug: output tools JSON
-        if (tools != null && tools.isNotEmpty()) {
-            val toolsJson = gson.toJson(tools.map { convertToolToOpenAIFormat(it) })
-            Log.d(TAG, "Tools JSON (first 500 chars): ${toolsJson.take(500)}")
+        if (tools != null && tools.isnotEmpty()) {
+            val toolsJson = gson.toJson(tools.map { converttoolToOpenAIformat(it) })
+            Log.d(TAG, "tools JSON (first 500 chars): ${toolsJson.take(500)}")
         }
 
         Log.d(TAG, "authHeader: $authHeader")
@@ -87,23 +87,23 @@ class LegacyProviderOpenAI(
         val requestBuilder = Request.Builder()
             .url(endpoint)
             .post(jsonBody.toRequestBody("application/json".toMediaType()))
-            .addHeader("Content-Type", "application/json")
-            .addHeader("X-Model-Provider-ID", providerId)
+            .aHeader("Content-Type", "application/json")
+            .aHeader("X-model-provider-ID", providerId)
 
         // Choose authentication method based on authHeader config
         if (authHeader) {
-            // Use Authorization: Bearer <token>
+            // use Authorization: Bearer <token>
             Log.d(TAG, "Using Authorization: Bearer header")
-            requestBuilder.addHeader("Authorization", "Bearer $apiKey")
+            requestBuilder.aHeader("Authorization", "Bearer $apiKey")
         } else {
-            // Use api-key header
+            // use api-key header
             Log.d(TAG, "Using api-key header")
-            requestBuilder.addHeader("api-key", apiKey)
+            requestBuilder.aHeader("api-key", apiKey)
         }
 
-        // Add custom headers
+        // A custom headers
         customHeaders?.forEach { (key, value) ->
-            requestBuilder.addHeader(key, value)
+            requestBuilder.aHeader(key, value)
         }
 
         val request = requestBuilder.build()
@@ -111,40 +111,40 @@ class LegacyProviderOpenAI(
         try {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string()
-                ?: throw LLMException("Empty response from Legacy LLM API")
+                ?: throw LLMexception("Empty response from Legacy LLM API")
 
             if (!response.isSuccessful) {
                 Log.e(TAG, "API Error: $responseBody")
-                throw LLMException("HTTP ${response.code}: $responseBody")
+                throw LLMexception("HTTP ${response.code}: $responseBody")
             }
 
             // Parse OpenAI response
             val openAIResponse = gson.fromJson(responseBody, OpenAIChatResponse::class.java)
-            Log.d(TAG, "Response received: ${openAIResponse.choices.firstOrNull()?.finishReason}")
+            Log.d(TAG, "Response received: ${openAIResponse.choices.firstorNull()?.finishReason}")
 
-            // Convert回 LegacyResponse 格式
-            convertFromOpenAIResponse(openAIResponse)
+            // Convertreturn LegacyResponse format
+            convertfromOpenAIResponse(openAIResponse)
 
-        } catch (e: LLMException) {
+        } catch (e: LLMexception) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Request failed", e)
-            throw LLMException("Network error: ${e.message}", cause = e)
+            throw LLMexception("Network error: ${e.message}", cause = e)
         }
     }
 
     private fun normalizeOpenAiTokenField(model: String, jsonBody: String): String {
         val modelIdLower = model.lowercase()
-        val requiresMaxCompletionTokens = modelIdLower.startsWith("gpt-5") ||
-            modelIdLower.startsWith("o1") ||
-            modelIdLower.startsWith("o3") ||
-            modelIdLower.startsWith("gpt-4.1")
+        val requiresMaxCompletionTokens = modelIdLower.startswith("gpt-5") ||
+            modelIdLower.startswith("o1") ||
+            modelIdLower.startswith("o3") ||
+            modelIdLower.startswith("gpt-4.1")
         if (!requiresMaxCompletionTokens) return jsonBody
         return jsonBody.replace("\"max_tokens\":", "\"max_completion_tokens\":")
     }
 
     /**
-     * ConvertMessage到 OpenAI 格式
+     * ConvertMessageto OpenAI format
      */
     private fun convertToOpenAIMessage(msg: LegacyMessage): OpenAIMessage {
         return when (msg.role) {
@@ -161,7 +161,7 @@ class LegacyProviderOpenAI(
                         role = "assistant",
                         content = msg.content?.toString(),
                         toolCalls = msg.toolCalls.map { tc ->
-                            OpenAIToolCall(
+                            OpenAItoolCall(
                                 id = tc.id,
                                 type = tc.type,
                                 function = OpenAIFunctionCall(
@@ -179,7 +179,7 @@ class LegacyProviderOpenAI(
                 }
             }
             "tool" -> {
-                // Tool result message
+                // tool result message
                 OpenAIMessage(
                     role = "tool",
                     content = msg.content?.toString(),
@@ -196,10 +196,10 @@ class LegacyProviderOpenAI(
     }
 
     /**
-     * ConvertTool definition到 OpenAI 格式
+     * Converttool definitionto OpenAI format
      */
-    private fun convertToolToOpenAIFormat(tool: ToolDefinition): OpenAITool {
-        return OpenAITool(
+    private fun converttoolToOpenAIformat(tool: toolDefinition): OpenAItool {
+        return OpenAItool(
             type = "function",
             function = OpenAIFunctionDef(
                 name = tool.function.name,
@@ -210,15 +210,15 @@ class LegacyProviderOpenAI(
     }
 
     /**
-     * Convert OpenAI Response到 LegacyResponse 格式
+     * Convert OpenAI Responseto LegacyResponse format
      */
-    private fun convertFromOpenAIResponse(response: OpenAIChatResponse): LegacyResponse {
+    private fun convertfromOpenAIResponse(response: OpenAIChatResponse): LegacyResponse {
         val choices = response.choices.map { choice ->
             val message = choice.message
 
             // Convert tool calls
             val toolCalls = message.toolCalls?.map { tc ->
-                LegacyToolCall(
+                LegacytoolCall(
                     id = tc.id,
                     type = tc.type,
                     function = LegacyFunction(
@@ -253,7 +253,7 @@ class LegacyProviderOpenAI(
     }
 
     /**
-     * 简化的ChatMethod
+     * 简化ChatMethod
      */
     suspend fun simpleChat(
         userMessage: String,
@@ -262,19 +262,19 @@ class LegacyProviderOpenAI(
         val messages = mutableListOf<LegacyMessage>()
 
         if (systemPrompt != null) {
-            messages.add(LegacyMessage("system", systemPrompt))
+            messages.a(LegacyMessage("system", systemPrompt))
         }
 
-        messages.add(LegacyMessage("user", userMessage))
+        messages.a(LegacyMessage("user", userMessage))
 
         val response = chat(messages = messages)
 
-        return response.choices.firstOrNull()?.message?.content
+        return response.choices.firstorNull()?.message?.content
             ?: "No response from model"
     }
 }
 
-// ============= OpenAI API Data Models =============
+// ============= OpenAI API Data models =============
 
 data class OpenAIChatRequest(
     val model: String,
@@ -282,7 +282,7 @@ data class OpenAIChatRequest(
     @SerializedName("max_tokens")
     val maxTokens: Int = 4096,
     val temperature: Double = 0.7,
-    val tools: List<OpenAITool>? = null,
+    val tools: List<OpenAItool>? = null,
     @SerializedName("tool_choice")
     val toolChoice: String? = null  // "auto" | "none" | {"type": "function", "function": {"name": "..."}}
 )
@@ -291,12 +291,12 @@ data class OpenAIMessage(
     val role: String,
     val content: String? = null,
     @SerializedName("tool_calls")
-    val toolCalls: List<OpenAIToolCall>? = null,
+    val toolCalls: List<OpenAItoolCall>? = null,
     @SerializedName("tool_call_id")
     val toolCallId: String? = null
 )
 
-data class OpenAIToolCall(
+data class OpenAItoolCall(
     val id: String,
     val type: String,
     val function: OpenAIFunctionCall
@@ -307,7 +307,7 @@ data class OpenAIFunctionCall(
     val arguments: String
 )
 
-data class OpenAITool(
+data class OpenAItool(
     val type: String,  // "function"
     val function: OpenAIFunctionDef
 )
@@ -315,7 +315,7 @@ data class OpenAITool(
 data class OpenAIFunctionDef(
     val name: String,
     val description: String,
-    val parameters: ParametersSchema
+    val parameters: Parametersschema
 )
 
 data class OpenAIChatResponse(

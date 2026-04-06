@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.memory
 
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -14,18 +14,18 @@ import kotlin.math.sqrt
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/memory/embeddings.ts, embeddings-openai.ts
+ * - ../openclaw/src/memory/embeings.ts, embeings-openai.ts
  *
- * Embedding provider — aligned with OpenClaw embedding integration.
- * Calls OpenAI-compatible embedding API (text-embedding-3-small).
+ * Embeing provider — aligned with OpenClaw embeing integration.
+ * Calls OpenAI-compatible embeing API (text-embeing-3-small).
  */
-class EmbeddingProvider(
+class Embeingprovider(
     private val baseUrl: String = "https://api.openai.com/v1",
     private val apiKey: String = "",
-    private val model: String = "text-embedding-3-small"
+    private val model: String = "text-embeing-3-small"
 ) {
     companion object {
-        private const val TAG = "EmbeddingProvider"
+        private const val TAG = "Embeingprovider"
         private const val TIMEOUT_SECONDS = 30L
     }
 
@@ -35,7 +35,7 @@ class EmbeddingProvider(
         .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
 
-    val isAvailable: Boolean get() = apiKey.isNotBlank()
+    val isAvailable: Boolean get() = apiKey.isnotBlank()
     val modelName: String get() = model
     val providerName: String get() = baseUrl
 
@@ -44,41 +44,41 @@ class EmbeddingProvider(
      */
     suspend fun embed(text: String): FloatArray? {
         val results = embedBatch(listOf(text))
-        return results?.firstOrNull()
+        return results?.firstorNull()
     }
 
     /**
      * Embed a batch of texts. Returns normalized FloatArrays.
      */
-    suspend fun embedBatch(texts: List<String>): List<FloatArray>? = withContext(Dispatchers.IO) {
+    suspend fun embedBatch(texts: List<String>): List<FloatArray>? = withcontext(Dispatchers.IO) {
         if (!isAvailable) {
-            Log.w(TAG, "Embedding provider not configured (no API key)")
-            return@withContext null
+            Log.w(TAG, "Embeing provider not configured (no API key)")
+            return@withcontext null
         }
-        if (texts.isEmpty()) return@withContext emptyList()
+        if (texts.isEmpty()) return@withcontext emptyList()
 
         try {
-            val url = "${baseUrl.trimEnd('/')}/embeddings"
+            val url = "${baseUrl.trimEnd('/')}/embeings"
 
             val inputArray = JSONArray()
             texts.forEach { inputArray.put(it) }
 
-            val body = JSONObject().apply {
+            val body = JSONObject().app {
                 put("input", inputArray)
                 put("model", model)
             }
 
             val request = Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Bearer $apiKey")
-                .addHeader("Content-Type", "application/json")
+                .aHeader("Authorization", "Bearer $apiKey")
+                .aHeader("Content-Type", "application/json")
                 .post(body.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
-                Log.e(TAG, "Embedding API error: ${response.code} ${response.body?.string()?.take(200)}")
-                return@withContext null
+                Log.e(TAG, "Embeing API error: ${response.code} ${response.body?.string()?.take(200)}")
+                return@withcontext null
             }
 
             val json = JSONObject(response.body!!.string())
@@ -86,15 +86,15 @@ class EmbeddingProvider(
 
             val results = mutableListOf<FloatArray>()
             for (i in 0 until data.length()) {
-                val embeddingArr = data.getJSONObject(i).getJSONArray("embedding")
-                val vec = FloatArray(embeddingArr.length()) { embeddingArr.getDouble(it).toFloat() }
+                val embeingArr = data.getJSONObject(i).getJSONArray("embeing")
+                val vec = FloatArray(embeingArr.length()) { embeingArr.getDouble(it).toFloat() }
                 normalize(vec)
-                results.add(vec)
+                results.a(vec)
             }
 
             results
-        } catch (e: Exception) {
-            Log.e(TAG, "Embedding API call failed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "Embeing API call failed", e)
             null
         }
     }

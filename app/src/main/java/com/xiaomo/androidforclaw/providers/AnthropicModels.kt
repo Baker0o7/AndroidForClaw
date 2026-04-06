@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
@@ -10,10 +10,10 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Anthropic Messages API Data模型
- * For Legacy Anthropic API compatible interface
+ * for Legacy Anthropic API compatible interface
  */
 
-// ============= Request Models (Anthropic Format) =============
+// ============= Request models (Anthropic format) =============
 
 data class AnthropicRequest(
     val model: String,
@@ -21,13 +21,13 @@ data class AnthropicRequest(
     @SerializedName("max_tokens")
     val maxTokens: Int = 4096,
     val temperature: Double = 0.1,
-    val tools: List<AnthropicTool>? = null,
+    val tools: List<Anthropictool>? = null,
     val system: String? = null,  // Anthropic system is a separate field
     // Extended Thinking support
-    val thinking: ThinkingConfig? = null
+    val thinking: Thinkingconfig? = null
 )
 
-data class ThinkingConfig(
+data class Thinkingconfig(
     val type: String = "enabled",
     @SerializedName("budget_tokens")
     val budgetTokens: Int = 10000
@@ -41,33 +41,33 @@ data class AnthropicMessage(
 data class AnthropicContentBlock(
     val type: String,  // "text", "image", "tool_use", "tool_result"
     val text: String? = null,
-    // For tool_use
+    // for tool_use
     val id: String? = null,
     val name: String? = null,
     val input: Map<String, Any?>? = null,
-    // For tool_result
+    // for tool_result
     @SerializedName("tool_use_id")
-    val toolUseId: String? = null,
+    val tooluseId: String? = null,
     val content: Any? = null,  // String or List
-    // For image
+    // for image
     val source: ImageSource? = null
 )
 
 data class ImageSource(
     val type: String = "base64",
     @SerializedName("media_type")
-    val mediaType: String,  // "image/jpeg", "image/png", etc.
+    val media type: String,  // "image/jpeg", "image/png", etc.
     val data: String  // base64 encoded
 )
 
-data class AnthropicTool(
+data class Anthropictool(
     val name: String,
     val description: String,
     @SerializedName("input_schema")
-    val inputSchema: InputSchema
+    val inputschema: Inputschema
 )
 
-data class InputSchema(
+data class Inputschema(
     val type: String = "object",
     val properties: Map<String, PropertyDef>,
     val required: List<String>? = null
@@ -79,7 +79,7 @@ data class PropertyDef(
     val enum: List<String>? = null
 )
 
-// ============= Response Models (Anthropic Format) =============
+// ============= Response models (Anthropic format) =============
 
 data class AnthropicResponse(
     val id: String,
@@ -96,9 +96,9 @@ data class AnthropicResponse(
 
 data class AnthropicResponseContent(
     val type: String,  // "text" or "tool_use"
-    // For text
+    // for text
     val text: String? = null,
-    // For tool_use
+    // for tool_use
     val id: String? = null,
     val name: String? = null,
     val input: Map<String, Any?>? = null
@@ -115,7 +115,7 @@ data class AnthropicUsage(
     val cacheReadInputTokens: Int? = null
 )
 
-// ============= Error Models =============
+// ============= Error models =============
 
 data class AnthropicError(
     val type: String = "error",

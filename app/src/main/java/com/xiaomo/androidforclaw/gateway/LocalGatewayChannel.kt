@@ -1,16 +1,16 @@
 package com.xiaomo.androidforclaw.gateway
 
-import com.xiaomo.base.IGatewayChannel
+import com.xiaomo.base.IGatewaychannel
 
 /**
- * 本地ProcessInside gateway channel, 直接call GatewayController, None需 WebSocket. 
+ * 本地Processinside gateway channel, 直接call GatewayController, Noneneed WebSocket. 
  *
- * 用于 AndroidForClaw 自身(ChatController 和 GatewayController 在同一Process中). 
- * 远程 OpenClaw gateway Connect仍use GatewaySession(WebSocket Implementation). 
+ * 用于 androidforClaw 自身(ChatController and GatewayController in同oneProcess中). 
+ * 远程 OpenClaw gateway Connect仍use Gatewaysession(WebSocket implementation). 
  */
-class LocalGatewayChannel(private val controller: GatewayController) : IGatewayChannel {
+class LocalGatewaychannel(private val controller: GatewayController) : IGatewaychannel {
 
-    /** NodeRuntime Register的EventCallback, GatewayController Broadcast时直接call, 不走 WebSocket.  */
+    /** NodeRuntime RegisterEventCallback, GatewayController Broadcasthour直接call, not走 WebSocket.  */
     @Volatile
     private var eventListener: ((event: String, payloadJson: String) -> Unit)? = null
 

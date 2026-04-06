@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -30,7 +30,7 @@ object BuildTree {
                     "${nodeInfo.viewIdResourceName ?: ""}|" +
                     "${nodeInfo.text ?: ""}|" +
                     "${nodeInfo.contentDescription ?: ""}"
-        } catch (e: Exception) {
+        } catch (e: exception) {
             null
         }
     }
@@ -39,11 +39,11 @@ object BuildTree {
      * Extract node type (such as button, textView)
      */
     private fun getTreeDisplayType(viewNode: ViewNode): String {
-        return viewNode.className?.substringAfterLast('.') ?: "View"
+        return viewNode.className?.substringafterLast('.') ?: "View"
     }
 
     /**
-     * Append node state info: checked, selected, progress
+     * append node state info: checked, selected, progress
      */
     private fun appendStateInfo(builder: StringBuilder, node: ViewNode, nodeTypeLabel: String) {
         val accessibilityNode = node.node ?: return
@@ -64,7 +64,7 @@ object BuildTree {
                     }
                 }
             }
-        } catch (_: Exception) {
+        } catch (_: exception) {
             // Ignore exception, don't affect main flow
         }
     }
@@ -78,15 +78,15 @@ object BuildTree {
         val nodeType = getTreeDisplayType(node)
         builder.append(indent).append("- [").append(nodeType).append("] ")
         
-        // If text and contentDesc are the same, only output contentDesc
+        // if text and contentDesc are the same, only output contentDesc
         val text = node.text?.trim()
         val contentDesc = node.contentDesc?.trim()
-        val isSame = !text.isNullOrEmpty() && !contentDesc.isNullOrEmpty() && text == contentDesc
+        val isSame = !text.isNullorEmpty() && !contentDesc.isNullorEmpty() && text == contentDesc
         
-        if (!isSame && !text.isNullOrEmpty()) {
+        if (!isSame && !text.isNullorEmpty()) {
             builder.append("text=\"${node.text}\" ")
         }
-        if (!contentDesc.isNullOrEmpty()) {
+        if (!contentDesc.isNullorEmpty()) {
             builder.append("contentDesc=\"${node.contentDesc}\" ")
         }
         
@@ -107,7 +107,7 @@ object BuildTree {
             return true
         }
 
-        return node.text?.matches(Regex("\\d{1,2}:\\d{2}")) == true && node.contentDesc.isNullOrEmpty()
+        return node.text?.matches(Regex("\\d{1,2}:\\d{2}")) == true && node.contentDesc.isNullorEmpty()
     }
 
     private val SYSTEM_STATUS_KEYWORDS = listOf(
@@ -133,11 +133,11 @@ object BuildTree {
             return "(No available data)\n"
         }
         /**
-         * nodeOrder: Record node's sequential index in original list
+         * nodeorder: Record node's sequential index in original list
          * treeNodeMap: Record ViewNode to TreeNode mapping
          * nodeKeyMap: Store node unique identifier to ViewNode mapping
          */
-        val nodeOrder = filteredNodes.withIndex().associate { it.value to it.index }
+        val nodeorder = filteredNodes.withIndex().associate { it.value to it.index }
         val treeNodeMap = mutableMapOf<ViewNode, TreeNode>()
         val nodeKeyMap = mutableMapOf<String, ViewNode>()
 
@@ -159,24 +159,24 @@ object BuildTree {
             val parentKey = getNodeKey(treeNode.viewNode.node?.parent)
             val parentTreeNode = parentKey?.let { nodeKeyMap[it] }?.let { treeNodeMap[it] }
             if (parentTreeNode != null && parentTreeNode !== treeNode) {
-                parentTreeNode.children.add(treeNode)
+                parentTreeNode.children.a(treeNode)
             } else {
-                rootNodes.add(treeNode)
+                rootNodes.a(treeNode)
             }
         }
         /**
          * Node sort rule: original sequential index -> vertical position -> horizontal position
          */
-        val comparator = compareBy<TreeNode> { nodeOrder[it.viewNode] ?: Int.MAX_VALUE }
+        val comparator = compareBy<TreeNode> { nodeorder[it.viewNode] ?: Int.MAX_VALUE }
             .thenBy { it.viewNode.top }
             .thenBy { it.viewNode.left }
 
         /**
          * Tree traverse output
          */
-        val rootsToProcess = if (rootNodes.isNotEmpty()) rootNodes.distinct() else treeNodeMap.values.distinct()
+        val rootsToProcess = if (rootNodes.isnotEmpty()) rootNodes.distinct() else treeNodeMap.values.distinct()
         val builder = StringBuilder()
-        rootsToProcess.sortedWith(comparator).forEach { appendTreeNode(builder, it, comparator) }
+        rootsToProcess.sortedwith(comparator).forEach { appendTreeNode(builder, it, comparator) }
         /**
          * Result return
          */
@@ -190,7 +190,7 @@ object BuildTree {
      * Recursive output tree structure
      * Step 1: Fold redundant chains
      * Step 2: Skip null leaf containers
-     * Step 3: Format current node
+     * Step 3: format current node
      * Step 4: Filter button duplicate child nodes
      * Step 5: Recursive process child nodes (depth + 1)
      */
@@ -200,23 +200,23 @@ object BuildTree {
             return
         }
         builder.append(formatTreeNodeLine(effectiveNode.viewNode, depth))
-        val remainingChildren = effectiveNode.children.filterNot {
-            shouldBypassButtonChild(effectiveNode.viewNode, it.viewNode)
+        val remainingChildren = effectiveNode.children.filternot {
+            shouldBypassbuttonChild(effectiveNode.viewNode, it.viewNode)
         }
-        remainingChildren.distinct().sortedWith(comparator).forEach {
+        remainingChildren.distinct().sortedwith(comparator).forEach {
             appendTreeNode(builder, it, comparator, depth + 1)
         }
     }
 
     /**
-     * Redundant chain folding: When parent node only has one child node, and they are equivalent or parent is a null node, skip middle layer and show only meaningful node
+     * Redundant chain folding: when parent node only has one child node, and they are equivalent or parent is a null node, skip mile layer and show only meaningful node
      */
     private fun collapseRedundantChain(node: TreeNode): TreeNode {
         var current = node
         while (true) {
-            val singleChild = current.children.singleOrNull() ?: break
-            val isCurrentButton = current.viewNode.className?.lowercase()?.contains("button") == true
-            if (isCurrentButton && shouldBypassButtonChild(current.viewNode, singleChild.viewNode)) {
+            val singleChild = current.children.singleorNull() ?: break
+            val isCurrentbutton = current.viewNode.className?.lowercase()?.contains("button") == true
+            if (isCurrentbutton && shouldBypassbuttonChild(current.viewNode, singleChild.viewNode)) {
                 break
             }
             if (areNodesEquivalent(current.viewNode, singleChild.viewNode) ||
@@ -250,8 +250,8 @@ object BuildTree {
     private fun shouldBypassContainer(container: ViewNode, child: ViewNode): Boolean {
         val isStructural = isStructuralClass(container.className)
         if (!isStructural) return false
-        val containerHasContent = !container.text.isNullOrEmpty() || !container.contentDesc.isNullOrEmpty()
-        val childHasContent = !child.text.isNullOrEmpty() || !child.contentDesc.isNullOrEmpty()
+        val containerHasContent = !container.text.isNullorEmpty() || !container.contentDesc.isNullorEmpty()
+        val childHasContent = !child.text.isNullorEmpty() || !child.contentDesc.isNullorEmpty()
         val childIsStructural = isStructuralClass(child.className)
         return !containerHasContent && (childHasContent || childIsStructural)
     }
@@ -269,7 +269,7 @@ object BuildTree {
     /**
      * Remove textView under button (expressing same meaning), simplify prompt
      */
-    private fun shouldBypassButtonChild(parent: ViewNode, child: ViewNode): Boolean {
+    private fun shouldBypassbuttonChild(parent: ViewNode, child: ViewNode): Boolean {
         val parentClass = parent.className?.lowercase() ?: return false
         if (!parentClass.contains("button")) return false
 
@@ -286,16 +286,16 @@ object BuildTree {
      * Check if should skip null leaf node
      */
     private fun shouldSkipLeafContainer(node: ViewNode, children: List<TreeNode>): Boolean {
-        if (children.isNotEmpty()) return false
+        if (children.isnotEmpty()) return false
         val isStructural = isStructuralClass(node.className)
-        val hasContent = !node.text.isNullOrEmpty() || !node.contentDesc.isNullOrEmpty()
+        val hasContent = !node.text.isNullorEmpty() || !node.contentDesc.isNullorEmpty()
         return isStructural && !hasContent
     }
 
     /**
      * Filter nodes outside screen, only keep nodes inside screen
      */
-    fun isNodeWithinScreen(
+    fun isNodewithinScreen(
         node: ViewNode,
         screenWidth: Int,
         screenHeight: Int,
@@ -307,7 +307,7 @@ object BuildTree {
         return true
     }
 
-    // buildTreeFromImageDetail() has been deleted
+    // buildTreefromImageDetail() has been deleted
     // ImageDetail is old architecture class (deleted), no longer used
-    // New architecture directly uses buildComponentTreeDescription(nodes: List<ViewNode>)
+    // new architecture directly uses buildComponentTreeDescription(nodes: List<ViewNode>)
 }

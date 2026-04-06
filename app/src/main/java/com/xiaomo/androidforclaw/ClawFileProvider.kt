@@ -1,10 +1,10 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw
 
-import androidx.core.content.FileProvider
+import androidx.core.content.Fileprovider
 
-/** Thin subclass so the manifest merger can distinguish this from OpenClaw's FileProvider. */
-class ClawFileProvider : FileProvider()
+/** Thin subclass so the manifest merger can distinguish this from OpenClaw's Fileprovider. */
+class ClawFileprovider : Fileprovider()

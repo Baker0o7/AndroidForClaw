@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Arrowback
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,19 +19,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.R
-import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.config.configLoader
 import kotlinx.coroutines.launch
 
 /**
- * Discord Channel Config页面
+ * Discord channel config页面
  */
-class DiscordChannelActivity : ComponentActivity() {
+class DiscordchannelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                DiscordChannelScreen(
-                    onBack = { finish() }
+                DiscordchannelScreen(
+                    onback = { finish() }
                 )
             }
         }
@@ -40,25 +40,25 @@ class DiscordChannelActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscordChannelScreen(
-    onBack: () -> Unit,
-    context: android.content.Context = androidx.compose.ui.platform.LocalContext.current
+fun DiscordchannelScreen(
+    onback: () -> Unit,
+    context: android.content.context = androidx.compose.ui.platform.Localcontext.current
 ) {
     val scope = rememberCoroutineScope()
-    val configLoader = remember { ConfigLoader(context) }
+    val configLoader = remember { configLoader(context) }
 
-    // LoadConfig
-    val openClawConfig = remember { configLoader.loadOpenClawConfig() }
-    val savedConfig = remember { openClawConfig.channels.discord }
+    // Loadconfig
+    val openClawconfig = remember { configLoader.loadOpenClawconfig() }
+    val savedconfig = remember { openClawconfig.channels.discord }
 
-    // StatusVariable(对齐 Discord Config)
-    var enabled by remember { mutableStateOf(savedConfig?.enabled ?: false) }
-    var token by remember { mutableStateOf(savedConfig?.token ?: "") }
-    var name by remember { mutableStateOf(savedConfig?.name ?: "AndroidForClaw Bot") }
-    var dmPolicy by remember { mutableStateOf(savedConfig?.dm?.policy ?: "pairing") }
-    var groupPolicy by remember { mutableStateOf(savedConfig?.groupPolicy ?: "allowlist") }
-    var replyToMode by remember { mutableStateOf(savedConfig?.replyToMode ?: "off") }
-    var allowFrom by remember { mutableStateOf(savedConfig?.dm?.allowFrom?.joinToString("\n") ?: "") }
+    // StatusVariable(correct齐 Discord config)
+    var enabled by remember { mutableStateOf(savedconfig?.enabled ?: false) }
+    var token by remember { mutableStateOf(savedconfig?.token ?: "") }
+    var name by remember { mutableStateOf(savedconfig?.name ?: "androidforClaw Bot") }
+    var dmPolicy by remember { mutableStateOf(savedconfig?.dm?.policy ?: "pairing") }
+    var groupPolicy by remember { mutableStateOf(savedconfig?.groupPolicy ?: "allowlist") }
+    var replyToMode by remember { mutableStateOf(savedconfig?.replyToMode ?: "off") }
+    var allowfrom by remember { mutableStateOf(savedconfig?.dm?.allowfrom?.joinToString("\n") ?: "") }
 
     var showSaveSuccess by remember { mutableStateOf(false) }
 
@@ -67,40 +67,40 @@ fun DiscordChannelScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.discord_channel_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "Return")
+                    Iconbutton(onClick = onback) {
+                        Icon(Icons.Filled.Arrowback, "Return")
                     }
                 },
                 actions = {
-                    TextButton(
+                    Textbutton(
                         onClick = {
                             scope.launch {
-                                // Read当Front完整Config
-                                val currentConfig = configLoader.loadOpenClawConfig()
+                                // ReadwhenFront完整config
+                                val currentconfig = configLoader.loadOpenClawconfig()
 
-                                // Build Discord Config
-                                val updatedDiscordConfig = com.xiaomo.androidforclaw.config.DiscordChannelConfig(
+                                // Build Discord config
+                                val updatedDiscordconfig = com.xiaomo.androidforclaw.config.Discordchannelconfig(
                                     enabled = enabled,
-                                    token = token.takeIf { it.isNotBlank() },
-                                    name = name.takeIf { it.isNotBlank() },
-                                    dm = com.xiaomo.androidforclaw.config.DmPolicyConfig(
+                                    token = token.takeif { it.isnotBlank() },
+                                    name = name.takeif { it.isnotBlank() },
+                                    dm = com.xiaomo.androidforclaw.config.DmPolicyconfig(
                                         policy = dmPolicy,
-                                        allowFrom = allowFrom.split("\n").filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }
+                                        allowfrom = allowfrom.split("\n").filter { it.isnotBlank() }.takeif { it.isnotEmpty() }
                                     ),
                                     groupPolicy = groupPolicy,
                                     replyToMode = replyToMode
                                 )
 
-                                // Update完整Config
-                                val updatedChannelsConfig = currentConfig.channels.copy(
-                                    discord = updatedDiscordConfig
+                                // Update完整config
+                                val updatedchannelsconfig = currentconfig.channels.copy(
+                                    discord = updatedDiscordconfig
                                 )
-                                val updatedConfig = currentConfig.copy(
-                                    channels = updatedChannelsConfig
+                                val updatedconfig = currentconfig.copy(
+                                    channels = updatedchannelsconfig
                                 )
 
-                                // Save到 openclaw.json
-                                configLoader.saveOpenClawConfig(updatedConfig)
+                                // Saveto openclaw.json
+                                configLoader.saveOpenClawconfig(updatedconfig)
 
                                 showSaveSuccess = true
                             }
@@ -118,37 +118,37 @@ fun DiscordChannelScreen(
                     showSaveSuccess = false
                 }
                 Snackbar(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.paing(16.dp)
                 ) {
-                    Text("Config已Save, NeedRestartapply生效")
+                    Text("configalreadySave, needRestartapp生效")
                 }
             }
         }
-    ) { paddingValues ->
+    ) { paingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
+                .paing(paingValues)
+                .paing(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Enabledd开关
+            // Enable开关
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .paing(16.dp),
+                    horizontalArrangement = Arrangement.Spacebetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Enabledd Discord Channel",
+                            text = "Enable Discord channel",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = "开启BackWill receive Discord Message",
+                            text = "openbackwill receive Discord Message",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -160,9 +160,9 @@ fun DiscordChannelScreen(
                 }
             }
 
-            // 基础Config
+            // 基础config
             Text(
-                text = "基础Config",
+                text = "基础config",
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -179,7 +179,7 @@ fun DiscordChannelScreen(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Bot Name (Optional)") },
-                placeholder = { Text("AndroidForClaw Bot") },
+                placeholder = { Text("androidforClaw Bot") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -203,22 +203,22 @@ fun DiscordChannelScreen(
                 FilterChip(
                     selected = dmPolicy == "pairing",
                     onClick = { dmPolicy = "pairing" },
-                    label = { Text("Pairing - NeedManage员审批 (recommend)") },
+                    label = { Text("Pairing - needManage员审批 (recommend)") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 FilterChip(
                     selected = dmPolicy == "allowlist",
                     onClick = { dmPolicy = "allowlist" },
-                    label = { Text("Allowlist - 仅允许白名单User") },
+                    label = { Text("Allowlist - 仅允许白名单user") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
             if (dmPolicy == "allowlist") {
                 OutlinedTextField(
-                    value = allowFrom,
-                    onValueChange = { allowFrom = it },
-                    label = { Text("白名单User ID (每Row一个)") },
+                    value = allowfrom,
+                    onValueChange = { allowfrom = it },
+                    label = { Text("白名单user ID (每Rowone)") },
                     placeholder = { Text("123456789012345678\n987654321098765432") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -227,9 +227,9 @@ fun DiscordChannelScreen(
                 )
             }
 
-            // Guild (Service器) Policy
+            // Guild (service器) Policy
             Text(
-                text = "Guild (Service器) Policy",
+                text = "Guild (service器) Policy",
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -240,20 +240,20 @@ fun DiscordChannelScreen(
                 FilterChip(
                     selected = groupPolicy == "open",
                     onClick = { groupPolicy = "open" },
-                    label = { Text("Open - acceptAllChannel (需 @提及)") },
+                    label = { Text("Open - acceptAllchannel (need @mentions)") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 FilterChip(
                     selected = groupPolicy == "allowlist",
                     onClick = { groupPolicy = "allowlist" },
-                    label = { Text("Allowlist - 仅允许Config的Channel (recommend)") },
+                    label = { Text("Allowlist - 仅允许configchannel (recommend)") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // 回复Schema
+            // return复schema
             Text(
-                text = "回复Schema",
+                text = "return复schema",
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -264,24 +264,24 @@ fun DiscordChannelScreen(
                 FilterChip(
                     selected = replyToMode == "off",
                     onClick = { replyToMode = "off" },
-                    label = { Text("Off - 不use回复 (recommend)") },
+                    label = { Text("Off - notusereturn复 (recommend)") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 FilterChip(
                     selected = replyToMode == "always",
                     onClick = { replyToMode = "always" },
-                    label = { Text("Always - 总Yesuse回复") },
+                    label = { Text("Always - 总Yesusereturn复") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 FilterChip(
                     selected = replyToMode == "threads",
                     onClick = { replyToMode = "threads" },
-                    label = { Text("Threads - 在Thread中use回复") },
+                    label = { Text("Threads - inThread中usereturn复") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // ConfigHint
+            // configHint
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -289,20 +289,20 @@ fun DiscordChannelScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.paing(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "⚠️ Configillustrate",
+                        text = "[WARN] configillustrate",
                         style = MaterialTheme.typography.titleSmall
                     )
                     Text(
                         text = """
-                            1. Need先在 Discord Developer Portal Create Bot
-                            2. Enabledd MESSAGE CONTENT INTENT (特权 Intent)
+                            1. need先in Discord Developer Portal Create Bot
+                            2. Enable MESSAGE CONTENT INTENT (特权 Intent)
                             3. Get Bot Token 并填入Up方
-                            4. 将 Bot 邀请到YourService器
-                            5. 详细Config参见: extensions/discord/SETUP_GUIDE.md
+                            4. will Bot 邀pleasetoYourservice器
+                            5. 详细config参见: extensions/discord/SETUP_GUIDE.md
                         """.trimIndent(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

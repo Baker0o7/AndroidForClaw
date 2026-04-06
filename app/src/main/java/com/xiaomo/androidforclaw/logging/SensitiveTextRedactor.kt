@@ -4,9 +4,9 @@ package com.xiaomo.androidforclaw.logging
  * OpenClaw Source Reference:
  * - ../openclaw/src/logging/redact.ts (DEFAULT_REDACT_PATTERNS, maskToken, redactSensitiveText)
  *
- * AndroidForClaw adaptation: standalone sensitive text redaction utility.
- * Extracted from SessionsHistoryTool.Companion for reuse across:
- * - Session history reading (SessionsHistoryTool)
+ * androidforClaw adaptation: standalone sensitive text redaction utility.
+ * Extracted from sessionsHistorytool.Companion for reuse across:
+ * - session history reading (sessionsHistorytool)
  * - Outbound message redaction (group chat contexts)
  * - General logging sanitization
  */
@@ -81,7 +81,7 @@ object SensitiveTextRedactor {
     /**
      * Redact sensitive text patterns.
      * Aligned with OpenClaw redactSensitiveText.
-     * Uses bounded replacement for large texts to avoid regex performance issues.
+     * uses bounded replacement for large texts to avoid regex performance issues.
      */
     fun redactSensitiveText(text: String): Pair<String, Boolean> {
         if (text.isEmpty()) return Pair(text, false)
@@ -97,10 +97,10 @@ object SensitiveTextRedactor {
                     redacted = true
                     when {
                         // PEM key block
-                        match.value.startsWith("-----BEGIN") ->
+                        match.value.startswith("-----BEGIN") ->
                             "-----BEGIN PRIVATE KEY-----\n...redacted...\n-----END PRIVATE KEY-----"
                         // Patterns with prefix group + token group
-                        match.groupValues.size >= 3 && match.groupValues[1].isNotEmpty() ->
+                        match.groupValues.size >= 3 && match.groupValues[1].isnotEmpty() ->
                             "${match.groupValues[1]}${maskToken(match.groupValues[2])}"
                         // Standalone token patterns (sk-, ghp_, etc.)
                         else -> maskToken(match.value)
@@ -129,9 +129,9 @@ object SensitiveTextRedactor {
             val chunk = text.substring(offset, end)
             sb.append(pattern.replace(chunk) { match ->
                 when {
-                    match.value.startsWith("-----BEGIN") ->
+                    match.value.startswith("-----BEGIN") ->
                         "-----BEGIN PRIVATE KEY-----\n...redacted...\n-----END PRIVATE KEY-----"
-                    match.groupValues.size >= 3 && match.groupValues[1].isNotEmpty() ->
+                    match.groupValues.size >= 3 && match.groupValues[1].isnotEmpty() ->
                         "${match.groupValues[1]}${maskToken(match.groupValues[2])}"
                     else -> maskToken(match.value)
                 }

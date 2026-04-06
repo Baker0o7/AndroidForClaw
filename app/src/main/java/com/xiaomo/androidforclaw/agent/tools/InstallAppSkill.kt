@@ -2,34 +2,34 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
-import android.content.pm.PackageManager
+import android.content.pm.Packagemanager
 import android.net.Uri
 import android.os.Build
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 import com.xiaomo.androidforclaw.workspace.StoragePaths
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.suspendcancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
+import java.io.IOexception
 import kotlin.coroutines.resume
 
 /**
- * Install App Skill
+ * Install App skill
  *
  * Installs an APK file using PackageInstaller (session-based).
  * Supports:
@@ -39,32 +39,32 @@ import kotlin.coroutines.resume
  * - Silent install when possible (system-level INSTALL_PACKAGES)
  * - Fallback to user-confirmation install (REQUEST_INSTALL_PACKAGES)
  */
-class InstallAppSkill(private val context: Context) : Skill {
+class InstallAppskill(private val context: context) : skill {
     companion object {
-        private const val TAG = "InstallAppSkill"
+        private const val TAG = "InstallAppskill"
         private const val ACTION_INSTALL_RESULT = "com.xiaomo.androidforclaw.INSTALL_RESULT"
         private const val INSTALL_TIMEOUT_MS = 60_000L
     }
 
     override val name = "install_app"
-    override val description = "Install APK 文件到Device. Support本地File path或 content:// URI. Available于InstallNewapply或Upgrade已Hasapply. "
+    override val description = "Install APK filestoDevice. Support本地File pathor content:// URI. Available于InstallnewapporUpgradealreadyHasapp. "
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "apk_path" to PropertySchema(
+                        "apk_path" to Propertyschema(
                             "string",
-                            "APK 文件的Path, e.g. '/sdcard/Download/app.apk' 或 '/sdcard/.androidforclaw/skills/example.apk'"
+                            "APK filesPath, e.g. '/sdcard/nextload/app.apk' or '/sdcard/.androidforclaw/skills/example.apk'"
                         ),
-                        "allow_downgrade" to PropertySchema(
+                        "allow_downgrade" to Propertyschema(
                             "boolean",
-                            "YesNo允许DowngradeInstall(Version number比已InstallVersion低). Default false"
+                            "whether允许nextgradeInstall(Version number比alreadyInstallVersionlow). Default false"
                         )
                     ),
                     required = listOf("apk_path")
@@ -73,24 +73,24 @@ class InstallAppSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+    override suspend fun execute(args: Map<String, Any?>): skillresult {
         val apkPath = args["apk_path"] as? String
-            ?: return Skillresult.error("Missing required parameter: apk_path")
-        val allowDowngrade = args["allow_downgrade"] as? Boolean ?: false
+            ?: return skillresult.error("Missing required parameter: apk_path")
+        val allownextgrade = args["allow_downgrade"] as? Boolean ?: false
 
-        Log.d(TAG, "Installing APK: $apkPath (allowDowngrade=$allowDowngrade)")
+        Log.d(TAG, "Installing APK: $apkPath (allownextgrade=$allownextgrade)")
 
         // Resolve file
         val apkFile = resolveApkFile(apkPath)
-            ?: return Skillresult.error("APK file not found: $apkPath")
+            ?: return skillresult.error("APK file not found: $apkPath")
 
         if (!apkFile.canRead()) {
-            return Skillresult.error("Cannot read APK file: ${apkFile.absolutePath}. Check file permissions.")
+            return skillresult.error("cannot read APK file: ${apkFile.absolutePath}. Check file permissions.")
         }
 
         // Extract package info from APK
-        val pm = context.packageManager
-        val apkInfo = pm.getPackageArchiveInfo(apkFile.absolutePath, PackageManager.GET_META_DATA)
+        val pm = context.packagemanager
+        val apkInfo = pm.getPackageArchiveInfo(apkFile.absolutePath, Packagemanager.GET_META_DATA)
         val apkPackageName = apkInfo?.packageName
         val apkVersionName = apkInfo?.versionName ?: "unknown"
         val apkVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -101,7 +101,7 @@ class InstallAppSkill(private val context: Context) : Skill {
         }
 
         if (apkPackageName == null) {
-            return Skillresult.error("Invalid APK file: cannot parse package info from $apkPath")
+            return skillresult.error("Invalid APK file: cannot parse package info from $apkPath")
         }
 
         Log.d(TAG, "APK: $apkPackageName v$apkVersionName ($apkVersionCode)")
@@ -109,7 +109,7 @@ class InstallAppSkill(private val context: Context) : Skill {
         // Check if already installed
         val existingInfo = try {
             pm.getPackageInfo(apkPackageName, 0)
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (e: Packagemanager.NamenotFoundexception) {
             null
         }
 
@@ -126,9 +126,9 @@ class InstallAppSkill(private val context: Context) : Skill {
                 apkVersionCode > existingVersionCode -> "upgrade (${existingVersionName} → ${apkVersionName})"
                 apkVersionCode == existingVersionCode -> "reinstall (same version ${apkVersionName})"
                 else -> {
-                    if (!allowDowngrade) {
-                        return Skillresult.error(
-                            "Downgrade not allowed: installed=$existingVersionName ($existingVersionCode), " +
+                    if (!allownextgrade) {
+                        return skillresult.error(
+                            "nextgrade not allowed: installed=$existingVersionName ($existingVersionCode), " +
                                     "apk=$apkVersionName ($apkVersionCode). Set allow_downgrade=true to force."
                         )
                     }
@@ -143,9 +143,9 @@ class InstallAppSkill(private val context: Context) : Skill {
 
         // Install via PackageInstaller
         return try {
-            val result = performInstall(apkFile, apkPackageName, allowDowngrade)
+            val result = performInstall(apkFile, apkPackageName, allownextgrade)
             if (result.success) {
-                Skillresult.success(
+                skillresult.success(
                     "Successfully installed $apkPackageName v$apkVersionName ($installType)",
                     mapOf(
                         "package_name" to apkPackageName,
@@ -156,17 +156,17 @@ class InstallAppSkill(private val context: Context) : Skill {
                     )
                 )
             } else {
-                Skillresult.error("Install failed for $apkPackageName: ${result.content}")
+                skillresult.error("Install failed for $apkPackageName: ${result.content}")
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Install failed", e)
-            Skillresult.error("Install failed: ${e.message}")
+            skillresult.error("Install failed: ${e.message}")
         }
     }
 
     private fun resolveApkFile(path: String): File? {
         // Handle content:// URI
-        if (path.startsWith("content://")) {
+        if (path.startswith("content://")) {
             return try {
                 val uri = Uri.parse(path)
                 val tempFile = File(context.cacheDir, "install_temp_${System.currentTimeMillis()}.apk")
@@ -176,7 +176,7 @@ class InstallAppSkill(private val context: Context) : Skill {
                     }
                 }
                 if (tempFile.exists() && tempFile.length() > 0) tempFile else null
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to resolve content URI: $path", e)
                 null
             }
@@ -189,33 +189,33 @@ class InstallAppSkill(private val context: Context) : Skill {
         // Try common prefixes
         val candidates = listOf(
             File("/sdcard/$path"),
-            File("/sdcard/Download/$path"),
+            File("/sdcard/nextload/$path"),
             File(StoragePaths.root, path),
             File(StoragePaths.skills, path)
         )
-        return candidates.firstOrNull { it.exists() }
+        return candidates.firstorNull { it.exists() }
     }
 
     private suspend fun performInstall(
         apkFile: File,
         packageName: String,
-        allowDowngrade: Boolean
-    ): Skillresult {
-        val pm = context.packageManager
+        allownextgrade: Boolean
+    ): skillresult {
+        val pm = context.packagemanager
         val installer = pm.packageInstaller
 
         // Create session
-        val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
+        val params = PackageInstaller.sessionParams(PackageInstaller.sessionParams.MODE_FULL_INSTALL).app {
             setAppPackageName(packageName)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+                setRequireuserAction(PackageInstaller.sessionParams.USER_ACTION_NOT_REQUIRED)
             }
-            // Note: setRequestDowngrade() requires API 34+
-            // For lower APIs, downgrade is handled by pm install -d via adb or system permissions
+            // note: setRequestnextgrade() requires API 34+
+            // for lower APIs, downgrade is handled by pm install -d via adb or system permissions
         }
 
-        val sessionId = installer.createSession(params)
-        val session = installer.openSession(sessionId)
+        val sessionId = installer.createsession(params)
+        val session = installer.opensession(sessionId)
 
         try {
             // Write APK to session
@@ -228,10 +228,10 @@ class InstallAppSkill(private val context: Context) : Skill {
 
             // Commit with result callback
             return withTimeout(INSTALL_TIMEOUT_MS) {
-                suspendCancellableCoroutine { cont ->
+                suspendcancellableCoroutine { cont ->
                     val intentFilter = IntentFilter(ACTION_INSTALL_RESULT)
                     val receiver = object : BroadcastReceiver() {
-                        override fun onReceive(ctx: Context, intent: Intent) {
+                        override fun onReceive(ctx: context, intent: Intent) {
                             val status = intent.getIntExtra(
                                 PackageInstaller.EXTRA_STATUS,
                                 PackageInstaller.STATUS_FAILURE
@@ -240,15 +240,15 @@ class InstallAppSkill(private val context: Context) : Skill {
 
                             try {
                                 context.unregisterReceiver(this)
-                            } catch (_: Exception) {}
+                            } catch (_: exception) {}
 
                             when (status) {
                                 PackageInstaller.STATUS_SUCCESS -> {
                                     Log.d(TAG, "Install success: $packageName")
-                                    cont.resume(Skillresult.success("OK"))
+                                    cont.resume(skillresult.success("OK"))
                                 }
                                 PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                                    // Need user confirmation — launch the confirmation intent
+                                    // need user confirmation — launch the confirmation intent
                                     val confirmIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                         intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)
                                     } else {
@@ -256,17 +256,17 @@ class InstallAppSkill(private val context: Context) : Skill {
                                         intent.getParcelableExtra(Intent.EXTRA_INTENT)
                                     }
                                     if (confirmIntent != null) {
-                                        confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        confirmIntent.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         context.startActivity(confirmIntent)
-                                        Log.d(TAG, "User confirmation required, launched install dialog")
+                                        Log.d(TAG, "user confirmation required, launched install dialog")
                                         cont.resume(
-                                            Skillresult.success(
+                                            skillresult.success(
                                                 "Install requires user confirmation. The install dialog has been shown on screen. " +
-                                                        "Use 'screenshot' and 'tap' to interact with the confirmation dialog if needed."
+                                                        "use 'screenshot' and 'tap' to interact with the confirmation dialog if needed."
                                             )
                                         )
                                     } else {
-                                        cont.resume(Skillresult.error("User confirmation required but no confirmation intent available"))
+                                        cont.resume(skillresult.error("user confirmation required but no confirmation intent available"))
                                     }
                                 }
                                 else -> {
@@ -281,25 +281,25 @@ class InstallAppSkill(private val context: Context) : Skill {
                                         else -> "UNKNOWN($status)"
                                     }
                                     Log.e(TAG, "Install failed: $statusName - $message")
-                                    cont.resume(Skillresult.error("$statusName: $message"))
+                                    cont.resume(skillresult.error("$statusName: $message"))
                                 }
                             }
                         }
                     }
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+                        context.registerReceiver(receiver, intentFilter, context.RECEIVER_NOT_EXPORTED)
                     } else {
                         context.registerReceiver(receiver, intentFilter)
                     }
 
-                    cont.invokeOnCancellation {
+                    cont.invokeOncancellation {
                         try {
                             context.unregisterReceiver(receiver)
-                        } catch (_: Exception) {}
+                        } catch (_: exception) {}
                         try {
                             session.abandon()
-                        } catch (_: Exception) {}
+                        } catch (_: exception) {}
                     }
 
                     val pendingIntent = PendingIntent.getBroadcast(
@@ -310,10 +310,10 @@ class InstallAppSkill(private val context: Context) : Skill {
                     )
 
                     session.commit(pendingIntent.intentSender)
-                    Log.d(TAG, "Session committed, waiting for result...")
+                    Log.d(TAG, "session committed, waiting for result...")
                 }
             }
-        } catch (e: IOException) {
+        } catch (e: IOexception) {
             session.abandon()
             throw e
         }

@@ -4,11 +4,11 @@ package com.xiaomo.androidforclaw.config
  * OpenClaw Source Reference:
  * - ../openclaw/src/config/io.ts
  *
- * AndroidForClaw adaptation: load/save/observe openclaw.json on Android storage.
+ * androidforClaw adaptation: load/save/observe openclaw.json on android storage.
  */
 
 
-import android.content.Context
+import android.content.context
 import android.os.FileObserver
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.workspace.StoragePaths
@@ -17,160 +17,160 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * ConfigLoad器 - Aligned with OpenClaw 的ConfigLoad逻辑(Global单例)
+ * configLoad器 - Aligned with OpenClaw configLoad逻辑(Global单例)
  *
  * use org.json.JSONObject Parse, 缺失FieldAuto用 data class DefaultValue. 
- * User config 只需写thinkOverride的Field, Its他全用DefaultValue. 
+ * user config 只need写thinkoverrideField, Its他all用DefaultValue. 
  */
-class ConfigLoader private constructor() {
+class configLoader private constructor() {
 
     companion object {
-        private const val TAG = "ConfigLoader"
+        private const val TAG = "configLoader"
         private const val OPENCLAW_CONFIG_FILE = "openclaw.json"
 
         @Volatile
-        private var INSTANCE: ConfigLoader? = null
+        private var INSTANCE: configLoader? = null
 
         @JvmStatic
-        fun getInstance(): ConfigLoader {
+        fun getInstance(): configLoader {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: ConfigLoader().also { INSTANCE = it }
+                INSTANCE ?: configLoader().also { INSTANCE = it }
             }
         }
 
-        /** Convenience: same as getInstance(), for call sites that used to pass Context. */
+        /** Convenience: same as getInstance(), for call sites that used to pass context. */
         @JvmStatic
-        operator fun invoke(context: Context): ConfigLoader {
+        operator fun invoke(context: context): configLoader {
             val instance = getInstance()
-            instance.initContext(context)
+            instance.initcontext(context)
             return instance
         }
     }
 
-    private lateinit var context: Context
+    private lateinit var context: context
 
-    fun initContext(ctx: Context) {
+    fun initcontext(ctx: context) {
         if (!::context.isInitialized) {
-            context = ctx.applicationContext
+            context = ctx.applicationcontext
         }
     }
 
     private val configDir: File get() = com.xiaomo.androidforclaw.workspace.StoragePaths.root
-    private val openclawConfigFile: File get() = File(configDir, OPENCLAW_CONFIG_FILE)
+    private val openclawconfigFile: File get() = File(configDir, OPENCLAW_CONFIG_FILE)
 
-    // Config cache
-    private var cachedOpenClawConfig: OpenClawConfig? = null
-    private var openclawConfigCacheValid = false
+    // config cache
+    private var cachedOpenClawconfig: OpenClawconfig? = null
+    private var openclawconfigCacheValid = false
 
     // Hot reload support
     private var fileObserver: FileObserver? = null
-    private var hotReloadEnableddd = false
-    private var reloadCallback: ((OpenClawConfig) -> Unit)? = null
+    private var hotReloadEnabled = false
+    private var reloadCallback: ((OpenClawconfig) -> Unit)? = null
 
     init {
-        Log.d(TAG, "Config目录: ${configDir.absolutePath}")
+        Log.d(TAG, "configdirectory: ${configDir.absolutePath}")
     }
 
     /**
-     * Load OpenClaw 主Config(带AutoBackup和Resume)
+     * Load OpenClaw mainconfig(带Autobackupandresume)
      */
-    fun loadOpenClawConfig(): OpenClawConfig {
-        if (openclawConfigCacheValid && cachedOpenClawConfig != null) {
-            return cachedOpenClawConfig!!
+    fun loadOpenClawconfig(): OpenClawconfig {
+        if (openclawconfigCacheValid && cachedOpenClawconfig != null) {
+            return cachedOpenClawconfig!!
         }
 
-        val backupManager = ConfigBackupManager(context)
-        val config = backupManager.loadConfigSafely {
-            loadOpenClawConfigInternal()
+        val backupmanager = configbackupmanager(context)
+        val config = backupmanager.loadconfigSafely {
+            loadOpenClawconfigInternal()
         }
 
         if (config != null) {
-            cachedOpenClawConfig = config
-            openclawConfigCacheValid = true
+            cachedOpenClawconfig = config
+            openclawconfigCacheValid = true
             return config
         } else {
-            Log.w(TAG, "useDefaultConfig")
-            val defaultConfig = OpenClawConfig()
-            cachedOpenClawConfig = defaultConfig
-            openclawConfigCacheValid = true
-            return defaultConfig
+            Log.w(TAG, "useDefaultconfig")
+            val defaultconfig = OpenClawconfig()
+            cachedOpenClawconfig = defaultconfig
+            openclawconfigCacheValid = true
+            return defaultconfig
         }
     }
 
-    private fun loadOpenClawConfigInternal(): OpenClawConfig {
-        ensureConfigDir()
+    private fun loadOpenClawconfigInternal(): OpenClawconfig {
+        ensureconfigDir()
 
-        if (!openclawConfigFile.exists()) {
-            Log.i(TAG, "Config文件不Exists, CreateDefaultConfig: ${openclawConfigFile.absolutePath}")
-            createDefaultConfig()
+        if (!openclawconfigFile.exists()) {
+            Log.i(TAG, "configfilesnotExists, CreateDefaultconfig: ${openclawconfigFile.absolutePath}")
+            createDefaultconfig()
         }
 
-        var configJson = openclawConfigFile.readText()
+        var configJson = openclawconfigFile.readText()
         val processedJson = replaceEnvVars(configJson)
         var rootJson = JSONObject(processedJson)
 
         // Workspace config merge (OpenClaw merge-config.ts)
-        val workspaceConfigFile = File(StoragePaths.workspace, "openclaw.json")
-        if (workspaceConfigFile.exists() && workspaceConfigFile.absolutePath != openclawConfigFile.absolutePath) {
+        val workspaceconfigFile = File(StoragePaths.workspace, "openclaw.json")
+        if (workspaceconfigFile.exists() && workspaceconfigFile.absolutePath != openclawconfigFile.absolutePath) {
             try {
-                val workspaceJson = JSONObject(replaceEnvVars(workspaceConfigFile.readText()))
-                rootJson = ConfigMerge.mergeJsonConfigs(rootJson, workspaceJson)
-                Log.i(TAG, "📦 Workspace config merged from: ${workspaceConfigFile.absolutePath}")
-            } catch (e: Exception) {
+                val workspaceJson = JSONObject(replaceEnvVars(workspaceconfigFile.readText()))
+                rootJson = configMerge.mergeJsonconfigs(rootJson, workspaceJson)
+                Log.i(TAG, "[PACKAGE] Workspace config merged from: ${workspaceconfigFile.absolutePath}")
+            } catch (e: exception) {
                 Log.w(TAG, "Failed to merge workspace config: ${e.message}")
             }
         }
 
-        val config = parseConfig(rootJson.toString())
-        val migrated = migrateProviderIds(config)
-        validateConfig(migrated)
+        val config = parseconfig(rootJson.toString())
+        val migrated = migrateproviderIds(config)
+        validateconfig(migrated)
 
-        Log.i(TAG, "✅ Config loaded successfully")
+        Log.i(TAG, "[OK] config loaded successfully")
         return migrated
     }
 
     /**
      * Resolve a model ID through the model aliases map.
      * Returns the aliased ID if found, otherwise the original.
-     * (OpenClaw model-selection.ts: buildModelAliasIndex)
+     * (OpenClaw model-selection.ts: buildmodelAliasIndex)
      */
-    fun resolveModelId(modelId: String): String {
-        val config = loadOpenClawConfig()
-        return ConfigMerge.resolveModelAlias(modelId, config.modelAliases)
+    fun resolvemodelId(modelId: String): String {
+        val config = loadOpenClawconfig()
+        return configMerge.resolvemodelAlias(modelId, config.modelAliases)
     }
 
     /**
-     * MigrateOld的 provider ID 到New ID(Aligned with OpenClaw 官方命名)
+     * Migrateold provider ID tonew ID(Aligned with OpenClaw 官方命名)
      * "mimo" → "xiaomi"
      */
-    private fun migrateProviderIds(config: OpenClawConfig): OpenClawConfig {
+    private fun migrateproviderIds(config: OpenClawconfig): OpenClawconfig {
         val providers = config.models?.providers ?: return config
         if (!providers.containsKey("mimo")) return config
 
-        Log.i(TAG, "🔄 Migrate provider ID: mimo → xiaomi")
+        Log.i(TAG, "[SYNC] Migrate provider ID: mimo → xiaomi")
         val migrated = providers.toMutableMap()
-        val mimoProvider = migrated.remove("mimo")!!
-        migrated["xiaomi"] = mimoProvider
+        val mimoprovider = migrated.remove("mimo")!!
+        migrated["xiaomi"] = mimoprovider
 
         // Also update default model ref if it points to mimo/
         val agents = config.agents
-        val updatedAgents = if (agents?.defaults?.model?.primary?.startsWith("mimo/") == true) {
+        val updatedagents = if (agents?.defaults?.model?.primary?.startswith("mimo/") == true) {
             val newPrimary = agents.defaults.model.primary.replace("mimo/", "xiaomi/")
             agents.copy(
                 defaults = agents.defaults.copy(
-                    model = ModelSelectionConfig(primary = newPrimary)
+                    model = modelSelectionconfig(primary = newPrimary)
                 )
             )
         } else agents
 
-        val migratedConfig = config.copy(
+        val migratedconfig = config.copy(
             models = config.models?.copy(providers = migrated),
-            agents = updatedAgents
+            agents = updatedagents
         )
 
         // Persist the migration
         try {
-            val root = JSONObject(openclawConfigFile.readText())
+            val root = JSONObject(openclawconfigFile.readText())
             val modelsJson = root.optJSONObject("models")
             val providersJson = modelsJson?.optJSONObject("providers")
             if (providersJson?.has("mimo") == true) {
@@ -183,86 +183,86 @@ class ConfigLoader private constructor() {
                 val defaultsJson = agentsJson?.optJSONObject("defaults")
                 val modelJson = defaultsJson?.optJSONObject("model")
                 val primary = modelJson?.optString("primary")
-                if (primary?.startsWith("mimo/") == true) {
+                if (primary?.startswith("mimo/") == true) {
                     modelJson.put("primary", primary.replace("mimo/", "xiaomi/"))
                 }
 
-                writeJsonToFile(openclawConfigFile, root)
-                Log.i(TAG, "✅ provider ID Migrate已Persistent化")
+                writeJsonToFile(openclawconfigFile, root)
+                Log.i(TAG, "[OK] provider ID MigratealreadyPersistent化")
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "⚠️ provider ID MigratePersistent化Failed: ${e.message}")
+        } catch (e: exception) {
+            Log.w(TAG, "[WARN] provider ID MigratePersistent化Failed: ${e.message}")
         }
 
-        return migratedConfig
+        return migratedconfig
     }
 
     /**
-     * 从 JSON StringParse完整Config
-     * All缺失Field都用 data class 的DefaultValue
+     * from JSON StringParse完整config
+     * All缺失Field都用 data class DefaultValue
      */
-    private fun parseConfig(json: String): OpenClawConfig {
+    private fun parseconfig(json: String): OpenClawconfig {
         val root = JSONObject(json)
 
-        // Models
+        // models
         val modelsJson = root.optJSONObject("models")
-        val models = modelsJson?.let { parseModelsConfig(it) }
+        val models = modelsJson?.let { parsemodelsconfig(it) }
 
-        // Agents
+        // agents
         val agentsJson = root.optJSONObject("agents")
-        val agents = agentsJson?.let { parseAgentsConfig(it) }
+        val agents = agentsJson?.let { parseagentsconfig(it) }
 
-        // Agent (Android extension, legacy)
+        // agent (android extension, legacy)
         val agentJson = root.optJSONObject("agent")
-        val agent = agentJson?.let { parseAgentConfig(it) } ?: AgentConfig()
+        val agent = agentJson?.let { parseagentconfig(it) } ?: agentconfig()
 
-        // Channels(Aligned with OpenClaw: channels.feishu / channels.discord)
+        // channels(Aligned with OpenClaw: channels.feishu / channels.discord)
         val channelsJson = root.optJSONObject("channels")
-        // 兼容Old格式: if channels None feishu, fallback 到 gateway.feishu
+        // 兼容oldformat: if channels None feishu, fallback to gateway.feishu
         val gatewayJson = root.optJSONObject("gateway")
-        val channels = parseChannelsConfig(channelsJson, gatewayJson)
+        val channels = parsechannelsconfig(channelsJson, gatewayJson)
 
         // Gateway(Aligned with OpenClaw: 只Has port/mode/bind/auth)
-        val gateway = gatewayJson?.let { parseGatewayConfig(it) } ?: GatewayConfig()
+        val gateway = gatewayJson?.let { parseGatewayconfig(it) } ?: Gatewayconfig()
 
-        // Skills
+        // skills
         val skillsJson = root.optJSONObject("skills")
-        val skills = skillsJson?.let { parseSkillsConfig(it) } ?: SkillsConfig()
+        val skills = skillsJson?.let { parseskillsconfig(it) } ?: skillsconfig()
 
         // Plugins
         val pluginsJson = root.optJSONObject("plugins")
-        val plugins = pluginsJson?.let { parsePluginsConfig(it) } ?: PluginsConfig()
+        val plugins = pluginsJson?.let { parsePluginsconfig(it) } ?: Pluginsconfig()
 
-        // Tools
+        // tools
         val toolsJson = root.optJSONObject("tools")
-        val tools = toolsJson?.let { parseToolsConfig(it) } ?: ToolsConfig()
+        val tools = toolsJson?.let { parsetoolsconfig(it) } ?: toolsconfig()
 
         // UI
         val uiJson = root.optJSONObject("ui")
-        val ui = uiJson?.let { parseUIConfig(it) } ?: UIConfig()
+        val ui = uiJson?.let { parseUIconfig(it) } ?: UIconfig()
 
         // Logging
         val loggingJson = root.optJSONObject("logging")
-        val logging = loggingJson?.let { parseLoggingConfig(it) } ?: LoggingConfig()
+        val logging = loggingJson?.let { parseLoggingconfig(it) } ?: Loggingconfig()
 
         // Memory
         val memoryJson = root.optJSONObject("memory")
-        val memory = memoryJson?.let { parseMemoryConfig(it) } ?: MemoryConfig()
+        val memory = memoryJson?.let { parseMemoryconfig(it) } ?: Memoryconfig()
 
         // Messages
         val messagesJson = root.optJSONObject("messages")
         val messages = messagesJson?.let {
-            MessagesConfig(ackReactionScope = it.optString("ackReactionScope", "own"))
-        } ?: MessagesConfig()
+            Messagesconfig(ackReactionScope = it.optString("ackReactionScope", "own"))
+        } ?: Messagesconfig()
 
-        // Session
+        // session
         val sessionJson = root.optJSONObject("session")
-        val session = sessionJson?.let { parseSessionConfig(it) } ?: SessionConfig()
+        val session = sessionJson?.let { parsesessionconfig(it) } ?: sessionconfig()
 
         // Legacy providers (top-level)
-        val legacyProviders = root.optJSONObject("providers")?.let { parseProvidersMap(it) } ?: emptyMap()
+        val legacyproviders = root.optJSONObject("providers")?.let { parseprovidersMap(it) } ?: emptyMap()
 
-        // Model aliases (OpenClaw model-selection.ts)
+        // model aliases (OpenClaw model-selection.ts)
         val modelAliases = mutableMapOf<String, String>()
         root.optJSONObject("modelAliases")?.let { aliasJson ->
             for (key in aliasJson.keys()) {
@@ -270,18 +270,18 @@ class ConfigLoader private constructor() {
             }
         }
 
-        // Model allowlist/blocklist (OpenClaw model-selection.ts)
+        // model allowlist/blocklist (OpenClaw model-selection.ts)
         val modelAllowlist = root.optJSONObject("modelAllowlist")?.let { alJson ->
             val allow = alJson.optJSONArray("allow")?.let { arr ->
-                (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotEmpty() }
+                (0 until arr.length()).map { arr.optString(it) }.filter { it.isnotEmpty() }
             }
             val block = alJson.optJSONArray("block")?.let { arr ->
-                (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotEmpty() }
+                (0 until arr.length()).map { arr.optString(it) }.filter { it.isnotEmpty() }
             }
-            ModelAllowlistConfig(allow = allow, block = block)
+            modelAllowlistconfig(allow = allow, block = block)
         }
 
-        return OpenClawConfig(
+        return OpenClawconfig(
             models = models,
             agents = agents,
             channels = channels,
@@ -297,53 +297,53 @@ class ConfigLoader private constructor() {
             modelAliases = modelAliases,
             modelAllowlist = modelAllowlist,
             agent = agent,
-            providers = legacyProviders
+            providers = legacyproviders
         )
     }
 
     // ============ Section Parsers ============
 
-    private fun parseModelsConfig(json: JSONObject): ModelsConfig {
+    private fun parsemodelsconfig(json: JSONObject): modelsconfig {
         val providersJson = json.optJSONObject("providers")
-        val providers = providersJson?.let { parseProvidersMap(it) } ?: emptyMap()
-        return ModelsConfig(
+        val providers = providersJson?.let { parseprovidersMap(it) } ?: emptyMap()
+        return modelsconfig(
             mode = json.optString("mode", "merge"),
             providers = providers
         )
     }
 
-    private fun parseProvidersMap(json: JSONObject): Map<String, ProviderConfig> {
-        val map = mutableMapOf<String, ProviderConfig>()
+    private fun parseprovidersMap(json: JSONObject): Map<String, providerconfig> {
+        val map = mutableMapOf<String, providerconfig>()
         json.keys().forEach { key ->
-            json.optJSONObject(key)?.let { map[key] = parseProviderConfig(it) }
+            json.optJSONObject(key)?.let { map[key] = parseproviderconfig(it) }
         }
         return map
     }
 
-    private fun parseProviderConfig(json: JSONObject): ProviderConfig {
+    private fun parseproviderconfig(json: JSONObject): providerconfig {
         val modelsArray = json.optJSONArray("models") ?: JSONArray()
         val defaultApi = json.optString("api", "openai-completions")
-        val models = (0 until modelsArray.length()).mapNotNull { i ->
-            modelsArray.optJSONObject(i)?.let { parseModelDefinition(it, defaultApi) }
+        val models = (0 until modelsArray.length()).mapnotNull { i ->
+            modelsArray.optJSONObject(i)?.let { parsemodelDefinition(it, defaultApi) }
         }
 
         val headers = json.optJSONObject("headers")?.let { h ->
-            h.keys().asSequence().associateWith { h.optString(it, "") }
+            h.keys().asSequence().associatewith { h.optString(it, "") }
         }
 
-        return ProviderConfig(
+        return providerconfig(
             baseUrl = json.optString("baseUrl", ""),
             apiKey = json.optString("apiKey", null),
             api = defaultApi,
             auth = json.optString("auth", null),
             authHeader = json.optBoolean("authHeader", true),
             headers = headers,
-            injectNumCtxForOpenAICompat = if (json.has("injectNumCtxForOpenAICompat")) json.optBoolean("injectNumCtxForOpenAICompat") else null,
+            injectNumCtxforOpenAICompat = if (json.has("injectNumCtxforOpenAICompat")) json.optBoolean("injectNumCtxforOpenAICompat") else null,
             models = models
         )
     }
 
-    private fun parseModelDefinition(json: JSONObject, defaultApi: String): ModelDefinition {
+    private fun parsemodelDefinition(json: JSONObject, defaultApi: String): modelDefinition {
         val input: List<Any> = if (json.has("input")) {
             val arr = json.optJSONArray("input") ?: JSONArray()
             (0 until arr.length()).map { i ->
@@ -353,11 +353,11 @@ class ConfigLoader private constructor() {
         } else listOf("text")
 
         val headers = json.optJSONObject("headers")?.let { h ->
-            h.keys().asSequence().associateWith { h.optString(it, "") }
+            h.keys().asSequence().associatewith { h.optString(it, "") }
         }
 
         val cost = json.optJSONObject("cost")?.let { c ->
-            CostConfig(
+            Costconfig(
                 input = c.optDouble("input", 0.0),
                 output = c.optDouble("output", 0.0),
                 cacheRead = c.optDouble("cacheRead", 0.0),
@@ -366,15 +366,15 @@ class ConfigLoader private constructor() {
         }
 
         val compat = json.optJSONObject("compat")?.let { c ->
-            ModelCompatConfig(
+            modelCompatconfig(
                 supportsStore = if (c.has("supportsStore")) c.optBoolean("supportsStore") else null,
                 supportsReasoningEffort = if (c.has("supportsReasoningEffort")) c.optBoolean("supportsReasoningEffort") else null,
                 maxTokensField = if (c.has("maxTokensField")) c.optString("maxTokensField") else null,
-                thinkingFormat = if (c.has("thinkingFormat")) c.optString("thinkingFormat") else null,
-                requiresToolresultName = if (c.has("requiresToolresultName")) c.optBoolean("requiresToolresultName") else null,
-                requiresAssistantAfterToolresult = if (c.has("requiresAssistantAfterToolresult")) c.optBoolean("requiresAssistantAfterToolresult") else null,
-                toolSchemaProfile = if (c.has("toolSchemaProfile")) c.optString("toolSchemaProfile") else null,
-                nativeWebSearchTool = if (c.has("nativeWebSearchTool")) c.optBoolean("nativeWebSearchTool") else null,
+                thinkingformat = if (c.has("thinkingformat")) c.optString("thinkingformat") else null,
+                requirestoolresultName = if (c.has("requirestoolresultName")) c.optBoolean("requirestoolresultName") else null,
+                requiresAssistantaftertoolresult = if (c.has("requiresAssistantaftertoolresult")) c.optBoolean("requiresAssistantaftertoolresult") else null,
+                toolschemaProfile = if (c.has("toolschemaProfile")) c.optString("toolschemaProfile") else null,
+                nativeWebSearchtool = if (c.has("nativeWebSearchtool")) c.optBoolean("nativeWebSearchtool") else null,
                 toolCallArgumentsEncoding = if (c.has("toolCallArgumentsEncoding")) c.optString("toolCallArgumentsEncoding") else null,
                 supportsDeveloperRole = if (c.has("supportsDeveloperRole")) c.optBoolean("supportsDeveloperRole") else null,
                 supportsUsageInStreaming = if (c.has("supportsUsageInStreaming")) c.optBoolean("supportsUsageInStreaming") else null,
@@ -384,16 +384,16 @@ class ConfigLoader private constructor() {
 
         val modelId = json.optString("id", "")
         val modelIdLower = modelId.lowercase()
-        val compatWithDefaults = if (compat?.maxTokensField == null) {
+        val compatwithDefaults = if (compat?.maxTokensField == null) {
             val defaultMaxTokensField = when {
-                modelIdLower.startsWith("gpt-5") -> "max_completion_tokens"
-                modelIdLower.startsWith("o1") -> "max_completion_tokens"
-                modelIdLower.startsWith("o3") -> "max_completion_tokens"
-                modelIdLower.startsWith("gpt-4.1") -> "max_completion_tokens"
+                modelIdLower.startswith("gpt-5") -> "max_completion_tokens"
+                modelIdLower.startswith("o1") -> "max_completion_tokens"
+                modelIdLower.startswith("o3") -> "max_completion_tokens"
+                modelIdLower.startswith("gpt-4.1") -> "max_completion_tokens"
                 else -> null
             }
             if (defaultMaxTokensField != null) {
-                (compat ?: ModelCompatConfig()).copy(maxTokensField = defaultMaxTokensField)
+                (compat ?: modelCompatconfig()).copy(maxTokensField = defaultMaxTokensField)
             } else {
                 compat
             }
@@ -401,7 +401,7 @@ class ConfigLoader private constructor() {
             compat
         }
 
-        return ModelDefinition(
+        return modelDefinition(
             id = json.optString("id", ""),
             name = json.optString("name", ""),
             api = if (json.has("api")) json.optString("api") else null,
@@ -411,16 +411,16 @@ class ConfigLoader private constructor() {
             contextWindow = json.optInt("contextWindow", 128000),
             maxTokens = json.optInt("maxTokens", 8192),
             headers = headers,
-            compat = compatWithDefaults
+            compat = compatwithDefaults
         )
     }
 
-    private fun parseAgentsConfig(json: JSONObject): AgentsConfig {
+    private fun parseagentsconfig(json: JSONObject): agentsconfig {
         val defaultsJson = json.optJSONObject("defaults")
         val defaults = if (defaultsJson != null) {
             val modelJson = defaultsJson.optJSONObject("model")
             val model = modelJson?.let {
-                ModelSelectionConfig(
+                modelSelectionconfig(
                     primary = it.optString("primary", null),
                     fallbacks = it.optJSONArray("fallbacks")?.let { arr ->
                         (0 until arr.length()).map { i -> arr.getString(i) }
@@ -428,30 +428,30 @@ class ConfigLoader private constructor() {
                 )
             }
             val subagentsJson = defaultsJson.optJSONObject("subagents")
-            val subagents = if (subagentsJson != null) SubagentsConfig(
+            val subagents = if (subagentsJson != null) Subagentsconfig(
                 maxConcurrent = subagentsJson.optInt("maxConcurrent", 1),
                 maxSpawnDepth = subagentsJson.optInt("maxSpawnDepth", 1),
-                maxChildrenPerAgent = subagentsJson.optInt("maxChildrenPerAgent", 5),
+                maxChildrenPeragent = subagentsJson.optInt("maxChildrenPeragent", 5),
                 defaultTimeoutSeconds = subagentsJson.optInt("defaultTimeoutSeconds", 300),
-                model = subagentsJson.optString("model", null)?.takeIf { it.isNotBlank() },
-                thinking = subagentsJson.optString("thinking", null)?.takeIf { it.isNotBlank() },
+                model = subagentsJson.optString("model", null)?.takeif { it.isnotBlank() },
+                thinking = subagentsJson.optString("thinking", null)?.takeif { it.isnotBlank() },
                 enabled = subagentsJson.optBoolean("enabled", true)
-            ) else SubagentsConfig()
+            ) else Subagentsconfig()
 
-            AgentDefaultsConfig(
+            agentDefaultsconfig(
                 model = model,
                 bootstrapMaxChars = defaultsJson.optInt("bootstrapMaxChars", 20_000),
                 bootstrapTotalMaxChars = defaultsJson.optInt("bootstrapTotalMaxChars", 150_000),
                 subagents = subagents
             )
-        } else AgentDefaultsConfig()
-        return AgentsConfig(defaults = defaults)
+        } else agentDefaultsconfig()
+        return agentsconfig(defaults = defaults)
     }
 
-    private fun parseAgentConfig(json: JSONObject): AgentConfig {
-        return AgentConfig(
+    private fun parseagentconfig(json: JSONObject): agentconfig {
+        return agentconfig(
             maxIterations = json.optInt("maxIterations", 40),
-            defaultModel = json.optString("defaultModel", "openrouter/hunter-alpha"),
+            defaultmodel = json.optString("defaultmodel", "openrouter/hunter-alpha"),
             timeout = json.optLong("timeout", 300000),
             retryOnError = json.optBoolean("retryOnError", true),
             maxRetries = json.optInt("maxRetries", 3),
@@ -460,50 +460,50 @@ class ConfigLoader private constructor() {
     }
 
     /**
-     * Parse channels Config(Aligned with OpenClaw: channels.feishu)
-     * 兼容Old格式: if channels.feishu 不Exists, fallback 到 gateway.feishu
+     * Parse channels config(Aligned with OpenClaw: channels.feishu)
+     * 兼容oldformat: if channels.feishu notExists, fallback to gateway.feishu
      */
-    private fun parseChannelsConfig(channelsJson: JSONObject?, gatewayJson: JSONObject?): ChannelsConfig {
+    private fun parsechannelsconfig(channelsJson: JSONObject?, gatewayJson: JSONObject?): channelsconfig {
         val feishuJson = channelsJson?.optJSONObject("feishu")
             ?: gatewayJson?.optJSONObject("feishu")  // legacy fallback
-        val feishu = feishuJson?.let { parseFeishuConfig(it) } ?: FeishuChannelConfig()
+        val feishu = feishuJson?.let { parseFeishuconfig(it) } ?: Feishuchannelconfig()
 
         val discordJson = channelsJson?.optJSONObject("discord")
             ?: gatewayJson?.optJSONObject("discord")  // legacy fallback
-        val discord = discordJson?.let { parseDiscordConfig(it) }
+        val discord = discordJson?.let { parseDiscordconfig(it) }
 
         val slackJson = channelsJson?.optJSONObject("slack")
-        val slack = slackJson?.let { parseSlackConfig(it) }
+        val slack = slackJson?.let { parseSlackconfig(it) }
 
         val telegramJson = channelsJson?.optJSONObject("telegram")
-        val telegram = telegramJson?.let { parseTelegramConfig(it) }
+        val telegram = telegramJson?.let { parseTelegramconfig(it) }
 
         val whatsappJson = channelsJson?.optJSONObject("whatsapp")
-        val whatsapp = whatsappJson?.let { parseWhatsAppConfig(it) }
+        val whatsapp = whatsappJson?.let { parsewhatsAppconfig(it) }
 
         val signalJson = channelsJson?.optJSONObject("signal")
-        val signal = signalJson?.let { parseSignalConfig(it) }
+        val signal = signalJson?.let { parseSignalconfig(it) }
 
         val weixinJson = channelsJson?.optJSONObject("weixin")
             ?: channelsJson?.optJSONObject("openclaw-weixin")
-        val weixin = weixinJson?.let { parseWeixinConfig(it) }
+        val weixin = weixinJson?.let { parseWeixinconfig(it) }
 
-        return ChannelsConfig(feishu = feishu, discord = discord, slack = slack, telegram = telegram, whatsapp = whatsapp, signal = signal, weixin = weixin)
+        return channelsconfig(feishu = feishu, discord = discord, slack = slack, telegram = telegram, whatsapp = whatsapp, signal = signal, weixin = weixin)
     }
 
     /**
      * Parse gateway(Aligned with OpenClaw: 只Has port/mode/bind/auth)
      */
-    private fun parseGatewayConfig(json: JSONObject): GatewayConfig {
+    private fun parseGatewayconfig(json: JSONObject): Gatewayconfig {
         val authJson = json.optJSONObject("auth")
         val auth = authJson?.let {
-            GatewayAuthConfig(
+            GatewayAuthconfig(
                 mode = it.optString("mode", "token"),
                 token = if (it.has("token")) it.optString("token") else null
             )
         }
 
-        return GatewayConfig(
+        return Gatewayconfig(
             port = json.optInt("port", 19789),
             mode = json.optString("mode", "local"),
             bind = json.optString("bind", "loopback"),
@@ -511,11 +511,11 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseFeishuConfig(json: JSONObject): FeishuChannelConfig {
-        // tools 子Config(Aligned with OpenClaw FeishuToolsConfigSchema)
+    private fun parseFeishuconfig(json: JSONObject): Feishuchannelconfig {
+        // tools 子config(Aligned with OpenClaw Feishutoolsconfigschema)
         val toolsJson = json.optJSONObject("tools")
         val tools = toolsJson?.let {
-            FeishuToolsConfig(
+            Feishutoolsconfig(
                 doc = it.optBoolean("doc", true),
                 chat = it.optBoolean("chat", true),
                 wiki = it.optBoolean("wiki", true),
@@ -526,15 +526,15 @@ class ConfigLoader private constructor() {
                 task = it.optBoolean("task", true),
                 urgent = it.optBoolean("urgent", true)
             )
-        } ?: FeishuToolsConfig()
+        } ?: Feishutoolsconfig()
 
-        // 多Account
+        // manyAccount
         val accountsJson = json.optJSONObject("accounts")
         val accounts = accountsJson?.let { a ->
-            val map = mutableMapOf<String, FeishuAccountConfig>()
+            val map = mutableMapOf<String, FeishuAccountconfig>()
             a.keys().forEach { key ->
                 a.optJSONObject(key)?.let { aj ->
-                    map[key] = FeishuAccountConfig(
+                    map[key] = FeishuAccountconfig(
                         enabled = aj.optBoolean("enabled", true),
                         name = if (aj.has("name")) aj.optString("name") else null,
                         appId = if (aj.has("appId")) aj.optString("appId") else null,
@@ -548,7 +548,7 @@ class ConfigLoader private constructor() {
             map
         }
 
-        return FeishuChannelConfig(
+        return Feishuchannelconfig(
             enabled = json.optBoolean("enabled", false),
             appId = json.optString("appId", ""),
             appSecret = json.optString("appSecret", ""),
@@ -560,18 +560,18 @@ class ConfigLoader private constructor() {
             webhookHost = if (json.has("webhookHost")) json.optString("webhookHost") else null,
             webhookPort = if (json.has("webhookPort")) json.optInt("webhookPort") else null,
             dmPolicy = json.optString("dmPolicy", "pairing"),
-            allowFrom = json.optJSONArray("allowFrom")?.let { arr ->
+            allowfrom = json.optJSONArray("allowfrom")?.let { arr ->
                 (0 until arr.length()).map { arr.getString(it) }
             } ?: emptyList(),
             groupPolicy = json.optString("groupPolicy", "allowlist"),
-            groupAllowFrom = json.optJSONArray("groupAllowFrom")?.let { arr ->
+            groupAllowfrom = json.optJSONArray("groupAllowfrom")?.let { arr ->
                 (0 until arr.length()).map { arr.getString(it) }
             } ?: emptyList(),
             requireMention = if (json.has("requireMention")) json.optBoolean("requireMention") else null,
             groupCommandMentionBypass = json.optString("groupCommandMentionBypass", "never"),
             allowMentionlessInMultiBotGroup = json.optBoolean("allowMentionlessInMultiBotGroup", false),
-            groupSessionScope = if (json.has("groupSessionScope")) json.optString("groupSessionScope") else null,
-            topicSessionMode = json.optString("topicSessionMode", "disabled"),
+            groupsessionScope = if (json.has("groupsessionScope")) json.optString("groupsessionScope") else null,
+            topicsessionMode = json.optString("topicsessionMode", "disabled"),
             replyInThread = json.optString("replyInThread", "disabled"),
             historyLimit = json.optInt("historyLimit", 20),
             dmHistoryLimit = json.optInt("dmHistoryLimit", 100),
@@ -587,7 +587,7 @@ class ConfigLoader private constructor() {
             queueDebounceMs = json.optInt("queueDebounceMs", 100),
             typingIndicator = json.optBoolean("typingIndicator", true),
             resolveSenderNames = json.optBoolean("resolveSenderNames", true),
-            reactionNotifications = json.optString("reactionNotifications", "own"),
+            reactionnotifications = json.optString("reactionnotifications", "own"),
             reactionDedup = json.optBoolean("reactionDedup", true),
             debugMode = json.optBoolean("debugMode", false),
             accounts = accounts,
@@ -595,21 +595,21 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseDiscordConfig(json: JSONObject): DiscordChannelConfig {
+    private fun parseDiscordconfig(json: JSONObject): Discordchannelconfig {
         val dm = json.optJSONObject("dm")?.let { d ->
-            DmPolicyConfig(
+            DmPolicyconfig(
                 policy = d.optString("policy", "pairing"),
-                allowFrom = d.optJSONArray("allowFrom")?.let { arr ->
+                allowfrom = d.optJSONArray("allowfrom")?.let { arr ->
                     (0 until arr.length()).map { arr.getString(it) }
                 }
             )
         }
 
         val guilds = json.optJSONObject("guilds")?.let { g ->
-            val map = mutableMapOf<String, GuildPolicyConfig>()
+            val map = mutableMapOf<String, GuildPolicyconfig>()
             g.keys().forEach { key ->
                 g.optJSONObject(key)?.let { gj ->
-                    map[key] = GuildPolicyConfig(
+                    map[key] = GuildPolicyconfig(
                         channels = gj.optJSONArray("channels")?.let { arr ->
                             (0 until arr.length()).map { arr.getString(it) }
                         },
@@ -622,26 +622,26 @@ class ConfigLoader private constructor() {
         }
 
         val accounts = json.optJSONObject("accounts")?.let { a ->
-            val map = mutableMapOf<String, DiscordAccountPolicyConfig>()
+            val map = mutableMapOf<String, DiscordAccountPolicyconfig>()
             a.keys().forEach { key ->
                 a.optJSONObject(key)?.let { aj ->
-                    map[key] = DiscordAccountPolicyConfig(
+                    map[key] = DiscordAccountPolicyconfig(
                         enabled = aj.optBoolean("enabled", true),
                         token = if (aj.has("token")) aj.optString("token") else null,
                         name = if (aj.has("name")) aj.optString("name") else null,
                         dm = aj.optJSONObject("dm")?.let { d ->
-                            DmPolicyConfig(
+                            DmPolicyconfig(
                                 policy = d.optString("policy", "pairing"),
-                                allowFrom = d.optJSONArray("allowFrom")?.let { arr ->
+                                allowfrom = d.optJSONArray("allowfrom")?.let { arr ->
                                     (0 until arr.length()).map { arr.getString(it) }
                                 }
                             )
                         },
                         guilds = aj.optJSONObject("guilds")?.let { g ->
-                            val gmap = mutableMapOf<String, GuildPolicyConfig>()
+                            val gmap = mutableMapOf<String, GuildPolicyconfig>()
                             g.keys().forEach { gk ->
                                 g.optJSONObject(gk)?.let { gj ->
-                                    gmap[gk] = GuildPolicyConfig(
+                                    gmap[gk] = GuildPolicyconfig(
                                         channels = gj.optJSONArray("channels")?.let { arr ->
                                             (0 until arr.length()).map { arr.getString(it) }
                                         }
@@ -656,7 +656,7 @@ class ConfigLoader private constructor() {
             map
         }
 
-        return DiscordChannelConfig(
+        return Discordchannelconfig(
             enabled = json.optBoolean("enabled", false),
             token = if (json.has("token")) json.optString("token") else null,
             name = if (json.has("name")) json.optString("name") else null,
@@ -668,10 +668,10 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseSlackConfig(json: JSONObject): SlackChannelConfig {
-        // 兼容OldField token → botToken
+    private fun parseSlackconfig(json: JSONObject): Slackchannelconfig {
+        // 兼容oldField token → botToken
         val botToken = json.optString("botToken", "").ifEmpty { json.optString("token", "") }
-        return SlackChannelConfig(
+        return Slackchannelconfig(
             enabled = json.optBoolean("enabled", false),
             botToken = botToken,
             appToken = if (json.has("appToken")) json.optString("appToken") else null,
@@ -686,10 +686,10 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseTelegramConfig(json: JSONObject): TelegramChannelConfig {
-        // 兼容OldField token → botToken
+    private fun parseTelegramconfig(json: JSONObject): Telegramchannelconfig {
+        // 兼容oldField token → botToken
         val botToken = json.optString("botToken", "").ifEmpty { json.optString("token", "") }
-        return TelegramChannelConfig(
+        return Telegramchannelconfig(
             enabled = json.optBoolean("enabled", false),
             botToken = botToken,
             dmPolicy = json.optString("dmPolicy", "open"),
@@ -702,8 +702,8 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseWhatsAppConfig(json: JSONObject): WhatsAppChannelConfig {
-        return WhatsAppChannelConfig(
+    private fun parsewhatsAppconfig(json: JSONObject): whatsAppchannelconfig {
+        return whatsAppchannelconfig(
             enabled = json.optBoolean("enabled", false),
             phoneNumber = json.optString("phoneNumber", ""),
             dmPolicy = json.optString("dmPolicy", "open"),
@@ -714,10 +714,10 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseSignalConfig(json: JSONObject): SignalChannelConfig {
+    private fun parseSignalconfig(json: JSONObject): Signalchannelconfig {
         // 兼容 OpenClaw account Field → phoneNumber
         val phoneNumber = json.optString("phoneNumber", "").ifEmpty { json.optString("account", "") }
-        return SignalChannelConfig(
+        return Signalchannelconfig(
             enabled = json.optBoolean("enabled", false),
             phoneNumber = phoneNumber,
             httpUrl = if (json.has("httpUrl")) json.optString("httpUrl") else null,
@@ -730,8 +730,8 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseWeixinConfig(json: JSONObject): WeixinChannelConfig {
-        return WeixinChannelConfig(
+    private fun parseWeixinconfig(json: JSONObject): Weixinchannelconfig {
+        return Weixinchannelconfig(
             enabled = json.optBoolean("enabled", false),
             baseUrl = json.optString("baseUrl", "https://ilinkai.weixin.qq.com")
                 .ifEmpty { "https://ilinkai.weixin.qq.com" },
@@ -742,16 +742,16 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parseSkillsConfig(json: JSONObject): SkillsConfig {
+    private fun parseskillsconfig(json: JSONObject): skillsconfig {
         val entries = json.optJSONObject("entries")?.let { e ->
-            val map = mutableMapOf<String, SkillConfig>()
+            val map = mutableMapOf<String, skillconfig>()
             e.keys().forEach { key ->
                 e.optJSONObject(key)?.let { sc ->
-                    map[key] = SkillConfig(
+                    map[key] = skillconfig(
                         enabled = sc.optBoolean("enabled", true),
                         apiKey = if (sc.has("apiKey")) sc.get("apiKey") else null,
                         env = sc.optJSONObject("env")?.let { envObj ->
-                            envObj.keys().asSequence().associateWith { envObj.optString(it, "") }
+                            envObj.keys().asSequence().associatewith { envObj.optString(it, "") }
                         }
                     )
                 }
@@ -763,7 +763,7 @@ class ConfigLoader private constructor() {
             (0 until arr.length()).map { arr.getString(it) }
         } ?: emptyList()
 
-        return SkillsConfig(
+        return skillsconfig(
             allowBundled = json.optJSONArray("allowBundled")?.let { arr ->
                 (0 until arr.length()).map { arr.getString(it) }
             },
@@ -774,8 +774,8 @@ class ConfigLoader private constructor() {
         )
     }
 
-    private fun parsePluginsConfig(json: JSONObject): PluginsConfig {
-        val entriesJson = json.optJSONObject("entries") ?: return PluginsConfig()
+    private fun parsePluginsconfig(json: JSONObject): Pluginsconfig {
+        val entriesJson = json.optJSONObject("entries") ?: return Pluginsconfig()
         val map = mutableMapOf<String, PluginEntry>()
         entriesJson.keys().forEach { key ->
             entriesJson.optJSONObject(key)?.let { pe ->
@@ -788,53 +788,53 @@ class ConfigLoader private constructor() {
                 )
             }
         }
-        return PluginsConfig(entries = map)
+        return Pluginsconfig(entries = map)
     }
 
-    private fun parseToolsConfig(json: JSONObject): ToolsConfig {
+    private fun parsetoolsconfig(json: JSONObject): toolsconfig {
         val ssJson = json.optJSONObject("screenshot")
         val screenshot = ssJson?.let {
-            ScreenshotToolConfig(
+            Screenshottoolconfig(
                 enabled = it.optBoolean("enabled", true),
                 quality = it.optInt("quality", 85),
                 maxWidth = it.optInt("maxWidth", 1080),
                 format = it.optString("format", "jpeg")
             )
-        } ?: ScreenshotToolConfig()
+        } ?: Screenshottoolconfig()
 
-        return ToolsConfig(screenshot = screenshot)
+        return toolsconfig(screenshot = screenshot)
     }
 
-    private fun parseThinkingConfig(json: JSONObject): ThinkingConfig {
-        return ThinkingConfig(
+    private fun parseThinkingconfig(json: JSONObject): Thinkingconfig {
+        return Thinkingconfig(
             enabled = json.optBoolean("enabled", true),
             budgetTokens = json.optInt("budgetTokens", 10000)
         )
     }
 
-    private fun parseUIConfig(json: JSONObject): UIConfig {
-        return UIConfig(
+    private fun parseUIconfig(json: JSONObject): UIconfig {
+        return UIconfig(
             theme = json.optString("theme", "auto"),
             language = json.optString("language", "zh")
         )
     }
 
-    private fun parseLoggingConfig(json: JSONObject): LoggingConfig {
-        return LoggingConfig(
+    private fun parseLoggingconfig(json: JSONObject): Loggingconfig {
+        return Loggingconfig(
             level = json.optString("level", "INFO"),
             logToFile = json.optBoolean("logToFile", true)
         )
     }
 
-    private fun parseMemoryConfig(json: JSONObject): MemoryConfig {
-        return MemoryConfig(
+    private fun parseMemoryconfig(json: JSONObject): Memoryconfig {
+        return Memoryconfig(
             enabled = json.optBoolean("enabled", true),
             path = json.optString("path", StoragePaths.workspaceMemory.absolutePath)
         )
     }
 
-    private fun parseSessionConfig(json: JSONObject): SessionConfig {
-        return SessionConfig(
+    private fun parsesessionconfig(json: JSONObject): sessionconfig {
+        return sessionconfig(
             maxMessages = json.optInt("maxMessages", 100),
             maxAgeDays = json.optInt("maxAgeDays", 30),
             maxEntries = json.optInt("maxEntries", 500),
@@ -845,65 +845,65 @@ class ConfigLoader private constructor() {
 
     // ============ Public API ============
 
-    fun getProviderConfig(providerName: String): ProviderConfig? {
-        return loadOpenClawConfigFresh().resolveProviders()[providerName]
+    fun getproviderconfig(providerName: String): providerconfig? {
+        return loadOpenClawconfigFresh().resolveproviders()[providerName]
     }
 
-    fun getModelDefinition(providerName: String, modelId: String): ModelDefinition? {
-        return getProviderConfig(providerName)?.models?.find { it.id == modelId }
+    fun getmodelDefinition(providerName: String, modelId: String): modelDefinition? {
+        return getproviderconfig(providerName)?.models?.find { it.id == modelId }
     }
 
-    fun listAllModels(): List<Pair<String, ModelDefinition>> {
-        val config = loadOpenClawConfigFresh()
-        return config.resolveProviders().flatMap { (name, provider) ->
+    fun listAllmodels(): List<Pair<String, modelDefinition>> {
+        val config = loadOpenClawconfigFresh()
+        return config.resolveproviders().flatMap { (name, provider) ->
             provider.models.map { name to it }
         }
     }
 
-    fun findProviderByModelId(modelId: String): String? {
-        return loadOpenClawConfigFresh().resolveProviders().entries.find { (_, provider) ->
+    fun findproviderBymodelId(modelId: String): String? {
+        return loadOpenClawconfigFresh().resolveproviders().entries.find { (_, provider) ->
             provider.models.any { it.id == modelId }
         }?.key
     }
 
     /**
-     * 强制从DiskReadConfig, IgnoreCache. 
-     * 用于 LLM RequestPath, EnsureGetmostNewConfig(避免跨 ConfigLoader Instance的Cache不一致). 
+     * 强制fromDiskReadconfig, IgnoreCache. 
+     * 用于 LLM RequestPath, EnsureGetmostnewconfig(避免跨 configLoader InstanceCachenotone致). 
      */
-    fun loadOpenClawConfigFresh(): OpenClawConfig {
-        openclawConfigCacheValid = false
-        return loadOpenClawConfig()
+    fun loadOpenClawconfigFresh(): OpenClawconfig {
+        openclawconfigCacheValid = false
+        return loadOpenClawconfig()
     }
 
     /**
-     * SaveConfig - 用 JSONObject Serialize(不Dependency Gson)
+     * Saveconfig - 用 JSONObject Serialize(notDependency Gson)
      */
-    fun saveOpenClawConfig(config: OpenClawConfig): Boolean {
+    fun saveOpenClawconfig(config: OpenClawconfig): Boolean {
         return try {
-            ensureConfigDir()
+            ensureconfigDir()
             // Read existing file to preserve unknown fields
-            val existingJson = if (openclawConfigFile.exists()) {
-                JSONObject(openclawConfigFile.readText())
+            val existingJson = if (openclawconfigFile.exists()) {
+                JSONObject(openclawconfigFile.readText())
             } else JSONObject()
 
             // Merge known fields into existing JSON
-            mergeConfigToJson(existingJson, config)
+            mergeconfigToJson(existingJson, config)
 
-            writeJsonToFile(openclawConfigFile, existingJson)
-            Log.i(TAG, "✅ ConfigSaveSuccess")
-            openclawConfigCacheValid = false
+            writeJsonToFile(openclawconfigFile, existingJson)
+            Log.i(TAG, "[OK] configSaveSuccess")
+            openclawconfigCacheValid = false
             true
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ConfigSaveFailed: ${e.message}", e)
+        } catch (e: exception) {
+            Log.e(TAG, "[ERROR] configSaveFailed: ${e.message}", e)
             false
         }
     }
 
     /**
-     * 将 config Object的关KeyFieldWrite JSONObject(保留文件中Its他Field)
+     * will config Object关KeyFieldWrite JSONObject(保留files中Its他Field)
      */
-    private fun mergeConfigToJson(root: JSONObject, config: OpenClawConfig) {
-        // Models + providers
+    private fun mergeconfigToJson(root: JSONObject, config: OpenClawconfig) {
+        // models + providers
         config.models?.let { m ->
             val modelsObj = root.optJSONObject("models") ?: JSONObject()
             val providersObj = JSONObject()
@@ -932,7 +932,7 @@ class ConfigLoader private constructor() {
             root.put("models", modelsObj)
         }
 
-        // Agents
+        // agents
         config.agents?.let { a ->
             val agentsObj = root.optJSONObject("agents") ?: JSONObject()
             val defaultsObj = JSONObject()
@@ -945,13 +945,13 @@ class ConfigLoader private constructor() {
             root.put("agents", agentsObj)
         }
 
-        // Agent (Android extension)
+        // agent (android extension)
         val agentObj = root.optJSONObject("agent") ?: JSONObject()
-        agentObj.put("defaultModel", config.agent.defaultModel)
+        agentObj.put("defaultmodel", config.agent.defaultmodel)
         agentObj.put("maxIterations", config.agent.maxIterations)
         root.put("agent", agentObj)
 
-        // Channels (Aligned with OpenClaw: channels.feishu)
+        // channels (Aligned with OpenClaw: channels.feishu)
         val channelsObj = root.optJSONObject("channels") ?: JSONObject()
         val feishu = config.channels.feishu
         val feishuObj = JSONObject()
@@ -977,9 +977,9 @@ class ConfigLoader private constructor() {
             discord.dm?.let { dm ->
                 val dmObj = JSONObject()
                 dm.policy?.let { dmObj.put("policy", it) }
-                dm.allowFrom?.let { list ->
+                dm.allowfrom?.let { list ->
                     val arr = JSONArray(); list.forEach { arr.put(it) }
-                    dmObj.put("allowFrom", arr)
+                    dmObj.put("allowfrom", arr)
                 }
                 existing.put("dm", dmObj)
             }
@@ -1062,31 +1062,31 @@ class ConfigLoader private constructor() {
         root.put("gateway", gwObj)
     }
 
-    fun reloadOpenClawConfig(): OpenClawConfig {
-        Log.i(TAG, "重NewLoadConfig...")
-        openclawConfigCacheValid = false
-        return loadOpenClawConfig()
+    fun reloadOpenClawconfig(): OpenClawconfig {
+        Log.i(TAG, "reLoadconfig...")
+        openclawconfigCacheValid = false
+        return loadOpenClawconfig()
     }
 
-    fun enableHotReload(callback: ((OpenClawConfig) -> Unit)? = null) {
-        if (hotReloadEnableddd) return
+    fun enableHotReload(callback: ((OpenClawconfig) -> Unit)? = null) {
+        if (hotReloadEnabled) return
         this.reloadCallback = callback
         try {
-            ensureConfigDir()
+            ensureconfigDir()
             fileObserver = object : FileObserver(configDir, MODIFY or CREATE or DELETE) {
                 override fun onEvent(event: Int, path: String?) {
                     if (path == OPENCLAW_CONFIG_FILE) {
-                        Log.i(TAG, "DetectedConfig文件变化")
-                        val newConfig = reloadOpenClawConfig()
-                        reloadCallback?.invoke(newConfig)
+                        Log.i(TAG, "Detectedconfigfiles变化")
+                        val newconfig = reloadOpenClawconfig()
+                        reloadCallback?.invoke(newconfig)
                     }
                 }
             }
             fileObserver?.startWatching()
-            hotReloadEnableddd = true
-            Log.i(TAG, "✅ Config热Overload已Enabledd")
-        } catch (e: Exception) {
-            Log.e(TAG, "Enabledd热OverloadFailed", e)
+            hotReloadEnabled = true
+            Log.i(TAG, "[OK] config热overloadalreadyEnable")
+        } catch (e: exception) {
+            Log.e(TAG, "Enable热overloadFailed", e)
         }
     }
 
@@ -1094,44 +1094,44 @@ class ConfigLoader private constructor() {
         fileObserver?.stopWatching()
         fileObserver = null
         reloadCallback = null
-        hotReloadEnableddd = false
+        hotReloadEnabled = false
     }
 
-    fun isHotReloadEnableddd(): Boolean = hotReloadEnableddd
+    fun isHotReloadEnabled(): Boolean = hotReloadEnabled
 
-    fun getFeishuConfig(): com.xiaomo.feishu.FeishuConfig {
-        return FeishuConfigAdapter.toFeishuConfig(loadOpenClawConfig().channels.feishu)
+    fun getFeishuconfig(): com.xiaomo.feishu.Feishuconfig {
+        return FeishuconfigAdapter.toFeishuconfig(loadOpenClawconfig().channels.feishu)
     }
 
-    // ============ Private Helpers ============
+    // ============ Private helpers ============
 
     /**
-     * 写 JSON 到文件, 统一 UTF-8 Encode并去掉多余的 \/ 转义
+     * 写 JSON tofiles, 统one UTF-8 Encode并go掉many余 \/ 转义
      */
     private fun writeJsonToFile(file: File, json: JSONObject, indent: Int = 4) {
         val text = json.toString(indent).replace("\\/", "/")
         file.writeText(text, Charsets.UTF_8)
     }
 
-    private fun ensureConfigDir() {
+    private fun ensureconfigDir() {
         if (!configDir.exists()) configDir.mkdirs()
     }
 
-    private fun createDefaultConfig() {
+    private fun createDefaultconfig() {
         try {
-            val defaultConfig = context.assets.open("openclaw.json.default.txt")
+            val defaultconfig = context.assets.open("openclaw.json.default.txt")
                 .bufferedReader().use { it.readText() }
-            openclawConfigFile.writeText(defaultConfig, Charsets.UTF_8)
-            Log.i(TAG, "✅ CreateDefaultConfig: ${openclawConfigFile.absolutePath}")
-        } catch (e: Exception) {
-            Log.e(TAG, "CreateDefaultConfigFailed", e)
+            openclawconfigFile.writeText(defaultconfig, Charsets.UTF_8)
+            Log.i(TAG, "[OK] CreateDefaultconfig: ${openclawconfigFile.absolutePath}")
+        } catch (e: exception) {
+            Log.e(TAG, "CreateDefaultconfigFailed", e)
             throw e
         }
     }
 
     /**
-     * 已知EnvironmentVariable名 → Provider ID Map
-     * 来源: OpenClaw PROVIDER_ENV_API_KEY_CANDIDATES
+     * already知EnvironmentVariable名 → provider ID Map
+     * come源: OpenClaw PROVIDER_ENV_API_KEY_CANDIDATES
      */
     private val ENV_VAR_TO_PROVIDER = mapOf(
         "OPENROUTER_API_KEY" to "openrouter",
@@ -1166,20 +1166,20 @@ class ConfigLoader private constructor() {
             } else {
                 // Fallback 1: built-in key (currently only OpenRouter)
                 val builtInValue = when (varName) {
-                    "OPENROUTER_API_KEY" -> BuiltInKeyProvider.getKey()
+                    "OPENROUTER_API_KEY" -> BuiltInKeyprovider.getKey()
                     else -> null
                 }
                 if (builtInValue != null) {
                     result = result.replace("\${$varName}", builtInValue)
-                    Log.i(TAG, "🔑 useInside置 Key Replace: \${$varName}")
+                    Log.i(TAG, "[KEY] useinside置 Key Replace: \${$varName}")
                 } else {
                     val providerId = ENV_VAR_TO_PROVIDER[varName]
                     if (providerId != null) {
-                        unresolvedKnown.add(varName)
-                        Log.w(TAG, "⚠️ EnvironmentVariable \${$varName} (provider: $providerId) 未Settings. " +
-                            "请在Config中直接填入 API Key. ")
+                        unresolvedKnown.a(varName)
+                        Log.w(TAG, "[WARN] EnvironmentVariable \${$varName} (provider: $providerId) notSettings. " +
+                            "pleaseinconfig中直接填入 API Key. ")
                     } else {
-                        Log.w(TAG, "⚠️ UnknownEnvironmentVariable: \${$varName}")
+                        Log.w(TAG, "[WARN] UnknownEnvironmentVariable: \${$varName}")
                     }
                 }
             }
@@ -1187,51 +1187,51 @@ class ConfigLoader private constructor() {
 
         // Strip unresolved known provider env vars from JSON to avoid sending literal
         // `${VAR}` as Bearer token (causes confusing 401 "Missing Authentication header").
-        // After stripping, apiKey becomes null → config validation catches it with a clear message.
-        if (unresolvedKnown.isNotEmpty()) {
+        // after stripping, apiKey becomes null → config validation catches it with a clear message.
+        if (unresolvedKnown.isnotEmpty()) {
             for (varName in unresolvedKnown) {
                 // Match: "apiKey": "${VAR_NAME}" (with optional whitespace)
                 val stripPattern = Regex("""("apiKey"\s*:\s*)"\$\{$varName\}"""")
                 result = stripPattern.replace(result) { "${it.groupValues[1]}null" }
             }
-            invalidateConfigCache()
+            invalidateconfigCache()
         }
 
         return result
     }
 
-    private fun invalidateConfigCache() {
-        openclawConfigCacheValid = false
-        cachedOpenClawConfig = null
+    private fun invalidateconfigCache() {
+        openclawconfigCacheValid = false
+        cachedOpenClawconfig = null
     }
 
     /**
-     * 精简Validate — 只Check关KeyField
+     * 精简validation — 只Check关KeyField
      */
-    private fun validateConfig(config: OpenClawConfig) {
-        // Validate feishu if enabled
+    private fun validateconfig(config: OpenClawconfig) {
+        // validation feishu if enabled
         val feishu = config.channels.feishu
         if (feishu.enabled) {
-            require(feishu.appId.isNotBlank() && !feishu.appId.startsWith("\${")) {
-                "Feishu 已Enabledd但 appId Not configured"
+            require(feishu.appId.isnotBlank() && !feishu.appId.startswith("\${")) {
+                "Feishu alreadyEnablebut appId not configured"
             }
-            require(feishu.appSecret.isNotBlank() && !feishu.appSecret.startsWith("\${")) {
-                "Feishu 已Enabledd但 appSecret Not configured"
-            }
-        }
-
-        // Validate providers have baseUrl and apiKey (for key-required providers)
-        config.resolveProviders().forEach { (name, provider) ->
-            require(provider.baseUrl.isNotBlank()) {
-                "Provider '$name' 缺少 baseUrl"
-            }
-            val def = ProviderRegistry.findById(name)
-            if (def?.keyRequired == true && provider.apiKey.isNullOrBlank()) {
-                Log.w(TAG, "⚠️ Provider '${def.name}' Need API Key 但Not configured. " +
-                    "请在Settings中填入 API Key, No则Request会Return 401. ")
+            require(feishu.appSecret.isnotBlank() && !feishu.appSecret.startswith("\${")) {
+                "Feishu alreadyEnablebut appSecret not configured"
             }
         }
 
-        Log.i(TAG, "✅ ConfigValidate通过")
+        // validation providers have baseUrl and apiKey (for key-required providers)
+        config.resolveproviders().forEach { (name, provider) ->
+            require(provider.baseUrl.isnotBlank()) {
+                "provider '$name' 缺few baseUrl"
+            }
+            val def = providerRegistry.findById(name)
+            if (def?.keyRequired == true && provider.apiKey.isNullorBlank()) {
+                Log.w(TAG, "[WARN] provider '${def.name}' need API Key butnot configured. " +
+                    "pleaseinSettings中填入 API Key, NothenRequestwillReturn 401. ")
+            }
+        }
+
+        Log.i(TAG, "[OK] configvalidationthrough")
     }
 }

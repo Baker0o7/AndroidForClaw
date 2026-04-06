@@ -2,35 +2,35 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
- * Home Skill
+ * Home skill
  * Press Home button to return to main screen
  */
-class HomeSkill : Skill {
+class Homeskill : skill {
     companion object {
-        private const val TAG = "HomeSkill"
+        private const val TAG = "Homeskill"
     }
 
     override val name = "home"
     override val description = "Press Home button to return to launcher"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = emptyMap(),
                     required = emptyList()
@@ -39,28 +39,28 @@ class HomeSkill : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): skillResult {
         if (!AccessibilityProxy.isConnected.value!!) {
-            return SkillResult.error("Accessibility service not connected")
+            return skillResult.error("Accessibility service not connected")
         }
 
         Log.d(TAG, "Pressing home button")
         return try {
             val success = AccessibilityProxy.pressHome()
             if (!success) {
-                return SkillResult.error("Home button press failed")
+                return skillResult.error("Home button press failed")
             }
 
             // Wait for launcher to load
             kotlinx.coroutines.delay(1000)
 
-            SkillResult.success(
+            skillResult.success(
                 "Home button pressed (waited 1000ms for launcher)",
                 mapOf("wait_time_ms" to 1000)
             )
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Home button press failed", e)
-            SkillResult.error("Home button press failed: ${e.message}")
+            skillResult.error("Home button press failed: ${e.message}")
         }
     }
 }

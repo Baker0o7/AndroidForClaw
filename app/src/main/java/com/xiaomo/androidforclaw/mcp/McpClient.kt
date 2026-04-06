@@ -1,12 +1,12 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.mcp
 
 import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -16,14 +16,14 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * MCP (Model Context Protocol) HTTP Client
+ * MCP (model context Protocol) HTTP Client
  *
  * Support标准 MCP over HTTP transport
  * use JSON-RPC 2.0 Protocol
  */
 class McpClient(
     private val baseUrl: String,
-    private val clientName: String = "AndroidForClaw",
+    private val clientName: String = "androidforClaw",
     private val clientVersion: String = "1.0.0"
 ) {
     companion object {
@@ -44,7 +44,7 @@ class McpClient(
     /**
      * Initialize MCP connection
      */
-    suspend fun initialize(): result<McpInitializeresult> = withContext(Dispatchers.IO) {
+    suspend fun initialize(): result<McpInitializeresult> = withcontext(Dispatchers.IO) {
         try {
             val params = mapOf(
                 "protocolVersion" to PROTOCOL_VERSION,
@@ -60,7 +60,7 @@ class McpClient(
             val response = sendRequest("initialize", params)
 
             if (response.isSuccess) {
-                val result = response.getOrNull()!!
+                val result = response.getorNull()!!
                 val resultMap = result.result as? Map<*, *>
 
                 if (resultMap != null) {
@@ -76,12 +76,12 @@ class McpClient(
                     )
                     result.success(initresult)
                 } else {
-                    result.failure(Exception("Invalid initialize response"))
+                    result.failure(exception("Invalid initialize response"))
                 }
             } else {
-                result.failure(response.exceptionOrNull() ?: Exception("Initialize failed"))
+                result.failure(response.exceptionorNull() ?: exception("Initialize failed"))
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Initialize failed", e)
             result.failure(e)
         }
@@ -90,32 +90,32 @@ class McpClient(
     /**
      * List available tools
      */
-    suspend fun listTools(): result<List<McpTool>> = withContext(Dispatchers.IO) {
+    suspend fun listtools(): result<List<Mcptool>> = withcontext(Dispatchers.IO) {
         try {
             ensureInitialized()
 
             val response = sendRequest("tools/list", null)
 
             if (response.isSuccess) {
-                val result = response.getOrNull()!!
+                val result = response.getorNull()!!
                 val resultMap = result.result as? Map<*, *>
                 val toolsList = (resultMap?.get("tools") as? List<*>) ?: emptyList<Any>()
 
-                val tools = toolsList.mapNotNull { toolData ->
-                    val toolMap = toolData as? Map<*, *> ?: return@mapNotNull null
-                    McpTool(
-                        name = toolMap["name"] as? String ?: return@mapNotNull null,
+                val tools = toolsList.mapnotNull { toolData ->
+                    val toolMap = toolData as? Map<*, *> ?: return@mapnotNull null
+                    Mcptool(
+                        name = toolMap["name"] as? String ?: return@mapnotNull null,
                         description = toolMap["description"] as? String ?: "",
-                        inputSchema = (toolMap["inputSchema"] as? Map<*, *>)?.mapKeys { it.key.toString() }
+                        inputschema = (toolMap["inputschema"] as? Map<*, *>)?.mapKeys { it.key.toString() }
                             ?.mapValues { it.value } ?: emptyMap()
                     )
                 }
 
                 result.success(tools)
             } else {
-                result.failure(response.exceptionOrNull() ?: Exception("List tools failed"))
+                result.failure(response.exceptionorNull() ?: exception("List tools failed"))
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "List tools failed", e)
             result.failure(e)
         }
@@ -124,10 +124,10 @@ class McpClient(
     /**
      * Call a tool
      */
-    suspend fun callTool(
+    suspend fun calltool(
         name: String,
         arguments: Map<String, Any?>? = null
-    ): result<McpToolCallresult> = withContext(Dispatchers.IO) {
+    ): result<McptoolCallresult> = withcontext(Dispatchers.IO) {
         try {
             ensureInitialized()
 
@@ -139,32 +139,32 @@ class McpClient(
             val response = sendRequest("tools/call", params)
 
             if (response.isSuccess) {
-                val result = response.getOrNull()!!
+                val result = response.getorNull()!!
                 val resultMap = result.result as? Map<*, *>
 
                 if (resultMap != null) {
                     val contentList = (resultMap["content"] as? List<*>) ?: emptyList<Any>()
                     val isError = resultMap["isError"] as? Boolean ?: false
 
-                    val content = contentList.mapNotNull { contentData ->
-                        val contentMap = contentData as? Map<*, *> ?: return@mapNotNull null
-                        McpToolCallresult.ContentItem(
-                            type = contentMap["type"] as? String ?: return@mapNotNull null,
+                    val content = contentList.mapnotNull { contentData ->
+                        val contentMap = contentData as? Map<*, *> ?: return@mapnotNull null
+                        McptoolCallresult.ContentItem(
+                            type = contentMap["type"] as? String ?: return@mapnotNull null,
                             text = contentMap["text"] as? String,
                             data = contentMap["data"] as? String,
                             mimeType = contentMap["mimeType"] as? String
                         )
                     }
 
-                    result.success(McpToolCallresult(content, isError))
+                    result.success(McptoolCallresult(content, isError))
                 } else {
-                    result.failure(Exception("Invalid tool call response"))
+                    result.failure(exception("Invalid tool call response"))
                 }
             } else {
-                result.failure(response.exceptionOrNull() ?: Exception("Tool call failed"))
+                result.failure(response.exceptionorNull() ?: exception("tool call failed"))
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Tool call failed: $name", e)
+        } catch (e: exception) {
+            Log.e(TAG, "tool call failed: $name", e)
             result.failure(e)
         }
     }
@@ -175,9 +175,9 @@ class McpClient(
     private suspend fun sendRequest(
         method: String,
         params: Map<String, Any?>?
-    ): result<JsonRpcResponse> = withContext(Dispatchers.IO) {
+    ): result<JsonRpcResponse> = withcontext(Dispatchers.IO) {
         try {
-            val requestId = requestIdCounter.getAndIncrement()
+            val requestId = requestIdCounter.getandIncrement()
             val request = JsonRpcRequest(
                 id = requestId,
                 method = method,
@@ -201,7 +201,7 @@ class McpClient(
             Log.d(TAG, "Response body: ${responseBody.take(500)}")
 
             if (!response.isSuccessful) {
-                return@withContext result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                return@withcontext result.failure(exception("HTTP ${response.code}: $responseBody"))
             }
 
             // Parse response
@@ -209,15 +209,15 @@ class McpClient(
 
             if (responseJson.has("error")) {
                 val error = JsonRpcError.fromJson(responseJson)
-                return@withContext result.failure(
-                    Exception("JSON-RPC Error ${error.error.code}: ${error.error.message}")
+                return@withcontext result.failure(
+                    exception("JSON-RPC Error ${error.error.code}: ${error.error.message}")
                 )
             }
 
             val rpcResponse = JsonRpcResponse.fromJson(responseJson)
             result.success(rpcResponse)
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Request failed: $method", e)
             result.failure(e)
         }
@@ -230,7 +230,7 @@ class McpClient(
         if (!initialized) {
             val result = initialize()
             if (result.isFailure) {
-                throw result.exceptionOrNull() ?: Exception("Initialization failed")
+                throw result.exceptionorNull() ?: exception("Initialization failed")
             }
         }
     }
@@ -238,7 +238,7 @@ class McpClient(
     /**
      * Check server health
      */
-    suspend fun checkHealth(): Boolean = withContext(Dispatchers.IO) {
+    suspend fun checkHealth(): Boolean = withcontext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$baseUrl/health")
@@ -247,7 +247,7 @@ class McpClient(
 
             val response = httpClient.newCall(request).execute()
             response.isSuccessful
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.d(TAG, "Health check failed: ${e.message}")
             false
         }

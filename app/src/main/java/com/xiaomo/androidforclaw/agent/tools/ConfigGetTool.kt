@@ -2,35 +2,35 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 
 
-import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
+import com.xiaomo.androidforclaw.gateway.methods.configMethods
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
-import com.xiaomo.androidforclaw.providers.ParametersSchema
-import com.xiaomo.androidforclaw.providers.PropertySchema
-import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.providers.Parametersschema
+import com.xiaomo.androidforclaw.providers.Propertyschema
+import com.xiaomo.androidforclaw.providers.toolDefinition
 
 /**
  * Read value from /sdcard/.androidforclaw/openclaw.json by path.
  */
-class ConfigGetTool(
-    private val configMethods: ConfigMethods
-) : Tool {
+class configGettool(
+    private val configMethods: configMethods
+) : tool {
     override val name = "config_get"
     override val description = "Read a configuration value from openclaw.json by dot path"
 
-    override fun getToolDefinition(): ToolDefinition {
-        return ToolDefinition(
+    override fun gettoolDefinition(): toolDefinition {
+        return toolDefinition(
             type = "function",
             function = FunctionDefinition(
                 name = name,
                 description = description,
-                parameters = ParametersSchema(
+                parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "Dot path, e.g. channels.feishu.appId")
+                        "path" to Propertyschema("string", "Dot path, e.g. channels.feishu.appId")
                     ),
                     required = listOf("path")
                 )
@@ -38,15 +38,15 @@ class ConfigGetTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): toolResult {
         val path = args["path"] as? String
-            ?: return ToolResult.error("Missing required parameter: path")
+            ?: return toolResult.error("Missing required parameter: path")
 
         val result = configMethods.configGet(mapOf("path" to path))
         return if (result.success) {
-            ToolResult.success(result.config?.toString() ?: "null")
+            toolResult.success(result.config?.toString() ?: "null")
         } else {
-            ToolResult.error(result.error ?: "Failed to read config")
+            toolResult.error(result.error ?: "Failed to read config")
         }
     }
 }

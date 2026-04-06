@@ -1,12 +1,12 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
+import android.content.Clipboardmanager
+import android.content.context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -18,13 +18,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Arrowback
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.Localcontext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -32,30 +32,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.mcp.ObserverMcpServer
-import java.net.Inet4Address
+import java.net.Inet4Aress
 import java.net.NetworkInterface
 
 /**
- * MCP Server Config页面
+ * MCP Server config页面
  *
  * ┌──────────────────────────────────────────────────────────────┐
- * │  ⚠️  此页面Manage的 MCP Server Yes给【External Agent】用的           │
+ * │  [WARN]  this页面Manage MCP Server Yes给【External agent】用           │
  * │     (Claude Desktop、Cursor、Its他 MCP Client等)             │
  * │                                                              │
- * │     与 AndroidForClaw 自身的 AI FeaturecompletelyNone关.                  │
- * │     AndroidForClaw 通过Internal DeviceTool 直接Action手机,           │
- * │     不经过此 MCP Server.                                      │
+ * │     and androidforClaw 自身 AI FeaturecompletelyNone关.                  │
+ * │     androidforClaw throughInternal Devicetool 直接Action手机,           │
+ * │     not经overthis MCP Server.                                      │
  * │                                                              │
- * │     此 MCP Server 的作用Yes让同一局域网Down的Its他 AI Agent        │
- * │     能够远程操控这台手机(ViewScreen、click、swipe等).             │
+ * │     this MCP Server 作用Yes让同one局域网nextIts他 AI agent        │
+ * │     can远程操控this台手机(ViewScreen、click、swipe等).             │
  * └──────────────────────────────────────────────────────────────┘
  */
-class McpConfigActivity : ComponentActivity() {
+class McpconfigActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                McpConfigScreen(onBack = { finish() })
+                McpconfigScreen(onback = { finish() })
             }
         }
     }
@@ -63,14 +63,14 @@ class McpConfigActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun McpConfigScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
+private fun McpconfigScreen(onback: () -> Unit) {
+    val context = Localcontext.current
     var serverRunning by remember { mutableStateOf(ObserverMcpServer.isRunning()) }
     val deviceIp = remember { getDeviceIp() }
     val port = ObserverMcpServer.DEFAULT_PORT
     val serverUrl = "http://$deviceIp:$port/mcp"
 
-    val mcpConfig = remember(deviceIp) {
+    val mcpconfig = remember(deviceIp) {
         """
         |{
         |  "mcpServers": {
@@ -87,19 +87,19 @@ private fun McpConfigScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(stringResource(R.string.mcp_server_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "Return")
+                    Iconbutton(onClick = onback) {
+                        Icon(Icons.Filled.Arrowback, "Return")
                     }
                 }
             )
         }
-    ) { padding ->
+    ) { paing ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .paing(paing)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 18.dp, vertical = 12.dp),
+                .paing(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // ── Banner ──────────────────────────────────────────
@@ -109,8 +109,8 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 tonalElevation = 0.dp
             ) {
                 Text(
-                    text = "此Service用于External Agent(Claude Desktop、Cursor 等)远程操控本手机, 与 AndroidForClaw 自身FeatureNone关. ",
-                    modifier = Modifier.padding(14.dp),
+                    text = "thisservice用于External agent(Claude Desktop、Cursor 等)远程操控本手机, and androidforClaw 自身FeatureNone关. ",
+                    modifier = Modifier.paing(14.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
@@ -121,15 +121,15 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 shape = RoundedCornerShape(14.dp),
                 tonalElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.paing(16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("ServiceStatus", style = MaterialTheme.typography.titleSmall)
+                            Text("serviceStatus", style = MaterialTheme.typography.titleSmall)
                             Text(
-                                text = if (serverRunning) "Run中 · 端口 $port" else "已Stop",
+                                text = if (serverRunning) "Run中 · port $port" else "alreadyStop",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (serverRunning)
                                     MaterialTheme.colorScheme.primary
@@ -145,7 +145,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                                         val server = ObserverMcpServer.getInstance(port)
                                         server.start()
                                         serverRunning = true
-                                    } catch (e: Exception) {
+                                    } catch (e: exception) {
                                         Toast.makeText(context, "StartFailed: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
@@ -167,26 +167,26 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 }
             }
 
-            // ── MCP Config JSON ─────────────────────────────────
+            // ── MCP config JSON ─────────────────────────────────
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 tonalElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.paing(16.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            "MCP Config",
+                            "MCP config",
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.weight(1f)
                         )
-                        TextButton(
+                        Textbutton(
                             onClick = {
-                                val cb = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                cb.setPrimaryClip(ClipData.newPlainText("mcp-config", mcpConfig))
-                                Toast.makeText(context, "已Copy", Toast.LENGTH_SHORT).show()
+                                val cb = context.getSystemservice(context.CLIPBOARD_SERVICE) as Clipboardmanager
+                                cb.setPrimaryClip(ClipData.newPlainText("mcp-config", mcpconfig))
+                                Toast.makeText(context, "alreadyCopy", Toast.LENGTH_SHORT).show()
                             }
                         ) {
                             Icon(Icons.Default.ContentCopy, null, modifier = Modifier.size(16.dp))
@@ -198,7 +198,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = "将以DownConfigpaste到 Claude Desktop / Cursor 的 MCP Settings中: ",
+                        text = "willbynextconfigpasteto Claude Desktop / Cursor  MCP Settings中: ",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -211,9 +211,9 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                         color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
-                            text = mcpConfig,
+                            text = mcpconfig,
                             modifier = Modifier
-                                .padding(12.dp)
+                                .paing(12.dp)
                                 .fillMaxWidth()
                                 .horizontalScroll(rememberScrollState()),
                             fontFamily = FontFamily.Monospace,
@@ -230,7 +230,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 shape = RoundedCornerShape(14.dp),
                 tonalElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.paing(16.dp)) {
                     Text("Available工具", style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(8.dp))
 
@@ -243,14 +243,14 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                         "input_text" to "Input文字",
                         "press_home" to "按 Home Key",
                         "press_back" to "按ReturnKey",
-                        "get_current_app" to "GetFront台applyPackage name",
+                        "get_current_app" to "GetforegroundappPackage name",
                     )
 
                     tools.forEach { (name, desc) ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .paing(vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -279,13 +279,13 @@ private fun McpConfigScreen(onBack: () -> Unit) {
 private fun getDeviceIp(): String {
     try {
         NetworkInterface.getNetworkInterfaces()?.toList()?.forEach { intf ->
-            if (intf.isLoopback || !intf.isUp) return@forEach
-            intf.inetAddresses?.toList()?.forEach { addr ->
-                if (addr is Inet4Address && !addr.isLoopbackAddress) {
-                    return addr.hostAddress ?: "0.0.0.0"
+            if (intf.isloopback || !intf.isUp) return@forEach
+            intf.inetAresses?.toList()?.forEach { ar ->
+                if (ar is Inet4Aress && !ar.isloopbackAress) {
+                    return ar.hostAress ?: "0.0.0.0"
                 }
             }
         }
-    } catch (_: Exception) {}
+    } catch (_: exception) {}
     return "0.0.0.0"
 }

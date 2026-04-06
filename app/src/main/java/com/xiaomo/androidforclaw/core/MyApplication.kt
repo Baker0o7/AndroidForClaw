@@ -9,75 +9,75 @@ package com.xiaomo.androidforclaw.core
 import android.app.Activity
 import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 import android.app.Application
-import android.content.Context
+import android.content.context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.os.Looper
+import android.os.looper
 import android.os.Message
 import android.provider.Settings
 import com.xiaomo.androidforclaw.logging.Log
 import android.widget.Toast
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.accessibility.AccessibilityHealthMonitor
-import com.xiaomo.androidforclaw.util.GlobalExceptionHandler
+import com.xiaomo.androidforclaw.util.GlobalexceptionHandler
 import com.xiaomo.androidforclaw.workspace.StoragePaths
-import com.xiaomo.androidforclaw.util.SPHelper
-import com.xiaomo.androidforclaw.util.WakeLockManager
-import com.xiaomo.androidforclaw.camera.CameraCaptureManager
-import com.xiaomo.androidforclaw.data.model.TaskDataManager
+import com.xiaomo.androidforclaw.util.SPhelper
+import com.xiaomo.androidforclaw.util.WakeLockmanager
+import com.xiaomo.androidforclaw.camera.CameraCapturemanager
+import com.xiaomo.androidforclaw.data.model.TaskDatamanager
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withcontext
 import kotlinx.coroutines.withTimeout
-import com.xiaomo.androidforclaw.gateway.GatewayService
-import com.xiaomo.androidforclaw.gateway.MainEntryAgentHandler
+import com.xiaomo.androidforclaw.gateway.Gatewayservice
+import com.xiaomo.androidforclaw.gateway.MainEntryagentHandler
 import com.xiaomo.androidforclaw.gateway.GatewayServer
 import com.xiaomo.androidforclaw.gateway.GatewayController
-import com.xiaomo.androidforclaw.agent.session.SessionManager
-import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
-import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.feishu.FeishuChannel
-import com.xiaomo.feishu.FeishuConfig
-import com.xiaomo.discord.DiscordChannel
-import com.xiaomo.discord.DiscordConfig
-import com.xiaomo.discord.ChannelEvent
-import com.xiaomo.discord.session.DiscordSessionManager
-import com.xiaomo.discord.session.DiscordHistoryManager
+import com.xiaomo.androidforclaw.agent.session.sessionmanager
+import com.xiaomo.androidforclaw.agent.skills.skillsLoader
+import com.xiaomo.androidforclaw.config.configLoader
+import com.xiaomo.feishu.Feishuchannel
+import com.xiaomo.feishu.Feishuconfig
+import com.xiaomo.discord.Discordchannel
+import com.xiaomo.discord.Discordconfig
+import com.xiaomo.discord.channelEvent
+import com.xiaomo.discord.session.Discordsessionmanager
+import com.xiaomo.discord.session.DiscordHistorymanager
 import com.xiaomo.discord.session.DiscordDedup
 import com.xiaomo.discord.messaging.DiscordTyping
-import com.xiaomo.telegram.TelegramChannel
-import com.xiaomo.telegram.TelegramConfig
+import com.xiaomo.telegram.Telegramchannel
+import com.xiaomo.telegram.Telegramconfig
 import com.xiaomo.telegram.TelegramClient
 import com.xiaomo.telegram.messaging.TelegramTyping
 import com.xiaomo.telegram.messaging.TelegramSender
-import com.xiaomo.slack.SlackChannel
-import com.xiaomo.slack.SlackConfig
+import com.xiaomo.slack.Slackchannel
+import com.xiaomo.slack.Slackconfig
 import com.xiaomo.slack.SlackClient
 import com.xiaomo.slack.messaging.SlackSender
-import com.xiaomo.slack.messaging.SlackTyping as SlackTypingHelper
-import com.xiaomo.signal.SignalChannel
-import com.xiaomo.signal.SignalConfig
+import com.xiaomo.slack.messaging.SlackTyping as SlackTypinghelper
+import com.xiaomo.signal.Signalchannel
+import com.xiaomo.signal.Signalconfig
 import com.xiaomo.signal.SignalClient
 import com.xiaomo.signal.messaging.SignalTyping
 import com.xiaomo.signal.messaging.SignalSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.Job
-import com.xiaomo.androidforclaw.providers.llm.toNewMessage
+import com.xiaomo.androidforclaw.providers.llm.tonewMessage
 import com.xiaomo.androidforclaw.providers.llm.toLegacyMessage
-import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
-import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
-import com.xiaomo.androidforclaw.agent.context.ContextBuilder
-import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.tools.toolRegistry
+import com.xiaomo.androidforclaw.agent.tools.androidtoolRegistry
+import com.xiaomo.androidforclaw.agent.context.contextBuilder
+import com.xiaomo.androidforclaw.agent.loop.agentloop
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
-import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
-import com.xiaomo.androidforclaw.core.channel.ChannelAdapter
-import com.xiaomo.androidforclaw.core.channel.ChannelMessageProcessor
+import com.xiaomo.androidforclaw.providers.UnifiedLLMprovider
+import com.xiaomo.androidforclaw.core.channel.channelAdapter
+import com.xiaomo.androidforclaw.core.channel.channelMessageProcessor
 
 /**
  */
@@ -86,7 +86,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     companion object {
         private const val TAG = "MyApplication"
         private var activeActivityCount = 0
-        private var isChangingConfiguration = false
+        private var isChangingconfiguration = false
 
         lateinit var application: Application
 
@@ -100,84 +100,84 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // Gateway Controller
         private var gatewayController: GatewayController? = null
 
-        // 本地ProcessInside channel(绕过 WebSocket)
-        private var localGatewayChannel: com.xiaomo.androidforclaw.gateway.LocalGatewayChannel? = null
+        // local in-process channel(bypass WebSocket)
+        private var localGatewaychannel: com.xiaomo.androidforclaw.gateway.LocalGatewaychannel? = null
 
         fun isGatewayRunning(): Boolean = gatewayController != null
 
-        // Feishu Channel
-        private var feishuChannel: FeishuChannel? = null
-        private var feishuWakeLock: android.os.PowerManager.WakeLock? = null
+        // Feishu channel
+        private var feishuchannel: Feishuchannel? = null
+        private var feishuWakeLock: android.os.Powermanager.WakeLock? = null
 
         /**
-         * Get Feishu Channel (for tool invocation)
+         * Get Feishu channel (for tool invocation)
          */
-        fun getFeishuChannel(): FeishuChannel? = feishuChannel
+        fun getFeishuchannel(): Feishuchannel? = feishuchannel
 
-        // Message Queue Manager: fully aligned with OpenClaw's queue mechanism
+        // Message queue manager: fully aligned with OpenClaw's queue mechanism
         // Supports five modes: interrupt, steer, followup, collect, queue
-        private val messageQueueManager = MessageQueueManager()
+        private val messagequeuemanager = Messagequeuemanager()
 
-        // Discord Channel
-        private var discordChannel: DiscordChannel? = null
-        private val discordSessionManager = DiscordSessionManager()
-        private val discordHistoryManager = DiscordHistoryManager(maxHistoryPerChannel = 50)
+        // Discord channel
+        private var discordchannel: Discordchannel? = null
+        private val discordsessionmanager = Discordsessionmanager()
+        private val discordHistorymanager = DiscordHistorymanager(maxHistoryPerchannel = 50)
         private val discordDedup = DiscordDedup()
         private var discordTyping: DiscordTyping? = null
         private val discordProcessingJobs = mutableMapOf<String, Job>()
 
-        // Telegram Channel
-        private var telegramChannel: TelegramChannel? = null
+        // Telegram channel
+        private var telegramchannel: Telegramchannel? = null
         private var telegramTyping: TelegramTyping? = null
         private val telegramProcessingJobs = mutableMapOf<String, Job>()
-        private val telegramDedup = java.util.Collections.synchronizedSet(mutableSetOf<Long>())
+        private val telegramDedup = java.util.collections.synchronizedSet(mutableSetOf<Long>())
 
-        // Signal Channel
-        private var signalChannel: SignalChannel? = null
+        // Signal channel
+        private var signalchannel: Signalchannel? = null
         private var signalTyping: SignalTyping? = null
         private val signalProcessingJobs = mutableMapOf<String, Job>()
-        private val signalDedup = java.util.Collections.synchronizedSet(mutableSetOf<Long>())
+        private val signalDedup = java.util.collections.synchronizedSet(mutableSetOf<Long>())
 
-        // Slack Channel
-        private var slackChannel: SlackChannel? = null
+        // Slack channel
+        private var slackchannel: Slackchannel? = null
         private val slackProcessingJobs = mutableMapOf<String, Job>()
-        private val slackDedup = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+        private val slackDedup = java.util.collections.synchronizedSet(mutableSetOf<String>())
 
-        // Weixin Channel
-        private var weixinChannel: com.xiaomo.weixin.WeixinChannel? = null
-        fun getWeixinChannel(): com.xiaomo.weixin.WeixinChannel? = weixinChannel
+        // Weixin channel
+        private var weixinchannel: com.xiaomo.weixin.Weixinchannel? = null
+        fun getWeixinchannel(): com.xiaomo.weixin.Weixinchannel? = weixinchannel
 
-        // Weixin agent loop tracking moved to MessageQueueManager (channel-agnostic)
+        // Weixin agent loop tracking moved to Messagequeuemanager (channel-agnostic)
 
         // Cron heartbeat delivery: last active chat
         private var lastActiveChatId: String? = null
-        private var lastActiveChannel: String? = null
+        private var lastActivechannel: String? = null
 
-        fun getLastActiveChat(): Pair<String?, String?> = Pair(lastActiveChannel, lastActiveChatId)
+        fun getLastActiveChat(): Pair<String?, String?> = Pair(lastActivechannel, lastActiveChatId)
 
         fun setLastActiveChat(channel: String, chatId: String) {
-            lastActiveChannel = channel
+            lastActivechannel = channel
             lastActiveChatId = chatId
         }
 
         // Accessibility Health Monitor
         private var healthMonitor: AccessibilityHealthMonitor? = null
 
-        // Camera Capture Manager (Aligned with OpenClaw CameraCaptureManager)
-        private var cameraCaptureManager: CameraCaptureManager? = null
+        // Camera Capture manager (Aligned with OpenClaw CameraCapturemanager)
+        private var cameraCapturemanager: CameraCapturemanager? = null
 
-        fun getCameraCaptureManager(): CameraCaptureManager? = cameraCaptureManager
+        fun getCameraCapturemanager(): CameraCapturemanager? = cameraCapturemanager
 
-        private fun onAppForeground() {
-            Log.d(TAG, "App回到Front台")
+        private fun onAppforeground() {
+            Log.d(TAG, "App returned to foreground")
             // Check if test task is running, if so ensure WakeLock is acquired
-            ensureWakeLockForTesting()
+            ensureWakeLockforTesting()
         }
 
-        private fun onAppBackground() {
-            Log.d(TAG, "AppInto入Back台")
+        private fun onAppbackground() {
+            Log.d(TAG, "App entered background")
             // Check if test task is running, if so ensure WakeLock is acquired
-            ensureWakeLockForTesting()
+            ensureWakeLockforTesting()
         }
 
         /**
@@ -186,40 +186,40 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
          *
          * Called at:
          * 1. App startup (onCreate)
-         * 2. App entering background (onAppBackground)
-         * 3. App returning to foreground (onAppForeground)
+         * 2. App entering background (onAppbackground)
+         * 3. App returning to foreground (onAppforeground)
          */
-        private fun ensureWakeLockForTesting() {
+        private fun ensureWakeLockforTesting() {
             try {
-                val taskDataManager = TaskDataManager.getInstance()
-                val hasTask = taskDataManager.hasCurrentTask()
+                val taskDatamanager = TaskDatamanager.getInstance()
+                val hasTask = taskDatamanager.hasCurrentTask()
                 
                 if (hasTask) {
-                    val taskData = taskDataManager.getCurrentTaskData()
+                    val taskData = taskDatamanager.getCurrentTaskData()
                     val isRunning = taskData?.getIsRunning() ?: false
 
                     if (isRunning) {
                         // Test task is running, ensure WakeLock is acquired
                         // acquireScreenWakeLock has internal duplicate acquisition prevention, safe to call
-                        Log.d(TAG, "DetectedTestTask在Run, Ensure WakeLock 已Get(applyStatus: ${if (activeActivityCount == 0) "Back台" else "Front台"})")
-                        WakeLockManager.acquireScreenWakeLock()
+                        Log.d(TAG, "Detected test task running, WakeLock acquired(app status: ${if (activeActivityCount == 0) "background" else "foreground"})")
+                        WakeLockmanager.acquireScreenWakeLock()
                     } else {
                         // Test task has stopped, release WakeLock
-                        Log.d(TAG, "TestTask已Stop, Release WakeLock")
-                        WakeLockManager.releaseScreenWakeLock()
+                        Log.d(TAG, "Test task stopped, Releasing WakeLock")
+                        WakeLockmanager.releaseScreenWakeLock()
                     }
                 } else {
                     // No test task, ensure WakeLock is released
                     // releaseScreenWakeLock has internal check, skip if not active
-                    if (WakeLockManager.isScreenWakeLockActive()) {
-                        Log.d(TAG, "NoneTestTask, Release WakeLock")
-                        WakeLockManager.releaseScreenWakeLock()
+                    if (WakeLockmanager.isScreenWakeLockActive()) {
+                        Log.d(TAG, "No test task, Releasing WakeLock")
+                        WakeLockmanager.releaseScreenWakeLock()
                     } else {
-                        Log.d(TAG, "NoneTestTask, WakeLock 未Activate, None需Release")
+                        Log.d(TAG, "No test task, WakeLock not active, nothing to release")
                     }
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "CheckTestTaskStatusFailed: ${e.message}", e)
+            } catch (e: exception) {
+                Log.e(TAG, "Check test task status failed: ${e.message}", e)
             }
         }
 
@@ -228,110 +228,110 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
          * Send local broadcast for MainActivityCompose to handle
          */
         fun handleChatBroadcast(message: String) {
-            Log.d(TAG, "📨 handleChatBroadcast: $message")
+            Log.d(TAG, "[MSG] handleChatBroadcast: $message")
             try {
                 // Send local broadcast for MainActivityCompose to handle
                 val intent = Intent("com.xiaomo.androidforclaw.CHAT_MESSAGE_FROM_BROADCAST")
                 intent.putExtra("message", message)
-                androidx.localbroadcastmanager.content.LocalBroadcastManager
+                androidx.localbroadcastmanager.content.LocalBroadcastmanager
                     .getInstance(application)
                     .sendBroadcast(intent)
-                Log.d(TAG, "✅ 已send本地Broadcast")
-            } catch (e: Exception) {
-                Log.e(TAG, "send本地BroadcastFailed: ${e.message}", e)
+                Log.d(TAG, "[OK] sent local broadcast")
+            } catch (e: exception) {
+                Log.e(TAG, "send local broadcast failed: ${e.message}", e)
             }
         }
     }
 
-    override fun provideLocalChatChannel(): com.xiaomo.base.IGatewayChannel? = localGatewayChannel
+    override fun provideLocalChatchannel(): com.xiaomo.base.IGatewaychannel? = localGatewaychannel
 
     override fun onCreate() {
         super.onCreate()
         application = this
 
         // Apply saved language settings
-        com.xiaomo.androidforclaw.util.LocaleHelper.applyLanguage(this)
+        com.xiaomo.androidforclaw.util.Localehelper.appLanguage(this)
 
         MMKV.initialize(this)
-        com.xiaomo.androidforclaw.config.ProviderRegistry.init(this)
+        com.xiaomo.androidforclaw.config.providerRegistry.init(this)
         registerActivityLifecycleCallbacks(this)
 
-        // Initialize CameraCaptureManager (Aligned with OpenClaw camera.snap/clip)
-        cameraCaptureManager = CameraCaptureManager(this)
+        // Initialize CameraCapturemanager (Aligned with OpenClaw camera.snap/clip)
+        cameraCapturemanager = CameraCapturemanager(this)
 
         // Initialize file logging system
         initializeFileLogger()
 
-        // Initialize Workspace (aligned with OpenClaw)
+        // Initialize workspace (aligned with OpenClaw)
         initializeWorkspace()
 
         // Initialize Cron scheduled tasks
         initializeCronJobs()
 
         // Register global exception handler
-        Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler())
+        Thread.setDefaultUncaughtexceptionHandler(GlobalexceptionHandler())
 
         // Start foreground service keep-alive
-        startForegroundServiceKeepAlive()
+        startforegroundserviceKeepAlive()
 
         // Start Gateway server
         startGatewayServer()
 
-        // ✅ Test config system
-        testConfigSystem()
+        // [OK] Test config system
+        testconfigSystem()
 
-        // ⚠️ Block 1: SkillParser test temporarily skipped (JSON parsing issue pending fix)
-        // testSkillParser()
-        Log.i(TAG, "⏭️  Block 1 Test已Skip, applyContinueStart")
+        // [WARN] Block 1: skillParser test temporarily skipped (JSON parsing issue pending fix)
+        // testskillParser()
+        Log.i(TAG, "[SKIP]  Block 1 test skipped, app continues to start")
 
         // Check if test task is running on app startup, if so acquire WakeLock
-        // Delayed check to ensure TaskDataManager is initialized
-        Handler(Looper.getMainLooper()).postDelayed({
-            ensureWakeLockForTesting()
+        // Delayed check to ensure TaskDatamanager is initialized
+        Handler(looper.getMainlooper()).postDelayed({
+            ensureWakeLockforTesting()
         }, 1000) // 1 second delay
 
-        // 🌐 Start Gateway service
-        startGatewayService()
+        // [NET] Start Gateway service
+        startGatewayservice()
 
-        // 🐧 Termux SSH pre-warm: 仅在 sshd 已Run时 warm-up, 不主动拉起 Termux
-        // Termux 按需Start: 在 AI 实际call exec 工具时才会触发 ensureAndLaunch
+        // [PENGUIN] Termux SSH pre-warm: only warm-up when sshd is already running, don't actively pull up Termux
+        // Termux on-demand start: triggered only when AI actually calls exec tool
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                val termux = com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool(applicationContext)
+                val termux = com.xiaomo.androidforclaw.agent.tools.TermuxBridgetool(applicationcontext)
                 if (!termux.isTermuxInstalled()) return@launch
                 val status = termux.getStatus()
                 if (status.ready) {
-                    com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationContext)
-                    Log.i(TAG, "✅ Termux SSH pool warmed up (sshd already running)")
+                    com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationcontext)
+                    Log.i(TAG, "[OK] Termux SSH pool warmed up (sshd already running)")
                 } else {
-                    Log.i(TAG, "Termux SSH warm-up skipped: sshd not running (按需Start)")
+                    Log.i(TAG, "Termux SSH warm-up skipped: sshd not running (on-demand start)")
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Termux SSH warm-up skipped: ${e.message}")
             }
         }
 
-        // 📱 Start channels (only if storage permission is granted)
+        // [APP] Start channels (only if storage permission is granted)
         if (hasStoragePermission()) {
-            startAllChannels()
+            startAllchannels()
         } else {
-            Log.w(TAG, "⚠️ StoragePermission未Authorize, Skip Channel Initialize. AuthorizeBack将AutoStart. ")
+            Log.w(TAG, "[WARN] Storage permission not authorized, skip channel initialization. authorized back will auto start. ")
         }
 
-        // 🪟 Initialize floating window manager
-        com.xiaomo.androidforclaw.ui.float.SessionFloatWindow.init(this)
+        // [WINDOW] Initialize floating window manager
+        com.xiaomo.androidforclaw.ui.float.sessionFloatWindow.init(this)
 
-        // 🔌 Start health monitoring (serviceInstance managed by observer lifecycle)
-        healthMonitor = AccessibilityHealthMonitor(applicationContext)
+        // [PLUG] Start health monitoring (serviceInstance managed by observer lifecycle)
+        healthMonitor = AccessibilityHealthMonitor(applicationcontext)
         healthMonitor?.startMonitoring()
 
         // Listen to connection status
         GlobalScope.launch(Dispatchers.Main) {
-            AccessibilityProxy.isConnected.observeForever { connected ->
+            AccessibilityProxy.isConnected.observeforever { connected ->
                 if (connected) {
-                    Log.i(TAG, "✅ AccessibilityService已Connect")
+                    Log.i(TAG, "[OK] Accessibilityservice connected")
                 } else {
-                    Log.w(TAG, "⚠️ AccessibilityServiceNot connected")
+                    Log.w(TAG, "[WARN] Accessibilityservicenot connected")
                 }
             }
         }
@@ -340,27 +340,27 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     }
 
-    fun isAppInBackground(): Boolean {
+    fun isAppInbackground(): Boolean {
         return activeActivityCount == 0
     }
 
     /**
      * Start foreground service keep-alive
      */
-    private fun startForegroundServiceKeepAlive() {
+    private fun startforegroundserviceKeepAlive() {
         try {
-            val serviceIntent = Intent(this, ForegroundService::class.java)
+            val serviceIntent = Intent(this, foregroundservice::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
+                startforegroundservice(serviceIntent)
             } else {
-                startService(serviceIntent)
+                startservice(serviceIntent)
             }
-            Log.i(TAG, "✅ Front台Service已Start(保活)")
-        } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
-            // Android 14+: cannot start foreground service from background
-            Log.w(TAG, "⚠️ Front台ServiceStart受限(apply在Back台), 将在Down次回到Front台时Retry")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Front台ServiceStartFailed", e)
+            Log.i(TAG, "[OK] foreground service started(keep-alive)")
+        } catch (e: android.app.foregroundserviceStartnotAllowedexception) {
+            // android 14+: cannot start foreground service from background
+            Log.w(TAG, "[WARN] foreground service start restricted(app in background), will retry next time returning to foreground")
+        } catch (e: exception) {
+            Log.e(TAG, "[ERROR] foregroundserviceStartFailed", e)
         }
     }
 
@@ -377,45 +377,45 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             gatewayServer = GatewayServer(this, port = 19789)
             gatewayServer?.start()
 
-            Log.i(TAG, "✅ Gateway Server StartSuccess")
+            Log.i(TAG, "[OK] Gateway Server started successfully")
             Log.i(TAG, "  - HTTP: http://0.0.0.0:19789")
             Log.i(TAG, "  - WebSocket: ws://0.0.0.0:19789/ws")
 
             // Get local IP
             GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val ip = getLocalIpAddress()
+                    val ip = getLocalIpAress()
                     if (ip != null) {
-                        Log.i(TAG, "  - 局域网访问: http://$ip:19789")
+                        Log.i(TAG, "  - LAN access: http://$ip:19789")
                     }
-                } catch (e: Exception) {
-                    Log.w(TAG, "CannotGet本机 IP", e)
+                } catch (e: exception) {
+                    Log.w(TAG, "cannot get local IP", e)
                 }
             }
 
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Gateway Server StartFailed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "[ERROR] Gateway Server failed to start", e)
         }
     }
 
     /**
-     * Get local IP address
+     * Get local IP aress
      */
-    private fun getLocalIpAddress(): String? {
+    private fun getLocalIpAress(): String? {
         try {
             val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
             while (interfaces.hasMoreElements()) {
                 val networkInterface = interfaces.nextElement()
-                val addresses = networkInterface.inetAddresses
-                while (addresses.hasMoreElements()) {
-                    val address = addresses.nextElement()
-                    if (!address.isLoopbackAddress && address is java.net.Inet4Address) {
-                        return address.hostAddress
+                val aresses = networkInterface.inetAresses
+                while (aresses.hasMoreElements()) {
+                    val aress = aresses.nextElement()
+                    if (!aress.isloopbackAress && aress is java.net.Inet4Aress) {
+                        return aress.hostAress
                     }
                 }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Get IP 地址Failed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "Get IP aress failed", e)
         }
         return null
     }
@@ -429,9 +429,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun initializeFileLogger() {
         try {
             com.xiaomo.androidforclaw.logging.AppLog.init(this)
-            Log.i(TAG, "✅ 文件Log系统已Initialize")
-        } catch (e: Exception) {
-            Log.e(TAG, "Initialize文件Log系统Failed", e)
+            Log.i(TAG, "[OK] File logging system initialized")
+        } catch (e: exception) {
+            Log.e(TAG, "Initialize file logging system failed", e)
         }
     }
 
@@ -441,14 +441,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun initializeCronJobs() {
         try {
             com.xiaomo.androidforclaw.cron.CronInitializer.initialize(this)
-            Log.i(TAG, "✅ Cron 系统已Initialize")
-        } catch (e: Exception) {
-            Log.e(TAG, "Initialize Cron 系统Failed", e)
+            Log.i(TAG, "[OK] Cron system initialized")
+        } catch (e: exception) {
+            Log.e(TAG, "Initialize Cron system failed", e)
         }
     }
 
     /**
-     * Initialize Workspace (aligned with OpenClaw)
+     * Initialize workspace (aligned with OpenClaw)
      */
     private fun initializeWorkspace() {
         try {
@@ -456,50 +456,50 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
             if (!initializer.isWorkspaceInitialized()) {
                 Log.i(TAG, "========================================")
-                Log.i(TAG, "📁 首次Start - Initialize Workspace...")
+                Log.i(TAG, "[DIR] first start - Initialize workspace...")
                 Log.i(TAG, "========================================")
 
                 val success = initializer.initializeWorkspace()
 
                 if (success) {
-                    Log.i(TAG, "✅ Workspace InitializeSuccess")
+                    Log.i(TAG, "[OK] Workspace initialized successfully")
                     Log.i(TAG, "   Path: ${initializer.getWorkspacePath()}")
                     Log.i(TAG, "   Device ID: ${initializer.getDeviceId()}")
-                    Log.i(TAG, "   文件: BOOTSTRAP.md, IDENTITY.md, USER.md, SOUL.md, AGENTS.md, TOOLS.md")
+                    Log.i(TAG, "   files: BOOTSTRAP.md, IDENTITY.md, USER.md, SOUL.md, AGENTS.md, TOOLS.md")
                 } else {
-                    Log.e(TAG, "❌ Workspace InitializeFailed")
+                    Log.e(TAG, "[ERROR] Workspace initialized failed")
                 }
             } else {
-                Log.d(TAG, "Workspace 已Initialize: ${initializer.getWorkspacePath()}")
+                Log.d(TAG, "Workspace initialized: ${initializer.getWorkspacePath()}")
             }
 
             // Always ensure bundled skills are deployed (copies missing, won't overwrite)
-            initializer.ensureBundledSkills()
+            initializer.ensureBundledskills()
 
-        } catch (e: Exception) {
-            Log.e(TAG, "Initialize Workspace Failed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "Initialize workspace Failed", e)
         }
     }
 
-    private fun testConfigSystem() {
+    private fun testconfigSystem() {
         try {
             Log.d(TAG, "========================================")
-            Log.d(TAG, "🧪 Config系统TestStart")
+            Log.d(TAG, "[TEST] config system test started")
             Log.d(TAG, "========================================")
 
             // Run basic config tests
-            // com.xiaomo.androidforclaw.config.ConfigTestRunner.runBasicTests(this)
+            // com.xiaomo.androidforclaw.config.configTestRunner.runBasicTests(this)
 
             // Test LegacyRepository config integration
-            // com.xiaomo.androidforclaw.config.ConfigTestRunner.testLegacyRepository(this)
+            // com.xiaomo.androidforclaw.config.configTestRunner.testLegacyRepository(this)
 
             Log.d(TAG, "")
             Log.d(TAG, "========================================")
-            Log.i(TAG, "✅ Config系统TestComplete!")
+            Log.i(TAG, "[OK] config system test complete!")
             Log.d(TAG, "========================================")
 
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Config系统TestException: ${e.message}", e)
+        } catch (e: exception) {
+            Log.e(TAG, "[ERROR] config system test exception: ${e.message}", e)
         }
     }
 
@@ -511,107 +511,107 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun startAutoTest() {
         try {
             Log.i(TAG, "========================================")
-            Log.i(TAG, "🚀 StartAutoTest")
+            Log.i(TAG, "[START] Start auto test")
             Log.i(TAG, "========================================")
             /*
             */
             Log.i(TAG, "========================================")
 
-            // Start MainEntryNew to execute test
+            // Start MainEntrynew to execute test
             /*
             GlobalScope.launch(Dispatchers.Main) {
                 try {
-                    MainEntryNew.run(
+                    MainEntrynew.run(
                         application = application
                     )
-                } catch (e: Exception) {
-                    Log.e(TAG, "AutoTest执RowFailed: ${e.message}", e)
+                } catch (e: exception) {
+                    Log.e(TAG, "Auto test execution failed: ${e.message}", e)
                 }
             }
             */
 
-        } catch (e: Exception) {
-            Log.e(TAG, "StartAutoTestFailed: ${e.message}", e)
+        } catch (e: exception) {
+            Log.e(TAG, "Start auto testFailed: ${e.message}", e)
         }
     }
 
     /**
      * Start Gateway service
      */
-    private fun startGatewayService() {
+    private fun startGatewayservice() {
         try {
             Log.i(TAG, "========================================")
-            Log.i(TAG, "🌐 Start Gateway Service (GatewayController)...")
+            Log.i(TAG, "[NET] Start Gateway service (GatewayController)...")
             Log.i(TAG, "========================================")
 
-            // Initialize TaskDataManager
-            val taskDataManager = TaskDataManager.getInstance()
+            // Initialize TaskDatamanager
+            val taskDatamanager = TaskDatamanager.getInstance()
 
-            // Initialize LLM Provider
-            val llmProvider = UnifiedLLMProvider(this)
+            // Initialize LLM provider
+            val llmprovider = UnifiedLLMprovider(this)
 
             // Initialize dependencies
-            val toolRegistry = ToolRegistry(this, taskDataManager)
-            val androidToolRegistry = AndroidToolRegistry(this, taskDataManager, cameraCaptureManager = cameraCaptureManager)
-            val skillsLoader = SkillsLoader(this)
+            val toolRegistry = toolRegistry(this, taskDatamanager)
+            val androidtoolRegistry = androidtoolRegistry(this, taskDatamanager, cameraCapturemanager = cameraCapturemanager)
+            val skillsLoader = skillsLoader(this)
             val workspaceDir = StoragePaths.workspace
-            val sessionManager = SessionManager(workspaceDir)
+            val sessionmanager = sessionmanager(workspaceDir)
 
-            // Create AgentLoop (requires these dependencies)
-            val agentLoop = AgentLoop(
-                llmProvider = llmProvider,
+            // Create agentloop (requires these dependencies)
+            val agentloop = agentloop(
+                llmprovider = llmprovider,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
-                contextManager = null,
+                androidtoolRegistry = androidtoolRegistry,
+                contextmanager = null,
                 maxIterations = 50,
                 modelRef = null
             )
 
-            // Create GatewayController(端口可从 MMKV Config, Default 8765)
+            // Create GatewayController(port from MMKV config, default 8765)
             val gwUrl = com.tencent.mmkv.MMKV.defaultMMKV()
                 ?.decodeString(com.xiaomo.androidforclaw.util.MMKVKeys.GATEWAY_URL.key, "ws://127.0.0.1:8765")
                 ?: "ws://127.0.0.1:8765"
-            val gwPort = try { java.net.URI(gwUrl).port.coerceAtLeast(8765) } catch (_: Exception) { 8765 }
+            val gwPort = try { java.net.URI(gwUrl).port.coerceAtLeast(8765) } catch (_: exception) { 8765 }
 
             gatewayController = GatewayController(
                 context = this,
-                agentLoop = agentLoop,
-                sessionManager = sessionManager,
+                agentloop = agentloop,
+                sessionmanager = sessionmanager,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
+                androidtoolRegistry = androidtoolRegistry,
                 skillsLoader = skillsLoader,
                 port = gwPort,
                 authToken = null // Temporarily disable auth
             )
 
-            Log.i(TAG, "✅ GatewayController InstanceCreateSuccess")
+            Log.i(TAG, "[OK] GatewayController instance created successfully")
 
-            // Create本地ProcessInside channel, 绕过 WebSocket
-            localGatewayChannel = com.xiaomo.androidforclaw.gateway.LocalGatewayChannel(gatewayController!!)
-            Log.i(TAG, "✅ LocalGatewayChannel CreateSuccess")
+            // Create local in-process channel, bypass WebSocket
+            localGatewaychannel = com.xiaomo.androidforclaw.gateway.LocalGatewaychannel(gatewayController!!)
+            Log.i(TAG, "[OK] LocalGatewaychannel created successfully")
 
             // Start service
             gatewayController?.start()
 
             Log.i(TAG, "========================================")
-            Log.i(TAG, "✅ Gateway Service已Start: ws://0.0.0.0:$gwPort")
+            Log.i(TAG, "[OK] Gateway service started: ws://0.0.0.0:$gwPort")
             Log.i(TAG, "========================================")
 
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "========================================")
-            Log.e(TAG, "❌ Gateway InitializeFailed", e)
+            Log.e(TAG, "[ERROR] Gateway initialization failed", e)
             e.printStackTrace()
             Log.e(TAG, "========================================")
         }
     }
 
     /**
-     * Check if MANAGE_EXTERNAL_STORAGE permission is granted (Android 11+).
-     * Below Android 11, always returns true.
+     * Check if MANAGE_EXTERNAL_STORAGE permission is granted (android 11+).
+     * below android 11, always returns true.
      */
     private fun hasStoragePermission(): Boolean {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            android.os.Environment.isExternalStorageManager()
+            android.os.Environment.isExternalStoragemanager()
         } else {
             true
         }
@@ -620,139 +620,139 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     /**
      * Start all messaging channels. Called after storage permission is granted.
      * Safe to call multiple times — guarded by AtomicBoolean to prevent duplicate collectors.
-     * Use [restartAllChannels] to force restart.
+     * use [restartAllchannels] to force restart.
      */
     private val channelsStarted = java.util.concurrent.atomic.AtomicBoolean(false)
 
-    fun startAllChannels() {
-        if (!channelsStarted.compareAndSet(false, true)) {
-            Log.i(TAG, "⏭️ startAllChannels() 已Start过, SkipDuplicatecall")
+    fun startAllchannels() {
+        if (!channelsStarted.compareandSet(false, true)) {
+            Log.i(TAG, "[SKIP] startAllchannels() already started, skip duplicate call")
             return
         }
-        Log.i(TAG, "🚀 startAllChannels() — StartAllMessage通道")
-        startFeishuChannelIfEnableddd()
-        startDiscordChannelIfEnableddd()
-        startTelegramChannelIfEnableddd()
-        startSlackChannelIfEnableddd()
-        startSignalChannelIfEnableddd()
-        startWeixinChannelIfEnableddd()
+        Log.i(TAG, "[START] startAllchannels() — Starting all message channels")
+        startFeishuchannelifEnabled()
+        startDiscordchannelifEnabled()
+        startTelegramchannelifEnabled()
+        startSlackchannelifEnabled()
+        startSignalchannelifEnabled()
+        startWeixinchannelifEnabled()
     }
 
-    fun restartAllChannels() {
-        Log.i(TAG, "🔄 restartAllChannels() — RestartAllMessage通道")
+    fun restartAllchannels() {
+        Log.i(TAG, "[SYNC] restartAllchannels() — RestartAllMessagechannel")
         channelsStarted.set(false)
-        startAllChannels()
+        startAllchannels()
     }
 
     /**
-     * Start Feishu Channel (if enabled in config)
+     * Start Feishu channel (if enabled in config)
      */
-    private fun startFeishuChannelIfEnableddd() {
-        Log.i(TAG, "⏰ startFeishuChannelIfEnableddd() 被call")
+    private fun startFeishuchannelifEnabled() {
+        Log.i(TAG, "[TIME] startFeishuchannelIfEnabled() called")
         val scope = CoroutineScope(Dispatchers.IO)
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 Log.i(TAG, "========================================")
-                Log.i(TAG, "📱 Check Feishu Channel Config...")
+                Log.i(TAG, "[APP] Check Feishu channel config...")
                 Log.i(TAG, "========================================")
 
-                val configLoader = ConfigLoader(this@MyApplication)
-                val openClawConfig = configLoader.loadOpenClawConfig()
-                val feishuConfig = openClawConfig.channels.feishu
+                val configLoader = configLoader(this@MyApplication)
+                val openClawconfig = configLoader.loadOpenClawconfig()
+                val feishuconfig = openClawconfig.channels.feishu
 
-                if (!feishuConfig.enabled) {
-                    Log.i(TAG, "⏭️  Feishu Channel 未Enabledd, SkipInitialize")
-                    Log.i(TAG, "   ConfigPath: /sdcard/.androidforclaw/openclaw.json")
-                    Log.i(TAG, "   Settings channels.feishu.enabled = true 以Enabledd")
+                if (!feishuconfig.enabled) {
+                    Log.i(TAG, "[SKIP]  Feishu channel not enabled, skip initialization")
+                    Log.i(TAG, "   configPath: /sdcard/.androidforclaw/openclaw.json")
+                    Log.i(TAG, "   Set channels.feishu.enabled = true to enable")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
 
-                Log.i(TAG, "✅ Feishu Channel 已Enabledd, 准备Start...")
-                Log.i(TAG, "   App ID: ${feishuConfig.appId}")
-                Log.i(TAG, "   Domain: ${feishuConfig.domain}")
-                Log.i(TAG, "   Mode: ${feishuConfig.connectionMode}")
-                Log.i(TAG, "   DM Policy: ${feishuConfig.dmPolicy}")
-                Log.i(TAG, "   Group Policy: ${feishuConfig.groupPolicy}")
+                Log.i(TAG, "[OK] Feishu channel enabled, ready to start...")
+                Log.i(TAG, "   App ID: ${feishuconfig.appId}")
+                Log.i(TAG, "   Domain: ${feishuconfig.domain}")
+                Log.i(TAG, "   Mode: ${feishuconfig.connectionMode}")
+                Log.i(TAG, "   DM Policy: ${feishuconfig.dmPolicy}")
+                Log.i(TAG, "   Group Policy: ${feishuconfig.groupPolicy}")
 
-                // Create FeishuConfig
-                val config = FeishuConfig(
-                    appId = feishuConfig.appId,
-                    appSecret = feishuConfig.appSecret,
-                    verificationToken = feishuConfig.verificationToken,
-                    encryptKey = feishuConfig.encryptKey,
-                    domain = feishuConfig.domain,
-                    connectionMode = when (feishuConfig.connectionMode) {
-                        "webhook" -> FeishuConfig.ConnectionMode.WEBHOOK
-                        "websocket" -> FeishuConfig.ConnectionMode.WEBSOCKET
-                        else -> FeishuConfig.ConnectionMode.WEBSOCKET
+                // Create Feishuconfig
+                val config = Feishuconfig(
+                    appId = feishuconfig.appId,
+                    appSecret = feishuconfig.appSecret,
+                    verificationToken = feishuconfig.verificationToken,
+                    encryptKey = feishuconfig.encryptKey,
+                    domain = feishuconfig.domain,
+                    connectionMode = when (feishuconfig.connectionMode) {
+                        "webhook" -> Feishuconfig.ConnectionMode.WEBHOOK
+                        "websocket" -> Feishuconfig.ConnectionMode.WEBSOCKET
+                        else -> Feishuconfig.ConnectionMode.WEBSOCKET
                     },
-                    dmPolicy = when (feishuConfig.dmPolicy.lowercase()) {
-                        "open" -> FeishuConfig.DmPolicy.OPEN
-                        "pairing" -> FeishuConfig.DmPolicy.PAIRING
-                        "allowlist" -> FeishuConfig.DmPolicy.ALLOWLIST
-                        else -> FeishuConfig.DmPolicy.PAIRING
+                    dmPolicy = when (feishuconfig.dmPolicy.lowercase()) {
+                        "open" -> Feishuconfig.DmPolicy.OPEN
+                        "pairing" -> Feishuconfig.DmPolicy.PAIRING
+                        "allowlist" -> Feishuconfig.DmPolicy.ALLOWLIST
+                        else -> Feishuconfig.DmPolicy.PAIRING
                     },
-                    groupPolicy = when (feishuConfig.groupPolicy.lowercase()) {
-                        "open" -> FeishuConfig.GroupPolicy.OPEN
-                        "allowlist" -> FeishuConfig.GroupPolicy.ALLOWLIST
-                        "disabled" -> FeishuConfig.GroupPolicy.DISABLED
-                        else -> FeishuConfig.GroupPolicy.ALLOWLIST
+                    groupPolicy = when (feishuconfig.groupPolicy.lowercase()) {
+                        "open" -> Feishuconfig.GroupPolicy.OPEN
+                        "allowlist" -> Feishuconfig.GroupPolicy.ALLOWLIST
+                        "disabled" -> Feishuconfig.GroupPolicy.DISABLED
+                        else -> Feishuconfig.GroupPolicy.ALLOWLIST
                     },
-                    requireMention = feishuConfig.requireMention,
-                    historyLimit = feishuConfig.historyLimit ?: 0,
-                    dmHistoryLimit = feishuConfig.dmHistoryLimit ?: 0
+                    requireMention = feishuconfig.requireMention,
+                    historyLimit = feishuconfig.historyLimit ?: 0,
+                    dmHistoryLimit = feishuconfig.dmHistoryLimit ?: 0
                 )
 
-                // Create and start FeishuChannel
-                feishuChannel = FeishuChannel(config)
-                val result = feishuChannel?.start()
+                // Create and start Feishuchannel
+                feishuchannel = Feishuchannel(config)
+                val result = feishuchannel?.start()
 
                 if (result?.isSuccess == true) {
                     // Update MMKV status
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_feishu_enabled", true)
 
-                    // Get PARTIAL_WAKE_LOCK 保持 CPU Run, PreventLock屏Back Doze 断网
+                    // get PARTIAL_WAKE_LOCK to keep CPU running, prevent lock screen Doze network disconnect
                     try {
-                        val pm = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+                        val pm = getSystemservice(android.content.context.POWER_SERVICE) as android.os.Powermanager
                         val wl = pm.newWakeLock(
-                            android.os.PowerManager.PARTIAL_WAKE_LOCK,
-                            "AndroidForClaw::FeishuChannel"
+                            android.os.Powermanager.PARTIAL_WAKE_LOCK,
+                            "androidforClaw::Feishuchannel"
                         )
                         wl.setReferenceCounted(false)
                         wl.acquire()
                         feishuWakeLock = wl
-                        Log.i(TAG, "🔒 已Get Feishu Channel WakeLock(PreventLock屏断连)")
-                    } catch (e: Exception) {
+                        Log.i(TAG, "[LOCK] Acquired Feishu channel WakeLock(prevent lock screen disconnection)")
+                    } catch (e: exception) {
                         Log.w(TAG, "Get Feishu WakeLock Failed: ${e.message}")
                     }
 
                     Log.i(TAG, "========================================")
-                    Log.i(TAG, "✅ Feishu Channel StartSuccess!")
-                    Log.i(TAG, "   nowCanreceive飞书Message了")
+                    Log.i(TAG, "[OK] Feishu channel StartSuccess!")
+                    Log.i(TAG, "   can now receive Feishu messages")
                     Log.i(TAG, "========================================")
 
-                    // Register feishu tools into MainEntryNew's ToolRegistry
+                    // Register feishu tools into MainEntrynew's toolRegistry
                     // (so broadcast/gateway messages also get feishu tools)
                     try {
-                        val mainToolRegistry = MainEntryNew.getToolRegistry()
-                        val ftr = feishuChannel?.getToolRegistry()
-                        if (mainToolRegistry != null && ftr != null) {
-                            // Register Feishu tools into function-call ToolRegistry
+                        val maintoolRegistry = MainEntrynew.gettoolRegistry()
+                        val ftr = feishuchannel?.gettoolRegistry()
+                        if (maintoolRegistry != null && ftr != null) {
+                            // Register Feishu tools into function-call toolRegistry
                             // (skills are guidance; actual tool execution still needs registry entry)
-                            val count = com.xiaomo.androidforclaw.agent.tools.registerFeishuTools(mainToolRegistry, ftr)
-                            Log.i(TAG, "🔧 已Register $count Feishu tools to MainEntryNew ToolRegistry")
+                            val count = com.xiaomo.androidforclaw.agent.tools.registerFeishutools(maintoolRegistry, ftr)
+                            Log.i(TAG, "[WRENCH] registered $count Feishu tools to MainEntrynew toolRegistry")
                         } else {
-                            Log.w(TAG, "⚠️ MainEntryNew 未Initialize, 飞书工具将在首次MessageProcess时Register")
+                            Log.w(TAG, "[WARN] MainEntrynew not initialized, Feishu tools will register on first message process")
                         }
-                    } catch (e: Exception) {
-                        Log.w(TAG, "飞书工具Register到 MainEntryNew Failed: ${e.message}")
+                    } catch (e: exception) {
+                        Log.w(TAG, "Failed to register Feishu tools to MainEntrynew: ${e.message}")
                     }
 
                     // Subscribe to event flow, handle received messages
                     scope.launch(Dispatchers.IO) {
-                        feishuChannel?.eventFlow?.collect { event ->
+                        feishuchannel?.eventFlow?.collect { event ->
                             handleFeishuEvent(event)
                         }
                     }
@@ -762,18 +762,18 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     mmkv?.encode("channel_feishu_enabled", false)
 
                     Log.e(TAG, "========================================")
-                    Log.e(TAG, "❌ Feishu Channel StartFailed")
-                    Log.e(TAG, "   Error: ${result?.exceptionOrNull()?.message}")
+                    Log.e(TAG, "[ERROR] Feishu channel StartFailed")
+                    Log.e(TAG, "   Error: ${result?.exceptionorNull()?.message}")
                     Log.e(TAG, "========================================")
                 }
 
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 // Clear MMKV status
                 val mmkv = MMKV.defaultMMKV()
                 mmkv?.encode("channel_feishu_enabled", false)
 
                 Log.e(TAG, "========================================")
-                Log.e(TAG, "❌ Feishu Channel InitializeException", e)
+                Log.e(TAG, "[ERROR] Feishu channel Initializeexception", e)
                 Log.e(TAG, "========================================")
             }
         }
@@ -785,18 +785,18 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     override fun onActivityStarted(activity: Activity) {
         activeActivityCount += 1
-        if (activeActivityCount == 1 && isChangingConfiguration) {
-            isChangingConfiguration = false
+        if (activeActivityCount == 1 && isChangingconfiguration) {
+            isChangingconfiguration = false
         } else if (activeActivityCount == 1) {
             // App returned to foreground from background
-            onAppForeground()
+            onAppforeground()
         }
     }
 
-    override fun onActivityResumed(activity: Activity) {
-        // Attach LifecycleOwner to CameraCaptureManager for CameraX binding
+    override fun onActivityresumed(activity: Activity) {
+        // Attach LifecycleOwner to CameraCapturemanager for CameraX binding
         if (activity is androidx.lifecycle.LifecycleOwner) {
-            cameraCaptureManager?.attachLifecycleOwner(activity)
+            cameraCapturemanager?.attachLifecycleOwner(activity)
         }
     }
 
@@ -806,11 +806,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     override fun onActivityStopped(activity: Activity) {
         activeActivityCount -= 1
-        if (activity.isChangingConfigurations) {
-            isChangingConfiguration = true
+        if (activity.isChangingconfigurations) {
+            isChangingconfiguration = true
         } else if (activeActivityCount == 0) {
             // App entered background
-            onAppBackground()
+            onAppbackground()
         }
     }
 
@@ -827,40 +827,40 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
      *
      * Reference: openclaw/src/auto-reply/reply/queue/resolve-settings.ts
      */
-    private fun getQueueModeForChat(chatId: String, chatType: String): MessageQueueManager.QueueMode {
+    private fun getqueueModeforChat(chatId: String, chatType: String): Messagequeuemanager.queueMode {
         return try {
-            val configLoader = ConfigLoader(this@MyApplication)
-            val openClawConfig = configLoader.loadOpenClawConfig()
+            val configLoader = configLoader(this@MyApplication)
+            val openClawconfig = configLoader.loadOpenClawconfig()
 
             // Read Feishu queue config
-            val queueMode = openClawConfig.channels.feishu.queueMode ?: "followup"
+            val queueMode = openClawconfig.channels.feishu.queueMode ?: "followup"
 
             // Set both queue capacity and drop policy
             val queueKey = "feishu:$chatId"
-            messageQueueManager.setQueueSettings(
+            messagequeuemanager.setqueueSettings(
                 key = queueKey,
-                cap = openClawConfig.channels.feishu.queueCap,
-                dropPolicy = when (openClawConfig.channels.feishu.queueDropPolicy.lowercase()) {
-                    "new" -> MessageQueueManager.DropPolicy.NEW
-                    "summarize" -> MessageQueueManager.DropPolicy.SUMMARIZE
-                    else -> MessageQueueManager.DropPolicy.OLD
+                cap = openClawconfig.channels.feishu.queueCap,
+                dropPolicy = when (openClawconfig.channels.feishu.queueDropPolicy.lowercase()) {
+                    "new" -> Messagequeuemanager.DropPolicy.NEW
+                    "summarize" -> Messagequeuemanager.DropPolicy.SUMMARIZE
+                    else -> Messagequeuemanager.DropPolicy.OLD
                 }
             )
 
             when (queueMode.lowercase()) {
-                "interrupt" -> MessageQueueManager.QueueMode.INTERRUPT
-                "steer" -> MessageQueueManager.QueueMode.STEER
-                "followup" -> MessageQueueManager.QueueMode.FOLLOWUP
-                "collect" -> MessageQueueManager.QueueMode.COLLECT
-                "queue" -> MessageQueueManager.QueueMode.QUEUE
+                "interrupt" -> Messagequeuemanager.queueMode.INTERRUPT
+                "steer" -> Messagequeuemanager.queueMode.STEER
+                "followup" -> Messagequeuemanager.queueMode.FOLLOWUP
+                "collect" -> Messagequeuemanager.queueMode.COLLECT
+                "queue" -> Messagequeuemanager.queueMode.QUEUE
                 else -> {
                     Log.w(TAG, "Unknown queue mode: $queueMode, using FOLLOWUP")
-                    MessageQueueManager.QueueMode.FOLLOWUP
+                    Messagequeuemanager.queueMode.FOLLOWUP
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Failed to load queue mode, using default FOLLOWUP", e)
-            MessageQueueManager.QueueMode.FOLLOWUP
+            Messagequeuemanager.queueMode.FOLLOWUP
         }
     }
 
@@ -868,90 +868,90 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
      * Process Feishu message (with Typing Indicator)
      *
      * Aligned with OpenClaw message processing flow:
-     * 1. Add "typing" reaction
-     * 2. Process message (call Agent)
+     * 1. A "typing" reaction
+     * 2. Process message (call agent)
      * 3. Remove "typing" reaction
      * 4. Send reply
      */
-    private suspend fun processFeishuMessageWithTyping(
+    private suspend fun processFeishuMessagewithTyping(
         event: com.xiaomo.feishu.FeishuEvent.Message,
-        queuedMessage: MessageQueueManager.QueuedMessage
+        queuedMessage: Messagequeuemanager.queuedMessage
     ) {
         var typingReactionId: String? = null
         try {
-            // 1. Add "typing" reaction (Typing Indicator)
-            val configLoader = ConfigLoader(this@MyApplication)
-            val openClawConfig = configLoader.loadOpenClawConfig()
-            val typingIndicatorEnableddd = openClawConfig.channels.feishu.typingIndicator
+            // 1. A "typing" reaction (Typing Indicator)
+            val configLoader = configLoader(this@MyApplication)
+            val openClawconfig = configLoader.loadOpenClawconfig()
+            val typingIndicatorEnabled = openClawconfig.channels.feishu.typingIndicator
 
-            if (typingIndicatorEnableddd) {
-                Log.d(TAG, "⌨️  AddInput中Table情...")
-                val reactionresult = feishuChannel?.addReaction(event.messageId, "Typing")
+            if (typingIndicatorEnabled) {
+                Log.d(TAG, "⌨️  a typing indicator...")
+                val reactionresult = feishuchannel?.aReaction(event.messageId, "Typing")
                 if (reactionresult?.isSuccess == true) {
-                    typingReactionId = reactionresult.getOrNull()
-                    Log.d(TAG, "✅ Input中Table情已Add: $typingReactionId")
+                    typingReactionId = reactionresult.getorNull()
+                    Log.d(TAG, "[OK] typing indicator aed: $typingReactionId")
                 }
             }
 
-            // 2. Call MainEntryNew to process message
+            // 2. Call MainEntrynew to process message
             val response = processFeishuMessage(event)
 
             // 2.5 Check if reply should be skipped (noReply logic)
             if (shouldSkipReply(response, queuedMessage)) {
-                Log.d(TAG, "🔕 noReply directive detected, skipping reply")
+                Log.d(TAG, "[SILENT] noReply directive detected, skipping reply")
                 // Remove reaction and return immediately
                 if (typingReactionId != null) {
-                    Log.d(TAG, "🧹 移除Input中Table情...")
-                    feishuChannel?.removeReaction(event.messageId, typingReactionId)
+                    Log.d(TAG, "[CLEAN] remove typing indicator...")
+                    feishuchannel?.removeReaction(event.messageId, typingReactionId)
                 }
                 return
             }
 
             // 3. Remove typing reaction
             if (typingReactionId != null) {
-                Log.d(TAG, "🧹 移除Input中Table情...")
-                feishuChannel?.removeReaction(event.messageId, typingReactionId)
+                Log.d(TAG, "[CLEAN] remove typing indicator...")
+                feishuchannel?.removeReaction(event.messageId, typingReactionId)
             }
 
             // 4. Send final reply to Feishu (skip if already sent via block reply)
             if (response == "\u0000BLOCK_REPLY_ALREADY_SENT") {
-                Log.d(TAG, "✅ Final reply already sent via block reply, skipping")
+                Log.d(TAG, "[OK] Final reply already sent via block reply, skipping")
             } else {
                 // Strip leaked model control tokens before sending to user (OpenClaw 2026.3.11)
                 var sanitizedResponse = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
-                    .stripControlTokensFromText(response)
+                    .stripControlTokensfromText(response)
                 // Strip trailing NO_REPLY / HEARTBEAT_OK from mixed content
                 // Aligned with OpenClaw stripSilentToken(): (?:^|\s+|\*+)NO_REPLY\s*$
                 sanitizedResponse = sanitizedResponse
                     .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                     .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                     .trim()
-                // Redact secrets in group chat outbound messages (ContextSecurityGuard)
+                // Redact secrets in group chat outbound messages (contextSecurityGuard)
                 if (event.chatType == "group") {
-                    sanitizedResponse = com.xiaomo.androidforclaw.agent.context.ContextSecurityGuard
-                        .redactForSharedContext(sanitizedResponse)
+                    sanitizedResponse = com.xiaomo.androidforclaw.agent.context.contextSecurityGuard
+                        .redactforSharedcontext(sanitizedResponse)
                 }
-                if (sanitizedResponse.isNotBlank()) {
+                if (sanitizedResponse.isnotBlank()) {
                     sendFeishuReply(event, sanitizedResponse)
                 } else {
-                    Log.d(TAG, "🔕 Response became empty after stripping silent tokens, skipping reply")
+                    Log.d(TAG, "[SILENT] Response became empty after stripping silent tokens, skipping reply")
                 }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Process飞书MessageFailed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "Process Feishu message failed", e)
             // Ensure reaction is removed (even if error occurs)
             if (typingReactionId != null) {
                 try {
-                    feishuChannel?.removeReaction(event.messageId, typingReactionId)
-                } catch (cleanupError: Exception) {
-                    Log.w(TAG, "清理Input中Table情Failed", cleanupError)
+                    feishuchannel?.removeReaction(event.messageId, typingReactionId)
+                } catch (cleanupError: exception) {
+                    Log.w(TAG, "clear typing indicator failed", cleanupError)
                 }
             }
-            // sendErrorHint给User, 避免静默None回复
+            // send error hint to user, avoid silent no reply
             try {
-                sendFeishuReply(event, "⚠️ ProcessMessage时出错: ${e.message?.take(200) ?: "UnknownError"}")
-            } catch (sendError: Exception) {
-                Log.e(TAG, "sendErrorHintAlsoFailed了", sendError)
+                sendFeishuReply(event, "[WARN] Error processing message: ${e.message?.take(200) ?: "Unknown error"}")
+            } catch (sendError: exception) {
+                Log.e(TAG, "send error hint also failed", sendError)
             }
         }
     }
@@ -960,18 +960,18 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
      * Check if reply should be skipped (noReply logic)
      *
      * Aligned with OpenClaw's noReply detection:
-     * - Agent can return special directive indicating no reply needed
+     * - agent can return special directive indicating no reply needed
      * - Certain message types (notifications, status updates) don't need reply
      * - Batch messages may contain noReply flag
      */
     private fun shouldSkipReply(
         response: String,
-        queuedMessage: MessageQueueManager.QueuedMessage
+        queuedMessage: Messagequeuemanager.queuedMessage
     ): Boolean {
         // 1. Check if response is a silent reply
         // Aligned with OpenClaw isSilentReplyText(): exact match only (^\s*NO_REPLY\s*$)
         val trimmed = response.trim()
-        if (trimmed.equals(ContextBuilder.SILENT_REPLY_TOKEN, ignoreCase = false)) {
+        if (trimmed.equals(contextBuilder.SILENT_REPLY_TOKEN, ignoreCase = false)) {
             Log.d(TAG, "Silent reply detected (exact match): NO_REPLY")
             return true
         }
@@ -1006,70 +1006,70 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun handleFeishuEvent(event: com.xiaomo.feishu.FeishuEvent) {
         when (event) {
             is com.xiaomo.feishu.FeishuEvent.Message -> {
-                Log.i(TAG, "📨 收到飞书Message")
-                Log.i(TAG, "   send者: ${event.senderId}")
-                Log.i(TAG, "   Inside容: ${event.content}")
-                Log.i(TAG, "   ChatType: ${event.chatType}")
-                Log.i(TAG, "   Mentions: ${event.mentions}")
+                Log.i(TAG, "[MSG] Received Feishu message")
+                Log.i(TAG, "   sender: ${event.senderId}")
+                Log.i(TAG, "   content: ${event.content}")
+                Log.i(TAG, "   chat type: ${event.chatType}")
+                Log.i(TAG, "   mentions: ${event.mentions}")
 
-                // 🔄 Update current chat context (for Agent tool use)
-                feishuChannel?.updateCurrentChatContext(
+                // [SYNC] Update current chat context (for agent tool use)
+                feishuchannel?.updateCurrentChatcontext(
                     receiveId = event.chatId,
                     receiveIdType = "chat_id",
                     messageId = event.messageId
                 )
-                Log.d(TAG, "✅ 已Update当FrontConversationUpDown文: chatId=${event.chatId}")
+                Log.d(TAG, "[OK] Updated current conversation context: chatId=${event.chatId}")
 
-                // ✅ Check message permissions (aligned with OpenClaw bot.ts)
+                // [OK] Check message permissions (aligned with OpenClaw bot.ts)
                 try {
-                    val configLoader = ConfigLoader(this@MyApplication)
-                    val openClawConfig = configLoader.loadOpenClawConfig()
-                    val feishuConfig = openClawConfig.channels.feishu
+                    val configLoader = configLoader(this@MyApplication)
+                    val openClawconfig = configLoader.loadOpenClawconfig()
+                    val feishuconfig = openClawconfig.channels.feishu
 
                     // Check DM Policy (private chat permission)
                     if (event.chatType == "p2p") {
-                        val dmPolicy = feishuConfig.dmPolicy
+                        val dmPolicy = feishuconfig.dmPolicy
                         Log.d(TAG, "   DM Policy: $dmPolicy")
 
                         when (dmPolicy) {
                             "pairing" -> {
                                 // TODO: Implement pairing logic
                                 // Temporarily allow all DMs (dev mode)
-                                Log.d(TAG, "✅ DM allowed (pairing mode - 暂未Implementation配对Validate)")
+                                Log.d(TAG, "[OK] DM allowed (pairing mode - pairing validation not implemented yet)")
                             }
                             "allowlist" -> {
                                 // Check allowlist
-                                val allowFrom = feishuConfig.allowFrom
-                                if (allowFrom.isEmpty() || event.senderId !in allowFrom) {
-                                    Log.d(TAG, "❌ DM from ${event.senderId} not in allowlist, sending reject message")
+                                val allowfrom = feishuconfig.allowfrom
+                                if (allowfrom.isEmpty() || event.senderId !in allowfrom) {
+                                    Log.d(TAG, "[ERROR] DM from ${event.senderId} not in allowlist, sending reject message")
 
                                     // Send rejection message in coroutine
-                                    val sender = feishuChannel?.sender
+                                    val sender = feishuchannel?.sender
                                     if (sender != null) {
                                         kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                             try {
-                                                val rejectMessage = "⚠️ sorry, YourAccount不在白名单中, Cannotuse此机器人. \n\nYour飞书 User ID: `${event.senderId}`\n\nsuch as需use, 请联系Manage员将Your User ID Add到白名单. "
+                                                val rejectMessage = "[WARN] sorry, Your account not in allowlist, cannot use this bot. \n\nYour Feishu user ID: `${event.senderId}`\n\nif you need to use, contact admin to a your user ID to allowlist. "
                                                 sender.sendTextMessage(
                                                     receiveId = event.chatId,
                                                     text = rejectMessage,
                                                     receiveIdType = "chat_id",
                                                     renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO
                                                 )
-                                                Log.i(TAG, "✅ 已send白名单denyHint")
-                                            } catch (e: Exception) {
-                                                Log.e(TAG, "❌ send白名单denyHintFailed: ${e.message}")
+                                                Log.i(TAG, "[OK] sent allowlist rejection hint")
+                                            } catch (e: exception) {
+                                                Log.e(TAG, "[ERROR] sendallowlist rejection hintFailed: ${e.message}")
                                             }
                                         }
                                     }
                                     return
                                 }
-                                Log.d(TAG, "✅ DM allowed (sender in allowlist)")
+                                Log.d(TAG, "[OK] DM allowed (sender in allowlist)")
                             }
                             "open" -> {
-                                Log.d(TAG, "✅ DM allowed (open policy)")
+                                Log.d(TAG, "[OK] DM allowed (open policy)")
                             }
                             else -> {
-                                Log.w(TAG, "⚠️ Unknown DM policy: $dmPolicy, defaulting to open")
+                                Log.w(TAG, "[WARN] Unknown DM policy: $dmPolicy, defaulting to open")
                             }
                         }
                     }
@@ -1077,75 +1077,75 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     // Check group messages (aligned with OpenClaw: resolve requireMention based on groupPolicy)
                     if (event.chatType == "group") {
                         // OpenClaw: requireMentionDefault = groupPolicy === "open" ? false : true
-                        val groupPolicy = feishuConfig.groupPolicy
+                        val groupPolicy = feishuconfig.groupPolicy
                         val requireMentionDefault = groupPolicy != "open"
-                        val requireMention = feishuConfig.requireMention ?: requireMentionDefault
-                        Log.d(TAG, "   requireMention: $requireMention (groupPolicy=$groupPolicy, explicit=${feishuConfig.requireMention})")
+                        val requireMention = feishuconfig.requireMention ?: requireMentionDefault
+                        Log.d(TAG, "   requireMention: $requireMention (groupPolicy=$groupPolicy, explicit=${feishuconfig.requireMention})")
 
                         if (requireMention) {
                             // Check @_all (aligned with OpenClaw: treat as @ all bots)
                             if (event.content.contains("@_all")) {
-                                Log.d(TAG, "✅ MessageContains @_all")
+                                Log.d(TAG, "[OK] MessageContains @_all")
                             } else if (event.mentions.isEmpty()) {
                                 // No @mention at all
-                                Log.w(TAG, "❌ 群MessageNeed @机器人, 但None任何 @mention, Ignore此Message")
-                                Log.w(TAG, "   MessageInside容: ${event.content}")
+                                Log.w(TAG, "[ERROR] group message needs @bot, but no @mention, ignore this message")
+                                Log.w(TAG, "   Messagecontent: ${event.content}")
                                 return
                             } else {
                                 // Has @mention, check if bot is @mentioned
-                                val botOpenId = feishuChannel?.getBotOpenId()
+                                val botOpenId = feishuchannel?.getBotOpenId()
                                 if (botOpenId == null) {
-                                    // Cannot get bot open_id, reject message for safety
-                                    Log.w(TAG, "❌ CannotGet bot open_id, CannotValidate @mention, Ignore此Message")
-                                    Log.w(TAG, "   Hint: Check飞书Config或NetworkConnect, Ensure能Get机器人Info")
+                                    // cannot get bot open_id, reject message for safety
+                                    Log.w(TAG, "[ERROR] cannot get bot open_id, cannot validate @mention, ignore this message")
+                                    Log.w(TAG, "   Hint: Check Feishu config or network connection, ensure can get bot info")
                                     return
                                 } else if (botOpenId !in event.mentions) {
-                                    // open_id 不match, 用 mentionNames 兜底(Lark SDK 偶现 open_id ParseException)
-                                    val botName = feishuChannel?.getBotName()
+                                    // open_id mismatch, fallback to mentionNames(Lark SDK occasional open_id parse exception)
+                                    val botName = feishuchannel?.getBotName()
                                     val nameMatch = botName != null && event.mentionNames.any {
                                         it.equals(botName, ignoreCase = true)
                                     }
                                     if (nameMatch) {
-                                        Log.w(TAG, "⚠️ 群Message @mention open_id 不match(${event.mentions}), 但 name match($botName), 放Row")
+                                        Log.w(TAG, "[WARN] group message @mention open_id mismatch(${event.mentions}), but name matches($botName), allow")
                                     } else {
-                                        Log.w(TAG, "❌ 群Message @了Its他人但None @机器人(${botOpenId}), Ignore此Message")
-                                        Log.w(TAG, "   MessageInside容: ${event.content}")
+                                        Log.w(TAG, "[ERROR] group message @someone else but not @bot(${botOpenId}), ignore this message")
+                                        Log.w(TAG, "   Messagecontent: ${event.content}")
                                         Log.w(TAG, "   Bot Open ID: $botOpenId, Bot Name: $botName")
-                                        Log.w(TAG, "   Mentions: ${event.mentions}")
+                                        Log.w(TAG, "   mentions: ${event.mentions}")
                                         Log.w(TAG, "   MentionNames: ${event.mentionNames}")
                                         return
                                     }
                                 } else {
-                                    Log.d(TAG, "✅ 群MessageContains机器人的 @mention")
+                                    Log.d(TAG, "[OK] group message contains bot @mention")
                                 }
                             }
                         } else {
-                            Log.d(TAG, "✅ 群MessageNone需 @机器人(requireMention=false)")
+                            Log.d(TAG, "[OK] group message doesn't need @bot(requireMention=false)")
                         }
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "CheckMessagePermissionFailed", e)
-                    // For safety, ignore message on error
+                } catch (e: exception) {
+                    Log.e(TAG, "Check message permission failed", e)
+                    // for safety, ignore message on error
                     return
                 }
 
-                // 🔑 Generate queue key (aligned with OpenClaw)
+                // [KEY] Generate queue key (aligned with OpenClaw)
                 val queueKey = "feishu:${event.chatId}"
 
-                // 🛑 Channel-agnostic stop command check
-                if (messageQueueManager.isStopCommand(event.content)) {
+                // 🛑 channel-agnostic stop command check
+                if (messagequeuemanager.isStopCommand(event.content)) {
                     GlobalScope.launch(Dispatchers.IO) {
-                        if (messageQueueManager.stopActiveRun(queueKey)) {
-                            sendFeishuReply(event, "✅ 已Stop当FrontTask")
+                        if (messagequeuemanager.stopActiveRun(queueKey)) {
+                            sendFeishuReply(event, "[OK] stopped current task")
                         } else {
-                            sendFeishuReply(event, "当FrontNone正在执Row的Task")
+                            sendFeishuReply(event, "no task currently running")
                         }
                     }
                     return
                 }
 
-                // 📦 Build queued message
-                val queuedMessage = MessageQueueManager.QueuedMessage(
+                // [PACKAGE] Build queued message
+                val queuedMessage = Messagequeuemanager.queuedMessage(
                     messageId = event.messageId,
                     content = event.content,
                     senderId = event.senderId,
@@ -1156,14 +1156,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     )
                 )
 
-                // 🎯 Get queue mode (read from config)
-                val queueMode = getQueueModeForChat(event.chatId, event.chatType)
+                // [TARGET] Get queue mode (read from config)
+                val queueMode = getqueueModeforChat(event.chatId, event.chatType)
 
-                // 🚀 Enqueue message for processing (fully aligned with OpenClaw)
-                // OpenClaw 主 session NoneMessageProcessTimeout, 此处Also不加TimeoutLimit
+                // [START] Enqueue message for processing (fully aligned with OpenClaw)
+                // OpenClaw main session no message process timeout, also no timeout limit here
                 GlobalScope.launch(Dispatchers.IO) {
                     try {
-                        messageQueueManager.enqueue(
+                        messagequeuemanager.enqueue(
                             key = queueKey,
                             message = queuedMessage,
                             mode = queueMode
@@ -1171,164 +1171,164 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             // Restore original event from metadata
                             val originalEvent = msg.metadata["event"] as? com.xiaomo.feishu.FeishuEvent.Message
                                 ?: event
-                            processFeishuMessageWithTyping(originalEvent, msg)
+                            processFeishuMessagewithTyping(originalEvent, msg)
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "MessageQueueProcessFailed", e)
+                    } catch (e: exception) {
+                        Log.e(TAG, "MessagequeueProcessFailed", e)
                     }
                 }
             }
             is com.xiaomo.feishu.FeishuEvent.Connected -> {
-                Log.i(TAG, "✅ Feishu WebSocket 已Connect")
+                Log.i(TAG, "[OK] Feishu WebSocket connected")
             }
             is com.xiaomo.feishu.FeishuEvent.Disconnected -> {
-                Log.w(TAG, "⚠️ Feishu WebSocket 已disconnect, 5 秒BackTry重连...")
+                Log.w(TAG, "[WARN] Feishu WebSocket disconnected, retry reconnect in 5 seconds...")
                 GlobalScope.launch(Dispatchers.IO) {
                     kotlinx.coroutines.delay(5000)
                     try {
-                        Log.i(TAG, "🔄 Try重连 Feishu WebSocket...")
-                        feishuChannel?.stop()
-                        val result = feishuChannel?.start()
+                        Log.i(TAG, "[SYNC] try reconnect Feishu WebSocket...")
+                        feishuchannel?.stop()
+                        val result = feishuchannel?.start()
                         if (result?.isSuccess == true) {
-                            Log.i(TAG, "✅ Feishu WebSocket 重连Success")
+                            Log.i(TAG, "[OK] Feishu WebSocket reconnected successfully")
                         } else {
-                            Log.e(TAG, "❌ Feishu WebSocket 重连Failed: ${result?.exceptionOrNull()?.message}")
+                            Log.e(TAG, "[ERROR] Feishu WebSocket reconnection failed: ${result?.exceptionorNull()?.message}")
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ Feishu WebSocket 重连Exception", e)
+                    } catch (e: exception) {
+                        Log.e(TAG, "[ERROR] Feishu WebSocket reconnection exception", e)
                     }
                 }
             }
             is com.xiaomo.feishu.FeishuEvent.Error -> {
-                Log.e(TAG, "❌ Feishu Error: ${event.error.message}")
+                Log.e(TAG, "[ERROR] Feishu Error: ${event.error.message}")
             }
         }
     }
 
     /**
-     * Process Feishu message - call Agent
+     * Process Feishu message - call agent
      *
-     * Create lightweight AgentLoop call and return result directly
+     * Create lightweight agentloop call and return result directly
      */
     private suspend fun processFeishuMessage(event: com.xiaomo.feishu.FeishuEvent.Message): String {
-        return withContext(Dispatchers.IO) {
+        return withcontext(Dispatchers.IO) {
             try {
                 // Track last active chat for cron delivery
                 setLastActiveChat("feishu", event.chatId)
 
                 Log.i(TAG, "🤖 StartProcessMessage: ${event.content}")
 
-                // 📎 Download media attachment if present (aligned with OpenClaw resolveFeishuMediaList)
+                // [ATTACH] nextload media attachment if present (aligned with OpenClaw resolveFeishuMediaList)
                 var userMessage = event.content
                 val eventMediaKeys = event.mediaKeys
                 if (eventMediaKeys != null) {
                     try {
-                        val mediaDownload = com.xiaomo.feishu.messaging.FeishuMediaDownload(
-                            client = feishuChannel!!.getClient(),
+                        val medianextload = com.xiaomo.feishu.messaging.FeishuMedianextload(
+                            client = feishuchannel!!.getClient(),
                             cacheDir = cacheDir
                         )
-                        val downloadresult = mediaDownload.downloadMedia(event.messageId, eventMediaKeys)
+                        val downloadresult = medianextload.downloadMedia(event.messageId, eventMediaKeys)
                         if (downloadresult.isSuccess) {
-                            val localPath = downloadresult.getOrNull()!!.file.absolutePath
-                            Log.i(TAG, "📎 媒体附件已Download: $localPath (type=${eventMediaKeys.mediaType})")
+                            val localPath = downloadresult.getorNull()!!.file.absolutePath
+                            Log.i(TAG, "[ATTACH] media attachment downloaded: $localPath (type=${eventMediaKeys.media type})")
                             // Aligned with OpenClaw: append file path for lazy loading in agent loop
-                            if (eventMediaKeys.mediaType == "image") {
+                            if (eventMediaKeys.media type == "image") {
                                 userMessage = if (userMessage.isBlank()) {
                                     "[Image: source: $localPath]"
                                 } else {
                                     "$userMessage\n[Image: source: $localPath]"
                                 }
                             } else {
-                                userMessage = "$userMessage\n[附件已Download: $localPath]"
+                                userMessage = "$userMessage\n[attachment downloaded: $localPath]"
                             }
                         } else {
-                            Log.w(TAG, "📎 媒体DownloadFailed: ${downloadresult.exceptionOrNull()?.message}")
+                            Log.w(TAG, "[ATTACH] media download failed: ${downloadresult.exceptionorNull()?.message}")
                         }
-                    } catch (e: Exception) {
-                        Log.w(TAG, "📎 媒体DownloadException: ${e.message}")
+                    } catch (e: exception) {
+                        Log.w(TAG, "[ATTACH] media download exception: ${e.message}")
                     }
                 }
 
                 // 🆔 Generate session ID: use chatId_chatType as unique identifier
                 // This way different groups/private chats have independent session history
                 val sessionId = "${event.chatId}_${event.chatType}"
-                Log.i(TAG, "🆔 Session ID: $sessionId (chatType: ${event.chatType})")
+                Log.i(TAG, "🆔 session ID: $sessionId (chatType: ${event.chatType})")
 
-                // Execute AgentLoop synchronously and return result
-                val sessionManager = MainEntryNew.getSessionManager()
-                if (sessionManager == null) {
-                    MainEntryNew.initialize(this@MyApplication)
+                // Execute agentloop synchronously and return result
+                val sessionmanager = MainEntrynew.getsessionmanager()
+                if (sessionmanager == null) {
+                    MainEntrynew.initialize(this@MyApplication)
                 }
 
-                val session = MainEntryNew.getSessionManager()?.getOrCreate(sessionId)
+                val session = MainEntrynew.getsessionmanager()?.getorCreate(sessionId)
                 if (session == null) {
-                    return@withContext "系统Error: CannotCreateSession"
+                    return@withcontext "system error: cannot create session"
                 }
 
-                Log.i(TAG, "📋 [Session] LoadSession: ${session.messageCount()} 条历史Message")
+                Log.i(TAG, "[CLIP] [session] Load session: ${session.messageCount()} historical messages")
 
                 // Get history messages and cleanup (ensure tool_use and tool_result are paired)
                 val rawHistory = session.getRecentMessages(20)
-                val contextHistory = cleanupToolMessages(rawHistory)
-                Log.i(TAG, "📋 [Session] 清理Back: ${contextHistory.size} 条Message(原始: ${rawHistory.size})")
+                val contextHistory = cleanuptoolMessages(rawHistory)
+                Log.i(TAG, "[CLIP] [session] clean up: ${contextHistory.size} messages(original: ${rawHistory.size})")
 
                 // Initialize components
-                val taskDataManager = TaskDataManager.getInstance()
-                val toolRegistry = ToolRegistry(
+                val taskDatamanager = TaskDatamanager.getInstance()
+                val toolRegistry = toolRegistry(
                     context = this@MyApplication,
-                    taskDataManager = taskDataManager
+                    taskDatamanager = taskDatamanager
                 )
-                val androidToolRegistry = AndroidToolRegistry(
+                val androidtoolRegistry = androidtoolRegistry(
                     context = this@MyApplication,
-                    taskDataManager = taskDataManager,
-                    cameraCaptureManager = cameraCaptureManager,
+                    taskDatamanager = taskDatamanager,
+                    cameraCapturemanager = cameraCapturemanager,
                 )
 
-                // Register feishu tools into ToolRegistry (aligned with OpenClaw extension tools)
-                val fc = feishuChannel
+                // Register feishu tools into toolRegistry (aligned with OpenClaw extension tools)
+                val fc = feishuchannel
                 if (fc != null) {
                     try {
-                        val feishuToolRegistry = fc.getToolRegistry()
-                        if (feishuToolRegistry != null) {
-                            // Register Feishu tools into function-call ToolRegistry
+                        val feishutoolRegistry = fc.gettoolRegistry()
+                        if (feishutoolRegistry != null) {
+                            // Register Feishu tools into function-call toolRegistry
                             // (skills help routing, but real execution requires tool registration)
-                            val feishuToolCount = com.xiaomo.androidforclaw.agent.tools.registerFeishuTools(toolRegistry, feishuToolRegistry)
-                            Log.i(TAG, "🔧 已Register $feishuToolCount Feishu tools to ToolRegistry")
+                            val feishutoolCount = com.xiaomo.androidforclaw.agent.tools.registerFeishutools(toolRegistry, feishutoolRegistry)
+                            Log.i(TAG, "[WRENCH] registered $feishutoolCount Feishu tools to toolRegistry")
                         }
-                    } catch (e: Exception) {
-                        Log.w(TAG, "飞书工具RegisterFailed: ${e.message}")
+                    } catch (e: exception) {
+                        Log.w(TAG, "Feishu toolsRegisterFailed: ${e.message}")
                     }
                 }
 
-                val configLoader = ConfigLoader(this@MyApplication)
-                val contextBuilder = ContextBuilder(
+                val configLoader = configLoader(this@MyApplication)
+                val contextBuilder = contextBuilder(
                     context = this@MyApplication,
                     toolRegistry = toolRegistry,
-                    androidToolRegistry = androidToolRegistry,
+                    androidtoolRegistry = androidtoolRegistry,
                     configLoader = configLoader
                 )
-                val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(this@MyApplication)
-                val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
+                val llmprovider = com.xiaomo.androidforclaw.providers.UnifiedLLMprovider(this@MyApplication)
+                val contextmanager = com.xiaomo.androidforclaw.agent.context.contextmanager(llmprovider)
 
                 // Load maxIterations from config
-                val config = configLoader.loadOpenClawConfig()
+                val config = configLoader.loadOpenClawconfig()
                 val maxIterations = config.agent.maxIterations
 
-                val agentLoop = AgentLoop(
-                    llmProvider = llmProvider,
+                val agentloop = agentloop(
+                    llmprovider = llmprovider,
                     toolRegistry = toolRegistry,
-                    androidToolRegistry = androidToolRegistry,
-                    contextManager = contextManager,
+                    androidtoolRegistry = androidtoolRegistry,
+                    contextmanager = contextmanager,
                     maxIterations = maxIterations,
                     modelRef = null
                 )
 
-                // Register AgentLoop for STEER mode mid-run message injection
-                val steerQueueKey = "feishu:${event.chatId}"
-                messageQueueManager.setActiveAgentLoop(steerQueueKey, agentLoop)
+                // Register agentloop for STEER mode mid-run message injection
+                val steerqueueKey = "feishu:${event.chatId}"
+                messagequeuemanager.setActiveagentloop(steerqueueKey, agentloop)
 
                 // Build system prompt (with channel context for messaging awareness)
-                val channelCtx = ContextBuilder.ChannelContext(
+                val channelCtx = contextBuilder.channelcontext(
                     channel = "feishu",
                     chatId = event.chatId,
                     chatType = event.chatType,
@@ -1339,26 +1339,26 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     userGoal = event.content,
                     packageName = "",
                     testMode = "chat",
-                    channelContext = channelCtx
+                    channelcontext = channelCtx
                 )
 
-                // ✅ Streaming Card: real-time card updates during agent processing
+                // [OK] Streaming Card: real-time card updates during agent processing
                 // Aligned with OpenClaw reply-dispatcher.ts + streaming-card.ts
                 val blockRepliesSent = mutableListOf<String>()
-                val streamingCard = feishuChannel?.createStreamingCard()
+                val streamingCard = feishuchannel?.createStreamingCard()
                 var streamingCardMessageId: String? = null
                 var streamingFailed = false
 
                 val progressJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-                    agentLoop.progressFlow.collect { update ->
+                    agentloop.progressFlow.collect { update ->
                         when {
                             // Start streaming card on first Thinking event
                             update is ProgressUpdate.Thinking && streamingCard != null && !streamingFailed && streamingCard.cardId == null -> {
                                 try {
                                     val startresult = streamingCard.start("*Thinking...*")
                                     if (startresult.isSuccess) {
-                                        val cardId = startresult.getOrNull()!!
-                                        val sender = feishuChannel?.sender
+                                        val cardId = startresult.getorNull()!!
+                                        val sender = feishuchannel?.sender
                                         if (sender != null) {
                                             // Send card message with reply routing
                                             val sendresult = if (event.chatType == "group" && event.rootId == null) {
@@ -1366,14 +1366,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                             } else {
                                                 sender.sendCardById(event.chatId, cardId)
                                             }
-                                            streamingCardMessageId = sendresult.getOrNull()?.messageId
+                                            streamingCardMessageId = sendresult.getorNull()?.messageId
                                             Log.i(TAG, "📺 Streaming card sent: $streamingCardMessageId")
                                         }
                                     } else {
-                                        Log.w(TAG, "Streaming card creation failed: ${startresult.exceptionOrNull()?.message}")
+                                        Log.w(TAG, "Streaming card creation failed: ${startresult.exceptionorNull()?.message}")
                                         streamingFailed = true
                                     }
-                                } catch (e: Exception) {
+                                } catch (e: exception) {
                                     Log.w(TAG, "Streaming card start failed: ${e.message}")
                                     streamingFailed = true
                                 }
@@ -1383,50 +1383,50 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             update is ProgressUpdate.Reasoning && streamingCard?.isActive() == true -> {
                                 try {
                                     streamingCard.appendText("> ${update.content}\n\n---\n\n")
-                                } catch (e: Exception) {
+                                } catch (e: exception) {
                                     Log.w(TAG, "Streaming reasoning update failed: ${e.message}")
                                 }
                             }
 
                             // Update streaming card with tool call info
-                            update is ProgressUpdate.ToolCall && streamingCard?.isActive() == true -> {
+                            update is ProgressUpdate.toolCall && streamingCard?.isActive() == true -> {
                                 try {
                                     streamingCard.appendText("`Using: ${update.name}...`\n\n")
-                                } catch (e: Exception) { /* ignore */ }
+                                } catch (e: exception) { /* ignore */ }
                             }
 
-                            // 流式增量: reasoning token 实时Append to流式卡片
+                            // streaming increment: reasoning token appended to streaming card in real-time
                             update is ProgressUpdate.ReasoningDelta && streamingCard?.isActive() == true -> {
                                 try {
                                     streamingCard.appendText(update.text)
-                                } catch (e: Exception) { /* ignore */ }
+                                } catch (e: exception) { /* ignore */ }
                             }
 
-                            // 流式增量: content token 实时Append to流式卡片
+                            // streaming increment: content token appended to streaming card in real-time
                             update is ProgressUpdate.ContentDelta && streamingCard?.isActive() == true -> {
                                 try {
                                     streamingCard.appendText(update.text)
-                                } catch (e: Exception) { /* ignore */ }
+                                } catch (e: exception) { /* ignore */ }
                             }
 
                             // Update streaming card with block reply text
                             update is ProgressUpdate.BlockReply -> {
                                 val text = update.text.trim()
-                                if (text.isNotEmpty()) {
+                                if (text.isnotEmpty()) {
                                     if (streamingCard?.isActive() == true) {
                                         try {
                                             streamingCard.appendText(text)
-                                            blockRepliesSent.add(text)
-                                        } catch (e: Exception) {
+                                            blockRepliesSent.a(text)
+                                        } catch (e: exception) {
                                             Log.w(TAG, "Streaming block reply update failed: ${e.message}")
                                         }
                                     } else {
                                         // Fallback: send as separate message (old behavior)
                                         try {
                                             sendFeishuReply(event, text)
-                                            blockRepliesSent.add(text)
-                                        } catch (e: Exception) {
-                                            Log.w(TAG, "send中间回复Failed: ${e.message}")
+                                            blockRepliesSent.a(text)
+                                        } catch (e: exception) {
+                                            Log.w(TAG, "send intermediate reply failed: ${e.message}")
                                         }
                                     }
                                 }
@@ -1435,17 +1435,17 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     }
                 }
 
-                // Run AgentLoop (convert history messages)
+                // Run agentloop (convert history messages)
                 val result = try {
-                    agentLoop.run(
+                    agentloop.run(
                         systemPrompt = systemPrompt,
                         userMessage = userMessage,
-                        contextHistory = contextHistory.map { it.toNewMessage() },
-                        reasoningEnableddd = true
+                        contextHistory = contextHistory.map { it.tonewMessage() },
+                        reasoningEnabled = true
                     )
                 } finally {
                     // Always unregister after the run completes (or fails)
-                    messageQueueManager.clearActiveAgentLoop(steerQueueKey)
+                    messagequeuemanager.clearActiveagentloop(steerqueueKey)
                 }
 
                 // Stop progress listener
@@ -1453,41 +1453,41 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
                 // Save messages to session (convert back to old format)
                 result.messages.forEach { message ->
-                    session.addMessage(message.toLegacyMessage())
+                    session.aMessage(message.toLegacyMessage())
                 }
-                MainEntryNew.getSessionManager()?.save(session)
-                Log.i(TAG, "💾 [Session] Session已Save, 总Message数: ${session.messageCount()}")
+                MainEntrynew.getsessionmanager()?.save(session)
+                Log.i(TAG, "[SAVE] [session] session saved, total message count: ${session.messageCount()}")
 
-                Log.i(TAG, "✅ Agent ProcessComplete")
-                Log.i(TAG, "   Iterate次数: ${result.iterations}")
-                Log.i(TAG, "   use工具: ${result.toolsUsed.joinToString(", ")}")
+                Log.i(TAG, "[OK] agent ProcessComplete")
+                Log.i(TAG, "   iteration count: ${result.iterations}")
+                Log.i(TAG, "   use tools: ${result.toolsused.joinToString(", ")}")
 
                 // Close streaming card with final content
-                val finalContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "sorry, 我CannotProcess这个Request. ")
+                val finalContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "sorry, cannot process this request. ")
 
                 if (streamingCard?.isActive() == true) {
                     try {
                         streamingCard.close(finalContent)
                         Log.i(TAG, "📺 Streaming card closed with final content")
                         "\u0000BLOCK_REPLY_ALREADY_SENT"  // Sentinel: final content is in the streaming card
-                    } catch (e: Exception) {
+                    } catch (e: exception) {
                         Log.w(TAG, "Failed to close streaming card: ${e.message}")
                         finalContent // Fall through to normal reply
                     }
-                } else if (blockRepliesSent.isNotEmpty() && blockRepliesSent.last().trim() == finalContent.trim()) {
-                    Log.i(TAG, "📤 Final content matches last block reply, marking as already sent")
+                } else if (blockRepliesSent.isnotEmpty() && blockRepliesSent.last().trim() == finalContent.trim()) {
+                    Log.i(TAG, "[SEND] Final content matches last block reply, marking as already sent")
                     "\u0000BLOCK_REPLY_ALREADY_SENT"
-                } else if (streamingFailed && blockRepliesSent.isNotEmpty() && blockRepliesSent.any { it.trim() == finalContent.trim() }) {
+                } else if (streamingFailed && blockRepliesSent.isnotEmpty() && blockRepliesSent.any { it.trim() == finalContent.trim() }) {
                     // Streaming card failed; final content was already sent via block reply fallback
-                    Log.i(TAG, "📤 Final content matches a block reply (streaming failed), skipping duplicate")
+                    Log.i(TAG, "[SEND] Final content matches a block reply (streaming failed), skipping duplicate")
                     "\u0000BLOCK_REPLY_ALREADY_SENT"
                 } else {
                     finalContent
                 }
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Agent ProcessFailed", e)
-                "sorry, ProcessMessage时出错了: ${e.message}"
+            } catch (e: exception) {
+                Log.e(TAG, "agent ProcessFailed", e)
+                "sorry, error processing message: ${e.message}"
             }
         }
     }
@@ -1498,21 +1498,21 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
      * Features:
      * - Reply routing: group → quote reply, thread → thread reply, DM → direct send
      * - Fallback: quote reply fails → direct send (message may have been withdrawn)
-     * - Use FeishuSender to auto-detect Markdown and render with cards
+     * - use FeishuSender to auto-detect Markdown and render with cards
      * - Detect screenshot paths and auto-upload send images
      *
      * Aligned with OpenClaw reply-dispatcher.ts
      */
     private suspend fun sendFeishuReply(event: com.xiaomo.feishu.FeishuEvent.Message, content: String) {
         try {
-            Log.i(TAG, "📤 send回复到飞书...")
+            Log.i(TAG, "[SEND] send reply to Feishu...")
 
             // Filter internal reasoning tags (<think>, <final>, etc.)
             val cleanContent = filterReasoningTags(content)
 
-            val sender = feishuChannel?.sender
+            val sender = feishuchannel?.sender
             if (sender == null) {
-                Log.e(TAG, "❌ FeishuSender 未Initialize")
+                Log.e(TAG, "[ERROR] FeishuSender not initialized")
                 return
             }
 
@@ -1528,39 +1528,39 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 val imageFile = resolveImageFile(screenshotPath)
                 if (imageFile != null && imageFile.exists()) {
                     try {
-                        val imageresult = feishuChannel?.uploadAndSendImage(
+                        val imageresult = feishuchannel?.uploadandSendImage(
                             imageFile = imageFile,
                             receiveId = event.chatId,
                             receiveIdType = "chat_id"
                         )
                         if (imageresult?.isSuccess == true) {
-                            Log.i(TAG, "✅ Graph片sendSuccess")
+                            Log.i(TAG, "[OK] image sent successfully")
                         } else {
-                            Log.e(TAG, "❌ Graph片UploadFailed: ${imageresult?.exceptionOrNull()?.message}")
+                            Log.e(TAG, "[ERROR] image upload failed: ${imageresult?.exceptionorNull()?.message}")
                         }
-                    } catch (e: Exception) {
+                    } catch (e: exception) {
                         Log.e(TAG, "UploadScreenshot failed", e)
                     }
                 }
 
                 // Send text reply (remove screenshot path info)
                 val textContent = cleanContent.replace(screenshotPathRegex, "").trim()
-                if (textContent.isNotEmpty()) {
-                    sendTextWithRouting(sender, event, textContent)
+                if (textContent.isnotEmpty()) {
+                    sendTextwithRouting(sender, event, textContent)
                 }
             } else {
-                sendTextWithRouting(sender, event, cleanContent)
+                sendTextwithRouting(sender, event, cleanContent)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "send飞书回复Failed", e)
+        } catch (e: exception) {
+            Log.e(TAG, "send Feishu reply failed", e)
         }
     }
 
     /**
-     * sendText回复(带RoutePolicy)
+     * sendText reply(with route policy)
      * Aligned with OpenClaw reply-dispatcher: group → quote reply, thread → thread reply, DM → direct
      */
-    private suspend fun sendTextWithRouting(
+    private suspend fun sendTextwithRouting(
         sender: com.xiaomo.feishu.messaging.FeishuSender,
         event: com.xiaomo.feishu.FeishuEvent.Message,
         text: String
@@ -1578,7 +1578,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             val rootId = event.rootId ?: event.messageId
             result = try {
                 sender.replyInThread(messageId = rootId, text = text)
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Thread reply failed, falling back to direct: ${e.message}")
                 null
             }
@@ -1592,13 +1592,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     text = text,
                     renderMode = renderMode
                 )
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.w(TAG, "Quote reply failed, falling back to direct: ${e.message}")
                 null
             }
             // Fallback: quote reply API error → direct send
             if (result != null && result.isFailure) {
-                Log.w(TAG, "Quote reply returned error: ${result.exceptionOrNull()?.message}, falling back to direct")
+                Log.w(TAG, "Quote reply returned error: ${result.exceptionorNull()?.message}, falling back to direct")
                 result = null
             }
         }
@@ -1614,14 +1614,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         }
 
         if (result.isSuccess) {
-            Log.i(TAG, "✅ 回复sendSuccess: ${result.getOrNull()?.messageId}")
+            Log.i(TAG, "[OK] reply sent successfully: ${result.getorNull()?.messageId}")
         } else {
-            val errorMsg = result.exceptionOrNull()?.message ?: "UnknownError"
-            Log.e(TAG, "❌ 回复sendFailed: $errorMsg")
+            val errorMsg = result.exceptionorNull()?.message ?: "Unknown error"
+            Log.e(TAG, "[ERROR] reply send failed: $errorMsg")
 
             // Fallback: card fails → plain text
             if (errorMsg.contains("table number over limit") || errorMsg.contains("230099") || errorMsg.contains("HTTP 400")) {
-                Log.w(TAG, "⚠️ Downgrade为纯TextSchemaRetry...")
+                Log.w(TAG, "[WARN] downgrade to pure text schema retry...")
                 sender.sendTextMessage(
                     receiveId = event.chatId,
                     text = text,
@@ -1633,10 +1633,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     }
 
     /**
-     * ParseGraph片File path(Support Content URI 和File path)
+     * parse image file path(support content URI and file path)
      */
     private fun resolveImageFile(path: String): java.io.File? {
-        return if (path.startsWith("content://")) {
+        return if (path.startswith("content://")) {
             try {
                 val uri = android.net.Uri.parse(path)
                 val inputStream = contentResolver.openInputStream(uri)
@@ -1645,7 +1645,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     tempFile.outputStream().use { output -> input.copyTo(output) }
                 }
                 tempFile
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 Log.e(TAG, "Failed to resolve Content URI", e)
                 null
             }
@@ -1662,76 +1662,76 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         ReasoningTagFilter.stripReasoningTags(content)
 
     /**
-     * Start Discord Channel (if configured)
+     * Start Discord channel (if configured)
      */
-    private fun startDiscordChannelIfEnableddd() {
-        Log.i(TAG, "⏰ startDiscordChannelIfEnableddd() 被call")
+    private fun startDiscordchannelifEnabled() {
+        Log.i(TAG, "[TIME] startDiscordchannelIfEnabled() called")
         val scope = CoroutineScope(Dispatchers.IO)
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 Log.i(TAG, "========================================")
-                Log.i(TAG, "🤖 Check Discord Channel Config...")
+                Log.i(TAG, "🤖 Check Discord channel config...")
                 Log.i(TAG, "========================================")
 
-                val configLoader = ConfigLoader(this@MyApplication)
-                val openClawConfig = configLoader.loadOpenClawConfig()
-                val discordConfigData = openClawConfig.channels.discord
+                val configLoader = configLoader(this@MyApplication)
+                val openClawconfig = configLoader.loadOpenClawconfig()
+                val discordconfigData = openClawconfig.channels.discord
 
-                if (discordConfigData == null || !discordConfigData.enabled) {
-                    Log.i(TAG, "⏭️  Discord Channel 未Enabledd, SkipInitialize")
-                    Log.i(TAG, "   ConfigPath: /sdcard/.androidforclaw/openclaw.json")
-                    Log.i(TAG, "   Settings channels.discord.enabled = true 以Enabledd")
+                if (discordconfigData == null || !discordconfigData.enabled) {
+                    Log.i(TAG, "[SKIP]  Discord channel not enabled, skip initialization")
+                    Log.i(TAG, "   configPath: /sdcard/.androidforclaw/openclaw.json")
+                    Log.i(TAG, "   Settings channels.discord.enabled = true to enable")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
 
-                val token = discordConfigData.token
-                if (token.isNullOrBlank()) {
-                    Log.w(TAG, "⚠️  Discord Bot Token Not configured, SkipStart")
-                    Log.i(TAG, "   请在Config中Settings channels.discord.token")
+                val token = discordconfigData.token
+                if (token.isNullorBlank()) {
+                    Log.w(TAG, "[WARN]  Discord Bot Token not configured, SkipStart")
+                    Log.i(TAG, "   please set channels.discord.token in config")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
 
-                Log.i(TAG, "✅ Discord Channel 已Enabledd, 准备Start...")
-                Log.i(TAG, "   Name: ${discordConfigData.name ?: "default"}")
-                Log.i(TAG, "   DM Policy: ${discordConfigData.dm?.policy ?: "pairing"}")
-                Log.i(TAG, "   Group Policy: ${discordConfigData.groupPolicy ?: "open"}")
-                Log.i(TAG, "   Reply Mode: ${discordConfigData.replyToMode ?: "off"}")
+                Log.i(TAG, "[OK] Discord channel enabled, ready to start...")
+                Log.i(TAG, "   Name: ${discordconfigData.name ?: "default"}")
+                Log.i(TAG, "   DM Policy: ${discordconfigData.dm?.policy ?: "pairing"}")
+                Log.i(TAG, "   Group Policy: ${discordconfigData.groupPolicy ?: "open"}")
+                Log.i(TAG, "   Reply Mode: ${discordconfigData.replyToMode ?: "off"}")
 
-                // Create DiscordConfig
-                val config = DiscordConfig(
+                // Create Discordconfig
+                val config = Discordconfig(
                     enabled = true,
                     token = token,
-                    name = discordConfigData.name,
-                    dm = discordConfigData.dm?.let {
-                        DiscordConfig.DmConfig(
+                    name = discordconfigData.name,
+                    dm = discordconfigData.dm?.let {
+                        Discordconfig.Dmconfig(
                             policy = it.policy ?: "pairing",
-                            allowFrom = it.allowFrom ?: emptyList()
+                            allowfrom = it.allowfrom ?: emptyList()
                         )
                     },
-                    groupPolicy = discordConfigData.groupPolicy,
-                    guilds = discordConfigData.guilds?.mapValues { (_, guildData) ->
-                        DiscordConfig.GuildConfig(
+                    groupPolicy = discordconfigData.groupPolicy,
+                    guilds = discordconfigData.guilds?.mapValues { (_, guildData) ->
+                        Discordconfig.Guildconfig(
                             channels = guildData.channels,
                             requireMention = guildData.requireMention ?: true,
                             toolPolicy = guildData.toolPolicy
                         )
                     },
-                    replyToMode = discordConfigData.replyToMode,
-                    accounts = discordConfigData.accounts?.mapValues { (_, accountData) ->
-                        DiscordConfig.DiscordAccountConfig(
+                    replyToMode = discordconfigData.replyToMode,
+                    accounts = discordconfigData.accounts?.mapValues { (_, accountData) ->
+                        Discordconfig.DiscordAccountconfig(
                             enabled = accountData.enabled ?: true,
                             token = accountData.token,
                             name = accountData.name,
                             dm = accountData.dm?.let {
-                                DiscordConfig.DmConfig(
+                                Discordconfig.Dmconfig(
                                     policy = it.policy ?: "pairing",
-                                    allowFrom = it.allowFrom ?: emptyList()
+                                    allowfrom = it.allowfrom ?: emptyList()
                                 )
                             },
                             guilds = accountData.guilds?.mapValues { (_, guildData) ->
-                                DiscordConfig.GuildConfig(
+                                Discordconfig.Guildconfig(
                                     channels = guildData.channels,
                                     requireMention = guildData.requireMention ?: true,
                                     toolPolicy = guildData.toolPolicy
@@ -1741,14 +1741,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     }
                 )
 
-                // Start DiscordChannel
-                val result = DiscordChannel.start(this@MyApplication, config)
+                // Start Discordchannel
+                val result = Discordchannel.start(this@MyApplication, config)
 
                 if (result.isSuccess) {
-                    discordChannel = result.getOrNull()
+                    discordchannel = result.getorNull()
 
                     // Initialize DiscordTyping
-                    discordChannel?.let { channel ->
+                    discordchannel?.let { channel ->
                         val client = com.xiaomo.discord.DiscordClient(token)
                         discordTyping = DiscordTyping(client)
                     }
@@ -1758,14 +1758,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     mmkv?.encode("channel_discord_enabled", true)
 
                     Log.i(TAG, "========================================")
-                    Log.i(TAG, "✅ Discord Channel StartSuccess!")
-                    Log.i(TAG, "   Bot: ${discordChannel?.getBotUsername()} (${discordChannel?.getBotUserId()})")
-                    Log.i(TAG, "   nowCanreceive Discord Message了")
+                    Log.i(TAG, "[OK] Discord channel StartSuccess!")
+                    Log.i(TAG, "   Bot: ${discordchannel?.getBotusername()} (${discordchannel?.getBotuserId()})")
+                    Log.i(TAG, "   can now receive Discord messages")
                     Log.i(TAG, "========================================")
 
                     // Subscribe to event flow, handle received messages
                     scope.launch(Dispatchers.IO) {
-                        discordChannel?.eventFlow?.collect { event ->
+                        discordchannel?.eventFlow?.collect { event ->
                             handleDiscordEvent(event)
                         }
                     }
@@ -1775,18 +1775,18 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     mmkv?.encode("channel_discord_enabled", false)
 
                     Log.e(TAG, "========================================")
-                    Log.e(TAG, "❌ Discord Channel StartFailed")
-                    Log.e(TAG, "   Error: ${result.exceptionOrNull()?.message}")
+                    Log.e(TAG, "[ERROR] Discord channel StartFailed")
+                    Log.e(TAG, "   Error: ${result.exceptionorNull()?.message}")
                     Log.e(TAG, "========================================")
                 }
 
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 // Clear MMKV status
                 val mmkv = MMKV.defaultMMKV()
                 mmkv?.encode("channel_discord_enabled", false)
 
                 Log.e(TAG, "========================================")
-                Log.e(TAG, "❌ Discord Channel InitializeException", e)
+                Log.e(TAG, "[ERROR] Discord channel Initializeexception", e)
                 Log.e(TAG, "========================================")
             }
         }
@@ -1795,293 +1795,293 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     /**
      * Handle Discord event
      */
-    private suspend fun handleDiscordEvent(event: ChannelEvent) {
+    private suspend fun handleDiscordEvent(event: channelEvent) {
         try {
             when (event) {
-                is ChannelEvent.Connected -> {
+                is channelEvent.Connected -> {
                     Log.i(TAG, "🔗 Discord Connected")
                 }
 
-                is ChannelEvent.Message -> {
-                    Log.i(TAG, "📨 收到 Discord Message")
-                    Log.i(TAG, "   From: ${event.authorName} (${event.authorId})")
+                is channelEvent.Message -> {
+                    Log.i(TAG, "[MSG] received Discord message")
+                    Log.i(TAG, "   from: ${event.authorName} (${event.authorId})")
                     Log.i(TAG, "   Content: ${event.content}")
                     Log.i(TAG, "   Type: ${event.chatType}")
-                    Log.i(TAG, "   Channel: ${event.channelId}")
+                    Log.i(TAG, "   channel: ${event.channelId}")
 
                     // Send reply
                     sendDiscordReply(event)
                 }
 
-                is ChannelEvent.ReactionAdd -> {
-                    Log.d(TAG, "👍 Discord Reaction Added: ${event.emoji}")
+                is channelEvent.ReactionA -> {
+                    Log.d(TAG, "👍 Discord Reaction Aed: ${event.emoji}")
                 }
 
-                is ChannelEvent.ReactionRemove -> {
+                is channelEvent.ReactionRemove -> {
                     Log.d(TAG, "👎 Discord Reaction Removed: ${event.emoji}")
                 }
 
-                is ChannelEvent.TypingStart -> {
-                    Log.d(TAG, "⌨️ Discord User Typing: ${event.userId}")
+                is channelEvent.TypingStart -> {
+                    Log.d(TAG, "⌨️ Discord user Typing: ${event.userId}")
                 }
 
-                is ChannelEvent.Error -> {
-                    Log.e(TAG, "❌ Discord Error", event.error)
+                is channelEvent.Error -> {
+                    Log.e(TAG, "[ERROR] Discord Error", event.error)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Process Discord EventFailed", e)
         }
     }
 
-    private suspend fun sendDiscordReply(event: ChannelEvent.Message) {
+    private suspend fun sendDiscordReply(event: channelEvent.Message) {
         try {
             if (discordDedup.isDuplicate(event.messageId)) return
             discordProcessingJobs[event.channelId]?.cancel()
             val job = GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val adapter = object : ChannelAdapter {
+                    val adapter = object : channelAdapter {
                         override val channelName = "discord"
                         override val sessionPrefix = "discord"
                         override val messageCharLimit = 1900
                         override val supportsReactions = true
                         override val supportsTyping = true
-                        override suspend fun addThinkingReaction() { discordChannel?.addReaction(event.channelId, event.messageId, "\uD83E\uDD14") }
-                        override suspend fun removeThinkingReaction() { discordChannel?.removeReaction(event.channelId, event.messageId, "\uD83E\uDD14") }
-                        override suspend fun addCompletionReaction() { discordChannel?.addReaction(event.channelId, event.messageId, "\u2705") }
-                        override suspend fun addErrorReaction() { discordChannel?.addReaction(event.channelId, event.messageId, "\u274C") }
+                        override suspend fun aThinkingReaction() { discordchannel?.aReaction(event.channelId, event.messageId, "\uD83E\uDD14") }
+                        override suspend fun removeThinkingReaction() { discordchannel?.removeReaction(event.channelId, event.messageId, "\uD83E\uDD14") }
+                        override suspend fun aCompletionReaction() { discordchannel?.aReaction(event.channelId, event.messageId, "\u2705") }
+                        override suspend fun aErrorReaction() { discordchannel?.aReaction(event.channelId, event.messageId, "\u274C") }
                         override fun startTyping() { discordTyping?.startContinuous(event.channelId) }
                         override fun stopTyping() { discordTyping?.stopContinuous(event.channelId) }
-                        override suspend fun sendMessageChunk(text: String, isFirstChunk: Boolean) {
-                            discordChannel?.sendMessage(channelId = event.channelId, content = text, replyToId = if (isFirstChunk) event.messageId else null)
+                        override suspend fun sendMessageChunk(text: String, isfirstChunk: Boolean) {
+                            discordchannel?.sendMessage(channelId = event.channelId, content = text, replyToId = if (isfirstChunk) event.messageId else null)
                         }
                         override suspend fun sendErrorMessage(error: String) {
-                            discordChannel?.sendMessage(channelId = event.channelId, content = error, replyToId = event.messageId)
+                            discordchannel?.sendMessage(channelId = event.channelId, content = error, replyToId = event.messageId)
                         }
-                        override fun isGroupContext() = event.guildId != null
-                        override fun getUserMessage() = event.content
-                        override fun getSessionKey() = "discord_${event.channelId}"
+                        override fun isGroupcontext() = event.guildId != null
+                        override fun getuserMessage() = event.content
+                        override fun getsessionKey() = "discord_${event.channelId}"
                         override fun buildSystemPrompt() = buildDiscordSystemPrompt(event)
                     }
-                    ChannelMessageProcessor(this@MyApplication).processMessage(adapter)
+                    channelMessageProcessor(this@MyApplication).processMessage(adapter)
                 } finally {
                     discordProcessingJobs.remove(event.channelId)
                 }
             }
             discordProcessingJobs[event.channelId] = job
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Send Discord reply failed", e)
-            try { discordChannel?.addReaction(event.channelId, event.messageId, "\u274C") } catch (_: Exception) {}
+            try { discordchannel?.aReaction(event.channelId, event.messageId, "\u274C") } catch (_: exception) {}
         }
     }
 
-    // ── Weixin Channel ───────────────────────────────────────────────────────
+    // ── Weixin channel ───────────────────────────────────────────────────────
 
     /**
-     * 重NewStart微信通道(扫码LoginSuccessBackcall). 
-     * 会先停掉Old的 channel(such asHas), 再重NewInitialize并Start monitor. 
+     * restart WeChat channel(scan login success callback). 
+     * will stop old channel first(if has), then re-initialize and start monitor. 
      */
     // Track WeChat collector job to cancel on restart (prevents duplicate collectors)
-    private var weixinCollectorJob: kotlinx.coroutines.Job? = null
+    private var weixincollectorJob: kotlinx.coroutines.Job? = null
 
-    fun restartWeixinChannel() {
-        Log.i(TAG, "🔄 restartWeixinChannel() 被call")
-        weixinChannel?.stop()
-        weixinChannel = null
-        weixinCollectorJob?.cancel()
-        weixinCollectorJob = null
-        startWeixinChannelIfEnableddd()
+    fun restartWeixinchannel() {
+        Log.i(TAG, "[SYNC] restartWeixinchannel() called")
+        weixinchannel?.stop()
+        weixinchannel = null
+        weixincollectorJob?.cancel()
+        weixincollectorJob = null
+        startWeixinchannelifEnabled()
     }
 
-    private fun startWeixinChannelIfEnableddd() {
-        Log.i(TAG, "⏰ startWeixinChannelIfEnableddd() 被call")
+    private fun startWeixinchannelifEnabled() {
+        Log.i(TAG, "[TIME] startWeixinchannelIfEnabled() called")
 
-        // Cancel old collector + channel to prevent duplicate processing
-        weixinCollectorJob?.cancel()
-        weixinCollectorJob = null
-        weixinChannel?.stop()
-        weixinChannel = null
+        // cancel old collector + channel to prevent duplicate processing
+        weixincollectorJob?.cancel()
+        weixincollectorJob = null
+        weixinchannel?.stop()
+        weixinchannel = null
 
-        weixinCollectorJob = GlobalScope.launch(Dispatchers.IO) {
+        weixincollectorJob = GlobalScope.launch(Dispatchers.IO) {
             try {
-                val configLoader = ConfigLoader(this@MyApplication)
-                val openClawConfig = configLoader.loadOpenClawConfig()
-                val weixinCfg = openClawConfig.channels.weixin
+                val configLoader = configLoader(this@MyApplication)
+                val openClawconfig = configLoader.loadOpenClawconfig()
+                val weixinCfg = openClawconfig.channels.weixin
 
                 if (weixinCfg == null || !weixinCfg.enabled) {
-                    Log.i(TAG, "⏭️  Weixin Channel 未Enabledd, Skip")
+                    Log.i(TAG, "[SKIP]  Weixin channel not enabled, Skip")
                     return@launch
                 }
 
-                Log.i(TAG, "✅ Weixin Channel 已Enabledd, 准备Start...")
+                Log.i(TAG, "[OK] Weixin channel enabled, ready to start...")
 
-                val config = com.xiaomo.weixin.WeixinConfig(
+                val config = com.xiaomo.weixin.Weixinconfig(
                     enabled = true,
                     baseUrl = weixinCfg.baseUrl,
                     cdnBaseUrl = weixinCfg.cdnBaseUrl,
                     routeTag = weixinCfg.routeTag,
                 )
 
-                val channel = com.xiaomo.weixin.WeixinChannel(config)
+                val channel = com.xiaomo.weixin.Weixinchannel(config)
                 val configured = channel.init()
 
                 if (!configured) {
-                    Log.w(TAG, "Weixin Channel 未Login, Need先扫码")
+                    Log.w(TAG, "Weixin channel not logged in, need to scan QR first")
                     return@launch
                 }
 
                 val started = channel.start()
                 if (!started) {
-                    Log.e(TAG, "Weixin Channel StartFailed")
+                    Log.e(TAG, "Weixin channel StartFailed")
                     return@launch
                 }
 
-                weixinChannel = channel
-                Log.i(TAG, "✅ Weixin Channel StartSuccess")
+                weixinchannel = channel
+                Log.i(TAG, "[OK] Weixin channel StartSuccess")
 
-                // Collect inbound messages and dispatch to agent via MessageQueueManager
+                // collect inbound messages and dispatch to agent via Messagequeuemanager
                 channel.messageFlow?.collect { msg ->
-                    Log.i(TAG, "📨 Weixin 收到Message: from=${msg.fromUserId} body=${msg.body.take(50)} hasMedia=${msg.hasMedia} mediaType=${msg.mediaType}")
+                    Log.i(TAG, "[MSG] Weixin received message: from=${msg.fromuserId} body=${msg.body.take(50)} has media=${msg.has media} media type=${msg.media type}")
 
-                    // Download media if present
+                    // nextload media if present
                     var downloadedMediaFile: java.io.File? = null
-                    if (msg.hasMedia && msg.mediaCdn != null) {
+                    if (msg.has media && msg.mediaCdn != null) {
                         try {
-                            downloadedMediaFile = com.xiaomo.weixin.cdn.WeixinCdnDownloader.downloadAndDecrypt(
+                            downloadedMediaFile = com.xiaomo.weixin.cdn.WeixinCdnnextloader.downloadandDecrypt(
                                 media = msg.mediaCdn!!,
                                 fileExtension = msg.mediaFileExtension ?: "bin",
                             )
                             if (downloadedMediaFile != null) {
-                                Log.i(TAG, "📎 Weixin 媒体DownloadSuccess: ${downloadedMediaFile.absolutePath} (${downloadedMediaFile.length()} bytes)")
+                                Log.i(TAG, "[ATTACH] Weixin media download success: ${downloadedMediaFile.absolutePath} (${downloadedMediaFile.length()} bytes)")
                             } else {
-                                Log.w(TAG, "⚠️ Weixin 媒体DownloadFailed")
+                                Log.w(TAG, "[WARN] Weixin media download failed")
                             }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Weixin 媒体DownloadException", e)
+                        } catch (e: exception) {
+                            Log.e(TAG, "Weixin media download exception", e)
                         }
                     }
 
-                    if (msg.body.isBlank() && !msg.hasMedia) {
-                        Log.d(TAG, "Weixin: NullMessage且None媒体, Skip")
+                    if (msg.body.isBlank() && !msg.has media) {
+                        Log.d(TAG, "Weixin: null message and no media, Skip")
                         return@collect
                     }
 
-                    val queueKey = "weixin:${msg.fromUserId}"
+                    val queueKey = "weixin:${msg.fromuserId}"
 
                     // Build content for agent: text + media context
                     val agentContent = buildString {
-                        if (msg.body.isNotBlank()) {
+                        if (msg.body.isnotBlank()) {
                             append(msg.body)
                         }
-                        if (msg.hasMedia && downloadedMediaFile != null) {
-                            if (isNotEmpty()) append("\n\n")
-                            when (msg.mediaType) {
+                        if (msg.has media && downloadedMediaFile != null) {
+                            if (isnotEmpty()) append("\n\n")
+                            when (msg.media type) {
                                 com.xiaomo.weixin.api.MessageItemType.IMAGE -> {
                                     append("[Image: source: ${downloadedMediaFile.absolutePath}]")
                                 }
                                 com.xiaomo.weixin.api.MessageItemType.VOICE -> {
-                                    append("[Usersend了一条语音")
-                                    if (msg.voicePlaytime != null) append(", 时长${msg.voicePlaytime}秒")
-                                    if (!msg.voiceText.isNullOrBlank()) append(", Inside容: ${msg.voiceText}")
-                                    append(", 文件: ${downloadedMediaFile.absolutePath}]")
+                                    append("[user sent a voice message")
+                                    if (msg.voicePlaytime != null) append(", duration${msg.voicePlaytime}seconds")
+                                    if (!msg.voiceText.isNullorBlank()) append(", content: ${msg.voiceText}")
+                                    append(", files: ${downloadedMediaFile.absolutePath}]")
                                 }
                                 com.xiaomo.weixin.api.MessageItemType.FILE -> {
-                                    append("[Usersend了一个文件: ${msg.mediaFileName ?: downloadedMediaFile.name}, Path: ${downloadedMediaFile.absolutePath}]")
+                                    append("[user sent a file: ${msg.mediaFileName ?: downloadedMediaFile.name}, Path: ${downloadedMediaFile.absolutePath}]")
                                 }
                                 com.xiaomo.weixin.api.MessageItemType.VIDEO -> {
-                                    append("[Usersend了一个视频: ${downloadedMediaFile.absolutePath}]")
+                                    append("[user sent a video: ${downloadedMediaFile.absolutePath}]")
                                 }
                             }
-                        } else if (msg.hasMedia && downloadedMediaFile == null) {
-                            if (isNotEmpty()) append("\n\n")
-                            append("[Usersend了媒体文件, 但DownloadFailed]")
+                        } else if (msg.has media && downloadedMediaFile == null) {
+                            if (isnotEmpty()) append("\n\n")
+                            append("[user sent media files, but download failed]")
                         }
                     }
 
-                    // Channel-agnostic stop command check
-                    if (messageQueueManager.isStopCommand(agentContent)) {
-                        if (messageQueueManager.stopActiveRun(queueKey)) {
-                            channel.sender?.sendText(msg.fromUserId, "✅ 已Stop当FrontTask")
+                    // channel-agnostic stop command check
+                    if (messagequeuemanager.isStopCommand(agentContent)) {
+                        if (messagequeuemanager.stopActiveRun(queueKey)) {
+                            channel.sender?.sendText(msg.fromuserId, "[OK] stopped current task")
                         } else {
-                            channel.sender?.sendText(msg.fromUserId, "当FrontNone正在执Row的Task")
+                            channel.sender?.sendText(msg.fromuserId, "no task currently running")
                         }
                         return@collect
                     }
 
-                    val queuedMessage = MessageQueueManager.QueuedMessage(
+                    val queuedMessage = Messagequeuemanager.queuedMessage(
                         messageId = msg.messageId?.toString() ?: "weixin_${System.currentTimeMillis()}",
                         content = agentContent,
-                        senderId = msg.fromUserId,
-                        chatId = msg.fromUserId,
+                        senderId = msg.fromuserId,
+                        chatId = msg.fromuserId,
                         chatType = "p2p",
                         metadata = mapOf("weixinMsg" to msg, "mediaFile" to downloadedMediaFile)
                     )
 
-                    val queueMode = getQueueModeForChat(msg.fromUserId, "p2p")
+                    val queueMode = getqueueModeforChat(msg.fromuserId, "p2p")
 
                     GlobalScope.launch(Dispatchers.IO) {
                         try {
-                            messageQueueManager.enqueue(
+                            messagequeuemanager.enqueue(
                                 key = queueKey,
                                 message = queuedMessage,
                                 mode = queueMode
                             ) { qMsg ->
                                 val originalMsg = qMsg.metadata["weixinMsg"]
                                     as? com.xiaomo.weixin.messaging.WeixinInboundMessage ?: msg
-                                processWeixinMessageQueued(originalMsg, queueKey)
+                                processWeixinMessagequeued(originalMsg, queueKey)
                             }
-                        } catch (e: kotlinx.coroutines.CancellationException) {
-                            Log.i(TAG, "Weixin: Task被UserCancel ${msg.fromUserId}")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Weixin MessageQueueProcessFailed", e)
+                        } catch (e: kotlinx.coroutines.cancellationexception) {
+                            Log.i(TAG, "Weixin: task cancelled by user ${msg.fromuserId}")
+                        } catch (e: exception) {
+                            Log.e(TAG, "Weixin MessagequeueProcessFailed", e)
                             try {
-                                channel.sender?.sendText(msg.fromUserId, "ProcessMessage时出错: ${e.message}")
-                            } catch (_: Exception) {}
+                                channel.sender?.sendText(msg.fromuserId, "Error processing message: ${e.message}")
+                            } catch (_: exception) {}
                         }
                     }
                 }
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Weixin Channel StartException", e)
+            } catch (e: exception) {
+                Log.e(TAG, "Weixin channel Startexception", e)
             }
         }
     }
 
     /**
-     * Process Weixin message through MessageQueueManager pipeline.
-     * Registers AgentLoop with MessageQueueManager for channel-agnostic stop support.
+     * Process Weixin message through Messagequeuemanager pipeline.
+     * Registers agentloop with Messagequeuemanager for channel-agnostic stop support.
      */
-    private suspend fun processWeixinMessageQueued(
+    private suspend fun processWeixinMessagequeued(
         msg: com.xiaomo.weixin.messaging.WeixinInboundMessage,
         queueKey: String
     ) {
-        val channel = weixinChannel ?: return
+        val channel = weixinchannel ?: return
         val sender = channel.sender
-        val toUser = msg.fromUserId
+        val touser = msg.fromuserId
 
         try {
             // Track last active chat for cron delivery
-            setLastActiveChat("weixin", msg.fromUserId)
+            setLastActiveChat("weixin", msg.fromuserId)
 
             // Send typing indicator
-            sender?.sendTyping(toUser)
+            sender?.sendTyping(touser)
 
-            val sessionId = "weixin_${msg.fromUserId}"
-            Log.i(TAG, "🆔 Weixin Session ID: $sessionId")
+            val sessionId = "weixin_${msg.fromuserId}"
+            Log.i(TAG, "🆔 Weixin session ID: $sessionId")
 
             // Rebuild agent content from message fields (includes media context)
             val agentContent = buildString {
-                if (msg.body.isNotBlank()) {
+                if (msg.body.isnotBlank()) {
                     append(msg.body)
                 }
-                if (msg.hasMedia) {
-                    if (isNotEmpty()) append("\n\n")
-                    when (msg.mediaType) {
+                if (msg.has media) {
+                    if (isnotEmpty()) append("\n\n")
+                    when (msg.media type) {
                         com.xiaomo.weixin.api.MessageItemType.IMAGE -> {
-                            // Download微信 CDN Graph片(AES Decrypt)→ 附加 Image: source Path(Aligned with OpenClaw DelayLoadSchema)
+                            // download WeChat CDN image(AES decrypt)→ attach image: source path(aligned with OpenClaw delay load schema)
                             if (msg.mediaCdn != null) {
                                 try {
-                                    val imageFile = com.xiaomo.weixin.cdn.WeixinCdnDownloader.downloadAndDecrypt(
+                                    val imageFile = com.xiaomo.weixin.cdn.WeixinCdnnextloader.downloadandDecrypt(
                                         media = msg.mediaCdn!!,
                                         fileExtension = "jpg"
                                     )
@@ -2089,108 +2089,108 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                         append("[Image: source: ${imageFile.absolutePath}]")
                                         Log.i(TAG, "🖼️ Weixin image downloaded: ${imageFile.absolutePath}")
                                     } else {
-                                        append("[Usersend了一张Graph片]")
+                                        append("[user sent an image]")
                                         Log.w(TAG, "🖼️ Weixin image CDN download returned null")
                                     }
-                                } catch (e: Exception) {
-                                    append("[Usersend了一张Graph片]")
+                                } catch (e: exception) {
+                                    append("[user sent an image]")
                                     Log.e(TAG, "🖼️ Weixin image download failed", e)
                                 }
                             } else {
-                                append("[Usersend了一张Graph片]")
+                                append("[user sent an image]")
                             }
                         }
                         com.xiaomo.weixin.api.MessageItemType.VOICE -> {
-                            append("[Usersend了一条语音")
-                            if (msg.voicePlaytime != null) append(", 时长${msg.voicePlaytime}秒")
-                            if (!msg.voiceText.isNullOrBlank()) append(", Inside容: ${msg.voiceText}")
+                            append("[user sent a voice message")
+                            if (msg.voicePlaytime != null) append(", duration${msg.voicePlaytime}seconds")
+                            if (!msg.voiceText.isNullorBlank()) append(", content: ${msg.voiceText}")
                             append("]")
                         }
                         com.xiaomo.weixin.api.MessageItemType.FILE -> {
-                            append("[Usersend了一个文件: ${msg.mediaFileName ?: "Unknown文件名"}]")
+                            append("[user sent a file: ${msg.mediaFileName ?: "Unknownfile name"}]")
                         }
                         com.xiaomo.weixin.api.MessageItemType.VIDEO -> {
-                            append("[Usersend了一个视频]")
+                            append("[user sent a video]")
                         }
                     }
                 }
             }
 
-            if (MainEntryNew.getSessionManager() == null) {
-                MainEntryNew.initialize(this@MyApplication)
+            if (MainEntrynew.getsessionmanager() == null) {
+                MainEntrynew.initialize(this@MyApplication)
             }
-            val sessionManager = MainEntryNew.getSessionManager()
-            if (sessionManager == null) {
-                sender?.sendText(toUser, "系统Error: CannotCreateSession")
+            val sessionmanager = MainEntrynew.getsessionmanager()
+            if (sessionmanager == null) {
+                sender?.sendText(touser, "system error: cannot create session")
                 return
             }
 
-            val session = sessionManager.getOrCreate(sessionId)
+            val session = sessionmanager.getorCreate(sessionId)
 
             val rawHistory = session.getRecentMessages(20)
-            val contextHistory = cleanupToolMessages(rawHistory)
+            val contextHistory = cleanuptoolMessages(rawHistory)
 
-            val taskDataManager = TaskDataManager.getInstance()
-            val toolRegistry = ToolRegistry(
+            val taskDatamanager = TaskDatamanager.getInstance()
+            val toolRegistry = toolRegistry(
                 context = this@MyApplication,
-                taskDataManager = taskDataManager
+                taskDatamanager = taskDatamanager
             )
-            val androidToolRegistry = AndroidToolRegistry(
+            val androidtoolRegistry = androidtoolRegistry(
                 context = this@MyApplication,
-                taskDataManager = taskDataManager,
-                cameraCaptureManager = cameraCaptureManager,
+                taskDatamanager = taskDatamanager,
+                cameraCapturemanager = cameraCapturemanager,
             )
 
-            val configLoader = ConfigLoader(this@MyApplication)
-            val contextBuilder = ContextBuilder(
+            val configLoader = configLoader(this@MyApplication)
+            val contextBuilder = contextBuilder(
                 context = this@MyApplication,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
+                androidtoolRegistry = androidtoolRegistry,
                 configLoader = configLoader
             )
-            val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(this@MyApplication)
-            val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
+            val llmprovider = com.xiaomo.androidforclaw.providers.UnifiedLLMprovider(this@MyApplication)
+            val contextmanager = com.xiaomo.androidforclaw.agent.context.contextmanager(llmprovider)
 
-            val config = configLoader.loadOpenClawConfig()
+            val config = configLoader.loadOpenClawconfig()
             val maxIterations = config.agent.maxIterations
 
-            // Use weixin-specific model if configured
-            val weixinModel = config.channels.weixin?.model
+            // use weixin-specific model if configured
+            val weixinmodel = config.channels.weixin?.model
 
-            val agentLoop = AgentLoop(
-                llmProvider = llmProvider,
+            val agentloop = agentloop(
+                llmprovider = llmprovider,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry,
-                contextManager = contextManager,
+                androidtoolRegistry = androidtoolRegistry,
+                contextmanager = contextmanager,
                 maxIterations = maxIterations,
-                modelRef = weixinModel
+                modelRef = weixinmodel
             )
 
-            // Register with MessageQueueManager (channel-agnostic stop/steer support)
-            messageQueueManager.setActiveAgentLoop(queueKey, agentLoop)
+            // Register with Messagequeuemanager (channel-agnostic stop/steer support)
+            messagequeuemanager.setActiveagentloop(queueKey, agentloop)
 
-            val channelCtx = ContextBuilder.ChannelContext(
+            val channelCtx = contextBuilder.channelcontext(
                 channel = "weixin",
-                chatId = msg.fromUserId,
+                chatId = msg.fromuserId,
                 chatType = "p2p",
-                senderId = msg.fromUserId,
+                senderId = msg.fromuserId,
                 messageId = msg.messageId?.toString() ?: ""
             )
             val systemPrompt = contextBuilder.buildSystemPrompt(
                 userGoal = agentContent,
                 packageName = "",
                 testMode = "chat",
-                channelContext = channelCtx
+                channelcontext = channelCtx
             )
 
-            // Collect intermediate progress updates — WeChat does NOT send BlockReply
+            // collect intermediate progress updates — WeChat does NOT send BlockReply
             // as separate messages to avoid duplicate-looking output.
             // Only send Error events immediately; everything else goes into finalContent.
             val progressJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-                agentLoop.progressFlow.collect { update ->
+                agentloop.progressFlow.collect { update ->
                     when (update) {
-                        is ProgressUpdate.ToolCall -> {
-                            Log.d(TAG, "Weixin: ToolCall ${update.name}")
+                        is ProgressUpdate.toolCall -> {
+                            Log.d(TAG, "Weixin: toolCall ${update.name}")
                         }
                         is ProgressUpdate.BlockReply -> {
                             // Log only — do NOT send as separate message.
@@ -2199,8 +2199,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         }
                         is ProgressUpdate.Error -> {
                             try {
-                                sender?.sendText(toUser, "⚠️ ${update.message}")
-                            } catch (_: Exception) {}
+                                sender?.sendText(touser, "[WARN] ${update.message}")
+                            } catch (_: exception) {}
                         }
                         else -> { /* ignore other updates */ }
                     }
@@ -2208,142 +2208,142 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             }
 
             val result = try {
-                agentLoop.run(
+                agentloop.run(
                     systemPrompt = systemPrompt,
                     userMessage = agentContent,
-                    contextHistory = contextHistory.map { it.toNewMessage() },
+                    contextHistory = contextHistory.map { it.tonewMessage() },
                 )
             } finally {
                 // Always unregister after the run completes (or fails)
-                messageQueueManager.clearActiveAgentLoop(queueKey)
+                messagequeuemanager.clearActiveagentloop(queueKey)
             }
 
-            // Cancel progress collection after agent finishes
+            // cancel progress collection after agent finishes
             progressJob.cancel()
 
             // Save to session history
-            session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
+            session.aMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
                 role = "user", content = agentContent
             ))
-            session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
+            session.aMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
                 role = "assistant", content = result.finalContent
             ))
 
             // Send final reply — skip parts already sent as BlockReply
             val response = result.finalContent
-            if (response.isNotBlank()) {
+            if (response.isnotBlank()) {
                 val trimmed = response.trim()
                 if (trimmed != "NO_REPLY" && trimmed != "HEARTBEAT_OK") {
                     var sanitized = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
-                        .stripControlTokensFromText(response)
+                        .stripControlTokensfromText(response)
                         .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                         .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                         .trim()
-                    if (sanitized.isNotBlank()) {
-                        sender?.sendText(toUser, sanitized)
+                    if (sanitized.isnotBlank()) {
+                        sender?.sendText(touser, sanitized)
                     }
                 }
             }
 
-            // Cancel typing
-            sender?.cancelTyping(toUser)
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            Log.i(TAG, "Weixin: Task被UserCancel ${msg.fromUserId}")
-        } catch (e: Exception) {
-            Log.e(TAG, "processWeixinMessageQueued Exception", e)
+            // cancel typing
+            sender?.cancelTyping(touser)
+        } catch (e: kotlinx.coroutines.cancellationexception) {
+            Log.i(TAG, "Weixin: task cancelled by user ${msg.fromuserId}")
+        } catch (e: exception) {
+            Log.e(TAG, "processWeixinMessagequeued exception", e)
             try {
-                sender?.sendText(toUser, "ProcessMessage时出错: ${e.message}")
-            } catch (_: Exception) {}
+                sender?.sendText(touser, "Error processing message: ${e.message}")
+            } catch (_: exception) {}
         }
     }
 
     /**
      * Build Discord system prompt
      */
-    private fun buildDiscordSystemPrompt(event: ChannelEvent.Message): String {
-        val botName = discordChannel?.getBotUsername() ?: "AndroidForClaw Bot"
-        val botId = discordChannel?.getBotUserId() ?: ""
+    private fun buildDiscordSystemPrompt(event: channelEvent.Message): String {
+        val botName = discordchannel?.getBotusername() ?: "androidforClaw Bot"
+        val botId = discordchannel?.getBotuserId() ?: ""
 
         return """
-# 身份
-你Yes **$botName**, 一个Run在 Android DeviceUp的Smart助手, 通过 Discord 与User交互. 
+# identity
+you are **$botName**, running on smart assistant on Android device, interact with user via Discord. 
 
-# 当FrontUpDown文
-- **平台**: Discord
-- **ChannelType**: ${event.chatType}
-- **Channel ID**: ${event.channelId}
-- **User**: ${event.authorName} (ID: ${event.authorId})
+# current context
+- **platform**: Discord
+- **channelType**: ${event.chatType}
+- **channel ID**: ${event.channelId}
+- **user**: ${event.authorName} (ID: ${event.authorId})
 - **Bot ID**: $botId
 
-# 核心Capability
-你Can通过工具call来控制 Android Device: 
-- 📸 Screenshot观察Screen
+# core capability
+you can control Android device through tool calls: 
+- 📸 screenshot to observe screen
 - 👆 click、swipe、Input
-- 🏠 导航、Openapply
-- 🔍 Get UI Info
+- [HOME] navigate, open app
+- [SEARCH] Get UI Info
 
-# 交互Rule
-1. **简洁明了**: Discord Message尽量简洁, 重要Info用 Markdown Format
-2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
-3. **逐步执Row**: ComplexTask分解为Multiple步骤
-4. **反馈Into度**: 长TimeAction时告知User当Forward度
-5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
+# interaction rules
+1. **be concise**: Discord message should be concise, use Markdown format for important info
+2. **take initiative screenshot**: use screenshot tool when need to observe screen
+3. **execute step by step**: break complex task into multiple steps
+4. **feedback progress**: tell user progress for long time actions
+5. **error handling**: explain reason and provide suggestions when issues encountered
 
-# Response格式
-- use Discord Markdown: **粗体**、*斜体*、`代码`、```代码块```
-- 重要Actionresult用Table情符号: ✅ ❌ ⚠️ 🔄
-- Listuse - 或Number编号
+# response format
+- use Discord Markdown: **bold**、*italic*、`code`、```code block```
+- use emoji for important action results: [OK] [ERROR] [WARN] [SYNC]
+- use - or numbered list
 
-# Note事项
-- 不要Output过长的Message(suggest 1500 字符以Inside)
-- 代码块use语法高亮
-- 链接use [Text](URL) 格式
+# note matters
+- notneedOutputoverlongMessage(suggest 1500 characters inside)
+- code block syntax highlighting
+- linkuse [Text](URL) format
 
-now, 请ProcessUser的Message. 
+now, pleaseProcessuserMessage. 
         """.trimIndent()
     }
 
-    // ==================== Telegram Channel ====================
+    // ==================== Telegram channel ====================
 
-    private fun startTelegramChannelIfEnableddd() {
-        Log.i(TAG, "startTelegramChannelIfEnableddd() called")
+    private fun startTelegramchannelifEnabled() {
+        Log.i(TAG, "startTelegramchannelifEnabled() called")
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                Log.i(TAG, "Checking Telegram Channel config...")
-                val configLoader = ConfigLoader(this@MyApplication)
-                val openClawConfig = configLoader.loadOpenClawConfig()
-                val telegramConfigData = openClawConfig.channels.telegram
+                Log.i(TAG, "Checking Telegram channel config...")
+                val configLoader = configLoader(this@MyApplication)
+                val openClawconfig = configLoader.loadOpenClawconfig()
+                val telegramconfigData = openClawconfig.channels.telegram
 
-                if (telegramConfigData == null || !telegramConfigData.enabled) {
-                    Log.i(TAG, "Telegram Channel not enabled, skipping")
+                if (telegramconfigData == null || !telegramconfigData.enabled) {
+                    Log.i(TAG, "Telegram channel not enabled, skipping")
                     return@launch
                 }
 
-                val token = telegramConfigData.botToken
+                val token = telegramconfigData.botToken
                 if (token.isBlank()) {
                     Log.w(TAG, "Telegram Bot Token not configured, skipping")
                     return@launch
                 }
 
-                Log.i(TAG, "Telegram Channel enabled, starting...")
+                Log.i(TAG, "Telegram channel enabled, starting...")
 
-                val config = TelegramConfig(
+                val config = Telegramconfig(
                     enabled = true,
                     botToken = token,
-                    dmPolicy = telegramConfigData.dmPolicy,
-                    groupPolicy = telegramConfigData.groupPolicy,
-                    requireMention = telegramConfigData.requireMention,
-                    historyLimit = telegramConfigData.historyLimit ?: 50,
-                    webhookUrl = telegramConfigData.webhookUrl,
-                    model = telegramConfigData.model
+                    dmPolicy = telegramconfigData.dmPolicy,
+                    groupPolicy = telegramconfigData.groupPolicy,
+                    requireMention = telegramconfigData.requireMention,
+                    historyLimit = telegramconfigData.historyLimit ?: 50,
+                    webhookUrl = telegramconfigData.webhookUrl,
+                    model = telegramconfigData.model
                 )
 
-                val result = TelegramChannel.start(this@MyApplication, config)
+                val result = Telegramchannel.start(this@MyApplication, config)
 
                 if (result.isSuccess) {
-                    telegramChannel = result.getOrNull()
+                    telegramchannel = result.getorNull()
 
-                    telegramChannel?.let { channel ->
+                    telegramchannel?.let { channel ->
                         val client = channel.getClient()
                         if (client != null) {
                             telegramTyping = TelegramTyping(client)
@@ -2353,325 +2353,325 @@ now, 请ProcessUser的Message.
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_telegram_enabled", true)
 
-                    Log.i(TAG, "Telegram Channel started: bot=${telegramChannel?.getBotUsername()}")
+                    Log.i(TAG, "Telegram channel started: bot=${telegramchannel?.getBotusername()}")
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        telegramChannel?.eventFlow?.collect { event ->
+                        telegramchannel?.eventFlow?.collect { event ->
                             handleTelegramEvent(event)
                         }
                     }
                 } else {
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_telegram_enabled", false)
-                    Log.e(TAG, "Telegram Channel start failed: ${result.exceptionOrNull()?.message}")
+                    Log.e(TAG, "Telegram channel start failed: ${result.exceptionorNull()?.message}")
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 val mmkv = MMKV.defaultMMKV()
                 mmkv?.encode("channel_telegram_enabled", false)
-                Log.e(TAG, "Telegram Channel init error", e)
+                Log.e(TAG, "Telegram channel init error", e)
             }
         }
     }
 
-    private suspend fun handleTelegramEvent(event: TelegramChannel.ChannelEvent) {
+    private suspend fun handleTelegramEvent(event: Telegramchannel.channelEvent) {
         try {
             when (event) {
-                is TelegramChannel.ChannelEvent.Connected -> {
+                is Telegramchannel.channelEvent.Connected -> {
                     Log.i(TAG, "Telegram Connected")
                 }
-                is TelegramChannel.ChannelEvent.Message -> {
+                is Telegramchannel.channelEvent.Message -> {
                     Log.i(TAG, "Telegram message from ${event.senderName} in ${event.chatId}: ${event.content.take(50)}")
                     sendTelegramReply(event)
                 }
-                is TelegramChannel.ChannelEvent.Error -> {
+                is Telegramchannel.channelEvent.Error -> {
                     Log.e(TAG, "Telegram Error", event.error)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Handle Telegram event failed", e)
         }
     }
 
-    private suspend fun sendTelegramReply(event: TelegramChannel.ChannelEvent.Message) {
+    private suspend fun sendTelegramReply(event: Telegramchannel.channelEvent.Message) {
         try {
-            if (!telegramDedup.add(event.messageId)) return
+            if (!telegramDedup.a(event.messageId)) return
             telegramProcessingJobs[event.chatId]?.cancel()
             val job = GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val adapter = object : ChannelAdapter {
+                    val adapter = object : channelAdapter {
                         override val channelName = "telegram"
                         override val sessionPrefix = "telegram"
                         override val messageCharLimit = 4000
                         override val supportsReactions = true
                         override val supportsTyping = true
-                        override suspend fun addThinkingReaction() { telegramChannel?.setMessageReaction(event.chatId, event.messageId, "\uD83E\uDD14") }
-                        override suspend fun removeThinkingReaction() { telegramChannel?.removeMessageReaction(event.chatId, event.messageId) }
-                        override suspend fun addCompletionReaction() { telegramChannel?.setMessageReaction(event.chatId, event.messageId, "\u2705") }
-                        override suspend fun addErrorReaction() { telegramChannel?.setMessageReaction(event.chatId, event.messageId, "\u274C") }
+                        override suspend fun aThinkingReaction() { telegramchannel?.setMessageReaction(event.chatId, event.messageId, "\uD83E\uDD14") }
+                        override suspend fun removeThinkingReaction() { telegramchannel?.removeMessageReaction(event.chatId, event.messageId) }
+                        override suspend fun aCompletionReaction() { telegramchannel?.setMessageReaction(event.chatId, event.messageId, "\u2705") }
+                        override suspend fun aErrorReaction() { telegramchannel?.setMessageReaction(event.chatId, event.messageId, "\u274C") }
                         override fun startTyping() { telegramTyping?.startContinuous(event.chatId) }
                         override fun stopTyping() { telegramTyping?.stopContinuous(event.chatId) }
-                        override suspend fun sendMessageChunk(text: String, isFirstChunk: Boolean) {
-                            telegramChannel?.sendMessage(event.chatId, text, if (isFirstChunk) event.messageId else null)
+                        override suspend fun sendMessageChunk(text: String, isfirstChunk: Boolean) {
+                            telegramchannel?.sendMessage(event.chatId, text, if (isfirstChunk) event.messageId else null)
                         }
                         override suspend fun sendErrorMessage(error: String) {
-                            telegramChannel?.sendMessage(event.chatId, error, event.messageId)
+                            telegramchannel?.sendMessage(event.chatId, error, event.messageId)
                         }
-                        override fun isGroupContext() = event.chatType == "group"
-                        override fun getUserMessage() = event.content
-                        override fun getSessionKey() = "telegram_${event.chatId}"
+                        override fun isGroupcontext() = event.chatType == "group"
+                        override fun getuserMessage() = event.content
+                        override fun getsessionKey() = "telegram_${event.chatId}"
                         override fun buildSystemPrompt(): String {
-                            val botName = telegramChannel?.getBotUsername() ?: "AndroidForClaw Bot"
-                            val botId = telegramChannel?.getBotId() ?: ""
+                            val botName = telegramchannel?.getBotusername() ?: "androidforClaw Bot"
+                            val botId = telegramchannel?.getBotId() ?: ""
                             return """
-# 身份
-你Yes **$botName**, 一个Run在 Android DeviceUp的Smart助手, 通过 Telegram 与User交互. 
+# identity
+you are **$botName**, running on smart assistant on Android device, through Telegram and user interaction. 
 
-# 当FrontUpDown文
-- **平台**: Telegram
-- **ChatType**: ${event.chatType}
+# current context
+- **platform**: Telegram
+- **chat type**: ${event.chatType}
 - **Chat ID**: ${event.chatId}
-- **User**: ${event.senderName} (ID: ${event.senderId})
+- **user**: ${event.senderName} (ID: ${event.senderId})
 - **Bot ID**: $botId
 
-# 核心Capability
-你Can通过工具call来控制 Android Device: 
-- Screenshot观察Screen
+# core capability
+you can control Android device through tool calls: 
+- screenshot to observe screen
 - click、swipe、Input
-- 导航、Openapply
+- navigate, open app
 - Get UI Info
 
-# 交互Rule
-1. **简洁明了**: Telegram Message尽量简洁, 重要Info用 Markdown Format
-2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
-3. **逐步执Row**: ComplexTask分解为Multiple步骤
-4. **反馈Into度**: 长TimeAction时告知User当Forward度
-5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
+# interaction rules
+1. **be concise**: Telegram message should be concise, use Markdown format for important info
+2. **take initiative screenshot**: use screenshot tool when need to observe screen
+3. **execute step by step**: break complex task into multiple steps
+4. **feedback progress**: tell user progress for long time actions
+5. **error handling**: explain reason and provide suggestions when issues encountered
 
-# Response格式
-- use Telegram Markdown: *粗体*、_斜体_、`代码`、```代码块```
-- Listuse - 或Number编号
+# response format
+- use Telegram Markdown: *bold*、_italic_、`code`、```code block```
+- use - or numbered list
 
-# Note事项
-- 不要Output过长的Message(suggest 3000 字符以Inside)
-- 代码块use语法高亮
+# note matters
+- notneedOutputoverlongMessage(suggest 3000 characters inside)
+- code block syntax highlighting
 
-now, 请ProcessUser的Message. 
+now, pleaseProcessuserMessage. 
                             """.trimIndent()
                         }
                     }
-                    ChannelMessageProcessor(this@MyApplication).processMessage(adapter)
+                    channelMessageProcessor(this@MyApplication).processMessage(adapter)
                 } finally {
                     telegramProcessingJobs.remove(event.chatId)
                 }
             }
             telegramProcessingJobs[event.chatId] = job
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Send Telegram reply failed", e)
-            try { telegramChannel?.setMessageReaction(event.chatId, event.messageId, "\u274C") } catch (_: Exception) {}
+            try { telegramchannel?.setMessageReaction(event.chatId, event.messageId, "\u274C") } catch (_: exception) {}
         }
     }
 
-    // ==================== Slack Channel ====================
+    // ==================== Slack channel ====================
 
-    private fun startSlackChannelIfEnableddd() {
-        Log.i(TAG, "startSlackChannelIfEnableddd() called")
+    private fun startSlackchannelifEnabled() {
+        Log.i(TAG, "startSlackchannelifEnabled() called")
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                val configLoader = ConfigLoader(this@MyApplication)
-                val openClawConfig = configLoader.loadOpenClawConfig()
-                val slackConfigData = openClawConfig.channels.slack
+                val configLoader = configLoader(this@MyApplication)
+                val openClawconfig = configLoader.loadOpenClawconfig()
+                val slackconfigData = openClawconfig.channels.slack
 
-                if (slackConfigData == null || !slackConfigData.enabled) {
-                    Log.i(TAG, "Slack Channel not enabled, skipping")
+                if (slackconfigData == null || !slackconfigData.enabled) {
+                    Log.i(TAG, "Slack channel not enabled, skipping")
                     return@launch
                 }
 
-                val token = slackConfigData.botToken
+                val token = slackconfigData.botToken
                 if (token.isBlank()) {
                     Log.w(TAG, "Slack Bot Token not configured, skipping")
                     return@launch
                 }
 
-                val config = SlackConfig(
+                val config = Slackconfig(
                     enabled = true,
                     botToken = token,
-                    appToken = slackConfigData.appToken,
-                    signingSecret = slackConfigData.signingSecret,
-                    mode = slackConfigData.mode,
-                    dmPolicy = slackConfigData.dmPolicy,
-                    groupPolicy = slackConfigData.groupPolicy,
-                    requireMention = slackConfigData.requireMention,
-                    historyLimit = slackConfigData.historyLimit ?: 50,
-                    model = slackConfigData.model
+                    appToken = slackconfigData.appToken,
+                    signingSecret = slackconfigData.signingSecret,
+                    mode = slackconfigData.mode,
+                    dmPolicy = slackconfigData.dmPolicy,
+                    groupPolicy = slackconfigData.groupPolicy,
+                    requireMention = slackconfigData.requireMention,
+                    historyLimit = slackconfigData.historyLimit ?: 50,
+                    model = slackconfigData.model
                 )
 
-                val result = SlackChannel.start(this@MyApplication, config)
+                val result = Slackchannel.start(this@MyApplication, config)
 
                 if (result.isSuccess) {
-                    slackChannel = result.getOrNull()
+                    slackchannel = result.getorNull()
 
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_slack_enabled", true)
 
-                    Log.i(TAG, "Slack Channel started: bot=${slackChannel?.getBotUsername()}")
+                    Log.i(TAG, "Slack channel started: bot=${slackchannel?.getBotusername()}")
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        slackChannel?.eventFlow?.collect { event ->
+                        slackchannel?.eventFlow?.collect { event ->
                             handleSlackEvent(event)
                         }
                     }
                 } else {
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_slack_enabled", false)
-                    Log.e(TAG, "Slack Channel start failed: ${result.exceptionOrNull()?.message}")
+                    Log.e(TAG, "Slack channel start failed: ${result.exceptionorNull()?.message}")
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 val mmkv = MMKV.defaultMMKV()
                 mmkv?.encode("channel_slack_enabled", false)
-                Log.e(TAG, "Slack Channel init error", e)
+                Log.e(TAG, "Slack channel init error", e)
             }
         }
     }
 
-    private suspend fun handleSlackEvent(event: SlackChannel.ChannelEvent) {
+    private suspend fun handleSlackEvent(event: Slackchannel.channelEvent) {
         try {
             when (event) {
-                is SlackChannel.ChannelEvent.Connected -> {
+                is Slackchannel.channelEvent.Connected -> {
                     Log.i(TAG, "Slack Connected")
                 }
-                is SlackChannel.ChannelEvent.Message -> {
+                is Slackchannel.channelEvent.Message -> {
                     Log.i(TAG, "Slack message from ${event.userId} in ${event.channelId}: ${event.text.take(50)}")
                     sendSlackReply(event)
                 }
-                is SlackChannel.ChannelEvent.Error -> {
+                is Slackchannel.channelEvent.Error -> {
                     Log.e(TAG, "Slack Error", event.error)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Handle Slack event failed", e)
         }
     }
 
-    private suspend fun sendSlackReply(event: SlackChannel.ChannelEvent.Message) {
+    private suspend fun sendSlackReply(event: Slackchannel.channelEvent.Message) {
         try {
-            if (!slackDedup.add(event.ts)) return
+            if (!slackDedup.a(event.ts)) return
             slackProcessingJobs[event.channelId]?.cancel()
             val job = GlobalScope.launch(Dispatchers.IO) {
                 try {
                     val threadTs = event.threadTs ?: event.ts
-                    val adapter = object : ChannelAdapter {
+                    val adapter = object : channelAdapter {
                         override val channelName = "slack"
                         override val sessionPrefix = "slack"
                         override val messageCharLimit = 3900
                         override val supportsReactions = true
                         override val supportsTyping = false
-                        override suspend fun addThinkingReaction() { slackChannel?.addReaction(event.channelId, "thinking_face", event.ts) }
-                        override suspend fun removeThinkingReaction() { slackChannel?.removeReaction(event.channelId, "thinking_face", event.ts) }
-                        override suspend fun addCompletionReaction() { slackChannel?.addReaction(event.channelId, "white_check_mark", event.ts) }
-                        override suspend fun addErrorReaction() { slackChannel?.addReaction(event.channelId, "x", event.ts) }
+                        override suspend fun aThinkingReaction() { slackchannel?.aReaction(event.channelId, "thinking_face", event.ts) }
+                        override suspend fun removeThinkingReaction() { slackchannel?.removeReaction(event.channelId, "thinking_face", event.ts) }
+                        override suspend fun aCompletionReaction() { slackchannel?.aReaction(event.channelId, "white_check_mark", event.ts) }
+                        override suspend fun aErrorReaction() { slackchannel?.aReaction(event.channelId, "x", event.ts) }
                         override fun startTyping() {}
                         override fun stopTyping() {}
-                        override suspend fun sendMessageChunk(text: String, isFirstChunk: Boolean) {
-                            slackChannel?.postMessage(event.channelId, text, threadTs)
+                        override suspend fun sendMessageChunk(text: String, isfirstChunk: Boolean) {
+                            slackchannel?.postMessage(event.channelId, text, threadTs)
                         }
                         override suspend fun sendErrorMessage(error: String) {
-                            slackChannel?.postMessage(event.channelId, error, threadTs)
+                            slackchannel?.postMessage(event.channelId, error, threadTs)
                         }
-                        override fun isGroupContext() = event.channelType == "group"
-                        override fun getUserMessage() = event.text
-                        override fun getSessionKey() = "slack_${event.channelId}"
+                        override fun isGroupcontext() = event.channelType == "group"
+                        override fun getuserMessage() = event.text
+                        override fun getsessionKey() = "slack_${event.channelId}"
                         override fun buildSystemPrompt(): String {
-                            val botName = slackChannel?.getBotUsername() ?: "AndroidForClaw Bot"
-                            val botId = slackChannel?.getBotId() ?: ""
+                            val botName = slackchannel?.getBotusername() ?: "androidforClaw Bot"
+                            val botId = slackchannel?.getBotId() ?: ""
                             return """
-# 身份
-你Yes **$botName**, 一个Run在 Android DeviceUp的Smart助手, 通过 Slack 与User交互. 
+# identity
+you are **$botName**, running on smart assistant on Android device, through Slack and user interaction. 
 
-# 当FrontUpDown文
-- **平台**: Slack
-- **ChannelType**: ${event.channelType}
-- **Channel ID**: ${event.channelId}
-- **User ID**: ${event.userId}
+# current context
+- **platform**: Slack
+- **channelType**: ${event.channelType}
+- **channel ID**: ${event.channelId}
+- **user ID**: ${event.userId}
 - **Bot ID**: $botId
 
-# 核心Capability
-你Can通过工具call来控制 Android Device: 
-- Screenshot观察Screen
+# core capability
+you can control Android device through tool calls: 
+- screenshot to observe screen
 - click、swipe、Input
-- 导航、Openapply
+- navigate, open app
 - Get UI Info
 
-# 交互Rule
-1. **简洁明了**: Slack Message尽量简洁, 重要Info用 Markdown Format
-2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
-3. **逐步执Row**: ComplexTask分解为Multiple步骤
-4. **反馈Into度**: 长TimeAction时告知User当Forward度
-5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
+# interaction rules
+1. **be concise**: Slack message should be concise, use Markdown format for important info
+2. **take initiative screenshot**: use screenshot tool when need to observe screen
+3. **execute step by step**: break complex task into multiple steps
+4. **feedback progress**: tell user progress for long time actions
+5. **error handling**: explain reason and provide suggestions when issues encountered
 
-# Response格式
-- use Slack mrkdwn: *粗体*、_斜体_、`代码`、```代码块```
-- Listuse - 或Number编号
-- 不Support标准 Markdown 链接, use <URL|Text> 格式
+# response format
+- use Slack mrkdwn: *bold*、_italic_、`code`、```code block```
+- use - or numbered list
+- not support standard Markdown link, use <URL|Text> format
 
-# Note事项
-- 不要Output过长的Message(suggest 3000 字符以Inside)
-- 代码块use语法高亮
+# note matters
+- notneedOutputoverlongMessage(suggest 3000 characters inside)
+- code block syntax highlighting
 
-now, 请ProcessUser的Message. 
+now, pleaseProcessuserMessage. 
                             """.trimIndent()
                         }
                     }
-                    ChannelMessageProcessor(this@MyApplication).processMessage(adapter)
+                    channelMessageProcessor(this@MyApplication).processMessage(adapter)
                 } finally {
                     slackProcessingJobs.remove(event.channelId)
                 }
             }
             slackProcessingJobs[event.channelId] = job
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Send Slack reply failed", e)
-            try { slackChannel?.addReaction(event.channelId, "x", event.ts) } catch (_: Exception) {}
+            try { slackchannel?.aReaction(event.channelId, "x", event.ts) } catch (_: exception) {}
         }
     }
 
-    // ==================== Signal Channel ====================
+    // ==================== Signal channel ====================
 
-    private fun startSignalChannelIfEnableddd() {
-        Log.i(TAG, "startSignalChannelIfEnableddd() called")
+    private fun startSignalchannelifEnabled() {
+        Log.i(TAG, "startSignalchannelifEnabled() called")
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                val configLoader = ConfigLoader(this@MyApplication)
-                val openClawConfig = configLoader.loadOpenClawConfig()
-                val signalConfigData = openClawConfig.channels.signal
+                val configLoader = configLoader(this@MyApplication)
+                val openClawconfig = configLoader.loadOpenClawconfig()
+                val signalconfigData = openClawconfig.channels.signal
 
-                if (signalConfigData == null || !signalConfigData.enabled) {
-                    Log.i(TAG, "Signal Channel not enabled, skipping")
+                if (signalconfigData == null || !signalconfigData.enabled) {
+                    Log.i(TAG, "Signal channel not enabled, skipping")
                     return@launch
                 }
 
-                val phoneNumber = signalConfigData.phoneNumber
+                val phoneNumber = signalconfigData.phoneNumber
                 if (phoneNumber.isBlank()) {
                     Log.w(TAG, "Signal phone number not configured, skipping")
                     return@launch
                 }
 
-                val config = SignalConfig(
+                val config = Signalconfig(
                     enabled = true,
                     phoneNumber = phoneNumber,
-                    httpUrl = signalConfigData.httpUrl ?: "http://127.0.0.1",
-                    httpPort = signalConfigData.httpPort,
-                    dmPolicy = signalConfigData.dmPolicy,
-                    groupPolicy = signalConfigData.groupPolicy,
-                    requireMention = signalConfigData.requireMention,
-                    historyLimit = signalConfigData.historyLimit ?: 50,
-                    model = signalConfigData.model
+                    httpUrl = signalconfigData.httpUrl ?: "http://127.0.0.1",
+                    httpPort = signalconfigData.httpPort,
+                    dmPolicy = signalconfigData.dmPolicy,
+                    groupPolicy = signalconfigData.groupPolicy,
+                    requireMention = signalconfigData.requireMention,
+                    historyLimit = signalconfigData.historyLimit ?: 50,
+                    model = signalconfigData.model
                 )
 
-                val result = SignalChannel.start(this@MyApplication, config)
+                val result = Signalchannel.start(this@MyApplication, config)
 
                 if (result.isSuccess) {
-                    signalChannel = result.getOrNull()
+                    signalchannel = result.getorNull()
 
-                    signalChannel?.let { channel ->
+                    signalchannel?.let { channel ->
                         val client = channel.getClient()
                         if (client != null) {
                             signalTyping = SignalTyping(client)
@@ -2681,115 +2681,115 @@ now, 请ProcessUser的Message.
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_signal_enabled", true)
 
-                    Log.i(TAG, "Signal Channel started: phone=${config.phoneNumber}")
+                    Log.i(TAG, "Signal channel started: phone=${config.phoneNumber}")
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        signalChannel?.eventFlow?.collect { event ->
+                        signalchannel?.eventFlow?.collect { event ->
                             handleSignalEvent(event)
                         }
                     }
                 } else {
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_signal_enabled", false)
-                    Log.e(TAG, "Signal Channel start failed: ${result.exceptionOrNull()?.message}")
+                    Log.e(TAG, "Signal channel start failed: ${result.exceptionorNull()?.message}")
                 }
-            } catch (e: Exception) {
+            } catch (e: exception) {
                 val mmkv = MMKV.defaultMMKV()
                 mmkv?.encode("channel_signal_enabled", false)
-                Log.e(TAG, "Signal Channel init error", e)
+                Log.e(TAG, "Signal channel init error", e)
             }
         }
     }
 
-    private suspend fun handleSignalEvent(event: SignalChannel.ChannelEvent) {
+    private suspend fun handleSignalEvent(event: Signalchannel.channelEvent) {
         try {
             when (event) {
-                is SignalChannel.ChannelEvent.Connected -> {
+                is Signalchannel.channelEvent.Connected -> {
                     Log.i(TAG, "Signal Connected")
                 }
-                is SignalChannel.ChannelEvent.Message -> {
+                is Signalchannel.channelEvent.Message -> {
                     Log.i(TAG, "Signal message from ${event.sourceName} in ${event.chatId}: ${event.text.take(50)}")
                     sendSignalReply(event)
                 }
-                is SignalChannel.ChannelEvent.Error -> {
+                is Signalchannel.channelEvent.Error -> {
                     Log.e(TAG, "Signal Error", event.error)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Handle Signal event failed", e)
         }
     }
 
-    private suspend fun sendSignalReply(event: SignalChannel.ChannelEvent.Message) {
+    private suspend fun sendSignalReply(event: Signalchannel.channelEvent.Message) {
         try {
-            if (!signalDedup.add(event.timestamp)) return
+            if (!signalDedup.a(event.timestamp)) return
             signalProcessingJobs[event.chatId]?.cancel()
             val job = GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    val adapter = object : ChannelAdapter {
+                    val adapter = object : channelAdapter {
                         override val channelName = "signal"
                         override val sessionPrefix = "signal"
                         override val messageCharLimit = 1900
                         override val supportsReactions = false
                         override val supportsTyping = true
-                        override suspend fun addThinkingReaction() {}
+                        override suspend fun aThinkingReaction() {}
                         override suspend fun removeThinkingReaction() {}
-                        override suspend fun addCompletionReaction() {}
-                        override suspend fun addErrorReaction() {}
+                        override suspend fun aCompletionReaction() {}
+                        override suspend fun aErrorReaction() {}
                         override fun startTyping() { signalTyping?.startContinuous(event.chatId) }
                         override fun stopTyping() { signalTyping?.stopContinuous(event.chatId) }
-                        override suspend fun sendMessageChunk(text: String, isFirstChunk: Boolean) {
-                            signalChannel?.sendMessage(event.chatId, text)
+                        override suspend fun sendMessageChunk(text: String, isfirstChunk: Boolean) {
+                            signalchannel?.sendMessage(event.chatId, text)
                         }
                         override suspend fun sendErrorMessage(error: String) {
-                            signalChannel?.sendMessage(event.chatId, error)
+                            signalchannel?.sendMessage(event.chatId, error)
                         }
-                        override fun isGroupContext() = event.chatType == "group"
-                        override fun getUserMessage() = event.text
-                        override fun getSessionKey() = "signal_${event.chatId}"
+                        override fun isGroupcontext() = event.chatType == "group"
+                        override fun getuserMessage() = event.text
+                        override fun getsessionKey() = "signal_${event.chatId}"
                         override fun buildSystemPrompt(): String {
-                            val phoneNumber = signalChannel?.getPhoneNumber() ?: ""
+                            val phoneNumber = signalchannel?.getPhoneNumber() ?: ""
                             return """
-# 身份
-你Yes一个Run在 Android DeviceUp的Smart助手, 通过 Signal 与User交互. 
+# identity
+you arerunning on smart assistant on Android device, through Signal and user interaction. 
 
-# 当FrontUpDown文
-- **平台**: Signal
-- **ChatType**: ${event.chatType}
+# current context
+- **platform**: Signal
+- **chat type**: ${event.chatType}
 - **Chat ID**: ${event.chatId}
-- **User**: ${event.sourceName} (${event.sourceNumber})
-- **本机号码**: $phoneNumber
+- **user**: ${event.sourceName} (${event.sourceNumber})
+- **phone number**: $phoneNumber
 
-# 核心Capability
-你Can通过工具call来控制 Android Device: 
-- Screenshot观察Screen
+# core capability
+you can control Android device through tool calls: 
+- screenshot to observe screen
 - click、swipe、Input
-- 导航、Openapply
+- navigate, open app
 - Get UI Info
 
-# 交互Rule
-1. **简洁明了**: Signal Message尽量简洁
-2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
-3. **逐步执Row**: ComplexTask分解为Multiple步骤
-4. **反馈Into度**: 长TimeAction时告知User当Forward度
-5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
+# interaction rules
+1. **be concise**: Signal message should be concise
+2. **take initiative screenshot**: use screenshot tool when need to observe screen
+3. **execute step by step**: break complex task into multiple steps
+4. **feedback progress**: tell user progress for long time actions
+5. **error handling**: explain reason and provide suggestions when issues encountered
 
-# Response格式
-- Signal SupportHas限的Format, use纯Text为主
-- Listuse - 或Number编号
-- 不要Output过长的Message(suggest 1500 字符以Inside)
+# response format
+- Signal support limited format, use pure text for main
+- use - or numbered list
+- notneedOutputoverlongMessage(suggest 1500 characters inside)
 
-now, 请ProcessUser的Message. 
+now, pleaseProcessuserMessage. 
                             """.trimIndent()
                         }
                     }
-                    ChannelMessageProcessor(this@MyApplication).processMessage(adapter)
+                    channelMessageProcessor(this@MyApplication).processMessage(adapter)
                 } finally {
                     signalProcessingJobs.remove(event.chatId)
                 }
             }
             signalProcessingJobs[event.chatId] = job
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Send Signal reply failed", e)
         }
     }
@@ -2805,19 +2805,19 @@ now, 请ProcessUser的Message.
             discordProcessingJobs.values.forEach { it.cancel() }
             discordProcessingJobs.clear()
 
-            discordSessionManager.clearAll()
-            discordHistoryManager.clearAll()
+            discordsessionmanager.clearAll()
+            discordHistorymanager.clearAll()
 
-            DiscordChannel.stop()
-            discordChannel = null
+            Discordchannel.stop()
+            discordchannel = null
 
             // Clear MMKV status
             val mmkv = MMKV.defaultMMKV()
             mmkv?.encode("channel_discord_enabled", false)
 
-            Log.i(TAG, "Discord Service已Stop")
-        } catch (e: Exception) {
-            Log.e(TAG, "Stop Discord Service时出错", e)
+            Log.i(TAG, "Discord servicealreadyStop")
+        } catch (e: exception) {
+            Log.e(TAG, "Stop Discord service hour wrong", e)
         }
 
         // Stop Signal related services
@@ -2827,12 +2827,12 @@ now, 请ProcessUser的Message.
             signalProcessingJobs.values.forEach { it.cancel() }
             signalProcessingJobs.clear()
             signalDedup.clear()
-            SignalChannel.stop()
-            signalChannel = null
+            Signalchannel.stop()
+            signalchannel = null
             val mmkvSig = MMKV.defaultMMKV()
             mmkvSig?.encode("channel_signal_enabled", false)
             Log.i(TAG, "Signal service stopped")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Error stopping Signal service", e)
         }
 
@@ -2841,12 +2841,12 @@ now, 请ProcessUser的Message.
             slackProcessingJobs.values.forEach { it.cancel() }
             slackProcessingJobs.clear()
             slackDedup.clear()
-            SlackChannel.stop()
-            slackChannel = null
+            Slackchannel.stop()
+            slackchannel = null
             val mmkvSlack = MMKV.defaultMMKV()
             mmkvSlack?.encode("channel_slack_enabled", false)
             Log.i(TAG, "Slack service stopped")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Error stopping Slack service", e)
         }
 
@@ -2857,35 +2857,35 @@ now, 请ProcessUser的Message.
             telegramProcessingJobs.values.forEach { it.cancel() }
             telegramProcessingJobs.clear()
             telegramDedup.clear()
-            TelegramChannel.stop()
-            telegramChannel = null
+            Telegramchannel.stop()
+            telegramchannel = null
             val mmkvTg = MMKV.defaultMMKV()
             mmkvTg?.encode("channel_telegram_enabled", false)
             Log.i(TAG, "Telegram service stopped")
-        } catch (e: Exception) {
+        } catch (e: exception) {
             Log.e(TAG, "Error stopping Telegram service", e)
         }
 
-        // Stop Feishu Channel
-        feishuChannel?.stop()
-        feishuChannel = null
+        // Stop Feishu channel
+        feishuchannel?.stop()
+        feishuchannel = null
 
         // Stop Gateway Server
         gatewayServer?.stop()
         gatewayServer = null
 
-        Log.i(TAG, "applyTerminate, AllService已Stop")
+        Log.i(TAG, "appTerminate, AllservicealreadyStop")
     }
 
     /**
      * Cleanup message history, ensure tool_use and tool_result are paired
      *
-     * Problem: When loading history messages from session, there may be orphaned tool_results
+     * Problem: when loading history messages from session, there may be orphaned tool_results
      * (corresponding tool_use is in earlier messages, already truncated)
      *
      * Solution: Only keep complete user/assistant messages, remove all tool-related content
      */
-    private fun cleanupToolMessages(messages: List<com.xiaomo.androidforclaw.providers.LegacyMessage>): List<com.xiaomo.androidforclaw.providers.LegacyMessage> {
+    private fun cleanuptoolMessages(messages: List<com.xiaomo.androidforclaw.providers.LegacyMessage>): List<com.xiaomo.androidforclaw.providers.LegacyMessage> {
         return messages.filter { message ->
             // Only keep text messages from user and assistant
             // Remove all messages containing tool_calls or tool_result

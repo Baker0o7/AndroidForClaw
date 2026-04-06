@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (Android-only)
+ * - No OpenClaw counterpart (android-only)
  */
 package com.xiaomo.androidforclaw.data.model
 
@@ -13,16 +13,16 @@ import kotlinx.coroutines.flow.asStateFlow
  * Task data manager
  * Responsible for managing TaskData creation, replacement and access
  */
-class TaskDataManager {
+class TaskDatamanager {
     companion object {
-        private const val TAG = "TaskDataManager"
+        private const val TAG = "TaskDatamanager"
 
         @Volatile
-        private var INSTANCE: TaskDataManager? = null
+        private var INSTANCE: TaskDatamanager? = null
 
-        fun getInstance(): TaskDataManager {
+        fun getInstance(): TaskDatamanager {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: TaskDataManager().also { INSTANCE = it }
+                INSTANCE ?: TaskDatamanager().also { INSTANCE = it }
             }
         }
     }
@@ -33,8 +33,8 @@ class TaskDataManager {
     /**
      * Start new task, create new TaskData
      */
-    fun startNewTask(taskId: String,packageName: String) {
-        Log.d(TAG, "StartNewTask: $taskId")
+    fun startnewTask(taskId: String,packageName: String) {
+        Log.d(TAG, "StartnewTask: $taskId")
         val newTaskData = TaskData(taskId,packageName)
         _currentTaskData.value = newTaskData
     }
@@ -48,7 +48,7 @@ class TaskDataManager {
      * Clear current task data
      */
     fun clearCurrentTask() {
-        Log.d(TAG, "清理当FrontTaskData")
+        Log.d(TAG, "清理whenFrontTaskData")
         _currentTaskData.value = null
     }
 

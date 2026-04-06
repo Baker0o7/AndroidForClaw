@@ -5,7 +5,7 @@
 package com.xiaomo.androidforclaw.logging
 
 /**
- * Log Package装器: at the same timeOutput到 android.util.Log 和 AppLog 文件. 
+ * Log Package装器: at the same timeOutputto android.util.Log and AppLog files. 
  *
  * Replace import com.xiaomo.androidforclaw.logging.Log → import com.xiaomo.androidforclaw.logging.Log
  * All Log.d/i/w/e/v callAutoWrite app.log. 

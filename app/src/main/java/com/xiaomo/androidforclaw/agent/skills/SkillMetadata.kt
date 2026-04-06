@@ -7,9 +7,9 @@ package com.xiaomo.androidforclaw.agent.skills
 
 
 /**
- * Skill Install Specification (aligns with OpenClaw SkillInstallSpec)
+ * skill Install Specification (aligns with OpenClaw skillInstallSpec)
  */
-data class SkillInstallSpec(
+data class skillInstallSpec(
     val id: String? = null,
     val kind: InstallKind,
     val label: String? = null,
@@ -42,25 +42,25 @@ enum class InstallKind {
     GO,         // go install
     UV,         // uv (Python)
     DOWNLOAD,   // Direct download
-    APK         // Android APK (Android-specific)
+    APK         // android APK (android-specific)
 }
 
 /**
- * Skill Status Report (aligns with OpenClaw SkillStatusReport)
+ * skill Status Report (aligns with OpenClaw skillStatusReport)
  */
-data class SkillStatusReport(
+data class skillStatusReport(
     val workspaceDir: String,
-    val managedSkillsDir: String,
-    val skills: List<SkillStatusEntry>
+    val managedskillsDir: String,
+    val skills: List<skillStatusEntry>
 )
 
 /**
- * Skill Status Entry (aligns with OpenClaw SkillStatusEntry)
+ * skill Status Entry (aligns with OpenClaw skillStatusEntry)
  */
-data class SkillStatusEntry(
+data class skillStatusEntry(
     val name: String,
     val description: String,
-    val source: SkillSource,
+    val source: skillSource,
     val bundled: Boolean,
     val filePath: String,
     val baseDir: String,
@@ -72,16 +72,16 @@ data class SkillStatusEntry(
     val disabled: Boolean,
     val blockedByAllowlist: Boolean,
     val eligible: Boolean,
-    val requirements: SkillRequires? = null,
-    val missing: SkillRequires? = null,
-    val configChecks: List<SkillConfigCheck>,
-    val install: List<SkillInstallOption>
+    val requirements: skillRequires? = null,
+    val missing: skillRequires? = null,
+    val configChecks: List<skillconfigCheck>,
+    val install: List<skillInstallOption>
 )
 
 /**
- * Config Check Result
+ * config Check Result
  */
-data class SkillConfigCheck(
+data class skillconfigCheck(
     val path: String,
     val exists: Boolean,
     val value: Any? = null
@@ -90,7 +90,7 @@ data class SkillConfigCheck(
 /**
  * Available Install Option
  */
-data class SkillInstallOption(
+data class skillInstallOption(
     val installId: String,
     val kind: InstallKind,
     val label: String,
@@ -99,12 +99,12 @@ data class SkillInstallOption(
 )
 
 /**
- * Skills Limits Configuration (aligns with OpenClaw default limits)
+ * skills Limits configuration (aligns with OpenClaw default limits)
  */
-data class SkillsLimits(
-    val maxCandidatesPerRoot: Int = 300,
-    val maxSkillsLoadedPerSource: Int = 200,
-    val maxSkillsInPrompt: Int = 150,
-    val maxSkillsPromptChars: Int = 30_000,
-    val maxSkillFileBytes: Int = 256_000
+data class skillsLimits(
+    val maxcandidatesPerRoot: Int = 300,
+    val maxskillsLoadedPerSource: Int = 200,
+    val maxskillsInPrompt: Int = 150,
+    val maxskillsPromptChars: Int = 30_000,
+    val maxskillFileBytes: Int = 256_000
 )

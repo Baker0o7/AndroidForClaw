@@ -2,18 +2,18 @@ package com.xiaomo.androidforclaw.agent.session
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/openclaw-android/src/main/java/ai/openclaw/app/SessionKey.kt
- *   (normalizeMainKey, isCanonicalMainSessionKey)
+ * - ../openclaw/openclaw-android/src/main/java/ai/openclaw/app/sessionKey.kt
+ *   (normalizeMainKey, iscanonicalMainsessionKey)
  *
- * AndroidForClaw adaptation: session key utilities for group/DM distinction.
+ * androidforClaw adaptation: session key utilities for group/DM distinction.
  *
- * Session key format conventions:
+ * session key format conventions:
  * - Feishu extension: "$chatType:$chatId" (e.g. "group:oc_xxx", "p2p:ou_xxx")
  * - Gateway path:     "${chatId}_${chatType}" (e.g. "oc_xxx_group", "oc_xxx_p2p")
  * - Main session:     "main" / "agent:main:main" / "default"
  * - OpenClaw:         "global" / "agent:*" prefixed
  */
-object SessionKeyUtils {
+object sessionKeyUtils {
 
     /**
      * Normalize a main session key.
@@ -23,20 +23,20 @@ object SessionKeyUtils {
      */
     fun normalizeMainKey(raw: String?): String {
         val trimmed = raw?.trim()
-        return if (!trimmed.isNullOrEmpty() && trimmed != "default") trimmed else "main"
+        return if (!trimmed.isNullorEmpty() && trimmed != "default") trimmed else "main"
     }
 
     /**
      * Check if a session key is a canonical main session key.
-     * Aligned with OpenClaw isCanonicalMainSessionKey.
+     * Aligned with OpenClaw iscanonicalMainsessionKey.
      *
      * Returns true for: "main", "global", "agent:*"
      */
-    fun isCanonicalMainSessionKey(raw: String?): Boolean {
+    fun iscanonicalMainsessionKey(raw: String?): Boolean {
         val trimmed = raw?.trim().orEmpty()
         if (trimmed.isEmpty()) return false
         if (trimmed == "main" || trimmed == "global") return true
-        return trimmed.startsWith("agent:")
+        return trimmed.startswith("agent:")
     }
 
     /**
@@ -47,10 +47,10 @@ object SessionKeyUtils {
      * - "*_group" (Gateway format)
      * - Contains ":g-" (Telegram/Discord gateway format, e.g. "telegram:g-xxx")
      */
-    fun isGroupSession(sessionKey: String): Boolean {
+    fun isGroupsession(sessionKey: String): Boolean {
         val key = sessionKey.trim().lowercase()
-        if (key.startsWith("group:")) return true
-        if (key.endsWith("_group")) return true
+        if (key.startswith("group:")) return true
+        if (key.endswith("_group")) return true
         if (key.contains(":g-")) return true
         return false
     }
@@ -64,16 +64,16 @@ object SessionKeyUtils {
      * - "oc_xxx_p2p" → "direct"
      * - "main" → null (main session, not channel-derived)
      */
-    fun extractChatType(sessionKey: String): String? {
+    fun extractchat type(sessionKey: String): String? {
         val key = sessionKey.trim()
 
         // Feishu extension format: "$chatType:$chatId"
-        if (key.startsWith("group:")) return "group"
-        if (key.startsWith("p2p:")) return "direct"
+        if (key.startswith("group:")) return "group"
+        if (key.startswith("p2p:")) return "direct"
 
         // Gateway format: "${chatId}_${chatType}"
-        if (key.endsWith("_group")) return "group"
-        if (key.endsWith("_p2p")) return "direct"
+        if (key.endswith("_group")) return "group"
+        if (key.endswith("_p2p")) return "direct"
 
         // Telegram/Discord gateway format with ":g-" prefix
         if (key.contains(":g-")) return "group"

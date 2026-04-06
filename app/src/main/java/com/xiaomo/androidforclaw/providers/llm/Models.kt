@@ -10,12 +10,12 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * LLM 通用Data模型
- * Used to unify interfaces of different API providers
+ * used to unify interfaces of different API providers
  *
  * Reference: OpenClaw src/agents/llm-types.ts
  */
 
-// ============= Message Models =============
+// ============= Message models =============
 
 /**
  * Inline image attached to a message (base64-encoded).
@@ -27,9 +27,9 @@ data class ImageBlock(
 )
 
 /**
- * 通用Message格式
+ * 通用Messageformat
  *
- * For multimodal messages the text goes in [content] and images in [images].
+ * for multimodal messages the text goes in [content] and images in [images].
  * The API adapter will assemble them into the provider-specific content array.
  */
 data class Message(
@@ -37,25 +37,25 @@ data class Message(
     val content: String,
     val name: String? = null,  // tool name for tool role
     val toolCallId: String? = null,  // for tool role
-    val toolCalls: List<ToolCall>? = null,  // for assistant with tool calls
+    val toolCalls: List<toolCall>? = null,  // for assistant with tool calls
     val images: List<ImageBlock>? = null  // inline images (user messages & tool results)
 )
 
 /**
- * Tool Call(工具call)
+ * tool Call(工具call)
  */
-data class ToolCall(
+data class toolCall(
     val id: String,
     val name: String,
     val arguments: String  // JSON string
 )
 
-// ============= Tool Definition Models =============
+// ============= tool Definition models =============
 
 /**
- * Tool definition
+ * tool definition
  */
-data class ToolDefinition(
+data class toolDefinition(
     val type: String = "function",
     val function: FunctionDefinition
 ) {
@@ -70,7 +70,7 @@ data class ToolDefinition(
 data class FunctionDefinition(
     val name: String,
     val description: String,
-    val parameters: ParametersSchema
+    val parameters: Parametersschema
 ) {
     override fun toString(): String {
         return """{"name":"$name","description":"$description","parameters":${parameters}}"""
@@ -78,11 +78,11 @@ data class FunctionDefinition(
 }
 
 /**
- * Parameters Schema
+ * Parameters schema
  */
-data class ParametersSchema(
+data class Parametersschema(
     val type: String = "object",
-    val properties: Map<String, PropertySchema>,
+    val properties: Map<String, Propertyschema>,
     val required: List<String> = emptyList()
 ) {
     override fun toString(): String {
@@ -95,44 +95,44 @@ data class ParametersSchema(
 }
 
 /**
- * Property Schema
+ * Property schema
  */
-data class PropertySchema(
+data class Propertyschema(
     val type: String,  // "string", "number", "boolean", "array", "object"
     val description: String,
     val enum: List<String>? = null,
-    val items: PropertySchema? = null,  // for array type
-    val properties: Map<String, PropertySchema>? = null  // for object type
+    val items: Propertyschema? = null,  // for array type
+    val properties: Map<String, Propertyschema>? = null  // for object type
 ) {
     override fun toString(): String {
         val parts = mutableListOf<String>()
-        parts.add(""""type":"$type"""")
-        parts.add(""""description":"$description"""")
+        parts.a(""""type":"$type"""")
+        parts.a(""""description":"$description"""")
         enum?.let {
             val enumStr = it.joinToString(",") { v -> """"$v"""" }
-            parts.add(""""enum":[$enumStr]""")
+            parts.a(""""enum":[$enumStr]""")
         }
         items?.let {
-            parts.add(""""items":${it}""")
+            parts.a(""""items":${it}""")
         }
         properties?.let { props ->
             val propsStr = props.entries.joinToString(",") { (k, v) ->
                 """"$k":${v}"""
             }
-            parts.add(""""properties":{$propsStr}""")
+            parts.a(""""properties":{$propsStr}""")
         }
         return "{${parts.joinToString(",")}}"
     }
 }
 
-// ============= Response Models =============
+// ============= Response models =============
 
 /**
- * LLM Response(通用格式)
+ * LLM Response(通用format)
  */
 data class LLMResponse(
     val content: String?,
-    val toolCalls: List<ToolCall>? = null,
+    val toolCalls: List<toolCall>? = null,
     val thinkingContent: String? = null,  // Extended Thinking content
     val usage: TokenUsage? = null,
     val finishReason: String? = null
@@ -147,10 +147,10 @@ data class TokenUsage(
     val totalTokens: Int
 )
 
-// ============= Helper Extensions =============
+// ============= helper Extensions =============
 
 /**
- * 将 Message Convert为适用于Log的简短Description
+ * will Message Convertfor适用于Log简shortDescription
  */
 fun Message.toLogString(): String {
     val preview = content.take(50) + if (content.length > 50) "..." else ""
@@ -168,7 +168,7 @@ fun systemMessage(content: String) = Message(
 )
 
 /**
- * CreateUserMessage
+ * CreateuserMessage
  */
 fun userMessage(content: String) = Message(
     role = "user",
@@ -176,7 +176,7 @@ fun userMessage(content: String) = Message(
 )
 
 /**
- * Create带Graph片的UserMessage (multimodal)
+ * Create带imageuserMessage (multimodal)
  */
 fun userMessage(content: String, images: List<ImageBlock>) = Message(
     role = "user",
@@ -189,7 +189,7 @@ fun userMessage(content: String, images: List<ImageBlock>) = Message(
  */
 fun assistantMessage(
     content: String? = null,
-    toolCalls: List<ToolCall>? = null
+    toolCalls: List<toolCall>? = null
 ) = Message(
     role = "assistant",
     content = content ?: "",
@@ -215,7 +215,7 @@ fun toolMessage(
 // ============= Compatibility Extensions =============
 
 /**
- * 从Old的 LegacyMessage Convert到New的 Message
+ * fromold LegacyMessage Converttonew Message
  *
  * LegacyMessage.content can be:
  *   - String  → plain text
@@ -225,7 +225,7 @@ fun toolMessage(
  * This extracts text parts into Message.content and image parts into Message.images,
  * instead of calling toString() on the whole structure (which was the old bug).
  */
-fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
+fun com.xiaomo.androidforclaw.providers.LegacyMessage.tonewMessage(): Message {
     return when (val c = this.content) {
         is String -> Message(
             role = this.role,
@@ -233,7 +233,7 @@ fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
             name = this.name,
             toolCallId = this.toolCallId,
             toolCalls = this.toolCalls?.map { tc ->
-                ToolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
+                toolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
             }
         )
         is List<*> -> {
@@ -246,7 +246,7 @@ fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
                 when (item["type"]) {
                     "text" -> {
                         val text = item["text"] as? String
-                        if (!text.isNullOrBlank()) textParts.add(text)
+                        if (!text.isNullorBlank()) textParts.a(text)
                     }
                     "image_url" -> {
                         // OpenAI format: { type: "image_url", image_url: { url: "data:image/jpeg;base64,..." } }
@@ -256,10 +256,10 @@ fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
                             is String -> imageUrl
                             else -> null
                         }
-                        if (url != null && url.startsWith("data:")) {
+                        if (url != null && url.startswith("data:")) {
                             val parts = url.removePrefix("data:").split(";base64,", limit = 2)
                             if (parts.size == 2) {
-                                imageBlocks.add(ImageBlock(
+                                imageBlocks.a(ImageBlock(
                                     base64 = parts[1],
                                     mimeType = parts[0]
                                 ))
@@ -270,9 +270,9 @@ fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
                         // Anthropic format: { type: "image", source: { type: "base64", media_type: "...", data: "..." } }
                         val source = item["source"] as? Map<*, *>
                         val data = source?.get("data") as? String
-                        val mediaType = source?.get("media_type") as? String ?: "image/jpeg"
-                        if (!data.isNullOrBlank()) {
-                            imageBlocks.add(ImageBlock(base64 = data, mimeType = mediaType))
+                        val media type = source?.get("media_type") as? String ?: "image/jpeg"
+                        if (!data.isNullorBlank()) {
+                            imageBlocks.a(ImageBlock(base64 = data, mimeType = media type))
                         }
                     }
                 }
@@ -284,7 +284,7 @@ fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
                 name = this.name,
                 toolCallId = this.toolCallId,
                 toolCalls = this.toolCalls?.map { tc ->
-                    ToolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
+                    toolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
                 },
                 images = imageBlocks.ifEmpty { null }
             )
@@ -295,27 +295,27 @@ fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
             name = this.name,
             toolCallId = this.toolCallId,
             toolCalls = this.toolCalls?.map { tc ->
-                ToolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
+                toolCall(id = tc.id, name = tc.function.name, arguments = tc.function.arguments)
             }
         )
     }
 }
 
 /**
- * 从New的 Message Convert到Old的 LegacyMessage
+ * fromnew Message Converttoold LegacyMessage
  *
- * If the message carries images, content is stored as List<Map> (multimodal blocks)
+ * if the message carries images, content is stored as List<Map> (multimodal blocks)
  * so it round-trips correctly through session persistence.
  */
 fun Message.toLegacyMessage(): com.xiaomo.androidforclaw.providers.LegacyMessage {
     // Build multimodal content if images present
-    val legacyContent: Any = if (!images.isNullOrEmpty()) {
+    val legacyContent: Any = if (!images.isNullorEmpty()) {
         buildList {
-            if (content.isNotBlank()) {
-                add(mapOf("type" to "text", "text" to content))
+            if (content.isnotBlank()) {
+                a(mapOf("type" to "text", "text" to content))
             }
             for (img in images!!) {
-                add(mapOf(
+                a(mapOf(
                     "type" to "image",
                     "source" to mapOf(
                         "type" to "base64",
@@ -335,7 +335,7 @@ fun Message.toLegacyMessage(): com.xiaomo.androidforclaw.providers.LegacyMessage
         name = this.name,
         toolCallId = this.toolCallId,
         toolCalls = this.toolCalls?.map { tc ->
-            com.xiaomo.androidforclaw.providers.LegacyToolCall(
+            com.xiaomo.androidforclaw.providers.LegacytoolCall(
                 id = tc.id,
                 type = "function",
                 function = com.xiaomo.androidforclaw.providers.LegacyFunction(

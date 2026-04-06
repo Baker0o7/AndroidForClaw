@@ -1,14 +1,14 @@
 /**
- * Playwright-style View Tree — Convert Android Accessibility ViewNode to Playwright-like
- * Playwright snapshot role-based ref Tree format, For MCP External Agent use.
+ * Playwright-style View Tree — Convert android Accessibility ViewNode to Playwright-like
+ * Playwright snapshot role-based ref Tree format, for MCP External agent use.
  *
  * Output example:
  * - button "Login" [ref=e1] center=(540,1200) bounds=[360,1160,720,1240]
  *   - text "Login" [ref=e2]
- * - textbox "Username" [ref=e3] center=(540,800) bounds=[100,760,980,840]
+ * - textbox "username" [ref=e3] center=(540,800) bounds=[100,760,980,840]
  * - link "forgetPassword" [ref=e4] center=(540,1300) bounds=[400,1280,680,1320]
  *
- * Agent uses ref=eN with tap/long_press actions.
+ * agent uses ref=eN with tap/long_press actions.
  */
 package com.xiaomo.androidforclaw.util
 
@@ -19,7 +19,7 @@ import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 object PlaywrightStyleViewTree {
 
     /**
-     * ref Map: ref string -> ViewNode (For subsequent tap by ref)
+     * ref Map: ref string -> ViewNode (for subsequent tap by ref)
      */
     data class RefEntry(
         val ref: String,
@@ -43,7 +43,7 @@ object PlaywrightStyleViewTree {
         val refCount: Int
     )
 
-    // ── Android className -> Playwright role Map ──────────────
+    // ── android className -> Playwright role Map ──────────────
 
     private val CLASS_TO_ROLE = mapOf(
         "button" to "button",
@@ -144,7 +144,7 @@ object PlaywrightStyleViewTree {
 
             // Assign ref: interactive elements and named content elements
             val isInteractive = INTERACTIVE_ROLES.contains(role)
-            val isNamedContent = CONTENT_ROLES.contains(role) && !name.isNullOrEmpty()
+            val isNamedContent = CONTENT_ROLES.contains(role) && !name.isNullorEmpty()
             val shouldHaveRef = isInteractive || isNamedContent || node.clickable
 
             val ref = if (shouldHaveRef) nextRef() else null
@@ -152,15 +152,15 @@ object PlaywrightStyleViewTree {
                 refs[ref] = RefEntry(ref, role, name, node)
             }
 
-            // Format row
+            // format row
             sb.append(indent).append("- ").append(role)
-            if (!name.isNullOrEmpty()) {
+            if (!name.isNullorEmpty()) {
                 sb.append(" \"").append(name.replace("\"", "\\\"")).append("\"")
             }
             if (ref != null) {
                 sb.append(" [ref=").append(ref).append("]")
             }
-            // Coordinate info (Android specific, convenient for tap action)
+            // Coordinate info (android specific, convenient for tap action)
             sb.append(" center=(${node.point.x},${node.point.y})")
             sb.append(" bounds=[${node.left},${node.top},${node.right},${node.bottom}]")
 
@@ -172,7 +172,7 @@ object PlaywrightStyleViewTree {
             sb.appendLine()
 
             // Recurse child nodes
-            val childrenToShow = treeNode.children.filterNot { shouldBypassChild(node, it.viewNode) }
+            val childrenToShow = treeNode.children.filternot { shouldBypassChild(node, it.viewNode) }
             childrenToShow.forEach { appendNode(it, depth + 1) }
         }
 
@@ -193,7 +193,7 @@ object PlaywrightStyleViewTree {
     // ── Role parsing ──────────────────────────────────────────────
 
     private fun resolveRole(node: ViewNode): String {
-        val simpleClass = node.className?.substringAfterLast('.')?.lowercase() ?: "group"
+        val simpleClass = node.className?.substringafterLast('.')?.lowercase() ?: "group"
 
         // Priority: lookup table first
         CLASS_TO_ROLE[simpleClass]?.let { return it }
@@ -201,7 +201,7 @@ object PlaywrightStyleViewTree {
         // Heuristic rules
         if (node.clickable) {
             val text = node.text ?: node.contentDesc
-            if (!text.isNullOrEmpty()) return "button"
+            if (!text.isNullorEmpty()) return "button"
         }
 
         // Class names containing keywords
@@ -226,8 +226,8 @@ object PlaywrightStyleViewTree {
 
     private fun resolveName(node: ViewNode): String? {
         // Priority: contentDescription (AccessibilityName), then text
-        return node.contentDesc?.takeIf { it.isNotBlank() }
-            ?: node.text?.takeIf { it.isNotBlank() }
+        return node.contentDesc?.takeif { it.isnotBlank() }
+            ?: node.text?.takeif { it.isnotBlank() }
     }
 
     // ── State appending ──────────────────────────────────────────────
@@ -248,13 +248,13 @@ object PlaywrightStyleViewTree {
                     if (axNode.isFocused) sb.append(" [focused]")
                 }
             }
-        } catch (_: Exception) { }
+        } catch (_: exception) { }
     }
 
     // ── Tree construction helpers ────────────────────────────────────────────
 
     private fun buildTree(nodes: List<ViewNode>): List<TreeNode> {
-        val nodeOrder = nodes.withIndex().associate { it.value to it.index }
+        val nodeorder = nodes.withIndex().associate { it.value to it.index }
         val treeNodeMap = mutableMapOf<ViewNode, TreeNode>()
         val nodeKeyMap = mutableMapOf<String, ViewNode>()
 
@@ -270,28 +270,28 @@ object PlaywrightStyleViewTree {
             val parentKey = getNodeKey(treeNode.viewNode.node?.parent)
             val parentTreeNode = parentKey?.let { nodeKeyMap[it] }?.let { treeNodeMap[it] }
             if (parentTreeNode != null && parentTreeNode !== treeNode) {
-                parentTreeNode.children.add(treeNode)
+                parentTreeNode.children.a(treeNode)
             } else {
-                rootNodes.add(treeNode)
+                rootNodes.a(treeNode)
             }
         }
 
-        val comparator = compareBy<TreeNode> { nodeOrder[it.viewNode] ?: Int.MAX_VALUE }
+        val comparator = compareBy<TreeNode> { nodeorder[it.viewNode] ?: Int.MAX_VALUE }
             .thenBy { it.viewNode.top }
             .thenBy { it.viewNode.left }
 
         fun sortChildren(node: TreeNode) {
-            node.children.sortWith(comparator)
+            node.children.sortwith(comparator)
             node.children.forEach { sortChildren(it) }
         }
 
-        val roots = (if (rootNodes.isNotEmpty()) rootNodes.distinct() else treeNodeMap.values.distinct()).toMutableList()
-        roots.sortWith(comparator)
-        roots.forEach { collapseAndSort(it, comparator) }
+        val roots = (if (rootNodes.isnotEmpty()) rootNodes.distinct() else treeNodeMap.values.distinct()).toMutableList()
+        roots.sortwith(comparator)
+        roots.forEach { collapseandSort(it, comparator) }
         return roots
     }
 
-    private fun collapseAndSort(node: TreeNode, comparator: Comparator<TreeNode>) {
+    private fun collapseandSort(node: TreeNode, comparator: Comparator<TreeNode>) {
         // Fold redundant chains
         var current = node
         while (current.children.size == 1) {
@@ -299,20 +299,20 @@ object PlaywrightStyleViewTree {
             if (isRedundantWrapper(current.viewNode, child.viewNode)) {
                 // Replace with child node (but keep child's children)
                 current.children.clear()
-                current.children.addAll(child.children)
+                current.children.aAll(child.children)
                 // Don't change current's viewNode, continue folding
             } else {
                 break
             }
         }
-        current.children.sortWith(comparator)
-        current.children.forEach { collapseAndSort(it, comparator) }
+        current.children.sortwith(comparator)
+        current.children.forEach { collapseandSort(it, comparator) }
     }
 
     private fun isRedundantWrapper(parent: ViewNode, child: ViewNode): Boolean {
         val parentRole = resolveRole(parent)
         if (parentRole != "group") return false
-        val parentHasContent = !parent.text.isNullOrEmpty() || !parent.contentDesc.isNullOrEmpty()
+        val parentHasContent = !parent.text.isNullorEmpty() || !parent.contentDesc.isNullorEmpty()
         return !parentHasContent
     }
 
@@ -326,7 +326,7 @@ object PlaywrightStyleViewTree {
                     "${nodeInfo.viewIdResourceName ?: ""}|" +
                     "${nodeInfo.text ?: ""}|" +
                     "${nodeInfo.contentDescription ?: ""}"
-        } catch (e: Exception) {
+        } catch (e: exception) {
             null
         }
     }
@@ -352,6 +352,6 @@ object PlaywrightStyleViewTree {
         if (node.top >= 100) return false
         val contentDesc = node.contentDesc?.lowercase() ?: ""
         if (SYSTEM_STATUS_KEYWORDS.any { contentDesc.contains(it) }) return true
-        return node.text?.matches(Regex("\\d{1,2}:\\d{2}")) == true && node.contentDesc.isNullOrEmpty()
+        return node.text?.matches(Regex("\\d{1,2}:\\d{2}")) == true && node.contentDesc.isNullorEmpty()
     }
 }
