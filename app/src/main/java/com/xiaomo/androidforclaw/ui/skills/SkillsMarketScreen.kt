@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * skills 市场 Compose 页面
+ * Skills market Compose screen
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +45,7 @@ fun skillsMarketScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("skills 市场", fontWeight = FontWeight.Bold) },
+                title = { Text("Skills Market", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                 ),
@@ -58,7 +58,7 @@ fun skillsMarketScreen() {
                 .paing(paing),
             contentPaing = PaingValues(bottom = 24.dp),
         ) {
-            // ===== 1. Search栏 =====
+            // ===== 1. Search bar =====
             item {
                 OutlinedTextField(
                     value = searchQuery,
@@ -72,7 +72,7 @@ fun skillsMarketScreen() {
                 )
             }
 
-            // ===== 2. minuteClassFilter =====
+            // ===== 2. Category Filter =====
             item {
                 LazyRow(
                     contentPaing = PaingValues(horizontal = 16.dp),
@@ -89,10 +89,10 @@ fun skillsMarketScreen() {
                 }
             }
 
-            // ===== 3. maincontent区: 热门 skills =====
+            // ===== 3. Main content: Featured skills =====
             item {
                 SectionHeader(
-                    title = "🔥 热门 skills",
+                    title = "🔥 Trending Skills",
                     subtitle = "from awesome-openclaw-skills · ${filteredskills.size} count",
                     modifier = Modifier.paing(horizontal = 16.dp, vertical = 12.dp),
                 )
@@ -110,11 +110,11 @@ fun skillsMarketScreen() {
                 )
             }
 
-            // ===== 4. 精选合集 =====
+            // ===== 4. Featured collections =====
             item {
                 SectionHeader(
-                    title = "[PACKAGE] 精选合集",
-                    subtitle = "别人帮你筛good",
+                    title = "Featured Collections",
+                    subtitle = "Curated for you",
                     modifier = Modifier.paing(horizontal = 16.dp, vertical = 16.dp),
                 )
             }
@@ -129,11 +129,11 @@ fun skillsMarketScreen() {
                 )
             }
 
-            // ===== 5. 底partAggregateResource =====
+            // ===== 5. Bottom aggregated resources =====
             item {
                 SectionHeader(
-                    title = "📚 moremanyAggregateResource",
-                    subtitle = "discovermoremany skills",
+                    title = "📚 More Resources",
+                    subtitle = "Discover more skills",
                     modifier = Modifier.paing(horizontal = 16.dp, vertical = 16.dp),
                 )
             }
@@ -153,7 +153,7 @@ fun skillsMarketScreen() {
     }
 }
 
-// ===== 子Group件 =====
+// ===== Sub-components =====
 
 @Composable
 private fun SectionHeader(

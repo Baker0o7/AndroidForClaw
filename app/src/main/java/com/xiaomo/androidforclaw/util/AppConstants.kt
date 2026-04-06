@@ -10,24 +10,24 @@ object AppConstants {
     // ============= HTTP Logging =============
     val HTTP_LOG_LEVEL: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.NONE
 
-    // ============= API configillustrate =============
-    // All API confignowfrombynextconfigfilesRead: 
-    // - /sdcard/.androidforclaw/config/models.json (模型提供商config)
-    // - /sdcard/.androidforclaw/openclaw.json (OpenClaw mainconfig)
+    // ============= API config description =============
+    // All API config is now read from the following config files: 
+    // - /sdcard/.androidforclaw/config/models.json (model provider config)
+    // - /sdcard/.androidforclaw/openclaw.json (OpenClaw main config)
     //
-    // please勿inthisfiles中硬Encode API Key and Base URL
-    // use configLoader.loadmodelsconfig() and configLoader.loadOpenClawconfig() Readconfig
+    // Please do NOT hardcode API Key and Base URL in this file
+    // Use configLoader.loadModelsConfig() and configLoader.loadOpenClawConfig() to read config
     //
-    // 参考Document: 
-    // - CLAUDE.md: configuration System
-    // - doc/OpenClaw架构Depthanalyze.md: config系统illustrate
+    // Reference documentation: 
+    // - CLAUDE.md: Configuration System
+    // - doc/OpenClaw Architecture Deep Dive.md: config system explanation
 
-    // ============= EnvironmentVariableConstant(用于configfiles ${VAR_NAME} Replace) =============
-    // thissomeConstantwill被 configLoader through反射Read, 用于Replaceconfigfiles中EnvironmentVariable占position符
-    // Priority: 系统EnvironmentVariable > AppConstants Constant > MMKV Storage
+    // ============= Environment Variable Constant (used for config files ${VAR_NAME} replacement) =============
+    // These constants will be read by configLoader through reflection, used to replace environment variable placeholders in config files
+    // Priority: System Environment Variable > AppConstants Constant > MMKV Storage
     //
-    // [WARN] 开源Version: pleaseinconfigfiles中Settings API Key, notneedinthis处硬Encode
-    // configfilesLocation: /sdcard/.androidforclaw/config/models.json
-    const val OPENROUTER_API_KEY = ""  // pleasein /sdcard/.androidforclaw/config/models.json 中config
+    // [WARN] Open source version: Please set API Key in config files, no need to hardcode here
+    // Config file location: /sdcard/.androidforclaw/config/models.json
+    const val OPENROUTER_API_KEY = ""  // Configure in /sdcard/.androidforclaw/config/models.json
 
 }

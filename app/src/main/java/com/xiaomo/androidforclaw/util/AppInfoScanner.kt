@@ -206,16 +206,16 @@ object AppInfoScanner {
         val appInfoList = scanApps(context, includeSystemApps, filterKeywords)
 
         if (appInfoList.isEmpty()) {
-            Log.w(TAG, "not找to任何app")
+            Log.w(TAG, "No apps found")
             return
         }
 
         // Outputto Logcat
         Log.d(TAG, "=".repeat(100))
-        Log.d(TAG, "StartOutputApp info(共 ${appInfoList.size} countapp)")
+        Log.d(TAG, "Start output app info (total ${appInfoList.size} apps)")
         Log.d(TAG, "=".repeat(100))
 
-        // 按app名Sort
+        // Sort by app name
         val sortedList = appInfoList.sortedBy { it.appName }
 
         sortedList.forEach { appInfo ->
@@ -229,22 +229,22 @@ object AppInfoScanner {
 
         // Output statistics
         Log.d(TAG, "\nStatistics info: ")
-        Log.d(TAG, "总app数: ${appInfoList.size}")
+        Log.d(TAG, "Total apps: ${appInfoList.size}")
         val launchableCount = appInfoList.count { it.mainActivity != null }
         val unlaunchableCount = appInfoList.count { it.mainActivity == null }
-        Log.d(TAG, "HasMain Activityapp: $launchableCount")
-        Log.d(TAG, "NoneMain Activityapp: $unlaunchableCount")
+        Log.d(TAG, "Apps with Main Activity: $launchableCount")
+        Log.d(TAG, "Apps without Main Activity: $unlaunchableCount")
         if (unlaunchableCount > 0) {
-            Log.d(TAG, "\nillustrate: NoneMain ActivityappusuallyYesbynextType: ")
-            Log.d(TAG, "1. serviceClassapp(service)- such as com.vendor.aiasst.service")
-            Log.d(TAG, "2. 系统Group件and库 - such as com.vendor.analytics")
-            Log.d(TAG, "3. backgroundservice - such as com.google.android.ext.services")
-            Log.d(TAG, "4. thissomeappcannotthrough普通方式Start, thereforeNoneMain Activity")
+            Log.d(TAG, "\nNote: Apps without Main Activity are usually of these types: ")
+            Log.d(TAG, "1. Service apps - such as com.vendor.aiasst.service")
+            Log.d(TAG, "2. System components and libraries - such as com.vendor.analytics")
+            Log.d(TAG, "3. Background services - such as com.google.android.ext.services")
+            Log.d(TAG, "4. Some apps cannot be started through normal methods, therefore have no Main Activity")
         }
     }
 
     /**
-     * 扫描AllalreadyInstallapp
+     * Scan all installed apps
      */
     private fun scanApps(
         context: context,
@@ -273,7 +273,7 @@ object AppInfoScanner {
                     if (isSystemApp) return@forEach
                 }
 
-                // Getapp名
+                // Get app name
                 val appName = try {
                     val ai = pm.getApplicationInfo(packageName, 0)
                     pm.getApplicationLabel(ai).toString()
@@ -281,13 +281,13 @@ object AppInfoScanner {
                     packageName
                 }
 
-                // GetMain Activity(usemany种MethodTry)
+                // Get Main Activity (try multiple methods)
                 val mainActivity = getMainActivity(context, packageName, pm)
 
                 appInfoList.a(AppInfo(packageName, appName, mainActivity))
             }
         } catch (e: exception) {
-            Log.e(TAG, "扫描appFailed: ${e.message}", e)
+            Log.e(TAG, "Scan app failed: ${e.message}", e)
             LayoutexceptionLogger.log("AppInfoScanner#scanApps", e)
         }
 
@@ -295,16 +295,16 @@ object AppInfoScanner {
     }
 
     /**
-     * GetappMain Activity(usemany种Method)
-     * Method1: use getLaunchIntentforPackage(mostfast, butpossibly受Packagecan见性Limit)
-     * Method2: Parse PackageInfo Find MAIN/LAUNCHER Activity(moreReliable)
+     * Get app Main Activity (use multiple methods)
+     * Method 1: use getLaunchIntentForPackage (fastest, but may be limited by package visibility)
+     * Method 2: Parse PackageInfo to find MAIN/LAUNCHER Activity (more reliable)
      */
     private fun getMainActivity(
         context: context,
         packageName: String,
         pm: Packagemanager
     ): String? {
-        // Method1: use getLaunchIntentforPackage(优先use, becausemostfast)
+        // Method 1: use getLaunchIntentForPackage (preferred, because fastest)
         try {
             val intent = pm.getLaunchIntentforPackage(packageName)
             val className = intent?.component?.className
@@ -315,7 +315,7 @@ object AppInfoScanner {
             Log.d(TAG, "getLaunchIntentforPackage Failed ($packageName): ${e.message}")
         }
 
-        // Method2: use queryIntentActivities 直接FindAllcanStart Activity(moreEfficient)
+        // Method 2: use queryIntentActivities to find all activities that can be started (more efficient)
         try {
             val intent = Intent(Intent.ACTION_MAIN).app {
                 aCategory(Intent.CATEGORY_LAUNCHER)
@@ -342,8 +342,8 @@ object AppInfoScanner {
             Log.d(TAG, "queryIntentActivities Failed ($packageName): ${e.message}")
         }
 
-        // Method3: Parse PackageInfo Find MAIN/LAUNCHER Activity(mostback备用Method)
-        // note: 某someapp(such asserviceClassapp、系统Group件)possiblyNoneMain Activity, thisYes正常
+        // Method 3: Parse PackageInfo to find MAIN/LAUNCHER Activity (fallback method)
+        // Note: Some apps (such as service apps, system components) may not have Main Activity, this is normal
         try {
             val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getPackageInfo(
@@ -361,14 +361,14 @@ object AppInfoScanner {
                 )
             }
 
-            // ifappNone任何 Activity, illustratepossiblyYesserviceClassapp
+            // If app has no activities, likely a service app
             val activities = packageInfo.activities
             if (activities == null || activities.isEmpty()) {
-                Log.d(TAG, "app $packageName None Activity(possiblyYesserviceClassapp)")
+                Log.d(TAG, "app $packageName has no Activity (likely a service app)")
                 return null
             }
 
-            // Find带Has MAIN/LAUNCHER intent-filter  Activity
+            // Find activities with MAIN/LAUNCHER intent-filter
             packageInfo.activities?.forEach { activityInfo ->
                 try {
                     // Check Activity whetherHas MAIN/LAUNCHER intent-filter
@@ -402,25 +402,25 @@ object AppInfoScanner {
         }
 
 
-        // AllMethod都Failed, Return null
+        // All methods failed, return null
         return null
     }
 
     /**
-     * formatSingleapp AppIntentInfo code
+     * Format single app AppIntentInfo code
      */
     private fun formatAppIntentInfo(appInfo: AppInfo): String {
-        // 清理app名, remove特殊characters
+        // Clean app name, remove special characters
         val cleanAppName = appInfo.appName
             .replace("\"", "\\\"")
             .replace("\n", " ")
             .trim()
 
-        // 生成 appNameList(DefaultContainsapp名)
+        // Generate appNameList (default contains app name)
         val appNameList = mutableListOf<String>()
         appNameList.a(cleanAppName)
 
-        // ifPackage nameHas意义, AlsoAtoList中
+        // If package name has meaning, also add to list
         val packageNameParts = appInfo.packageName.split(".")
         if (packageNameParts.size > 1) {
             val lastPart = packageNameParts.last()
@@ -432,7 +432,7 @@ object AppInfoScanner {
             }
         }
 
-        // ifHasMain Activity, Output完整format；Nothen只Output基本Info
+        // If has Main Activity, output full format; otherwise only output basic info
         return if (appInfo.mainActivity != null) {
             """
     AppIntentInfo(
@@ -454,7 +454,7 @@ object AppInfoScanner {
     }
 
     /**
-     * Fast扫描(use MyApplication  context)
+     * Fast scan (use MyApplication context)
      */
     fun quickScan() {
         val context = MyApplication.application
@@ -462,9 +462,9 @@ object AppInfoScanner {
     }
 
     /**
-     * 扫描并ExportforTextformat(便于Copy)
+     * Scan and export as text format (easy to copy)
      * @param context context
-     * @return formatTextString
+     * @return formatted text string
      */
     fun exportAsText(context: context): String {
         val appInfoList = scanApps(context, includeSystemApps = false, filterKeywords = emptyList())
@@ -472,12 +472,12 @@ object AppInfoScanner {
 
         val sb = StringBuilder()
         sb.appendLine("=".repeat(100))
-        sb.appendLine("App infoList(共 ${appInfoList.size} countapp)")
+        sb.appendLine("App info list (total ${appInfoList.size} apps)")
         sb.appendLine("=".repeat(100))
         sb.appendLine()
 
         sortedList.forEach { appInfo ->
-            sb.appendLine("app名: ${appInfo.appName}")
+            sb.appendLine("App name: ${appInfo.appName}")
             sb.appendLine("Package name: ${appInfo.packageName}")
             sb.appendLine("Main Activity: ${appInfo.mainActivity ?: "None"}")
             sb.appendLine("-".repeat(80))
@@ -487,7 +487,7 @@ object AppInfoScanner {
     }
 
     /**
-     * 只GetHasMain Activityapp(canStartapp)
+     * Only get apps with Main Activity (launchable apps)
      */
     fun scanLaunchableApps(context: context): List<AppInfo> {
         return scanApps(context, includeSystemApps = false, filterKeywords = emptyList())
@@ -495,14 +495,14 @@ object AppInfoScanner {
     }
 
     /**
-     * Outputformat AppIntentInfo code(仅ContainsHasMain Activityapp)
+     * Export format AppIntentInfo code (only contains apps with Main Activity)
      */
     fun exportAppIntentInfoCode(context: context): String {
         val launchableApps = scanLaunchableApps(context)
         val sortedList = launchableApps.sortedBy { it.appName }
 
         val sb = StringBuilder()
-        sb.appendLine("// 共 ${launchableApps.size} countcanStartapp")
+        sb.appendLine("// Total ${launchableApps.size} launchable apps")
         sb.appendLine()
 
         sortedList.forEach { appInfo ->

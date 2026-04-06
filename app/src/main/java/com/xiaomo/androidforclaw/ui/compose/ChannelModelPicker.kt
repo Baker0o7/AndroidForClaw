@@ -16,13 +16,13 @@ import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.config.OpenClawconfig
 
 /**
- * 渠道模型choose器 — from OpenClaw alreadyconfig providers DynamicReadAvailable模型List. 
+ * Channel model picker — dynamically reads available model list from OpenClaw configured providers.
  *
- * should Composable not做任何Persistent化, Statusbycall方Manage. 
+ * This composable should not do any persistence, status is managed by the caller.
  *
- * @param config  whenFront OpenClawconfig, 用于Read providers
- * @param selected whenFront选中模型 ID(format "providerId/modelId"), null Table示useGlobalDefault
- * @param onSelected userchoosebackCallback
+ * @param config Current OpenClaw config, used to read providers
+ * @param selected Currently selected model ID (format "providerId/modelId"), null means use global default
+ * @param onSelected User selection callback
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +32,7 @@ fun channelmodelPicker(
     onSelected: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // BuildAvailable模型List: null → GlobalDefault；Its他项fromalreadyconfig providers
+    // Build available model list: null → Global Default; other items from configured providers
     val globalDefaultLabel = stringResource(R.string.picker_use_global)
     val models: List<Pair<String?, String>> = remember(config, globalDefaultLabel) {
         val list = mutableListOf<Pair<String?, String>>()
