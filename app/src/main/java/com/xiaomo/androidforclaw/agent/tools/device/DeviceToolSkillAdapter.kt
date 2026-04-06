@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - src/agents/tools/browser-tool.ts (架构correct齐: Devicetool correctshould browser-tool)
+ * - src/agents/tools/browser-tool.ts (Architecture reference: Devicetool should be browser-tool)
  *
  * Adapter: wraps Devicetool (tool interface) as a skill for androidtoolRegistry.
  */
