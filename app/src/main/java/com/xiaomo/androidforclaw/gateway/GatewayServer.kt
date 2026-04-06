@@ -655,7 +655,7 @@ loadHistory();
 
         private fun handlesessionsHistory(params: JSONObject?): JSONObject {
             val sessionId = params?.optString("sessionId") ?: "default"
-            Log.d(TAG, "[CLIP] [Gateway] Getsession历史: $sessionId")
+            Log.d(TAG, "[CLIP] [Gateway] Get session history: $sessionId")
 
             try {
                 // Get sessionmanager from MainEntrynew

@@ -36,18 +36,18 @@ import java.net.Inet4Aress
 import java.net.NetworkInterface
 
 /**
- * MCP Server config页面
+ * MCP Server Config Page
  *
  * ┌──────────────────────────────────────────────────────────────┐
- * │  [WARN]  this页面Manage MCP Server Yes给【External agent】用           │
- * │     (Claude Desktop、Cursor、Its他 MCP Client等)             │
+ * │  [WARN]  This page manages MCP Server for 【External agent】 use           │
+ * │     (Claude Desktop、Cursor、Other MCP Clients, etc.)             │
  * │                                                              │
- * │     and androidforClaw 自身 AI FeaturecompletelyNone关.                  │
- * │     androidforClaw throughInternal Devicetool 直接Action手机,           │
- * │     not经overthis MCP Server.                                      │
+ * │     And AndroidForClaw's own AI Feature is completely unrelated.                  │
+ * │     AndroidForClaw controls the phone directly via Internal Device Tools,           │
+ * │     NOT through this MCP Server.                                      │
  * │                                                              │
- * │     this MCP Server 作用Yes让同one局域网nextIts他 AI agent        │
- * │     can远程操控this台手机(ViewScreen、click、swipe等).             │
+ * │     This MCP Server allows other AI agents on the same LAN        │
+ * │     to remotely control this phone (View Screen, click, swipe, etc).             │
  * └──────────────────────────────────────────────────────────────┘
  */
 class McpconfigActivity : ComponentActivity() {
@@ -109,7 +109,7 @@ private fun McpconfigScreen(onback: () -> Unit) {
                 tonalElevation = 0.dp
             ) {
                 Text(
-                    text = "thisservice用于External agent(Claude Desktop、Cursor 等)远程操控本手机, and androidforClaw 自身FeatureNone关. ",
+                    text = "This service is for External agents (Claude Desktop, Cursor, etc.) to remotely control this phone, and is unrelated to AndroidForClaw's own features. ",
                     modifier = Modifier.paing(14.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -127,9 +127,9 @@ private fun McpconfigScreen(onback: () -> Unit) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("serviceStatus", style = MaterialTheme.typography.titleSmall)
+                            Text("Server Status", style = MaterialTheme.typography.titleSmall)
                             Text(
-                                text = if (serverRunning) "Run中 · port $port" else "alreadyStop",
+                                text = if (serverRunning) "Running · port $port" else "Stopped",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (serverRunning)
                                     MaterialTheme.colorScheme.primary
@@ -198,7 +198,7 @@ private fun McpconfigScreen(onback: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = "willbynextconfigpasteto Claude Desktop / Cursor  MCP Settings中: ",
+                        text = "Will be used in next config pasted to Claude Desktop / Cursor MCP Settings: ",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -231,19 +231,19 @@ private fun McpconfigScreen(onback: () -> Unit) {
                 tonalElevation = 1.dp
             ) {
                 Column(modifier = Modifier.paing(16.dp)) {
-                    Text("Available工具", style = MaterialTheme.typography.titleSmall)
+                    Text("Available Tools", style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(8.dp))
 
                     val tools = listOf(
                         "get_view_tree" to "Get UI Tree",
-                        "screenshot" to "截屏 (base64 PNG)",
-                        "tap" to "click坐标 (x, y)",
-                        "long_press" to "long press坐标 (x, y)",
-                        "swipe" to "swipe手势",
-                        "input_text" to "Input文字",
-                        "press_home" to "按 Home Key",
-                        "press_back" to "按ReturnKey",
-                        "get_current_app" to "GetforegroundappPackage name",
+                        "screenshot" to "Screenshot (base64 PNG)",
+                        "tap" to "Tap at coordinates (x, y)",
+                        "long_press" to "Long press at coordinates (x, y)",
+                        "swipe" to "Swipe gesture",
+                        "input_text" to "Input text",
+                        "press_home" to "Press Home Key",
+                        "press_back" to "Press Back Key",
+                        "get_current_app" to "Get foreground app package name",
                     )
 
                     tools.forEach { (name, desc) ->

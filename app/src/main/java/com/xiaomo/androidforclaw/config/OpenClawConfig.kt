@@ -17,7 +17,7 @@ import com.xiaomo.androidforclaw.workspace.StoragePaths
  */
 
 data class OpenClawconfig(
-    // ======= OpenClaw 标准段 =======
+    // ======= OpenClaw Standard Sections =======
     val thinking: Thinkingconfig = Thinkingconfig(),
     val models: modelsconfig? = null,
     val agents: agentsconfig? = null,
@@ -68,7 +68,7 @@ data class OpenClawconfig(
     val feishuconfig: Feishuchannelconfig get() = channels.feishu
 }
 
-// ============ channels(correct齐 types.channels.d.ts)============
+// ============ channels (aligned with types.channels.d.ts)============
 
 data class channelsconfig(
     val feishu: Feishuchannelconfig = Feishuchannelconfig(),
@@ -81,7 +81,7 @@ data class channelsconfig(
 )
 
 data class Feishuchannelconfig(
-    // 基础
+    // Basic
     val enabled: Boolean = false,
     val appId: String = "",
     val appSecret: String = "",
@@ -103,7 +103,7 @@ data class Feishuchannelconfig(
     val groupsessionScope: String? = null,
     val topicsessionMode: String = "disabled",
     val replyInThread: String = "disabled",
-    // 历史 (aligned with OpenClaw: optional, no limit if not configured)
+    // History (aligned with OpenClaw: optional, no limit if not configured)
     val historyLimit: Int? = null,
     val dmHistoryLimit: Int? = null,
     // Message
@@ -111,9 +111,9 @@ data class Feishuchannelconfig(
     val chunkMode: String = "length",
     val renderMode: String = "auto",
     val streaming: Boolean? = null,
-    // 媒体
+    // Media
     val mediaMaxMb: Double = 20.0,
-    // 工具
+    // Tools
     val tools: Feishutoolsconfig = Feishutoolsconfig(),
     // queue(android extend)
     val queueMode: String? = "followup",
@@ -202,9 +202,9 @@ data class Slackchannelconfig(
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
     val dmHistoryLimit: Int? = null,
-    /** 流式return复schema: off / partial / block / progress */
+    /** Streaming response mode: off / partial / block / progress */
     val streaming: String = "partial",
-    /** android extend: overrideshould渠道use模型, format "providerId/modelId", forNullthenuseGlobalDefault */
+    /** Android extend: override which model the channel should use, format "providerId/modelId", for null then use global default */
     val model: String? = null
 )
 
@@ -218,48 +218,48 @@ data class Telegramchannelconfig(
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
     val dmHistoryLimit: Int? = null,
-    /** 流式return复schema: off / partial / block / progress */
+    /** Streaming response mode: off / partial / block / progress */
     val streaming: String = "partial",
-    /** Webhook URL (Optional, not填thenuselong轮询) */
+    /** Webhook URL (Optional, not set then use long polling) */
     val webhookUrl: String? = null,
-    /** android extend: overrideshould渠道use模型, format "providerId/modelId", forNullthenuseGlobalDefault */
+    /** Android extend: override which model the channel should use, format "providerId/modelId", for null then use global default */
     val model: String? = null
 )
 
 data class whatsAppchannelconfig(
     // Aligned with OpenClaw types.whatsapp.ts
     val enabled: Boolean = false,
-    /** Register whatsApp 手机号 (E.164 format, such as +8613800138000) */
+    /** Register WhatsApp phone number (E.164 format, such as +8613800138000) */
     val phoneNumber: String = "",
     val dmPolicy: String = "open",
     val groupPolicy: String = "open",
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
     val dmHistoryLimit: Int? = null,
-    /** android extend: overrideshould渠道use模型, format "providerId/modelId", forNullthenuseGlobalDefault */
+    /** Android extend: override which model the channel should use, format "providerId/modelId", for null then use global default */
     val model: String? = null
 )
 
 data class Signalchannelconfig(
     // Aligned with OpenClaw types.signal.ts SignalAccountconfig
     val enabled: Boolean = false,
-    /** signal-cli Register手机号 (E.164, correctshould OpenClaw account Field) */
+    /** Signal-cli register phone number (E.164, aligned with OpenClaw account field) */
     val phoneNumber: String = "",
-    /** signal-cli HTTP daemon 完整 URL, such as http://127.0.0.1:8080 (Optional) */
+    /** Signal-cli HTTP daemon full URL, such as http://127.0.0.1:8080 (Optional) */
     val httpUrl: String? = null,
-    /** signal-cli HTTP daemon port, Default 8080 */
+    /** Signal-cli HTTP daemon port, default 8080 */
     val httpPort: Int = 8080,
     val dmPolicy: String = "open",
     val groupPolicy: String = "open",
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
     val dmHistoryLimit: Int? = null,
-    /** android extend: overrideshould渠道use模型, format "providerId/modelId", forNullthenuseGlobalDefault */
+    /** Android extend: override which model the channel should use, format "providerId/modelId", for null then use global default */
     val model: String? = null
 )
 
 data class Weixinchannelconfig(
-    // correct齐 @tencent-weixin/openclaw-weixin
+    // Aligned with @tencent-weixin/openclaw-weixin
     val enabled: Boolean = false,
     /** API base URL (default: https://ilinkai.weixin.qq.com) */
     val baseUrl: String = "https://ilinkai.weixin.qq.com",
@@ -267,11 +267,11 @@ data class Weixinchannelconfig(
     val cdnBaseUrl: String = "https://novac2c.cdn.weixin.qq.com/c2c",
     /** Route tag for API requests */
     val routeTag: String? = null,
-    /** android extend: overrideshould渠道use模型, format "providerId/modelId", forNullthenuseGlobalDefault */
+    /** Android extend: override which model the channel should use, format "providerId/modelId", for null then use global default */
     val model: String? = null
 )
 
-// ============ gateway(correct齐 types.gateway.d.ts)============
+// ============ gateway (aligned with types.gateway.d.ts)============
 
 data class Gatewayconfig(
     val port: Int = 19789,
@@ -292,7 +292,7 @@ data class GatewayControlUiconfig(
     val dangerouslyDisabledDeviceAuth: Boolean? = null
 )
 
-// ============ agents(correct齐 types.agents.d.ts)============
+// ============ agents (aligned with types.agents.d.ts)============
 
 data class agentsconfig(
     val defaults: agentDefaultsconfig = agentDefaultsconfig()
@@ -332,7 +332,7 @@ data class modelSelectionconfig(
     val fallbacks: List<String>? = null
 )
 
-// ============ agent(android extend, 非 OpenClaw 标准)============
+// ============ agent (android extend, non-OpenClaw standard)============
 
 data class agentconfig(
     val maxIterations: Int = 40,
@@ -343,7 +343,7 @@ data class agentconfig(
     val mode: String = "exploration"
 )
 
-// ============ skills(correct齐 types.skills.d.ts)============
+// ============ skills (aligned with types.skills.d.ts)============
 
 data class skillsconfig(
     val allowBundled: List<String>? = null,
@@ -372,7 +372,7 @@ data class skillconfig(
     }
 }
 
-// ============ plugins(correct齐 types.plugins.d.ts)============
+// ============ plugins (aligned with types.plugins.d.ts)============
 
 data class Pluginsconfig(
     val entries: Map<String, PluginEntry> = emptyMap()
@@ -383,7 +383,7 @@ data class PluginEntry(
     val skills: List<String> = emptyList()
 )
 
-// ============ tools(correct齐 types.tools.d.ts)============
+// ============ tools (aligned with types.tools.d.ts)============
 
 data class toolsconfig(
     val screenshot: Screenshottoolconfig = Screenshottoolconfig(),
@@ -405,7 +405,7 @@ data class Screenshottoolconfig(
     val format: String = "jpeg"
 )
 
-// ============ hooks(correct齐 types.hooks.d.ts)============
+// ============ hooks (aligned with types.hooks.d.ts)============
 
 data class Hooksconfig(
     val gmail: HooksGmailconfig? = null,
@@ -426,7 +426,7 @@ data class Messagesconfig(
     val ackReactionScope: String = "own"
 )
 
-// ============ memory(correct齐 types.memory.d.ts)============
+// ============ memory (aligned with types.memory.d.ts)============
 
 data class Memoryconfig(
     val enabled: Boolean = true,

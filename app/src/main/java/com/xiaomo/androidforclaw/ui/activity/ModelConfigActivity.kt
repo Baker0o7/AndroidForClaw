@@ -31,12 +31,12 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
- * 模型config页面 — 两页式Design
+ * Model Config Page — Two-Page Design
  *
- * Page 1: choose AI service商 (provider)
- * Page 2: 填写service商Parameters + choose模型
+ * Page 1: Choose AI service provider
+ * Page 2: Fill in service provider parameters + choose model
  *
- * All provider 定义from providerRegistry, and OpenClaw 保持one致. 
+ * All provider definitions from ProviderRegistry, aligned with OpenClaw.
  */
 class modelconfigActivity : AppCompatActivity() {
 
@@ -132,7 +132,7 @@ class modelconfigActivity : AppCompatActivity() {
     private fun showPage1() {
         binding.pageproviderList.visibility = View.VISIBLE
         binding.pageproviderDetail.visibility = View.GONE
-        binding.toolbar.title = "模型config"
+        binding.toolbar.title = "Model Config"
     }
 
     private fun showPage2(provider: providerDefinition) {
@@ -240,7 +240,7 @@ class modelconfigActivity : AppCompatActivity() {
         binding.tilApiKey.hint = provider.keyHint
         binding.etApiKey.setText("")
         if (!provider.keyRequired) {
-            binding.tilApiKey.helperText = "Optional(Hasinside置 Key)"
+            binding.tilApiKey.helperText = "Optional (has built-in key)"
         } else {
             binding.tilApiKey.helperText = null
         }
@@ -402,7 +402,7 @@ class modelconfigActivity : AppCompatActivity() {
 
         if (models.isEmpty() && allCurrentmodels.isnotEmpty()) {
             val tv = TextView(this).app {
-                text = "Nonematch模型"
+                text = "No matching models"
                 setTextColor(getColor(android.R.color.darker_gray))
                 textSize = 13f
                 setPaing(0, 16, 0, 16)
@@ -424,7 +424,7 @@ class modelconfigActivity : AppCompatActivity() {
 
             if (model.reasoning) {
                 tvBadge.visibility = View.VISIBLE
-                tvBadge.text = "推理"
+                tvBadge.text = "Reasoning"
                 tvBadge.setTextColor(getColor(android.R.color.holo_blue_dark))
             }
 
@@ -457,12 +457,12 @@ class modelconfigActivity : AppCompatActivity() {
         val effectiveBaseUrl = baseUrl ?: provider.baseUrl
 
         if (effectiveBaseUrl.isBlank()) {
-            Toast.makeText(this, "please填写 Base URL", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please enter Base URL", Toast.LENGTH_SHORT).show()
             return
         }
 
         binding.btnDiscovermodels.isEnabled = false
-        binding.btnDiscovermodels.text = "Get中..."
+        binding.btnDiscovermodels.text = "Discovering..."
 
         scope.launch {
             try {
@@ -480,7 +480,7 @@ class modelconfigActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this@modelconfigActivity,
-                    "discover ${models.size} count模型",
+                    "Discovered ${models.size} models",
                     Toast.LENGTH_SHORT
                 ).show()
             } catch (e: exception) {
@@ -492,7 +492,7 @@ class modelconfigActivity : AppCompatActivity() {
                 ).show()
             } finally {
                 binding.btnDiscovermodels.isEnabled = true
-                binding.btnDiscovermodels.text = "[SEARCH] GetAvailable模型"
+                binding.btnDiscovermodels.text = "[SEARCH] Discover Available Models"
             }
         }
     }
@@ -502,14 +502,14 @@ class modelconfigActivity : AppCompatActivity() {
     private fun testConnection(provider: providerDefinition) {
         val apiKey = binding.etApiKey.text?.toString()?.trim()
         if (provider.keyRequired && apiKey.isNullorBlank()) {
-            Toast.makeText(this, "please先填写 API Key", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please enter API Key first", Toast.LENGTH_SHORT).show()
             return
         }
 
         // Determine model to test with
         val modelId = selectedmodelId
         if (modelId.isNullorBlank()) {
-            Toast.makeText(this, "please先chooseone模型", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please select a model first", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -519,7 +519,7 @@ class modelconfigActivity : AppCompatActivity() {
         val effectiveBaseUrl = (baseUrl ?: provider.baseUrl).trimEnd('/')
 
         binding.btnTestConnection.isEnabled = false
-        binding.btnTestConnection.text = "Test中..."
+        binding.btnTestConnection.text = "Testing..."
 
         scope.launch {
             try {
@@ -541,8 +541,8 @@ class modelconfigActivity : AppCompatActivity() {
                     val errorMsg = when (e) {
                         is kotlinx.coroutines.Timeoutcancellationexception -> "RequestTimeout(25seconds), pleaseCheckNetworkorProxySettings"
                         is java.net.SocketTimeoutexception -> "ConnectTimeout, pleaseCheckNetworkorProxySettings"
-                        is java.net.UnknownHostexception -> "cannotParse域名 ${e.message}, pleaseCheckNetwork"
-                        is java.net.Connectexception -> "cannotConnectservice器, pleaseCheckNetworkorProxy"
+                        is java.net.UnknownHostException -> "Cannot parse domain ${e.message}, please check network"
+                        is java.net.ConnectException -> "Cannot connect to server, please check network or proxy"
                         is javax.net.ssl.SSLexception -> "SSL Error: ${e.message}"
                         else -> "${e.message}"
                     }
@@ -694,7 +694,7 @@ class modelconfigActivity : AppCompatActivity() {
         }
 
         return buildString {
-            appendLine("模型: $modelId")
+            appendLine("Model: $modelId")
             appendLine("API: ${provider.api}")
             appendLine("Response: ${replyPreview.take(100)}")
         }
@@ -776,12 +776,12 @@ class modelconfigActivity : AppCompatActivity() {
         etcontextWindow.setText("200000")  // Aligned with OpenClaw DEFAULT_CONTEXT_TOKENS
 
         AlertDialog.Builder(this)
-            .setTitle("A模型")
+            .setTitle("Add Model")
             .setView(dialogView)
             .setPositivebutton("A") { _, _ ->
                 val modelId = etmodelId.text?.toString()?.trim() ?: ""
                 if (modelId.isBlank()) {
-                    Toast.makeText(this, "模型 ID cannotforNull", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Model ID cannot be empty", Toast.LENGTH_SHORT).show()
                     return@setPositivebutton
                 }
                 val modelName = etmodelName.text?.toString()?.trim()?.takeif { it.isnotBlank() } ?: modelId
@@ -827,7 +827,7 @@ class modelconfigActivity : AppCompatActivity() {
         }
 
         if (modelId.isNullorBlank()) {
-            Toast.makeText(this, "pleasechooseorInput模型", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please select or enter a model", Toast.LENGTH_SHORT).show()
             return
         }
 

@@ -259,7 +259,7 @@ providerDefinition(
     group = providerGroup.PRIMARY, order = 55
 ),
         providerDefinition(
-            id = "custom", name = "Custom (OpenAI 兼容)", description = "Custom API",
+            id = "custom", name = "Custom (OpenAI Compatible)", description = "Custom API",
             baseUrl = "", api = modelApi.OPENAI_COMPLETIONS,
             keyRequired = false, keyHint = "API Key", envVarName = "",
             group = providerGroup.CUSTOM, order = 999, supportsDiscovery = true
@@ -268,7 +268,7 @@ providerDefinition(
 }
 
 /**
- * provider 定义 — from providers.json Load
+ * Provider definition — loaded from providers.json
  */
 data class providerDefinition(
     val id: String,

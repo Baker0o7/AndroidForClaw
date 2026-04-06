@@ -726,11 +726,11 @@ emitProgressToUi("yielded", "Waiting for sub-agent", "Paused, waiting for sub-ag
             }
 
             is ProgressUpdate.ReasoningDelta -> {
-                // 流式增量 reasoning — notUpdate float window(太频繁)
+                // Streaming incremental reasoning — don't update float window (too frequent)
             }
 
             is ProgressUpdate.ContentDelta -> {
-                // 流式增量 content — notUpdate float window(太频繁)
+                // Streaming incremental content — don't update float window (too frequent)
             }
         }
     }
