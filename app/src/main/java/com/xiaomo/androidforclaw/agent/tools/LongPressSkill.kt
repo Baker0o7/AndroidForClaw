@@ -23,7 +23,7 @@ class LongPressskill : skill {
     }
 
     override val name = "long_press"
-    override val description = "long pressScreenUp坐标position置. 用于触发long pressmenu、DeleteProject等needlong pressAction场景. **note**: ActionScreenFrontuse get_view_tree() Get UI ElementInfothat iscan, notneed再call screenshot(). "
+    override val description = "Long press at screen coordinates. Used to trigger long press menus, delete items, or other actions that require long press. Note: Use get_view_tree() to get UI element info first if possible, no need to call screenshot()."
 
     override fun gettoolDefinition(): toolDefinition {
         return toolDefinition(
@@ -34,9 +34,9 @@ class LongPressskill : skill {
                 parameters = Parametersschema(
                     type = "object",
                     properties = mapOf(
-                        "x" to Propertyschema("integer", "X 坐标"),
-                        "y" to Propertyschema("integer", "Y 坐标"),
-                        "duration" to Propertyschema("integer", "long press持续Time(毫seconds), Default 1000")
+                        "x" to Propertyschema("integer", "X coordinate"),
+                        "y" to Propertyschema("integer", "Y coordinate"),
+                        "duration" to Propertyschema("integer", "Long press duration in milliseconds, default 1000")
                     ),
                     required = listOf("x", "y")
                 )

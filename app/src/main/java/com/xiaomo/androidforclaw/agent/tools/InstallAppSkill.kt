@@ -47,7 +47,7 @@ class InstallAppskill(private val context: context) : skill {
     }
 
     override val name = "install_app"
-    override val description = "Install APK filestoDevice. Support本地File pathor content:// URI. Available于InstallnewapporUpgradealreadyHasapp. "
+    override val description = "Install APK file to device. Supports local file path or content:// URI. Available for installing new apps or upgrading existing apps."
 
     override fun gettoolDefinition(): toolDefinition {
         return toolDefinition(
@@ -64,7 +64,7 @@ class InstallAppskill(private val context: context) : skill {
                         ),
                         "allow_downgrade" to Propertyschema(
                             "boolean",
-                            "whether允许nextgradeInstall(Version number比alreadyInstallVersionlow). Default false"
+                            "Whether to allow downgrade install (version lower than installed version). Default false"
                         )
                     ),
                     required = listOf("apk_path")
@@ -76,9 +76,9 @@ class InstallAppskill(private val context: context) : skill {
     override suspend fun execute(args: Map<String, Any?>): skillresult {
         val apkPath = args["apk_path"] as? String
             ?: return skillresult.error("Missing required parameter: apk_path")
-        val allownextgrade = args["allow_downgrade"] as? Boolean ?: false
+        val allowDowngrade = args["allow_downgrade"] as? Boolean ?: false
 
-        Log.d(TAG, "Installing APK: $apkPath (allownextgrade=$allownextgrade)")
+        Log.d(TAG, "Installing APK: $apkPath (allowDowngrade=$allowDowngrade)")
 
         // Resolve file
         val apkFile = resolveApkFile(apkPath)
@@ -126,9 +126,9 @@ class InstallAppskill(private val context: context) : skill {
                 apkVersionCode > existingVersionCode -> "upgrade (${existingVersionName} → ${apkVersionName})"
                 apkVersionCode == existingVersionCode -> "reinstall (same version ${apkVersionName})"
                 else -> {
-                    if (!allownextgrade) {
+                    if (!allowDowngrade) {
                         return skillresult.error(
-                            "nextgrade not allowed: installed=$existingVersionName ($existingVersionCode), " +
+                            "Downgrade not allowed: installed=$existingVersionName ($existingVersionCode), " +
                                     "apk=$apkVersionName ($apkVersionCode). Set allow_downgrade=true to force."
                         )
                     }
@@ -143,7 +143,7 @@ class InstallAppskill(private val context: context) : skill {
 
         // Install via PackageInstaller
         return try {
-            val result = performInstall(apkFile, apkPackageName, allownextgrade)
+            val result = performInstall(apkFile, apkPackageName, allowDowngrade)
             if (result.success) {
                 skillresult.success(
                     "Successfully installed $apkPackageName v$apkVersionName ($installType)",
@@ -199,7 +199,7 @@ class InstallAppskill(private val context: context) : skill {
     private suspend fun performInstall(
         apkFile: File,
         packageName: String,
-        allownextgrade: Boolean
+        allowDowngrade: Boolean
     ): skillresult {
         val pm = context.packagemanager
         val installer = pm.packageInstaller
@@ -256,17 +256,17 @@ class InstallAppskill(private val context: context) : skill {
                                         intent.getParcelableExtra(Intent.EXTRA_INTENT)
                                     }
                                     if (confirmIntent != null) {
-                                        confirmIntent.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         context.startActivity(confirmIntent)
-                                        Log.d(TAG, "user confirmation required, launched install dialog")
+                                        Log.d(TAG, "User confirmation required, launched install dialog")
                                         cont.resume(
                                             skillresult.success(
                                                 "Install requires user confirmation. The install dialog has been shown on screen. " +
-                                                        "use 'screenshot' and 'tap' to interact with the confirmation dialog if needed."
+                                                        "Use 'screenshot' and 'tap' to interact with the confirmation dialog if needed."
                                             )
                                         )
                                     } else {
-                                        cont.resume(skillresult.error("user confirmation required but no confirmation intent available"))
+                                        cont.resume(skillresult.error("User confirmation required but no confirmation intent available"))
                                     }
                                 }
                                 else -> {

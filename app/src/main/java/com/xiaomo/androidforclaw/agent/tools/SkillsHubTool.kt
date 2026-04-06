@@ -15,11 +15,11 @@ import com.xiaomo.androidforclaw.providers.Parametersschema
 import com.xiaomo.androidforclaw.providers.Propertyschema
 import com.xiaomo.androidforclaw.providers.toolDefinition
 
-private const val RATE_LIMIT_HINT = """ClawHub API Request被限流 (HTTP 429). 
-whenFrontforanonymous requestschema, please让user提供 ClawHub token by解除限流. 
-usercanin clawhub.com AccountSettings中Get token. 
-Getbackpleasecall: clawhub_config(action="set", token="user提供token")
-然backretry之FrontAction. """
+private const val RATE_LIMIT_HINT = """ClawHub API request rate limited (HTTP 429).
+For anonymous requests, please provide a ClawHub token to remove the limit.
+Users can get token from clawhub.com AccountSettings.
+Please call: clawhub_config(action="set", token="user_provided_token")
+Then retry the action."""
 
 /**
  * skills_search — Search ClawHub for available skills
@@ -169,10 +169,10 @@ class skillsInstalltool(private val context: context) : tool {
 }
 
 /**
- * clawhub_config — config ClawHub token
+ * clawhub_config — Configure ClawHub token
  *
- * Aligned with OpenClaw src/infra/clawhub.ts  token 机制. 
- * 遇to 429 限流hour, AI can让user提供 token 并throughthis工具Save. 
+ * Aligned with OpenClaw src/infra/clawhub.ts token mechanism.
+ * When hitting rate limit (429), AI can ask user to provide token and save it via this tool.
  */
 class ClawHubconfigtool(private val context: context) : tool {
     companion object {
@@ -180,7 +180,7 @@ class ClawHubconfigtool(private val context: context) : tool {
     }
 
     override val name = "clawhub_config"
-    override val description = "configure ClawHub authentication token. use 'set' to save a token, 'get' to check current status, 'clear' to remove token."
+    override val description = "Configure ClawHub authentication token. Use 'set' to save a token, 'get' to check current status, 'clear' to remove token."
 
     override fun gettoolDefinition(): toolDefinition {
         return toolDefinition(
@@ -217,27 +217,27 @@ class ClawHubconfigtool(private val context: context) : tool {
                     return toolresult.error("Missing required parameter: token")
                 }
                 ClawHubClient.saveToken(context, token)
-                Log.i(TAG, "ClawHub token alreadyconfig")
-                toolresult.success("[OK] ClawHub token alreadySave, back续RequestwillAuto附带AuthenticateInfo. ")
+                Log.i(TAG, "ClawHub token saved")
+                toolresult.success("[OK] ClawHub token saved, subsequent requests will automatically include authentication.")
             }
             "get" -> {
                 val existing = ClawHubClient.getToken(context)
                 if (existing != null) {
-                    // 只ShowFront 8 position, HideIts余
+                    // Only show first 8 characters, hide the rest
                     val masked = if (existing.length > 8) {
                         existing.take(8) + "..." + " (${existing.length} chars)"
                     } else {
                         "***"
                     }
-                    toolresult.success("ClawHub token alreadyconfig: $masked")
+                    toolresult.success("ClawHub token configured: $masked")
                 } else {
-                    toolresult.success("ClawHub token not configured, Requestfor匿名schema(may be rate limited). ")
+                    toolresult.success("ClawHub token not configured, requests will use anonymous schema (may be rate limited).")
                 }
             }
             "clear" -> {
                 ClawHubClient.clearToken(context)
-                Log.i(TAG, "ClawHub token alreadyclear")
-                toolresult.success("[OK] ClawHub token alreadyclear, back续Requestwilluse匿名schema. ")
+                Log.i(TAG, "ClawHub token cleared")
+                toolresult.success("[OK] ClawHub token cleared, subsequent requests will use anonymous schema.")
             }
             else -> {
                 toolresult.error("Unknown action: $action. use 'set', 'get', or 'clear'.")

@@ -29,7 +29,7 @@ class OpenAppskill(private val context: context) : skill {
     }
 
     override val name = "open_app"
-    override val description = "Open指定app程序. need提供appPackage name. "
+    override val description = "Open a specified app. Requires app package name."
 
     override fun gettoolDefinition(): toolDefinition {
         return toolDefinition(
@@ -76,8 +76,8 @@ class OpenAppskill(private val context: context) : skill {
                             Log.w(TAG, "background launch blocked: ${e.message}")
                             // if blocked by BAL restrictions, return error with guidance
                             return@withTimeout skillresult.error(
-                                "cannot launch app from background due to android restrictions. " +
-                                "Suggestion: use 'home' tool first to go to launcher, then use 'tap' to click the app icon."
+                                "Cannot launch app from background due to Android restrictions. " +
+                                "Suggestion: Use 'home' tool first to go to launcher, then use 'tap' to click the app icon."
                             )
                         }
 

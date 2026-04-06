@@ -64,7 +64,7 @@ class Screenshotskill(private val context: context) : skill {
             val (originalNodes, processedNodes) = run {
                 val result = DeviceController.detectIcons(context)
                 if (result == null) {
-                    Log.w(TAG, "cannotGet UI Tree(AccessibilityservicenotEnableorFailed), ContinueScreenshot")
+                    Log.w(TAG, "Cannot get UI tree (Accessibility service not enabled or failed), continuing with screenshot only")
                     Pair(emptyList(), emptyList())
                 } else {
                     result
@@ -98,7 +98,7 @@ class Screenshotskill(private val context: context) : skill {
                 }
             }
             if (screenshotresult == null) {
-                return skillresult.error("Screenshot failed: MediaProjection not authorized and shell screencap unavailable. please open the app and grant screen capture permission.")
+                return skillresult.error("Screenshot failed: MediaProjection not authorized and shell screencap unavailable. Please open the app and grant screen capture permission.")
             }
 
             val (bitmap, path) = screenshotresult
@@ -121,31 +121,31 @@ class Screenshotskill(private val context: context) : skill {
 
             // 5. Combine output
             val output = buildString {
-                appendLine("【ScreenshotInfo】")
-                appendLine("minute辨率: ${bitmap.width}x${bitmap.height}")
+                appendLine("[Screenshot Info]")
+                appendLine("Resolution: ${bitmap.width}x${bitmap.height}")
                 appendLine("Path: $path")
-                appendLine("(Screenshotalreadyinside嵌, please直接Description你seetocontent)")
+                appendLine("(Screenshot is embedded below, please describe what you see)")
                 appendLine()
 
-                appendLine("【Screen UI Element】(共 ${processedNodes.size} count)")
+                appendLine("[Screen UI Elements] (${processedNodes.size} total)")
                 appendLine()
 
                 processedNodes.forEachIndexed { index, node ->
-                    val text = node.text?.takeif { it.isnotBlank() }
-                        ?: node.contentDesc?.takeif { it.isnotBlank() }
-                        ?: "[NoneText]"
+                    val text = node.text?.takeIf { it.isNotBlank() }
+                        ?: node.contentDesc?.takeIf { it.isNotBlank() }
+                        ?: "[No Text]"
 
                     append("[$index] \"$text\" (${node.point.x}, ${node.point.y})")
 
                     if (node.clickable) {
-                        append(" [canclick]")
+                        append(" [clickable]")
                     }
 
                     appendLine()
                 }
 
                 appendLine()
-                appendLine("Hint: use坐标 (x,y) intoRow tap Action")
+                appendLine("Hint: Use coordinates (x,y) for tap actions")
             }
 
             skillresult.success(

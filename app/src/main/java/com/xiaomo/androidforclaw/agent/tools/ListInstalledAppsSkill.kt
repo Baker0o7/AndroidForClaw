@@ -97,18 +97,18 @@ class ListInstalledAppsskill(private val context: context) : skill {
             Log.d(TAG, "Found ${apps.size} apps (includeSystem=$includeSystem, filter=$filter)")
 
             val content = buildString {
-                appendLine("[APP] alreadyInstallappList (${apps.size} count)")
+                appendLine("[Installed Apps] (${apps.size} total)")
                 appendLine()
 
                 if (apps.isEmpty()) {
-                    appendLine("not找tomatchapp")
+                    appendLine("No matching apps found")
                 } else {
                     apps.forEachIndexed { index, app ->
                         val label = app["label"] as String
                         val packageName = app["package"] as String
                         val isSystem = app["system"] as Boolean
 
-                        val systemTag = if (isSystem) " [系统]" else ""
+                        val systemTag = if (isSystem) " [System]" else ""
                         appendLine("${index + 1}. $label$systemTag")
                         appendLine("   Package name: $packageName")
                     }
