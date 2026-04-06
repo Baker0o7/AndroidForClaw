@@ -37,7 +37,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
- * 统one LLM provider
+ * Unified LLM provider
  * Supports all OpenClaw compatible API types
  *
  * Features:
@@ -102,7 +102,7 @@ class UnifiedLLMprovider(private val context: context) {
     }
 
     /**
-     * 带工具callChat
+     * Chat with tool calls
      *
      * @param messages Message list
      * @param tools tool definition list (old format)
@@ -147,7 +147,7 @@ class UnifiedLLMprovider(private val context: context) {
     }
 
     /**
-     * 流式Chat — Return Flow<StreamChunk>, 实hour emit SSE 增量
+      * Streaming Chat — Return Flow<StreamChunk>, real-time emit SSE increment
      * Aligned with OpenClaw streamSimple / pi-embeed-subscribe.handlers.messages.ts
      */
     fun chatwithtoolsStreaming(
@@ -361,7 +361,7 @@ class UnifiedLLMprovider(private val context: context) {
     }
 
     /**
-     * execution实际 LLM Request
+      * Execute actual LLM Request
      */
     private suspend fun performRequest(
         messages: List<Message>,
@@ -572,7 +572,7 @@ class UnifiedLLMprovider(private val context: context) {
     }
 
     /**
-     * SimpleChat(None工具)
+     * Simple Chat (no tools)
      */
     suspend fun simpleChat(
         userMessage: String,
@@ -602,15 +602,15 @@ class UnifiedLLMprovider(private val context: context) {
     }
 
     /**
-     * Parse模型引用
-     * format: "provider/model-id" or "model-id"
+      * Parse model reference
+      * format: "provider/model-id" or "model-id"
      *
      * @return Pair(providerName, modelId)
      */
     private fun parsemodelRef(modelRef: String?): Pair<String, String> {
         // if not specified, use default model
         if (modelRef == null) {
-            val config = configLoader.loadOpenClawconfigFresh() // 强制fromDiskRead, 避免Cache导致换模型not生效
+             val config = configLoader.loadOpenClawconfigFresh() // Force read from disk, avoid cache causing model switch not to take effect
             val defaultmodel = config.resolveDefaultmodel()
             // if the default model's provider exists, use it
             val parsed = tryParsemodelRef(defaultmodel)
@@ -622,11 +622,11 @@ class UnifiedLLMprovider(private val context: context) {
             if (firstEntry != null) {
                 val firstmodel = firstEntry.value.models.firstorNull()
                 if (firstmodel != null) {
-                    Log.w(TAG, "[WARN] Default模型 '$defaultmodel'  provider notExists, fallback to '${firstEntry.key}/${firstmodel.id}'")
+                     Log.w(TAG, "[WARN] Default model '$defaultmodel' provider notExists, fallback to '${firstEntry.key}/${firstmodel.id}'")
                     return Pair(firstEntry.key, firstmodel.id)
                 }
             }
-            throw IllegalArgumentexception("NoneAvailable模型config, please先config模型")
+             throw IllegalArgumentexception("No available model config, please configure model first")
         }
 
         return tryParsemodelRef(modelRef)

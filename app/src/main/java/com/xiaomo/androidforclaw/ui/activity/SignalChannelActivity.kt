@@ -132,7 +132,7 @@ fun SignalchannelScreen(
             OutlinedTextField(
                 value = httpUrl,
                 onValueChange = { httpUrl = it },
-                label = { Text("Daemon URL(Optional, 优先use)") },
+                 label = { Text("Daemon URL(Optional, prefer use)") },
                 placeholder = { Text("http://127.0.0.1:8080  Leave empty to use host+port below") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
@@ -212,7 +212,7 @@ fun SignalchannelScreen(
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "configSavebackneedRestartapp生效. \nSignal 接入needinmain机UpRun signal-cli daemon. ",
+                 text = "Configuration saved, needs app restart to take effect.\nSignal access requires running signal-cli daemon on main machine.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -192,7 +192,7 @@ fun TelegramchannelScreen(
                 value = webhookUrl,
                 onValueChange = { webhookUrl = it },
                 label = { Text("Webhook URL(Optional)") },
-                placeholder = { Text("留Null = uselong轮询(recommend)") },
+                 placeholder = { Text("Leave Null = use long polling (recommended)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -214,7 +214,7 @@ fun TelegramchannelScreen(
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "configSavebackneedRestartapp生效. \nGet Bot Token: 向 @BotFather send /newbot. ",
+                 text = "Configuration saved, needs app restart to take effect.\nGet Bot Token: Send /newbot to @BotFather. ",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

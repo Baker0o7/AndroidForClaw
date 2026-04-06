@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.providers.llm
 import com.google.gson.annotations.SerializedName
 
 /**
- * LLM 通用Data模型
+ * LLM Universal Data Model
  * used to unify interfaces of different API providers
  *
  * Reference: OpenClaw src/agents/llm-types.ts
@@ -27,7 +27,7 @@ data class ImageBlock(
 )
 
 /**
- * 通用Messageformat
+ * Universal Message format
  *
  * for multimodal messages the text goes in [content] and images in [images].
  * The API adapter will assemble them into the provider-specific content array.
@@ -42,7 +42,7 @@ data class Message(
 )
 
 /**
- * tool Call(工具call)
+ * tool Call(tool call)
  */
 data class toolCall(
     val id: String,
@@ -65,7 +65,7 @@ data class toolDefinition(
 }
 
 /**
- * Function定义
+ * Function Definition
  */
 data class FunctionDefinition(
     val name: String,
@@ -128,7 +128,7 @@ data class Propertyschema(
 // ============= Response models =============
 
 /**
- * LLM Response(通用format)
+ * LLM Response (universal format)
  */
 data class LLMResponse(
     val content: String?,

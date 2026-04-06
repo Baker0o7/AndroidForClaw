@@ -15,7 +15,7 @@ import com.xiaomo.androidforclaw.logging.Log
 /**
  * Clipboard Input Helper
  *
- * Through clipboard implementation of text input, to avoid various issues with ClawIME keyboard.
+ * Implement text input via clipboard to avoid various issues with ClawIME keyboard.
  * Process: Write to clipboard → Find focused input field → Execute paste action
  *
  * Advantages:
@@ -63,7 +63,7 @@ object ClipboardInputhelper {
             val pasted = performPasteViaAccessibility()
             if (!pasted) {
                 Log.e(TAG, "Paste via accessibility failed")
-                // try resumeoldcut板
+                 // try resume old clipboard
                 restoreClipboard(clipboardmanager, oldClip)
                 return false
             }
@@ -97,7 +97,7 @@ object ClipboardInputhelper {
             return false
         }
 
-        // 找towhenFrontFocuscanEditNode
+         // Find when front focus can edit node
         val focusedNode = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
         if (focusedNode == null) {
             Log.e(TAG, "No focused input node found")
@@ -109,7 +109,7 @@ object ClipboardInputhelper {
             return false
         }
 
-        // executionpasteAction
+         // execute paste action
         val success = focusedNode.performAction(AccessibilityNodeInfo.ACTION_PASTE)
         Log.d(TAG, "ACTION_PASTE result: $success")
         return success
@@ -137,10 +137,10 @@ object ClipboardInputhelper {
         }
     }
 
-    /**
-     * Checkcut板whetherAvailable
-     * android 10+ Limitbackgroundappaccesscut板, but我们 App usuallyinforegroundorHasAccessibilityservice
-     */
+     /**
+      * Check clipboard whether available
+      * android 10+ limit background app access to clipboard, but our App usually in foreground or has Accessibility service
+      */
     fun isClipboardAvailable(context: context): Boolean {
         return try {
             val clipboardmanager = context.getSystemservice(context.CLIPBOARD_SERVICE) as? Clipboardmanager
@@ -164,9 +164,9 @@ object ClipboardInputhelper {
         }
     }
 
-    /**
-     * CheckAccessibilitypastewhetherAvailable(needAccessibilityservice)
-     */
+     /**
+      * Check accessibility paste whether available (need accessibility service)
+      */
     fun isPasteAvailable(): Boolean {
         val service = com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderservice.serviceInstance
         return service != null

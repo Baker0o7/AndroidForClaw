@@ -300,9 +300,9 @@ class JsonlsessionStorage(private val context: context) {
         }
     }
 
-    /**
-     * Updatesession元Data
-     */
+     /**
+      * Update session meta data
+      */
     private fun updatesessionMetadata(
         sessionId: String,
         update: (sessionMetadata) -> sessionMetadata
@@ -316,7 +316,7 @@ class JsonlsessionStorage(private val context: context) {
 }
 
 /**
- * session Message (JSONL 每Rowonecount)
+ * session Message (JSONL each row one count)
  */
 data class sessionMessage(
     val role: String,              // "user" | "assistant" | "system" | "tool"
@@ -328,7 +328,7 @@ data class sessionMessage(
 )
 
 /**
- * session 元Data (sessions.json 中Storage)
+ * session Meta Data (sessions.json in Storage)
  */
 data class sessionMetadata(
     val title: String,
