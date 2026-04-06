@@ -11,12 +11,12 @@ package com.xiaomo.androidforclaw.selfcontrol
 /**
  * Skill Interface (Self-Control Module InternalReplica)
  *
- * 为了避免LoopDependency, 这里Copy了 app module 中的 Skill Interface. 
- * 在 app module 集成时, 这些Class会被Replace为 app module 的实际Type. 
+ * To avoid LoopDependency, the Skill Interface from the app module is copied here.
+ * During app module integration, these classes will be replaced with the actual types from the app module.
  */
 
 /**
- * Tool Definition (简化Version, 兼容 OpenAI function calling)
+ * Tool Definition (simplified version, compatible with OpenAI function calling)
  */
 data class ToolDefinition(
     val type: String = "function",
@@ -53,7 +53,7 @@ interface Skill {
 }
 
 /**
- * Skill 执RowResult
+ * Skill execution result
  */
 data class SkillResult(
     val success: Boolean,

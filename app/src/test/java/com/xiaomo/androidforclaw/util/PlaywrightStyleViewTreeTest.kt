@@ -61,7 +61,7 @@ class PlaywrightStyleViewTreeTest {
     @Test
     fun textboxGetsRefAndRole() {
         val nodes = listOf(
-            makeNode(text = "User名", className = "android.widget.EditText")
+            makeNode(text = "Username", className = "android.widget.EditText")
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
         assertTrue("Should map EditText to textbox", result.snapshot.contains("- textbox"))
@@ -91,7 +91,7 @@ class PlaywrightStyleViewTreeTest {
     @Test
     fun statsAreCorrect() {
         val nodes = listOf(
-            makeNode(index = 0, text = "按钮1", className = "android.widget.Button", clickable = true, top = 200),
+            makeNode(index = 0, text = "Button1", className = "android.widget.Button", clickable = true, top = 200),
             makeNode(index = 1, text = "Text", className = "android.widget.TextView", top = 400),
             makeNode(index = 2, className = "android.widget.FrameLayout", top = 100)
         )
@@ -123,7 +123,7 @@ class PlaywrightStyleViewTreeTest {
     @Test
     fun contentDescUsedAsName() {
         val nodes = listOf(
-            makeNode(contentDesc = "Return按钮", className = "android.widget.ImageButton", clickable = true, top = 200)
+            makeNode(contentDesc = "Return button", className = "android.widget.ImageButton", clickable = true, top = 200)
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
         assertTrue("contentDesc should be used as name", result.snapshot.contains("\"Return按钮\""))
