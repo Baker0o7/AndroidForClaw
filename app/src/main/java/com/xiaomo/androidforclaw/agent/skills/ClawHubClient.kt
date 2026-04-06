@@ -79,7 +79,7 @@ class ClawHubClient(private val context: context? = null) {
     }
 
     /**
-     * BuildRequest, Auto附加 Authorization header(ifHas token)
+     * Build Request, auto append Authorization header (if has token)
      */
     private fun buildRequest(url: String): Request.Builder {
         val builder = Request.Builder().url(url)
@@ -112,7 +112,7 @@ class ClawHubClient(private val context: context? = null) {
             if (!response.isSuccessful || body == null) {
                 Log.e(TAG, "Search failed: ${response.code} - ${response.message}")
                 if (response.code == 429) {
-                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API Request被限流 (429)"))
+                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API request rate limited (429)"))
                 }
                 return@withcontext result.failure(
                     exception("Search failed: ${response.code} - ${response.message}")
@@ -130,8 +130,8 @@ class ClawHubClient(private val context: context? = null) {
                         ?: obj.get("slug")?.asString ?: "",
                     description = obj.get("summary")?.takeif { !it.isJsonNull }?.asString ?: "",
                     version = obj.get("version")?.takeif { !it.isJsonNull }?.asString ?: "latest",
-                    author = null,  // v1 API notReturn author
-                    downloads = 0,  // v1 API notReturn downloads
+                    author = null,  // v1 API does not return author
+                    downloads = 0,  // v1 API does not return downloads
                     rating = obj.get("score")?.takeif { !it.isJsonNull }?.asFloat
                 )
             }
@@ -168,7 +168,7 @@ class ClawHubClient(private val context: context? = null) {
 
             if (!response.isSuccessful || body == null) {
                 if (response.code == 429) {
-                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API Request被限流 (429)"))
+                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API request rate limited (429)"))
                 }
                 return@withcontext result.failure(
                     exception("Get details failed: ${response.code} - ${response.message}")
@@ -228,7 +228,7 @@ class ClawHubClient(private val context: context? = null) {
 
             if (!response.isSuccessful || body == null) {
                 if (response.code == 429) {
-                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API Request被限流 (429)"))
+                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API request rate limited (429)"))
                 }
                 return@withcontext result.failure(
                     exception("Get versions failed: ${response.code} - ${response.message}")
@@ -280,10 +280,10 @@ class ClawHubClient(private val context: context? = null) {
 
             if (!response.isSuccessful) {
                 if (response.code == 429) {
-                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API Request被限流 (429)"))
+                    return@withcontext result.failure(ClawHubRateLimitexception("ClawHub API request rate limited (429)"))
                 }
                 return@withcontext result.failure(
-                    exception("nextload failed: ${response.code} - ${response.message}")
+                    exception("Download failed: ${response.code} - ${response.message}")
                 )
             }
 
@@ -328,8 +328,8 @@ class ClawHubClient(private val context: context? = null) {
 }
 
 /**
- * ClawHub 429 限流exception
- * when API Return 429 hour抛出, tool layer据thisHintuser提供 token
+ * ClawHub 429 rate limit exception
+ * Thrown when API returns 429, tool layer hints user to provide token
  */
 class ClawHubRateLimitexception(message: String) : exception(message)
 

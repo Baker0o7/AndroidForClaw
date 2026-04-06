@@ -722,7 +722,7 @@ class agentloop(
                 }
 
                 if (llmDuration > 30_000) {
-                    writeLog("[WARN] LLM Responsetime spent较long: ${llmDuration}ms")
+                    writeLog("[WARN] LLM response time is long: ${llmDuration}ms")
                 }
 
                 // 4.2 display reasoning thinking process (complete content, streaming increment already sent in collect)
@@ -980,11 +980,11 @@ class agentloop(
                     }
 
                     val iterationDuration = System.currentTimeMillis() - iterationStartTime
-                    writeLog("⏱️ 本轮iteration总time spent: ${iterationDuration}ms (LLM: ${llmDuration}ms, execution: ${totalExecDuration}ms)")
+                    writeLog("⏱️ This iteration total time: ${iterationDuration}ms (LLM: ${llmDuration}ms, execution: ${totalExecDuration}ms)")
 
-                    // 单times iteration time spentAlert(only warn, not interrupt)
+                    // Single iteration time warning (only warn, not interrupt)
                     if (iterationDuration > ITERATION_WARN_THRESHOLD_MS) {
-                        writeLog("[WARN] Iteration $iteration time spent较long (${iterationDuration}ms > ${ITERATION_WARN_THRESHOLD_MS}ms)")
+                        writeLog("[WARN] Iteration $iteration time is long (${iterationDuration}ms > ${ITERATION_WARN_THRESHOLD_MS}ms)")
                         Log.w(TAG, "Iteration $iteration slow: ${iterationDuration}ms")
                     }
 
@@ -1233,14 +1233,14 @@ class agentloop(
                         if (isBilling) {
                             append("[WARN] Billing error — please check your account balance or API key quota.")
                         } else {
-                            append("[ERROR] execution出wrong\n\n")
+                            append("[ERROR] Execution error\n\n")
 
                             when (e) {
                                 is com.xiaomo.androidforclaw.providers.LLMexception -> {
-                                    append("**ErrorType**: API callFailed\n")
+                                    append("**ErrorType**: API call failed\n")
                                     append("**ErrorInfo**: ${e.message}\n\n")
-                                    append("**suggest**: please check model config and API key\n")
-                                    append("**configfiles**: ${StoragePaths.openclawconfig.absolutePath}\n")
+                                    append("**Suggestion**: Please check model config and API key\n")
+                                    append("**Config files**: ${StoragePaths.openclawconfig.absolutePath}\n")
                                 }
                                 else -> {
                                     append("**ErrorInfo**: ${e.message}\n")

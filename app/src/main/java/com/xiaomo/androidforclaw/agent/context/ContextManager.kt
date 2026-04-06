@@ -57,9 +57,9 @@ class contextmanager(
         val errorMessage = contextErrors.extractErrorMessage(error)
 
         Log.e(TAG, "detected context exceeded limit: $errorMessage")
-        Log.d(TAG, "whenFrontMessage数: ${messages.size}")
-        Log.d(TAG, "alreadyTry compaction: $compactionAttempts times")
-        Log.d(TAG, "alreadyTry截断: $toolresultTruncationAttempted")
+        Log.d(TAG, "FrontMessage count: ${messages.size}")
+        Log.d(TAG, "Already tried compaction: $compactionAttempts times")
+        Log.d(TAG, "Already tried truncation: $toolresultTruncationAttempted")
 
         // 1. Confirm it's a context overflow error
         if (!contextErrors.islikelycontextoverflowError(errorMessage)) {
@@ -119,7 +119,7 @@ class contextmanager(
                 val truncated = toolresultTruncator.truncatetoolresults(legacyMessages)
                 val newMessages = convertfromLegacyMessages(truncated)
 
-                Log.d(TAG, "工具result截断Complete")
+                Log.d(TAG, "Tool result truncation complete")
 
                 return contextRecoveryresult.Recovered(
                     messages = newMessages,
@@ -127,7 +127,7 @@ class contextmanager(
                     attempt = 1
                 )
             } else {
-                Log.d(TAG, "NoneDetected超big工具result")
+                Log.d(TAG, "No oversized tool results detected")
             }
         }
 
@@ -163,10 +163,10 @@ class contextmanager(
         val result = compactor.compactMessages(legacyMessages, keepLastN = 5)
 
         return if (result.isSuccess) {
-            Log.d(TAG, "PreventivecompressSuccess")
+            Log.d(TAG, "Preemptive compress success")
             convertfromLegacyMessages(result.getorNull()!!)
         } else {
-            Log.w(TAG, "PreventivecompressFailed, use原Message")
+            Log.w(TAG, "Preemptive compress failed, using original messages")
             messages
         }
     }
