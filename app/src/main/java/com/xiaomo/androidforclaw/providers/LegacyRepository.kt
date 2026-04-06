@@ -18,7 +18,7 @@ import com.xiaomo.androidforclaw.util.AppConstants
  * Provides higher-level API wrapper
  * Automatically selects OpenAI or Anthropic format based on config
  *
- * **configcome源**: from /sdcard/.androidforclaw/openclaw.json and models.json Readconfig
+ * **Config source**: from /sdcard/.androidforclaw/openclaw.json and models.json
  */
 class LegacyRepository(
     context: context,
@@ -30,7 +30,7 @@ class LegacyRepository(
         private const val TAG = "LegacyRepository"
     }
 
-    // config loader
+    // Config loader
     private val configLoader = configLoader(context)
 
     // Load OpenClaw config
@@ -38,7 +38,7 @@ class LegacyRepository(
         configLoader.loadOpenClawconfig()
     }
 
-    // Find corresponding provider by defaultmodel
+    // Find corresponding provider by default model
     private fun getproviderforDefaultmodel(): providerconfig? {
         val defaultmodel = openClawconfig.agent.defaultmodel
         val providerName = configLoader.findproviderBymodelId(defaultmodel)
@@ -46,10 +46,10 @@ class LegacyRepository(
         return providerName?.let { configLoader.getproviderconfig(it) }
     }
 
-    // Read API config from config (prioritize constructor parameters, otherwise read from config file)
+    // Read API config (prioritize constructor parameters, otherwise read from config file)
     private val actualApiKey: String by lazy {
         apiKey ?: run {
-            // Read apiKey from provider corresponding to defaultmodel
+            // Read apiKey from provider corresponding to default model
             val provider = getproviderforDefaultmodel() ?: configLoader.getproviderconfig("openrouter")
             provider?.apiKey ?: AppConstants.OPENROUTER_API_KEY
         }
@@ -57,7 +57,7 @@ class LegacyRepository(
 
     private val actualApiBase: String by lazy {
         apiBase ?: run {
-            // Read baseUrl from provider corresponding to defaultmodel
+            // Read baseUrl from provider corresponding to default model
             val provider = getproviderforDefaultmodel() ?: configLoader.getproviderconfig("openrouter")
             provider?.baseUrl ?: "https://openrouter.ai/api/v1"
         }
@@ -65,7 +65,7 @@ class LegacyRepository(
 
     private val actualApiType: String by lazy {
         apiType ?: run {
-            // Read api type from provider corresponding to defaultmodel
+            // Read api type from provider corresponding to default model
             val provider = getproviderforDefaultmodel() ?: configLoader.getproviderconfig("openrouter")
             provider?.api ?: "openai-completions"
         }
@@ -95,11 +95,11 @@ class LegacyRepository(
     }
 
     /**
-     * 带工具callChat
+     * Chat with tools
      *
      * @param messages Message list
-     * @param tools tool definition list
-     * @param model model ID (optional, defaults to agent.defaultmodel from openclaw.json)
+     * @param tools Tool definition list
+     * @param model Model ID (optional, defaults to agent.defaultmodel from openclaw.json)
      * @param reasoningEnabled Whether Extended Thinking is enabled (optional, defaults to thinking.enabled from openclaw.json)
      */
     suspend fun chatwithtools(
@@ -147,11 +147,11 @@ class LegacyRepository(
     }
 
     /**
-     * SimpleChat(None工具)
+     * Simple Chat (without tools)
      *
-     * @param userMessage user message
+     * @param userMessage User message
      * @param systemPrompt System prompt (optional)
-     * @param reasoningEnabled Extended Thinking whetherEnable(Optional, Defaultfrom openclaw.json Read)
+     * @param reasoningEnabled Extended Thinking enabled (optional, defaults from openclaw.json)
      */
     suspend fun simpleChat(
         userMessage: String,
@@ -186,11 +186,11 @@ class LegacyRepository(
     }
 
     /**
-     * ContinueConversation
+     * Continue conversation
      *
      * @param messages Existing message list
-     * @param newuserMessage new user message
-     * @param tools tool definition list(Optional)
+     * @param newUserMessage New user message
+     * @param tools Tool definition list (optional)
      */
     suspend fun continueChat(
         messages: List<LegacyMessage>,
@@ -223,7 +223,7 @@ class LegacyRepository(
     }
 
     /**
-     * GetwhenFrontconfigInfo(用于Debug)
+     * Get front config info (for debug)
      */
     fun getconfigInfo(): String {
         return """

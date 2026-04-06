@@ -5,10 +5,10 @@
 package com.xiaomo.androidforclaw.logging
 
 /**
- * Log Package装器: at the same timeOutputto android.util.Log and AppLog files. 
+ * Log package wrapper: outputs to both android.util.Log and AppLog files.
  *
  * Replace import com.xiaomo.androidforclaw.logging.Log → import com.xiaomo.androidforclaw.logging.Log
- * All Log.d/i/w/e/v callAutoWrite app.log. 
+ * All Log.d/i/w/e/v calls automatically write to app.log.
  */
 object Log {
     fun v(tag: String, msg: String): Int {

@@ -59,8 +59,8 @@ class GatewayWebSocketServer(
     fun getActiveConnections(): Int = connections.size
 
     /**
-     * 本地Processinside直接callregistered RPC Method, bypass WebSocket Networklayer. 
-     * Return JSON String, orinMethodnot找tohour抛出exception. 
+     * Process local requests directly, bypassing WebSocket network layer.
+     * Returns JSON string, or throws exception if method not found.
      */
     suspend fun handleLocalRequest(method: String, paramsJson: String?): Any? {
         val handler = handlers[method] ?: throw IllegalArgumentexception("Unknown method: $method")
@@ -99,7 +99,7 @@ class GatewayWebSocketServer(
     }
 
     override fun serve(session: IHTTPsession): Response {
-        // WebSocket UpgradeRequestmust优先交给 NanoWSD Process, NothenwillReturn 200 而非 101
+        // WebSocket Upgrade Request must be handled by NanoWSD, otherwise returns 200 instead of 101
         val upgradeHeader = session.headers["upgrade"]
         if (upgradeHeader != null && upgradeHeader.equals("websocket", ignoreCase = true)) {
             return super.serve(session)
@@ -107,7 +107,7 @@ class GatewayWebSocketServer(
 
         val uri = session.uri
 
-        // 非 WebSocket Request: Return homepage
+        // Non-WebSocket request: Return homepage
         if (uri == "/" || uri.isEmpty()) {
             return newFixedLengthResponse(
                 Response.Status.OK,

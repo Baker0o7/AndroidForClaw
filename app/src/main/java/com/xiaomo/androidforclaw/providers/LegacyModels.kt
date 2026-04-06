@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.providers
 import com.google.gson.annotations.SerializedName
 
 /**
- * Legacy LLM API Data模型
+ * Legacy LLM API data models
  * Supports Claude Opus 4.6 with Extended Thinking
  */
 
@@ -116,7 +116,7 @@ data class LegacyResponseMessage(
     @SerializedName("tool_calls")
     val toolCalls: List<LegacytoolCall>? = null,
     @SerializedName("reasoning_content")
-    val reasoningContent: String? = null  // Extended Thinking thinkover程
+    val reasoningContent: String? = null  // Extended Thinking reasoning content
 )
 
 data class LegacyUsage(
@@ -127,7 +127,7 @@ data class LegacyUsage(
     @SerializedName("total_tokens")
     val totalTokens: Int = 0,
     @SerializedName("reasoning_tokens")
-    val reasoningTokens: Int? = null  // Reasoning consume token 数
+    val reasoningTokens: Int? = null  // Reasoning token count
 )
 
 // ============= Error models =============

@@ -148,7 +148,7 @@ class agentMethods(
             )
         }
 
-        // 3. not found in either map — already completed or never existed
+        // 3. Not found in either map — already completed or never existed
         return agentWaitResponse(
             runId = params.runId,
             status = "completed",
@@ -221,7 +221,7 @@ Instructions:
                             broadcastEvent("agent.thinking", mapOf(
                                 "runId" to runId,
                                 "iteration" to progress.iteration,
-                                "message" to "currentlyProcess第 ${progress.iteration} step..."
+                                "message" to "currently processing step ${progress.iteration}..."
                             ))
                         }
                         is ProgressUpdate.toolCall -> {

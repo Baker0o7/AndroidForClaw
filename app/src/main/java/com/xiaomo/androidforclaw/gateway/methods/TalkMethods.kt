@@ -11,11 +11,11 @@ import java.util.concurrent.CountnextLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * Talk RPC methods — android TTS implementation
+ * Talk RPC methods — Android TTS implementation
  *
- * 提供 talk.speak(文字转语音)and talk.config(语音config). 
- * use android inside置 TextToSpeech 引擎合成 WAV, base64 EncodeReturn, 
- * and OpenClaw gateway talk.speak Protocolcompletelycorrect齐. 
+ * Provides talk.speak (text to speech) and talk.config (voice config).
+ * Uses Android built-in TextToSpeech engine to synthesize WAV, base64 encode and return,
+ * fully compatible with OpenClaw gateway talk.speak protocol.
  */
 class TalkMethods private constructor(private val context: context) {
 
@@ -47,9 +47,9 @@ class TalkMethods private constructor(private val context: context) {
             ttsReady = status == TextToSpeech.SUCCESS
             if (ttsReady) {
                 tts?.language = Locale.US
-                Log.i(TAG, "android TTS engine initialized")
+                Log.i(TAG, "Android TTS engine initialized")
             } else {
-                Log.e(TAG, "android TTS init failed: $status")
+                Log.e(TAG, "Android TTS init failed: $status")
             }
             initLatch.countnext()
         }
@@ -60,11 +60,11 @@ class TalkMethods private constructor(private val context: context) {
         tts?.shutdown()
         tts = null
         ttsReady = false
-        Log.i(TAG, "android TTS engine shut down")
+        Log.i(TAG, "Android TTS engine shut down")
     }
 
     /**
-     * talk.config — Return语音config(固定DefaultValue)
+     * talk.config — Return voice config (fixed default values)
      */
     fun talkconfig(@Suppress("UNUSED_PARAMETER") params: Any?): Map<String, Any?> {
         return mapOf(
@@ -81,7 +81,7 @@ class TalkMethods private constructor(private val context: context) {
     }
 
     /**
-     * talk.speak — 文字转语音
+     * talk.speak — Text to speech
      *
      * Request: { text, voiceId?, speed?, language?, ... }
      * Response: { audioBase64, provider, mimeType, fileExtension }

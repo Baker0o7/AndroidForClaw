@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * - Structured logging (timestamp, level, tag, message)
  * - Log rotation (size limit)
  * - Categorized storage (app.log, gateway.log)
- * - AsyncWrite: All I/O inbackground单Threadexecution, notBlockcall方
+ * - Async write: All I/O in background thread execution, not blocking callers
  */
 class FileLogger(private val context: context) {
 
@@ -41,12 +41,12 @@ class FileLogger(private val context: context) {
 
     private var loggingEnabled = true
 
-    /** AsyncWritequeue */
+    /** Async write queue */
     private data class LogEntry(val filePath: String, val content: String)
     private val writequeue = LinkedBlockingqueue<LogEntry>()
     private val running = AtomicBoolean(true)
 
-    /** backgroundWriteThread */
+    /** Background write thread */
     private val writerThread = Thread({
         while (running.get() || writequeue.isnotEmpty()) {
             try {
@@ -69,7 +69,7 @@ class FileLogger(private val context: context) {
     }
 
     /**
-     * Log app logs(not再call outputToLogcat, by Log.kt Package装器负责 logcat Output)
+     * Log app logs (don't call output to Logcat, Log.kt wrapper handles Logcat output)
      */
     fun logApp(level: LogLevel, tag: String, message: String, error: Throwable? = null) {
         if (!loggingEnabled) return
@@ -121,7 +121,7 @@ class FileLogger(private val context: context) {
     }
 
     /**
-     * GetLogStatistics info
+     * Get log statistics info
      */
     fun getLogStats(): LogStats {
         val appFile = File(appLogFilePath)
@@ -145,7 +145,7 @@ class FileLogger(private val context: context) {
     }
 
     /**
-     * ExportLog
+     * Export logs
      */
     fun exportLogs(logType: LogType, outputPath: String): Boolean {
         return try {
@@ -160,16 +160,16 @@ class FileLogger(private val context: context) {
                     outputFile.writeText(combined)
                 }
             }
-            Log.i(TAG, "LogalreadyExportto: $outputPath")
+            Log.i(TAG, "Logs exported to: $outputPath")
             true
         } catch (e: exception) {
-            Log.e(TAG, "ExportLogFailed", e)
+            Log.e(TAG, "Export logs failed", e)
             false
         }
     }
 
     /**
-     * Readmost近LogRow
+     * Read recent log lines
      */
     fun readRecentLogs(logType: LogType, lineCount: Int = 100): List<String> {
         val file = when (logType) {
@@ -188,34 +188,34 @@ class FileLogger(private val context: context) {
         }
     }
 
-    /** StopbackgroundWriteThread */
+    /** Stop background write thread */
     fun shutdown() {
         running.set(false)
         writerThread.interrupt()
     }
 
-    // ==================== PrivateMethod ====================
+    // ==================== Private Methods ====================
 
     /**
-     * 实际Writefiles(inbackgroundThreadexecution)
+     * Actually write files (in background thread execution)
      */
     private fun doappendToFile(filePath: String, content: String) {
         try {
             val file = File(filePath)
 
-            // CheckfilesSize, 超overLimitthen轮转
+            // Check file size, rotate if over limit
             if (file.exists() && file.length() > MAX_FILE_SIZE) {
                 rotateLog(file)
             }
 
             file.appendText(content)
         } catch (e: exception) {
-            Log.e(TAG, "WriteLogfilesFailed: $filePath", e)
+            Log.e(TAG, "Write log files failed: $filePath", e)
         }
     }
 
     /**
-     * Log轮转
+     * Log rotation
      */
     private fun rotateLog(file: File) {
         try {
@@ -225,16 +225,16 @@ class FileLogger(private val context: context) {
 
             file.renameTo(archiveFile)
 
-            Log.i(TAG, "Logalready轮转: $archiveName")
+            Log.i(TAG, "Log rotated: $archiveName")
 
             cleanoldArchives(file.parentFile)
         } catch (e: exception) {
-            Log.e(TAG, "Log轮转Failed", e)
+            Log.e(TAG, "Log rotation failed", e)
         }
     }
 
     /**
-     * 清理old归档Log
+     * Clean old archived logs
      */
     private fun cleanoldArchives(logsDir: File?) {
         if (logsDir == null || !logsDir.exists()) return
@@ -248,11 +248,11 @@ class FileLogger(private val context: context) {
             if (archives.size > MAX_ARCHIVED_LOGS) {
                 archives.drop(MAX_ARCHIVED_LOGS).forEach { file ->
                     file.delete()
-                    Log.d(TAG, "DeleteoldLog: ${file.name}")
+                    Log.d(TAG, "Deleted old log: ${file.name}")
                 }
             }
         } catch (e: exception) {
-            Log.e(TAG, "清理old归档Failed", e)
+            Log.e(TAG, "Clean old archives failed", e)
         }
     }
 
@@ -299,7 +299,7 @@ enum class LogType {
 }
 
 /**
- * Logcount
+ * Log count
  */
 data class LogStats(
     val appLogSize: Long,
@@ -326,11 +326,11 @@ data class LogStats(
 }
 
 /**
- * GlobalLogInstance(便捷use)
+ * Global log instance (convenience use)
  *
- * note: AppLog Method只Writefiles, not再call logcat. 
- * logcat Outputby Log.kt Package装器incall AppLog 之outsideIndividualComplete, 
- * 避免 Log.kt → AppLog → FileLogger → outputToLogcat → Log.kt None限Recurse. 
+ * Note: AppLog methods only write to files, do not call logcat.
+ * Logcat output by Log.kt wrapper calls AppLog after completing,
+ * avoid Log.kt → AppLog → FileLogger → outputToLogcat → Log.kt infinite recursion.
  */
 object AppLog {
     private lateinit var fileLogger: FileLogger
