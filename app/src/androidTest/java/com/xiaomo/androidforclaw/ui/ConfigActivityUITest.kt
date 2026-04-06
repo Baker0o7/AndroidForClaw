@@ -14,8 +14,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Config界面 UI Auto化Test
- * TestConfig相关的 UI 交互
+ * Config UI Automation Test
+ * Test Config related UI interactions
  *
  * Run:
  * ./gradlew connectedDebugAndroidTest --tests "ConfigActivityUITest"
@@ -30,21 +30,21 @@ class ConfigActivityUITest {
 
     @Test
     fun testConfigActivity_launches() {
-        // ValidateConfig界面Start - Check API ConfigTitle
+        // Validate Config UI Start - Check API Config Title
         onView(withText("API Config"))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testModelConfiguration_isVisible() {
-        // ValidateFeature开关部分可见
+        // Validate Feature toggle section is visible
         onView(withText("Feature开关"))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testConfigSave_works() {
-        // TestSaveConfig(如果HasSave按钮)
+        // Test Save Config (if has Save button)
         try {
             onView(withText("Save"))
                 .check(matches(isDisplayed()))
@@ -52,20 +52,20 @@ class ConfigActivityUITest {
 
             Thread.sleep(500)
 
-            // ValidateSaveSuccessHint(如果Has)
+            // Validate Save Success Hint (if has)
         } catch (e: Exception) {
-            // 可能NoneSave按钮
+            // May have no Save button
         }
     }
 
     @Test
     fun testBackNavigation_works() {
-        // TestReturn导航
+        // Test Return navigation
         activityRule.scenario.onActivity { activity ->
             activity.onBackPressed()
         }
 
-        // Validate活动已Close
+        // Validate activity is closed
         Thread.sleep(500)
     }
 }

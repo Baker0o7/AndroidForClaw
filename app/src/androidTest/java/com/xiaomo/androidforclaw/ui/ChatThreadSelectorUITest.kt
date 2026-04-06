@@ -13,14 +13,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * ChatThreadSelector UI Auto化Test
+ * ChatThreadSelector UI Automation Test
  *
- * Override场景:
- * 1. Session chip 正常Show
- * 2. 点击切换Session
- * 3. 长按弹出DeleteConfirmConversation框
- * 4. ConfirmDelete触发Callback
- * 5. CancelDeleteCloseConversation框
+ * Override scenarios:
+ * 1. Session chip displays normally
+ * 2. Click to switch Session
+ * 3. Long press shows delete confirmation dialog
+ * 4. Confirm Delete triggers callback
+ * 5. Cancel Delete closes dialog
  *
  * Run:
  * adb shell am instrument -w -e class com.xiaomo.androidforclaw.ui.ChatThreadSelectorUITest \
@@ -45,7 +45,7 @@ class ChatThreadSelectorUITest {
     private val actionCancel get() = res.getString(R.string.action_cancel)
 
     // ========================================================================
-    // 1. Session chip Show
+    // 1. Session chip display
     // ========================================================================
 
     @Test
@@ -64,7 +64,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 2. 点击切换Session
+    // 2. Click to switch Session
     // ========================================================================
 
     @Test
@@ -88,7 +88,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 3. 长按弹出DeleteConfirmConversation框
+    // 3. Long press shows delete confirmation dialog
     // ========================================================================
 
     @Test
@@ -113,7 +113,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 4. ConfirmDelete触发Callback
+    // 4. Confirm Delete triggers callback
     // ========================================================================
 
     @Test
@@ -146,7 +146,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 5. CancelDeleteCloseConversation框
+    // 5. Cancel Delete closes dialog
     // ========================================================================
 
     @Test
@@ -178,7 +178,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 6. NoneDeleteCallback时长按不弹框
+    // 6. Long press doesn't show dialog without Delete callback
     // ========================================================================
 
     @Test
