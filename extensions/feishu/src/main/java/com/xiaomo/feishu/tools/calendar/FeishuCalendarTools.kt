@@ -578,11 +578,11 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
         )
 
         if (attendeeError != null) {
-            response["warning"] = "日程已Create, 但Add参会人Failed: $attendeeError"
+            response["warning"] = "Event created, but failed to add attendees: $attendeeError"
         } else if (allAttendees.isEmpty()) {
-            response["error"] = "日程已Create在apply日历Up, 但未Add任何参会人, User看不到此日程. 请重Newcall时传入 user_open_id Parameters. "
+            response["error"] = "Event created on app calendar, but no attendees added. User cannot see this event. Please call again with user_open_id parameter. "
         } else {
-            response["note"] = "已SuccessAdd ${allAttendees.size} 位参会人, 日程应出now参会人的飞书日历中. "
+            response["note"] = "Successfully added ${allAttendees.size} attendees, event should appear in attendees' Feishu calendars. "
         }
 
         return Toolresult.success(response)
@@ -845,24 +845,24 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
                     ),
                     "calendar_id" to PropertySchema("string", "Calendar ID (optional; primary calendar used if omitted)"),
                     "event_id" to PropertySchema("string", "Event ID"),
-                    "summary" to PropertySchema("string", "日程Title(Optional, 但强烈suggest提供)"),
-                    "description" to PropertySchema("string", "日程Description"),
-                    "start_time" to PropertySchema("string", "Start time(Required). ISO 8601 / RFC 3339 格式(with timezone), e.g. '2024-01-01T00:00:00+08:00'"),
-                    "end_time" to PropertySchema("string", "EndTime(Required). 格式同 start_time. ifUser未指定时长, Default为Start timeBack1小时. "),
-                    "user_open_id" to PropertySchema("string", "当FrontRequestUser的 open_id(Optional, 但强烈suggest提供). 从MessageUpDown文的 SenderId FieldGet, 格式为 ou_xxx. "),
-                    "attendees" to PropertySchema("array", "参会人List. type='user' 时 id 填 open_id, type='third_party' 时 id 填邮箱. ",
-                        items = PropertySchema("object", "参会人 {type, id}")),
+                    "summary" to PropertySchema("string", "Event title (optional, but strongly suggested to provide)"),
+                    "description" to PropertySchema("string", "Event description"),
+                    "start_time" to PropertySchema("string", "Start time (required). ISO 8601 / RFC 3339 format (with timezone), e.g. '2024-01-01T00:00:00+08:00'"),
+                    "end_time" to PropertySchema("string", "End time (required). Same format as start_time. If user does not specify duration, default is 1 hour after start time."),
+                    "user_open_id" to PropertySchema("string", "The open_id of the user making the request (optional, but strongly suggested to provide). Get from the SenderId field in the message, format is ou_xxx."),
+                    "attendees" to PropertySchema("array", "Attendee list. When type='user', id is open_id; when type='third_party', id is email.",
+                        items = PropertySchema("object", "Attendee {type, id}")),
                     "vchat" to PropertySchema("object", "视频会议Info"),
-                    "visibility" to PropertySchema("string", "日程公开Range", enum = listOf("default", "public", "private")),
-                    "attendee_ability" to PropertySchema("string", "参与人Permission(Default can_modify_event)",
+                    "visibility" to PropertySchema("string", "Event visibility", enum = listOf("default", "public", "private")),
+                    "attendee_ability" to PropertySchema("string", "Attendee permission (default: can_modify_event)",
                         enum = listOf("none", "can_see_others", "can_invite_others", "can_modify_event")),
-                    "free_busy_status" to PropertySchema("string", "忙闲Status", enum = listOf("busy", "free")),
-                    "location" to PropertySchema("object", "日程地点Info {name, address, latitude, longitude}"),
-                    "reminders" to PropertySchema("array", "日程NotifyList"),
-                    "recurrence" to PropertySchema("string", "Duplicate日程的Duplicate性Rule(RFC5545 RRULE 格式)"),
-                    "need_notification" to PropertySchema("boolean", "YesNoNotification参会人(delete 时use, Default true)"),
-                    "query" to PropertySchema("string", "Search关Key词(search 时Required)"),
-                    "rsvp_status" to PropertySchema("string", "回复Status(reply 时Required)", enum = listOf("accept", "decline", "tentative")),
+                    "free_busy_status" to PropertySchema("string", "Free/busy status", enum = listOf("busy", "free")),
+                    "location" to PropertySchema("object", "Event location {name, address, latitude, longitude}"),
+                    "reminders" to PropertySchema("array", "Event notification list"),
+                    "recurrence" to PropertySchema("string", "Recurrence rule for recurring event (RFC5545 RRULE format)"),
+                    "need_notification" to PropertySchema("boolean", "Whether to notify attendees (used when deleting, default true)"),
+                    "query" to PropertySchema("string", "Search keyword (required for search action)"),
+                    "rsvp_status" to PropertySchema("string", "Reply status (required for reply action)", enum = listOf("accept", "decline", "tentative")),
                     "page_size" to PropertySchema("integer", "Page size"),
                     "page_token" to PropertySchema("string", "Page token")
                 ),
@@ -877,8 +877,8 @@ class FeishuCalendarEventTool(config: FeishuConfig, client: FeishuClient) : Feis
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarEventAttendeeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_event_attendee"
-    override val description = "飞书日程参会人Manage工具. 当User要求邀请/Add参会人、View参会人List时use. " +
-        "Actions: create(Add参会人), list(Query参会人List). "
+    override val description = "Feishu calendar attendee management tool. Use when user asks to invite/add attendees or view attendee list. " +
+        "Actions: create (add attendees), list (query attendee list). "
 
     override fun isEnabledd() = config.enableCalendarTools
 
@@ -975,16 +975,16 @@ class FeishuCalendarEventAttendeeTool(config: FeishuConfig, client: FeishuClient
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action type", enum = listOf("create", "list")),
-                    "calendar_id" to PropertySchema("string", "日历 ID"),
-                    "event_id" to PropertySchema("string", "日程 ID"),
-                    "attendees" to PropertySchema("array", "参会人List(create 时Required). type=user 时 attendee_id 为 open_id, type=chat 时为 chat_id, type=resource 时为会议室 ID, type=third_party 时为邮箱地址",
-                        items = PropertySchema("object", "参会人 {type, attendee_id}")),
-                    "need_notification" to PropertySchema("boolean", "YesNoSend to attendeeNotification(Default true)"),
-                    "attendee_ability" to PropertySchema("string", "参与人Permission",
+                    "calendar_id" to PropertySchema("string", "Calendar ID"),
+                    "event_id" to PropertySchema("string", "Event ID"),
+                    "attendees" to PropertySchema("array", "Attendee list (required for create). When type=user, attendee_id is open_id; when type=chat, attendee_id is chat_id; when type=resource, attendee_id is room ID; when type=third_party, attendee_id is email",
+                        items = PropertySchema("object", "Attendee {type, attendee_id}")),
+                    "need_notification" to PropertySchema("boolean", "Whether to send notification to attendees (default true)"),
+                    "attendee_ability" to PropertySchema("string", "Attendee permission",
                         enum = listOf("none", "can_see_others", "can_invite_others", "can_modify_event")),
-                    "user_id_type" to PropertySchema("string", "User ID Type(list 时use, Default open_id)",
+                    "user_id_type" to PropertySchema("string", "User ID type (used for list action, default: open_id)",
                         enum = listOf("open_id", "union_id", "user_id")),
-                    "page_size" to PropertySchema("integer", "Page size(Default 50, Max 500)"),
+                    "page_size" to PropertySchema("integer", "Page size (default 50, max 500)"),
                     "page_token" to PropertySchema("string", "Page token")
                 ),
                 required = listOf("action", "calendar_id", "event_id")
@@ -998,8 +998,8 @@ class FeishuCalendarEventAttendeeTool(config: FeishuConfig, client: FeishuClient
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCalendarFreebusyTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_calendar_freebusy"
-    override val description = "【As user】飞书日历忙闲Query工具. 当User要求Query某Time段Inside某人YesNoNull闲、" +
-        "View忙闲Status时use. SupportBatchQuery 1-10 个User的主日历忙闲Info, 用于安排会议Time. "
+    override val description = "Feishu calendar free/busy query tool. Use when user wants to query whether someone is free/busy within a time range, " +
+        "or view free/busy status. Supports batch querying free/busy info for 1-10 users' primary calendars, used for scheduling meetings. "
 
     override fun isEnabledd() = config.enableCalendarTools
 
@@ -1088,9 +1088,9 @@ class FeishuCalendarFreebusyTool(config: FeishuConfig, client: FeishuClient) : F
             parameters = ParametersSchema(
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action type", enum = listOf("list")),
-                    "time_min" to PropertySchema("string", "Query起始Time(ISO 8601 / RFC 3339 格式(with timezone), e.g. '2024-01-01T00:00:00+08:00')"),
-                    "time_max" to PropertySchema("string", "QueryEndTime(ISO 8601 / RFC 3339 格式)"),
-                    "user_ids" to PropertySchema("array", "要QueryBusy/FreeUser ID List(1-10 个User)",
+                    "time_min" to PropertySchema("string", "Query start time (ISO 8601 / RFC 3339 format with timezone), e.g. '2024-01-01T00:00:00+08:00'"),
+                    "time_max" to PropertySchema("string", "Query end time (ISO 8601 / RFC 3339 format)"),
+                    "user_ids" to PropertySchema("array", "User ID list to query busy/free (1-10 users)",
                         items = PropertySchema("string", "User open_id"))
                 ),
                 required = listOf("action", "time_min", "time_max", "user_ids")
