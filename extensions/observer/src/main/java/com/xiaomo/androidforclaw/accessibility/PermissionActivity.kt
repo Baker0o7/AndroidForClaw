@@ -26,14 +26,14 @@ import kotlinx.coroutines.*
 import java.io.File
 
 /**
- * 权限请求 Activity (重构版)
+ * Permission Request Activity (Refactored Version)
  *
- * 主要改进:
- * 1. 异步权限检查 (不阻塞主线程)
- * 2. 降低检查频率 (1秒 -> 2秒)
- * 3. 事件驱动 UI 更新
- * 4. 添加详细状态说明
- * 5. 优化用户体验
+ * Main Improvements:
+ * 1. Async permission check (non-blocking main thread)
+ * 2. Reduced check frequency (1s -> 2s)
+ * 3. Event-driven UI updates
+ * 4. Detailed status descriptions
+ * 5. Optimized user experience
  */
 class PermissionActivity : Activity() {
     companion object {
@@ -41,7 +41,7 @@ class PermissionActivity : Activity() {
         private const val REQUEST_CODE_MEDIA_PROJECTION = 10086
         private const val REQUEST_CODE_ACCESSIBILITY = 1001
         private const val REQUEST_CODE_MANAGE_STORAGE = 1002
-        private const val STATUS_CHECK_INTERVAL = 2000L  // 2秒检查一次 (降低频率)
+        private const val STATUS_CHECK_INTERVAL = 2000L  // Check every 2 seconds (reduced frequency)
     }
 
     private lateinit var binding: ActivityObserverPermissionsBinding
@@ -50,7 +50,7 @@ class PermissionActivity : Activity() {
     // Coroutine scope for this activity
     private val activityScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    // 状态缓存 (避免频繁检查)
+    // Status cache (to avoid frequent checks)
     private var cachedAccessibilityEnabled = false
     private var cachedMediaProjectionAuthorized = false
     private var cachedStorageGranted = false
@@ -72,7 +72,7 @@ class PermissionActivity : Activity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate called")
 
-        // 初始化 MediaProjectionHelper
+        // Initialize MediaProjectionHelper
         val workspace = File("/sdcard/.androidforclaw/workspace")
         val screenshotDir = File(workspace, "screenshots")
         MediaProjectionHelper.initialize(this, screenshotDir)
@@ -82,20 +82,20 @@ class PermissionActivity : Activity() {
 
         setupViews()
 
-        // 初始检查
+        // Initial check
         checkPermissionsAsync("onCreate")
     }
 
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "lifecycle onResume")
-        // 广播权限状态变化，让 app 模块刷新 LiveData
+        // Broadcast permission status change to refresh LiveData in app module
         sendBroadcast(android.content.Intent("com.xiaomo.androidforclaw.PERMISSION_CHANGED"))
-        // 立即刷新一次，覆盖从系统设置/悬浮按钮返回但没有 onActivityResult 的场景
+        // Refresh immediately to cover the case where user returns from system settings/floating button but onActivityResult is not called
         checkPermissionsAsync("onResume")
-        // 启动定期检查
+        // Start periodic check
         startStatusCheck()
-        // 某些 ROM 的无障碍设置写回有延迟，再补一轮延迟刷新
+        // Some ROMs have delays in writing back accessibility settings, add one more delayed refresh
         mainHandler.postDelayed({ checkPermissionsAsync("onResume-delayed-800ms") }, 800)
     }
 
@@ -115,7 +115,7 @@ class PermissionActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
-        // 停止定期检查
+        // Stop periodic check
         stopStatusCheck()
     }
 
@@ -128,34 +128,34 @@ class PermissionActivity : Activity() {
 
     private fun setupViews() {
         binding.apply {
-            // 返回按钮
+            // Back button
             btnBack.setOnClickListener { finish() }
 
-            // 无障碍服务按钮
+            // Accessibility service button
             btnAccessibility.setOnClickListener {
                 Log.d(TAG, "btnAccessibility clicked")
                 requestAccessibilityPermission()
             }
 
-            // 存储权限按钮
+            // Storage permission button
             btnStorage.setOnClickListener {
                 Log.d(TAG, "btnStorage clicked")
                 requestStoragePermission()
             }
 
-            // 录屏权限按钮
+            // Screen recording permission button
             btnScreenCapture.setOnClickListener {
                 Log.d(TAG, "btnScreenCapture clicked")
                 requestMediaProjectionPermission()
             }
 
-            // 一键授权按钮
+            // Grant all button
             btnGrantAll.setOnClickListener {
                 Log.d(TAG, "btnGrantAll clicked")
                 grantAllPermissions()
             }
 
-            // 重置按钮 (隐藏,用于调试)
+            // Reset button (hidden, for debugging)
             tvAllStatus.setOnLongClickListener {
                 showResetDialog()
                 true
@@ -164,14 +164,14 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 异步检查权限状态
+     * Async check permission status
      */
     private fun checkPermissionsAsync(reason: String = "unknown") {
         activityScope.launch {
             try {
                 Log.d(TAG, "checkPermissionsAsync start, reason=$reason")
 
-                // 在后台线程检查
+                // Check on background thread
                 val result = withContext(Dispatchers.IO) {
                     val settingsEnabled = isAccessibilityServiceEnabled()
                     val serviceInstancePresent = AccessibilityBinderService.serviceInstance != null
@@ -200,13 +200,13 @@ class PermissionActivity : Activity() {
                         "storageGranted=${result.storageGranted}"
                 )
 
-                // 更新缓存
+                // Update cache
                 cachedAccessibilityEnabled = result.accessibilityEnabled
                 cachedMediaProjectionAuthorized = result.mediaProjectionAuthorized
                 cachedStorageGranted = result.storageGranted
                 lastCheckTime = System.currentTimeMillis()
 
-                // 在主线程更新 UI
+                // Update UI on main thread
                 withContext(Dispatchers.Main) {
                     updateAccessibilityUI(result.accessibilityEnabled)
                     updateMediaProjectionUI(result.mediaProjectionAuthorized)
@@ -225,21 +225,21 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 检查存储权限是否已授予
+     * Check if storage permission is granted
      */
     private fun isStoragePermissionGranted(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11+ 需要 MANAGE_EXTERNAL_STORAGE
+            // Android 11+ requires MANAGE_EXTERNAL_STORAGE
             Environment.isExternalStorageManager()
         } else {
-            // Android 10 及以下检查 WRITE_EXTERNAL_STORAGE
+            // Android 10 and below check WRITE_EXTERNAL_STORAGE
             checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
                 android.content.pm.PackageManager.PERMISSION_GRANTED
         }
     }
 
     /**
-     * 启动定期状态检查
+     * Start periodic status check
      */
     private fun startStatusCheck() {
         stopStatusCheck()
@@ -255,7 +255,7 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 停止定期状态检查
+     * Stop periodic status check
      */
     private fun stopStatusCheck() {
         statusCheckJob?.cancel()
@@ -264,136 +264,136 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 更新无障碍服务 UI
+     * Update accessibility service UI
      */
     private fun updateAccessibilityUI(isEnabled: Boolean) {
         binding.apply {
             if (isEnabled) {
-                tvAccessibilityStatus.text = "✅ 已启用"
+                tvAccessibilityStatus.text = "✅ Enabled"
                 tvAccessibilityStatus.setTextColor(getColor(android.R.color.holo_green_dark))
                 btnAccessibility.isEnabled = false
-                btnAccessibility.text = "已启用"
+                btnAccessibility.text = "Enabled"
                 btnAccessibility.alpha = 0.5f
 
                 tvAccessibilityDesc.text = """
-                    ✅ 无障碍服务已启用
+                    ✅ Accessibility service enabled
 
-                    功能:
-                    • 点击、滑动、长按
-                    • 输入文本
-                    • 获取界面信息
-                    • 导航 (Home/Back)
+                    Features:
+                    • Click, swipe, long press
+                    • Input text
+                    • Get UI info
+                    • Navigation (Home/Back)
                 """.trimIndent()
             } else {
-                tvAccessibilityStatus.text = "❌ 未启用"
+                tvAccessibilityStatus.text = "❌ Not enabled"
                 tvAccessibilityStatus.setTextColor(getColor(android.R.color.holo_red_dark))
                 btnAccessibility.isEnabled = true
-                btnAccessibility.text = "去设置"
+                btnAccessibility.text = "Go to Settings"
                 btnAccessibility.alpha = 1.0f
 
                 tvAccessibilityDesc.text = """
-                    ⚠️ 需要启用无障碍服务
+                    ⚠️ Accessibility service needs to be enabled
 
-                    步骤:
-                    1. 点击"去设置"按钮
-                    2. 找到 "S4Claw" 或 "无障碍服务"
-                    3. 开启服务开关
-                    4. 授予权限
+                    Steps:
+                    1. Click "Go to Settings" button
+                    2. Find "S4Claw" or "Accessibility services"
+                    3. Turn on the service switch
+                    4. Grant permissions
                 """.trimIndent()
             }
         }
     }
 
     /**
-     * 更新录屏权限 UI
+     * Update screen recording permission UI
      */
     private fun updateMediaProjectionUI(isAuthorized: Boolean) {
         val statusDetails = MediaProjectionHelper.getDetailedStatus()
 
         binding.apply {
             if (isAuthorized) {
-                tvScreenCaptureStatus.text = "✅ 已授权"
+                tvScreenCaptureStatus.text = "✅ Authorized"
                 tvScreenCaptureStatus.setTextColor(getColor(android.R.color.holo_green_dark))
                 btnScreenCapture.isEnabled = false
-                btnScreenCapture.text = "已授权"
+                btnScreenCapture.text = "Authorized"
                 btnScreenCapture.alpha = 0.5f
 
                 tvScreenCaptureDesc.text = """
-                    ✅ 录屏权限已授权
+                    ✅ Screen recording permission authorized
 
-                    状态: $statusDetails
+                    Status: $statusDetails
 
-                    功能:
-                    • 截取屏幕画面
-                    • 分析 UI 元素
-                    • 辅助 Agent 观察
+                    Features:
+                    • Capture screen
+                    • Analyze UI elements
+                    • Assist Agent observation
                 """.trimIndent()
             } else {
-                tvScreenCaptureStatus.text = "❌ 未授权"
+                tvScreenCaptureStatus.text = "❌ Not authorized"
                 tvScreenCaptureStatus.setTextColor(getColor(android.R.color.holo_red_dark))
                 btnScreenCapture.isEnabled = true
-                btnScreenCapture.text = "授予权限"
+                btnScreenCapture.text = "Grant Permission"
                 btnScreenCapture.alpha = 1.0f
 
                 tvScreenCaptureDesc.text = """
-                    ⚠️ 需要授予录屏权限
+                    ⚠️ Screen recording permission needed
 
-                    状态: $statusDetails
+                    Status: $statusDetails
 
-                    说明:
-                    • 点击"授予权限"按钮
-                    • 在弹窗中点击"立即开始"
-                    • 前台服务将自动启动
+                    Note:
+                    • Click "Grant Permission" button
+                    • Click "Start now" in the popup
+                    • Foreground service will start automatically
 
-                    注意: 录屏权限需要前台服务维持
+                    Note: Screen recording permission requires foreground service to maintain
                 """.trimIndent()
             }
         }
     }
 
     /**
-     * 更新存储权限 UI
+     * Update storage permission UI
      */
     private fun updateStorageUI(isGranted: Boolean) {
         binding.apply {
             if (isGranted) {
-                tvStorageStatus.text = "✅ 已授权"
+                tvStorageStatus.text = "✅ Authorized"
                 tvStorageStatus.setTextColor(getColor(android.R.color.holo_green_dark))
                 btnStorage.isEnabled = false
-                btnStorage.text = "已授权"
+                btnStorage.text = "Authorized"
                 btnStorage.alpha = 0.5f
 
                 tvStorageDesc.text = """
-                    ✅ 存储权限已授权
+                    ✅ Storage permission authorized
 
-                    功能:
-                    • 保存截图文件
-                    • 访问工作空间
-                    • 读写配置文件
+                    Features:
+                    • Save screenshot files
+                    • Access workspace
+                    • Read/write config files
                 """.trimIndent()
             } else {
-                tvStorageStatus.text = "❌ 未授权"
+                tvStorageStatus.text = "❌ Not authorized"
                 tvStorageStatus.setTextColor(getColor(android.R.color.holo_red_dark))
                 btnStorage.isEnabled = true
-                btnStorage.text = "授予权限"
+                btnStorage.text = "Grant Permission"
                 btnStorage.alpha = 1.0f
 
                 tvStorageDesc.text = """
-                    ⚠️ 需要授予存储权限
+                    ⚠️ Storage permission needed
 
-                    说明:
-                    • Android 11+ 需要"所有文件访问权限"
-                    • 点击"授予权限"按钮
-                    • 在设置中开启权限
+                    Note:
+                    • Android 11+ requires "All files access"
+                    • Click "Grant Permission" button
+                    • Enable permission in settings
 
-                    注意: 存储权限用于保存截图
+                    Note: Storage permission is used to save screenshots
                 """.trimIndent()
             }
         }
     }
 
     /**
-     * 更新总体状态 UI
+     * Update overall status UI
      */
     private fun updateAllPermissionsUI(accessibilityEnabled: Boolean, mediaProjectionAuthorized: Boolean, storageGranted: Boolean) {
         val allGranted = accessibilityEnabled && mediaProjectionAuthorized && storageGranted
@@ -401,23 +401,23 @@ class PermissionActivity : Activity() {
 
         binding.apply {
             if (allGranted) {
-                tvAllStatus.text = "✅ 所有权限已授予 (3/3)"
+                tvAllStatus.text = "✅ All permissions granted (3/3)"
                 tvAllStatus.setTextColor(getColor(android.R.color.holo_green_dark))
                 btnGrantAll.isEnabled = false
-                btnGrantAll.text = "全部已授权"
+                btnGrantAll.text = "All Authorized"
                 btnGrantAll.alpha = 0.5f
             } else {
-                tvAllStatus.text = "⚠️ 已授予 $grantedCount/3 个权限"
+                tvAllStatus.text = "⚠️ $grantedCount/3 permissions granted"
                 tvAllStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
                 btnGrantAll.isEnabled = true
-                btnGrantAll.text = "一键授权 (${grantedCount}/3)"
+                btnGrantAll.text = "Grant All (${grantedCount}/3)"
                 btnGrantAll.alpha = 1.0f
             }
         }
     }
 
     /**
-     * 请求无障碍服务权限 — 先弹出醒目披露声明（Google Play 合规要求）
+     * Request accessibility permission — Show prominent disclosure first (Google Play compliance)
      */
     private fun requestAccessibilityPermission() {
         android.app.AlertDialog.Builder(this)
@@ -432,21 +432,21 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 打开系统无障碍设置页面
+     * Open system accessibility settings page
      */
     private fun openAccessibilitySettings() {
         try {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             startActivityForResult(intent, REQUEST_CODE_ACCESSIBILITY)
-            Toast.makeText(this, "请找到并启用 S4Claw 无障碍服务", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Please find and enable S4Claw accessibility service", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open accessibility settings", e)
-            Toast.makeText(this, "无法打开无障碍设置", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Cannot open accessibility settings", Toast.LENGTH_SHORT).show()
         }
     }
 
     /**
-     * 请求录屏权限 — 先弹出醒目披露声明（Google Play 合规要求）
+     * Request screen recording permission — Show prominent disclosure first (Google Play compliance)
      */
     private fun requestMediaProjectionPermission() {
         android.app.AlertDialog.Builder(this)
@@ -461,26 +461,26 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 发起系统录屏权限请求
+     * Initiate system screen recording permission request
      */
     private fun startMediaProjectionRequest() {
         try {
             val needsPermission = !MediaProjectionHelper.requestPermission(this)
 
             if (!needsPermission) {
-                Toast.makeText(this, "录屏权限已授予", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Screen recording permission already granted", Toast.LENGTH_SHORT).show()
                 checkPermissionsAsync("requestMediaProjectionPermission-alreadyGranted")
             } else {
-                Toast.makeText(this, "请在弹窗中点击\"立即开始\"", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Please click \"Start now\" in the popup", Toast.LENGTH_LONG).show()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to request media projection", e)
-            Toast.makeText(this, "请求录屏权限失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to request screen recording permission: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     /**
-     * 请求存储权限 — 先弹出醒目披露声明（Google Play 合规要求）
+     * Request storage permission — Show prominent disclosure first (Google Play compliance)
      */
     private fun requestStoragePermission() {
         android.app.AlertDialog.Builder(this)
@@ -495,7 +495,7 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 打开系统存储权限设置
+     * Open system storage permission settings
      */
     private fun openStorageSettings() {
         try {
@@ -504,7 +504,7 @@ class PermissionActivity : Activity() {
                     data = Uri.parse("package:$packageName")
                 }
                 startActivityForResult(intent, REQUEST_CODE_MANAGE_STORAGE)
-                Toast.makeText(this, "请开启\"允许管理所有文件\"权限", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Please enable \"Allow access to all files\" permission", Toast.LENGTH_LONG).show()
             } else {
                 requestPermissions(
                     arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
@@ -513,12 +513,12 @@ class PermissionActivity : Activity() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to request storage permission", e)
-            Toast.makeText(this, "请求存储权限失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to request storage permission: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     /**
-     * 一键授权所有权限
+     * Grant all permissions with one click
      */
     private fun grantAllPermissions() {
         if (!cachedAccessibilityEnabled) {
@@ -531,25 +531,25 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 显示重置对话框 (长按触发)
+     * Show reset dialog (triggered by long press)
      */
     private fun showResetDialog() {
         android.app.AlertDialog.Builder(this)
-            .setTitle("重置权限")
-            .setMessage("确定要重置所有权限吗?\n\n这将:\n• 停止前台服务\n• 清除录屏权限\n• 需要重新授权")
-            .setPositiveButton("重置") { _, _ ->
+            .setTitle("Reset Permissions")
+            .setMessage("Are you sure you want to reset all permissions?\n\nThis will:\n• Stop foreground service\n• Clear screen recording permission\n• Require re-authorization")
+            .setPositiveButton("Reset") { _, _ ->
                 MediaProjectionHelper.releaseCompletely(this)
-                Toast.makeText(this, "权限已重置", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Permissions reset", Toast.LENGTH_SHORT).show()
                 mainHandler.postDelayed({ checkPermissionsAsync() }, 500)
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
     /**
-     * 读取系统设置里的无障碍开关状态。
-     * 注意：从“无权限 -> 有权限”时，系统设置通常比 service 真正连上更早完成，
-     * 所以最终 UI 判定不要只看这里。
+     * Read accessibility switch status in system settings.
+     * Note: When transitioning from "no permission -> has permission", system settings usually complete earlier than
+     * when service truly connects, so final UI judgment should not rely solely on this.
      */
     private fun isAccessibilityServiceEnabled(): Boolean {
         return try {
@@ -578,9 +578,9 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 最终无障碍“已授权”状态判定：
-     * - 只判断系统设置已开 + serviceInstance 已建立
-     * - 不再依赖 rootInActiveWindow；那个更适合作为“当前是否可立即抓 UI”的运行态指标
+     * Final accessibility "authorized" status determination:
+     * - Only check if system settings enabled + serviceInstance established
+     * - No longer rely on rootInActiveWindow; that is more suitable as a runtime indicator for "can immediately capture UI"
      */
     private suspend fun resolveAccessibilityEnabled(): Boolean {
         val settingsEnabled = isAccessibilityServiceEnabled()
@@ -610,25 +610,25 @@ class PermissionActivity : Activity() {
                 val granted = MediaProjectionHelper.handlePermissionResult(this, requestCode, resultCode, data)
 
                 if (granted) {
-                    Toast.makeText(this, "✅ 录屏权限已授予", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "✅ Screen recording permission granted", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "❌ 录屏权限被拒绝", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "❌ Screen recording permission denied", Toast.LENGTH_SHORT).show()
                 }
 
                 mainHandler.postDelayed({ checkPermissionsAsync("onActivityResult-mediaProjection") }, 500)
             }
 
             REQUEST_CODE_ACCESSIBILITY -> {
-                Toast.makeText(this, "正在检查无障碍服务状态...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Checking accessibility service status...", Toast.LENGTH_SHORT).show()
                 mainHandler.postDelayed({ checkPermissionsAsync("onActivityResult-accessibility") }, 1000)
             }
 
             REQUEST_CODE_MANAGE_STORAGE -> {
                 val granted = isStoragePermissionGranted()
                 if (granted) {
-                    Toast.makeText(this, "✅ 存储权限已授予", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "✅ Storage permission granted", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "❌ 存储权限被拒绝", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "❌ Storage permission denied", Toast.LENGTH_SHORT).show()
                 }
                 mainHandler.postDelayed({ checkPermissionsAsync("onActivityResult-storage") }, 500)
             }

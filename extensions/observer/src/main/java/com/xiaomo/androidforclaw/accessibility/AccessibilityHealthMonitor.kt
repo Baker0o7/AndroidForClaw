@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android platform only)
  */
 package com.xiaomo.androidforclaw.accessibility
 
