@@ -52,7 +52,7 @@ private fun buildQuery(vararg pairs: Pair<String, Any?>): String {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 1. FeishuBitableAppTool — Multi-dimensional table格applyManage
+// 1. FeishuBitableAppTool — Multi-dimensional table app management
 //    Translated from: app.js
 //    Actions: create, get, list, patch, copy
 // ═══════════════════════════════════════════════════════════════
@@ -64,9 +64,9 @@ class FeishuBitableAppTool(
 
     override val name = "feishu_bitable_app"
     override val description =
-        "【As user】飞书Multi-dimensional table格applyManage工具. 当User要求Create/Query/ManageMulti-dimensional table格时use. " +
-        "Actions: create(CreateMulti-dimensional table格), get(GetMulti-dimensional table格元Data), list(ListMulti-dimensional table格), " +
-        "patch(Update元Data), delete(DeleteMulti-dimensional table格), copy(CopyMulti-dimensional table格). "
+        "[As user] Feishu Multi-dimensional table app management tool. Use when user asks to create/query/manage multi-dimensional table apps. " +
+        "Actions: create(Create app), get(Get app metadata), list(List apps), " +
+        "patch(Update metadata), delete(Delete app), copy(Copy app). "
 
     override fun isEnabledd() = config.enableBitableTools
 
@@ -124,7 +124,7 @@ class FeishuBitableAppTool(
                 }
 
                 // -----------------------------------------------------------------
-                // LIST — use Drive API Filter bitable Type文件
+                // LIST — use Drive API to filter bitable type files
                 // @aligned openclaw-lark v2026.3.30 — line-by-line
                 // -----------------------------------------------------------------
                 "list" -> {
@@ -145,7 +145,7 @@ class FeishuBitableAppTool(
                     val json = res.getOrNull()
                     val data = json?.getAsJsonObject("data")
 
-                    // Filter出 type === "bitable" 的文件
+                    // Filter out files with type === "bitable"
                     val files = data?.getAsJsonArray("files")
                     val bitables = mutableListOf<Any>()
                     if (files != null) {
@@ -238,12 +238,12 @@ class FeishuBitableAppTool(
                         "string", "Action type",
                         enum = listOf("create", "get", "list", "patch", "copy")
                     ),
-                    "app_token" to PropertySchema("string", "Multi-dimensional table格的Unique标识 token(get/patch/copy Required)"),
-                    "name" to PropertySchema("string", "Multi-dimensional table格Name(create/copy Required, patch Optional)"),
-                    "folder_token" to PropertySchema("string", "所在文件夹 token(DefaultCreate在我的Space)(create/copy/list Optional)"),
-                    "is_advanced" to PropertySchema("boolean", "YesNo开启高级Permission(patch Optional)"),
-                    "page_size" to PropertySchema("number", "Page size, Default 50, Max 200(list Optional)"),
-                    "page_token" to PropertySchema("string", "Page token(list Optional)")
+                    "app_token" to PropertySchema("string", "App token, unique identifier for the multi-dimensional table (get/patch/copy required)"),
+                    "name" to PropertySchema("string", "App name (create/copy required, patch optional)"),
+                    "folder_token" to PropertySchema("string", "Folder token where the app is located (default: my space) (create/copy/list optional)"),
+                    "is_advanced" to PropertySchema("boolean", "Whether to enable advanced permissions (patch optional)"),
+                    "page_size" to PropertySchema("number", "Page size, default 50, max 200 (list optional)"),
+                    "page_token" to PropertySchema("string", "Page token (list optional)")
                 ),
                 required = listOf("action")
             )
@@ -256,7 +256,7 @@ class FeishuBitableAppTool(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 2. FeishuBitableAppTableTool — DataTableManage
+// 2. FeishuBitableAppTableTool — Data table management
 //    Translated from: app-table.js
 //    Actions: create, list, patch, batch_create
 // ═══════════════════════════════════════════════════════════════
@@ -268,9 +268,9 @@ class FeishuBitableAppTableTool(
 
     override val name = "feishu_bitable_app_table"
     override val description =
-        "【As user】飞书Multi-dimensional table格DataTableManage工具. 当User要求Create/Query/ManageDataTable时use. " +
-        "\n\nActions: create(CreateDataTable, Optional择在Create时传入 fields Array定义Field, 或Back续逐个Add), list(ListAllDataTable), patch(UpdateDataTable), batch_create(BatchCreate). " +
-        "\n\n【Field定义方式】Support两种Schema: 1) 明确Requirement时, 在 create 中通过 table.fields 一次性定义AllField(减少 API call)；2) 探索式场景时, useDefaultTable + feishu_bitable_app_table_field 逐步ModifyField(moreStable, 易adjust). "
+        "[As user] Feishu Multi-dimensional table data table management tool. Use when user asks to create/query/manage data tables. " +
+        "\n\nActions: create(Create data table, optionally define fields in the create request or add them later one by one), list(List all data tables), patch(Update data table), batch_create(Batch create). " +
+        "\n\n[Field definition] Supports two schemas: 1) When requirements are clear, define all fields in create via table.fields (reduces API calls); 2) For exploratory scenarios, use default table + feishu_bitable_app_table_field to gradually modify fields (more stable, easier to adjust). "
 
     override fun isEnabledd() = config.enableBitableTools
 
@@ -288,7 +288,7 @@ class FeishuBitableAppTableTool(
                 // -----------------------------------------------------------------
                 // CREATE
                 // @aligned openclaw-lark v2026.3.30 — line-by-line
-                // 特殊Process: 复选框(type=7)和超链接(type=15)Fieldcannot传 property
+                // Special handling: checkbox (type=7) and hyperlink (type=15) fields cannot have property parameter
                 // -----------------------------------------------------------------
                 "create" -> {
                     @Suppress("UNCHECKED_CAST")
@@ -297,7 +297,7 @@ class FeishuBitableAppTableTool(
 
                     Log.i(TAG, "create: app_token=$appToken, table_name=${table["name"]}, fields_count=${(table["fields"] as? List<*>)?.size ?: 0}")
 
-                    // 特殊Process: 复选框(type=7)和超链接(type=15)Fieldcannot传 property
+                    // Special handling: checkbox (type=7) and hyperlink (type=15) fields cannot have property parameter
                     val tableData = table.toMutableMap()
                     @Suppress("UNCHECKED_CAST")
                     val fields = tableData["fields"] as? List<Map<String, Any?>>
@@ -427,24 +427,24 @@ class FeishuBitableAppTableTool(
                         "string", "Action type",
                         enum = listOf("create", "list", "patch", "batch_create")
                     ),
-                    "app_token" to PropertySchema("string", "Multi-dimensional table格 token"),
-                    "table_id" to PropertySchema("string", "DataTable ID(patch Required)"),
-                    "name" to PropertySchema("string", "New的Table名(patch Optional)"),
+                    "app_token" to PropertySchema("string", "Multi-dimensional table app token"),
+                    "table_id" to PropertySchema("string", "Data table ID (patch required)"),
+                    "name" to PropertySchema("string", "New table name (patch optional)"),
                     "table" to PropertySchema(
-                        "object", "DataTable定义(create Required), 含 name、default_view_name、fields",
+                        "object", "Data table definition (create required), includes name, default_view_name, fields",
                         properties = mapOf(
-                            "name" to PropertySchema("string", "DataTableName"),
-                            "default_view_name" to PropertySchema("string", "DefaultViewName"),
-                            "fields" to PropertySchema("array", "FieldList(Optional, 但强烈suggest在CreateTable时就传入AllField, 避免Back续逐个Add). 不传则CreateNullTable. ",
-                                items = PropertySchema("object", "Field定义, 含 field_name、type、property"))
+                            "name" to PropertySchema("string", "Data table name"),
+                            "default_view_name" to PropertySchema("string", "Default view name"),
+                            "fields" to PropertySchema("array", "Field list (optional, but strongly recommended to provide all fields when creating the table to avoid adding them later). If not provided, creates an empty table.",
+                                items = PropertySchema("object", "Field definition, includes field_name, type, property"))
                         )
                     ),
                     "tables" to PropertySchema(
-                        "array", "要BatchCreate的DataTableList(batch_create Required)",
-                        items = PropertySchema("object", "DataTable定义, 含 name")
+                        "array", "List of data tables to batch create (batch_create required)",
+                        items = PropertySchema("object", "Data table definition, includes name")
                     ),
-                    "page_size" to PropertySchema("number", "Page size, Default 50, Max 100(list Optional)"),
-                    "page_token" to PropertySchema("string", "Page token(list Optional)")
+                    "page_size" to PropertySchema("number", "Page size, default 50, max 100 (list optional)"),
+                    "page_token" to PropertySchema("string", "Page token (list optional)")
                 ),
                 required = listOf("action", "app_token")
             )
@@ -457,7 +457,7 @@ class FeishuBitableAppTableTool(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 3. FeishuBitableAppTableFieldTool — Field(Column)Manage
+// 3. FeishuBitableAppTableFieldTool — Field (Column) Management
 //    Translated from: app-table-field.js
 //    Actions: create, list, update, delete
 // ═══════════════════════════════════════════════════════════════
@@ -469,8 +469,8 @@ class FeishuBitableAppTableFieldTool(
 
     override val name = "feishu_bitable_app_table_field"
     override val description =
-        "【As user】飞书Multi-dimensional table格Field(Column)Manage工具. 当User要求Create/Query/Update/DeleteField、adjustTable结构时use. " +
-        "Actions: create(CreateField), list(ListAllField), update(UpdateField, Support只传 field_name 改名), delete(DeleteField). "
+        "[As user] Feishu Multi-dimensional table field (column) management tool. Use when user asks to create/query/update/delete fields, adjust table structure. " +
+        "Actions: create(Create field), list(List all fields), update(Update field, supports renaming by providing field_name only), delete(Delete field). "
 
     override fun isEnabledd() = config.enableBitableTools
 
@@ -490,7 +490,7 @@ class FeishuBitableAppTableFieldTool(
                 // -----------------------------------------------------------------
                 // CREATE
                 // @aligned openclaw-lark v2026.3.30 — line-by-line
-                // 特殊Process: 超链接Field(type=15)和复选框Field(type=7)cannot传 property
+                // Special handling: hyperlink field (type=15) and checkbox field (type=7) cannot have property parameter
                 // -----------------------------------------------------------------
                 "create" -> {
                     val fieldName = args["field_name"] as? String
@@ -500,7 +500,7 @@ class FeishuBitableAppTableFieldTool(
 
                     Log.i(TAG, "create: app_token=$appToken, table_id=$tableId, field_name=$fieldName, type=$type")
 
-                    // 特殊Process: 超链接Field(type=15)和复选框Field(type=7)cannot传 property, even ifYesNullObjectAlso会报错
+                    // Special handling: hyperlink field (type=15) and checkbox field (type=7) cannot have property parameter, even if null object will also cause error
                     @Suppress("UNCHECKED_CAST")
                     var propertyToSend = args["property"] as? Map<String, Any?>
                     if ((type == 15 || type == 7) && propertyToSend != null) {
@@ -569,7 +569,7 @@ class FeishuBitableAppTableFieldTool(
 
                     Log.i(TAG, "update: app_token=$appToken, table_id=$tableId, field_id=$fieldId")
 
-                    // if缺少 type 或 field_name, AutoQuery当FrontFieldInfo
+                    // If type or field_name is missing, auto-query current field info
                     var finalFieldName = args["field_name"] as? String
                     var finalType = (args["type"] as? Number)?.toInt()
                     var finalProperty: Any? = args["property"]
@@ -604,7 +604,7 @@ class FeishuBitableAppTableFieldTool(
                             ))
                         }
 
-                        // Merge: User传的优先, No则用Query到的
+                        // Merge: user provided values take priority, otherwise use queried values
                         if (finalFieldName == null) finalFieldName = currentField.get("field_name")?.asString
                         if (finalType == null) finalType = currentField.get("type")?.asInt
                         if (args["property"] == null && currentField.has("property") && !currentField.get("property").isJsonNull) {
@@ -670,18 +670,18 @@ class FeishuBitableAppTableFieldTool(
                         "string", "Action type",
                         enum = listOf("create", "list", "update", "delete")
                     ),
-                    "app_token" to PropertySchema("string", "Multi-dimensional table格 token"),
-                    "table_id" to PropertySchema("string", "DataTable ID"),
-                    "field_id" to PropertySchema("string", "Field ID(update/delete Required)"),
-                    "field_name" to PropertySchema("string", "FieldName(create Required, update Optional不传则不Modify)"),
-                    "type" to PropertySchema("number", "FieldType(create Required, update Optional不传则AutoQuery): 1=Text, 2=Number, 3=单选, 4=多选, 5=Date, 7=复选框, 11=人员, 13=Phone, 15=超链接, 17=附件, 1001=CreateTime, 1002=ModifyTime等"),
+                    "app_token" to PropertySchema("string", "Multi-dimensional table app token"),
+                    "table_id" to PropertySchema("string", "Data table ID"),
+                    "field_id" to PropertySchema("string", "Field ID (update/delete required)"),
+                    "field_name" to PropertySchema("string", "Field name (create required, update optional - not provided means no change)"),
+                    "type" to PropertySchema("number", "Field type (create required, update optional - not provided will auto-query): 1=Text, 2=Number, 3=Single Select, 4=Multi Select, 5=Date, 7=Checkbox, 11=Person, 13=Phone, 15=Hyperlink, 17=Attachment, 1001=Created Time, 1002=Modified Time, etc."),
                     "property" to PropertySchema("object",
-                        "FieldPropertyConfig(according toType而定, e.g.单选/多选Needoptions, NumberNeedformatter等). " +
-                        "重要: 超链接Field(type=15)Mustcompletely省略此Parameters, 传NullObject {} Also会报错(URLFieldPropertyError). ",
+                        "Field property configuration (varies by type, e.g., single/multi select need options, number needs formatter, etc.). " +
+                        "Important: hyperlink field (type=15) MUST completely omit this parameter, passing null object {} will also cause error (URLFieldPropertyError). ",
                         properties = emptyMap()),
-                    "view_id" to PropertySchema("string", "View ID(list Optional)"),
-                    "page_size" to PropertySchema("number", "Page size, Default 50, Max 100(list Optional)"),
-                    "page_token" to PropertySchema("string", "Page token(list Optional)")
+                    "view_id" to PropertySchema("string", "View ID (list optional)"),
+                    "page_size" to PropertySchema("number", "Page size, default 50, max 100 (list optional)"),
+                    "page_token" to PropertySchema("string", "Page token (list optional)")
                 ),
                 required = listOf("action", "app_token", "table_id")
             )
@@ -694,7 +694,7 @@ class FeishuBitableAppTableFieldTool(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 4. FeishuBitableAppTableRecordTool — Record(Row)Manage
+// 4. FeishuBitableAppTableRecordTool — Record (Row) Management
 //    Translated from: app-table-record.js
 //    Actions: create, list, update, delete, batch_create, batch_update, batch_delete
 // ═══════════════════════════════════════════════════════════════
@@ -706,18 +706,18 @@ class FeishuBitableAppTableRecordTool(
 
     override val name = "feishu_bitable_app_table_record"
     override val description =
-        "【As user】飞书Multi-dimensional table格Record(Row)Manage工具. 当User要求Create/Query/Update/DeleteRecord、SearchData时use. \n\n" +
+        "[As user] Feishu Multi-dimensional table record (row) management tool. Use when user asks to create/query/update/delete records, search data. \n\n" +
         "Actions:\n" +
-        "- create(Create单条Record, use fields Parameters)\n" +
-        "- batch_create(BatchCreateRecord, use records ArrayParameters)\n" +
-        "- list(List/SearchRecord)\n" +
-        "- update(UpdateRecord)\n" +
-        "- delete(DeleteRecord)\n" +
-        "- batch_update(BatchUpdate)\n" +
-        "- batch_delete(BatchDelete)\n\n" +
-        "\u26a0\ufe0f 注意Parameters区别: \n" +
-        "- create use 'fields' Object(单条)\n" +
-        "- batch_create use 'records' Array(Batch)"
+        "- create(Create single record, use fields parameter)\n" +
+        "- batch_create(Batch create records, use records array parameter)\n" +
+        "- list(List/Search records)\n" +
+        "- update(Update record)\n" +
+        "- delete(Delete record)\n" +
+        "- batch_update(Batch update)\n" +
+        "- batch_delete(Batch delete)\n\n" +
+        "\u26a0\ufe0f Note parameter difference: \n" +
+        "- create uses 'fields' object (single record)\n" +
+        "- batch_create uses 'records' array (batch)"
 
     override fun isEnabledd() = config.enableBitableTools
 
@@ -740,18 +740,18 @@ class FeishuBitableAppTableRecordTool(
                 // Cross-action validation: check for 'records' misuse
                 // -----------------------------------------------------------------
                 "create" -> {
-                    // ParametersValidate: CheckYesNo误用了 batch_create 的Parameters格式
+                    // Parameter validation: check if batch_create parameter format was mistakenly used
                     if (args.containsKey("records")) {
                         return@withContext Toolresult.success(mapOf(
                             "error" to "create action does not accept 'records' parameter",
                             "hint" to "Use 'fields' for single record creation. For batch creation, use action: 'batch_create' with 'records' parameter.",
                             "correct_format" to mapOf(
                                 "action" to "create",
-                                "fields" to mapOf("Field名" to "FieldValue")
+                                "fields" to mapOf("field_name" to "field_value")
                             ),
                             "batch_create_format" to mapOf(
                                 "action" to "batch_create",
-                                "records" to listOf(mapOf("fields" to mapOf("Field名" to "FieldValue")))
+                                "records" to listOf(mapOf("fields" to mapOf("field_name" to "field_value")))
                             )
                         ))
                     }
@@ -784,7 +784,7 @@ class FeishuBitableAppTableRecordTool(
                 // Cross-action validation: check for 'records' misuse
                 // -----------------------------------------------------------------
                 "update" -> {
-                    // ParametersValidate: CheckYesNo误用了 batch_update 的Parameters格式
+                    // Parameter validation: check if batch_update parameter format was mistakenly used
                     if (args.containsKey("records")) {
                         return@withContext Toolresult.success(mapOf(
                             "error" to "update action does not accept 'records' parameter",
@@ -792,11 +792,11 @@ class FeishuBitableAppTableRecordTool(
                             "correct_format" to mapOf(
                                 "action" to "update",
                                 "record_id" to "recXXX",
-                                "fields" to mapOf("Field名" to "FieldValue")
+                                "fields" to mapOf("field_name" to "field_value")
                             ),
                             "batch_update_format" to mapOf(
                                 "action" to "batch_update",
-                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("Field名" to "FieldValue")))
+                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("field_name" to "field_value")))
                             )
                         ))
                     }
@@ -846,18 +846,18 @@ class FeishuBitableAppTableRecordTool(
                 // Max 500 limit
                 // -----------------------------------------------------------------
                 "batch_create" -> {
-                    // ParametersValidate: CheckYesNo误用了 create 的Parameters格式
+                    // Parameter validation: check if create parameter format was mistakenly used
                     if (args.containsKey("fields")) {
                         return@withContext Toolresult.success(mapOf(
                             "error" to "batch_create action does not accept 'fields' parameter",
                             "hint" to "Use 'records' array for batch creation. For single record, use action: 'create' with 'fields' parameter.",
                             "correct_format" to mapOf(
                                 "action" to "batch_create",
-                                "records" to listOf(mapOf("fields" to mapOf("Field名" to "FieldValue")))
+                                "records" to listOf(mapOf("fields" to mapOf("field_name" to "field_value")))
                             ),
                             "single_create_format" to mapOf(
                                 "action" to "create",
-                                "fields" to mapOf("Field名" to "FieldValue")
+                                "fields" to mapOf("field_name" to "field_value")
                             )
                         ))
                     }
@@ -897,19 +897,19 @@ class FeishuBitableAppTableRecordTool(
                 // Max 500 limit
                 // -----------------------------------------------------------------
                 "batch_update" -> {
-                    // ParametersValidate: CheckYesNo误用了 update 的Parameters格式
+                    // Parameter validation: check if update parameter format was mistakenly used
                     if (args.containsKey("record_id") || args.containsKey("fields")) {
                         return@withContext Toolresult.success(mapOf(
                             "error" to "batch_update action does not accept 'record_id' or 'fields' parameters",
                             "hint" to "Use 'records' array for batch update. For single record, use action: 'update' with 'record_id' + 'fields' parameters.",
                             "correct_format" to mapOf(
                                 "action" to "batch_update",
-                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("Field名" to "FieldValue")))
+                                "records" to listOf(mapOf("record_id" to "recXXX", "fields" to mapOf("field_name" to "field_value")))
                             ),
                             "single_update_format" to mapOf(
                                 "action" to "update",
                                 "record_id" to "recXXX",
-                                "fields" to mapOf("Field名" to "FieldValue")
+                                "fields" to mapOf("field_name" to "field_value")
                             )
                         ))
                     }
@@ -974,7 +974,7 @@ class FeishuBitableAppTableRecordTool(
                 }
 
                 // -----------------------------------------------------------------
-                // LIST (P0) — use search API(Old list API 已废弃)
+                // LIST (P0) — use search API (old list API is deprecated)
                 // @aligned openclaw-lark v2026.3.30 — line-by-line
                 // filter is STRUCTURED OBJECT; page_size/page_token as QUERY PARAMS
                 // isEmpty/isNotEmpty auto-fix: add value=[]
@@ -1001,7 +1001,7 @@ class FeishuBitableAppTableRecordTool(
                     if (viewId != null) searchData["view_id"] = viewId
                     if (fieldNames != null) searchData["field_names"] = fieldNames
 
-                    // 特殊Process: isEmpty/isNotEmpty Must带 value=[](even if逻辑Up不NeedValue)
+                    // Special handling: isEmpty/isNotEmpty must have value=[] (even if logically not needed)
                     if (filter != null) {
                         val filterCopy = filter!!.toMutableMap()
                         @Suppress("UNCHECKED_CAST")
@@ -1065,51 +1065,51 @@ class FeishuBitableAppTableRecordTool(
                         "string", "Action type",
                         enum = listOf("create", "list", "update", "delete", "batch_create", "batch_update", "batch_delete")
                     ),
-                    "app_token" to PropertySchema("string", "Multi-dimensional table格 token"),
-                    "table_id" to PropertySchema("string", "DataTable ID"),
-                    "record_id" to PropertySchema("string", "Record ID(update/delete Required)"),
+                    "app_token" to PropertySchema("string", "Multi-dimensional table app token"),
+                    "table_id" to PropertySchema("string", "Data table ID"),
+                    "record_id" to PropertySchema("string", "Record ID (update/delete required)"),
                     "fields" to PropertySchema("object",
-                        "RecordField(单条Record). Key为Field名, Valueaccording toFieldType而定: \n" +
+                        "Record fields (single record). Key is field name, value depends on field type: \n" +
                         "- Text: string\n" +
                         "- Number: number\n" +
-                        "- 单选: string(Options名)\n" +
-                        "- 多选: string[](Options名Array)\n" +
-                        "- Date: number(Millisecond timestamp, such as 1740441600000)\n" +
-                        "- 复选框: boolean\n" +
-                        "- 人员: [{id: 'ou_xxx'}]\n" +
-                        "- 附件: [{file_token: 'xxx'}]\n" +
-                        "注意: create 只Create单条Record；BatchCreate请use batch_create",
+                        "- Single select: string (option name)\n" +
+                        "- Multi select: string[] (option names array)\n" +
+                        "- Date: number (millisecond timestamp, e.g., 1740441600000)\n" +
+                        "- Checkbox: boolean\n" +
+                        "- Person: [{id: 'ou_xxx'}]\n" +
+                        "- Attachment: [{file_token: 'xxx'}]\n" +
+                        "Note: create only creates single record; for batch create use batch_create",
                         properties = emptyMap()),
                     "records" to PropertySchema(
                         "array",
-                        "RecordArray(batch_create 为 [{fields: {...}}], batch_update 为 [{record_id, fields: {...}}])(most多 500 条)",
-                        items = PropertySchema("object", "RecordObject")
+                        "Record array (batch_create is [{fields: {...}}], batch_update is [{record_id, fields: {...}}]) (max 500 records)",
+                        items = PropertySchema("object", "Record object")
                     ),
                     "record_ids" to PropertySchema(
                         "array",
-                        "要Delete的Record ID List(batch_delete Required, most多 500 条)",
-                        items = PropertySchema("string", "record_id String")
+                        "List of record IDs to delete (batch_delete required, max 500 records)",
+                        items = PropertySchema("string", "record_id string")
                     ),
-                    "view_id" to PropertySchema("string", "View ID(list Optional, suggest指定以obtainmoreokPerformance)"),
+                    "view_id" to PropertySchema("string", "View ID (list optional, recommended to specify for better performance)"),
                     "field_names" to PropertySchema(
-                        "array", "要Return的Field名List(list Optional, 不指定则ReturnAllField)",
-                        items = PropertySchema("string", "Field名")
+                        "array", "List of field names to return (list optional, returns all fields if not specified)",
+                        items = PropertySchema("string", "Field name")
                     ),
                     "filter" to PropertySchema(
                         "object",
-                        "FilterCondition(list Optional, MustYes结构化Object). 示例: {conjunction: 'and', conditions: [{field_name: 'Text', operator: 'is', value: ['Test']}]}",
+                        "Filter condition (list optional, must be structured object). Example: {conjunction: 'and', conditions: [{field_name: 'Text', operator: 'is', value: ['Test']}]}",
                         properties = mapOf(
-                            "conjunction" to PropertySchema("string", "Condition逻辑: and(All satisfied)or(任一satisfy)"),
-                            "conditions" to PropertySchema("array", "FilterConditionList", items = PropertySchema("object", "ConditionObject, 含 field_name, operator, value"))
+                            "conjunction" to PropertySchema("string", "Condition logic: and (all satisfied) or (any satisfy)"),
+                            "conditions" to PropertySchema("array", "Filter condition list", items = PropertySchema("object", "Condition object, includes field_name, operator, value"))
                         )
                     ),
                     "sort" to PropertySchema(
-                        "array", "SortRule(list Optional)",
-                        items = PropertySchema("object", "SortObject, 含 field_name, desc")
+                        "array", "Sort rules (list optional)",
+                        items = PropertySchema("object", "Sort object, includes field_name, desc")
                     ),
-                    "automatic_fields" to PropertySchema("boolean", "YesNoReturnAutoField(created_time, last_modified_time, created_by, last_modified_by), Default false(list Optional)"),
-                    "page_size" to PropertySchema("number", "Page size, Default 50, Max 500(list Optional)"),
-                    "page_token" to PropertySchema("string", "Page token(list Optional)")
+                    "automatic_fields" to PropertySchema("boolean", "Whether to return auto fields (created_time, last_modified_time, created_by, last_modified_by), default false (list optional)"),
+                    "page_size" to PropertySchema("number", "Page size, default 50, max 500 (list optional)"),
+                    "page_token" to PropertySchema("string", "Page token (list optional)")
                 ),
                 required = listOf("action", "app_token", "table_id")
             )
@@ -1122,7 +1122,7 @@ class FeishuBitableAppTableRecordTool(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 5. FeishuBitableAppTableViewTool — ViewManage
+// 5. FeishuBitableAppTableViewTool — View Management
 //    Translated from: app-table-view.js
 //    Actions: create, get, list, patch
 // ═══════════════════════════════════════════════════════════════
@@ -1134,8 +1134,8 @@ class FeishuBitableAppTableViewTool(
 
     override val name = "feishu_bitable_app_table_view"
     override val description =
-        "【As user】飞书Multi-dimensional table格ViewManage工具. 当User要求Create/Query/UpdateView、switch展示方式时use. " +
-        "Actions: create(CreateView), get(GetViewDetails), list(ListAllView), patch(UpdateView). "
+        "[As user] Feishu Multi-dimensional table view management tool. Use when user asks to create/query/update views, switch display mode. " +
+        "Actions: create(Create view), get(Get view details), list(List all views), patch(Update view). "
 
     override fun isEnabledd() = config.enableBitableTools
 
@@ -1270,13 +1270,13 @@ class FeishuBitableAppTableViewTool(
                         "string", "Action type",
                         enum = listOf("create", "get", "list", "patch")
                     ),
-                    "app_token" to PropertySchema("string", "Multi-dimensional table格 token"),
-                    "table_id" to PropertySchema("string", "DataTable ID"),
-                    "view_id" to PropertySchema("string", "View ID(get/patch Required)"),
-                    "view_name" to PropertySchema("string", "ViewName(create Required, patch Optional)"),
-                    "view_type" to PropertySchema("string", "ViewType(create Optional, Default grid): grid=TableView, kanban=看板View, gallery=AlbumView, gantt=甘特Graph, form=Table单View"),
-                    "page_size" to PropertySchema("number", "Page size, Default 50, Max 100(list Optional)"),
-                    "page_token" to PropertySchema("string", "Page token(list Optional)")
+                    "app_token" to PropertySchema("string", "Multi-dimensional table app token"),
+                    "table_id" to PropertySchema("string", "Data table ID"),
+                    "view_id" to PropertySchema("string", "View ID (get/patch required)"),
+                    "view_name" to PropertySchema("string", "View name (create required, patch optional)"),
+                    "view_type" to PropertySchema("string", "View type (create optional, default grid): grid=Table view, kanban=Kanban view, gallery=Album view, gantt=Gantt chart, form=Form view"),
+                    "page_size" to PropertySchema("number", "Page size, default 50, max 100 (list optional)"),
+                    "page_token" to PropertySchema("string", "Page token (list optional)")
                 ),
                 required = listOf("action", "app_token", "table_id")
             )
