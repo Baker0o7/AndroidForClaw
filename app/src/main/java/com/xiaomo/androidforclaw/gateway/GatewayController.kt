@@ -6,30 +6,30 @@
  */
 package com.xiaomo.androidforclaw.gateway
 
-import android.content.context
-import com.xiaomo.androidforclaw.agent.context.contextBuilder
-import com.xiaomo.androidforclaw.agent.loop.agentloop
-import com.xiaomo.androidforclaw.agent.session.sessionmanager
-import com.xiaomo.androidforclaw.gateway.methods.agentMethods
+import android.content.Context
+import com.xiaomo.androidforclaw.agent.context.ContextBuilder
+import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.session.SessionManager
+import com.xiaomo.androidforclaw.gateway.methods.AgentMethods
 import com.xiaomo.androidforclaw.gateway.methods.HealthMethods
-import com.xiaomo.androidforclaw.gateway.methods.sessionMethods
-import com.xiaomo.androidforclaw.gateway.methods.modelsMethods
-import com.xiaomo.androidforclaw.gateway.methods.toolsMethods
-import com.xiaomo.androidforclaw.gateway.methods.skillsMethods
-import com.xiaomo.androidforclaw.gateway.methods.configMethods
+import com.xiaomo.androidforclaw.gateway.methods.SessionMethods
+import com.xiaomo.androidforclaw.gateway.methods.ModelsMethods
+import com.xiaomo.androidforclaw.gateway.methods.ToolsMethods
+import com.xiaomo.androidforclaw.gateway.methods.SkillsMethods
+import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
 import com.xiaomo.androidforclaw.gateway.methods.TalkMethods
 import com.xiaomo.androidforclaw.gateway.methods.CronMethods
-import com.xiaomo.androidforclaw.agent.skills.skillsLoader
-import com.xiaomo.androidforclaw.agent.tools.toolRegistry
-import com.xiaomo.androidforclaw.agent.tools.androidtoolRegistry
-import com.xiaomo.androidforclaw.gateway.protocol.agentParams
-import com.xiaomo.androidforclaw.gateway.protocol.agentWaitParams
+import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
+import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
+import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
+import com.xiaomo.androidforclaw.gateway.protocol.AgentParams
+import com.xiaomo.androidforclaw.gateway.protocol.AgentWaitParams
 import com.xiaomo.androidforclaw.gateway.protocol.EventFrame
 import com.xiaomo.androidforclaw.gateway.security.TokenAuth
 import com.xiaomo.androidforclaw.gateway.websocket.GatewayWebSocketServer
 import fi.iki.elonen.NanoHTTPD
 import com.xiaomo.androidforclaw.providers.LegacyMessage
-import com.xiaomo.androidforclaw.providers.llm.tonewMessage
+import com.xiaomo.androidforclaw.providers.llm.toNewMessage
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +37,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.util.SPhelper
-import java.io.IOexception
+import com.xiaomo.androidforclaw.util.SPHelper
+import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import org.json.JSONObject
@@ -46,34 +46,34 @@ import org.json.JSONObject
 /**
  * Main Gateway controller that integrates all components:
  * - WebSocket RPC server (Protocol v3)
- * - agent methods
- * - session methods
+ * - Agent methods
+ * - Session methods
  * - Health methods
  * - Token authentication
  *
  * Aligned with OpenClaw Gateway architecture
  */
 class GatewayController(
-    private val context: context,
-    private val agentloop: agentloop,
-    private val sessionmanager: sessionmanager,
-    private val toolRegistry: toolRegistry,
-    private val androidtoolRegistry: androidtoolRegistry,
-    private val skillsLoader: skillsLoader,
+    private val context: Context,
+    private val agentLoop: AgentLoop,
+    private val sessionManager: SessionManager,
+    private val toolRegistry: ToolRegistry,
+    private val androidToolRegistry: AndroidToolRegistry,
+    private val skillsLoader: SkillsLoader,
     private val port: Int = 8765,
     private val authToken: String? = null
 ) {
     private val TAG = "GatewayController"
 
-    // contextBuilder for full system prompt (SOUL.md, AGENTS.md, skills, etc.)
-    private val contextBuilder: contextBuilder by lazy {
-        contextBuilder(
+    // ContextBuilder for full system prompt (SOUL.md, AGENTS.md, skills, etc.)
+    private val contextBuilder: ContextBuilder by lazy {
+        ContextBuilder(
             context = context,
             toolRegistry = toolRegistry,
-            androidtoolRegistry = androidtoolRegistry
+            androidToolRegistry = androidToolRegistry
         )
     }
-    private companion object {
+    companion object {
         private const val PREF_THINKING_LEVEL = "chat_thinking_level"
     }
     private var server: GatewayWebSocketServer? = null
@@ -82,27 +82,27 @@ class GatewayController(
 
     // Active agent runs: runId -> coroutine Job (for abort support)
     private val activeJobs = ConcurrentHashMap<String, Job>()
-    // Per-session agentloop instances (so sessions don't share shouldStop flag)
-    private val sessionagentloops = ConcurrentHashMap<String, agentloop>()
+    // Per-session AgentLoop instances (so sessions don't share shouldStop flag)
+    private val sessionAgentLoops = ConcurrentHashMap<String, AgentLoop>()
     // Map runId -> sessionKey for abort routing
-    private val runTosession = ConcurrentHashMap<String, String>()
+    private val runToSession = ConcurrentHashMap<String, String>()
 
-    private lateinit var agentMethods: agentMethods
-    private lateinit var sessionMethods: sessionMethods
+    private lateinit var agentMethods: AgentMethods
+    private lateinit var sessionMethods: SessionMethods
     private lateinit var healthMethods: HealthMethods
-    private lateinit var modelsMethods: modelsMethods
-    private lateinit var toolsMethods: toolsMethods
-    private lateinit var skillsMethods: skillsMethods
-    private lateinit var configMethods: configMethods
+    private lateinit var modelsMethods: ModelsMethods
+    private lateinit var toolsMethods: ToolsMethods
+    private lateinit var skillsMethods: SkillsMethods
+    private lateinit var configMethods: ConfigMethods
     private lateinit var talkMethods: TalkMethods
 
     var isRunning = false
         private set
 
-    /** 本地ProcessinsideEventreceive器, by LocalGatewaychannel Register, bypass WebSocket 直receive取Event.  */
+    /** Local Process inside event receiver, registered by LocalGatewayChannel, bypass WebSocket to directly receive events. */
     @Volatile var localEventSink: ((event: String, payloadJson: String) -> Unit)? = null
 
-    /** BroadcastEvent: at the same time发给 WebSocket Clientand本地 channel.  */
+    /** Broadcast event: at the same time send to WebSocket clients and local channel. */
     private fun broadcastEvent(frame: EventFrame) {
         server?.broadcast(frame)
         localEventSink?.let { sink ->
@@ -136,19 +136,19 @@ class GatewayController(
                 context = context,
                 port = port,
                 tokenAuth = tokenAuth
-            ).app {
+            ).apply {
                 // Initialize method handlers
-                agentMethods = agentMethods(context, agentloop, sessionmanager, this, activeJobs)
-                sessionMethods = sessionMethods(sessionmanager)
+                agentMethods = AgentMethods(context, agentLoop, sessionManager, this, activeJobs)
+                sessionMethods = SessionMethods(sessionManager)
                 healthMethods = HealthMethods()
-                modelsMethods = modelsMethods(context)
-                toolsMethods = toolsMethods(toolRegistry, androidtoolRegistry)
-                skillsMethods = skillsMethods(context)
-                configMethods = configMethods(context)
+                modelsMethods = ModelsMethods(context)
+                toolsMethods = ToolsMethods(toolRegistry, androidToolRegistry)
+                skillsMethods = SkillsMethods(context)
+                configMethods = ConfigMethods(context)
                 talkMethods = TalkMethods.getInstance(context)
                 talkMethods.init()
 
-                // ── OpenClaw loopback handshake ───────────────────────────
+                // OpenClaw loopback handshake
                 // Client (OpenClaw android) sends "connect" after receiving
                 // the "connect.challenge" event.  We respond with server info.
                 registerMethod("connect") { _ ->
@@ -157,12 +157,12 @@ class GatewayController(
                         "auth" to mapOf("deviceToken" to null),
                         "canvasHostUrl" to null,
                         "snapshot" to mapOf(
-                            "sessionDefaults" to mapOf("mainsessionKey" to "main")
+                            "sessionDefaults" to mapOf("mainSessionKey" to "main")
                         )
                     )
                 }
 
-                // ── OpenClaw chat protocol ─────────────────────────────────
+                // OpenClaw chat protocol
                 // chat.send: run agent asynchronously, stream "agent" events,
                 // finish with a "chat" final event.
                 registerMethod("chat.send") { params ->
@@ -171,7 +171,7 @@ class GatewayController(
                     val sessionKey = p["sessionKey"] as? String ?: "default"
                     val userMsg = p["message"] as? String ?: ""
                     val thinking = p["thinking"] as? String ?: "off"
-                    SPhelper.getInstance(context).saveData(PREF_THINKING_LEVEL, thinking)
+                    SPHelper.getInstance(context).saveData(PREF_THINKING_LEVEL, thinking)
                     val reasoningEnabled = thinking != "off"
                     @Suppress("UNCHECKED_CAST")
                     val attachments = p["attachments"] as? List<Map<String, Any?>> ?: emptyList()
@@ -187,13 +187,13 @@ class GatewayController(
                             val source = att["source"] as? Map<*, *>
                             val rawBase64 = source?.get("data") as? String
                             val mimeType = source?.get("media_type") as? String ?: "image/jpeg"
-                            if (!rawBase64.isNullorBlank()) {
+                            if (!rawBase64.isNullOrBlank()) {
                                 val sanitized = com.xiaomo.androidforclaw.media.ImageSanitizer.sanitize(
                                     base64Data = rawBase64,
                                     sourceMimeType = mimeType
                                 )
                                 if (sanitized != null) {
-                                    imageBlocks.a(com.xiaomo.androidforclaw.providers.llm.ImageBlock(
+                                    imageBlocks.add(com.xiaomo.androidforclaw.providers.llm.ImageBlock(
                                         base64 = sanitized.base64,
                                         mimeType = sanitized.mimeType
                                     ))
@@ -203,7 +203,7 @@ class GatewayController(
                             // OpenAI format: { type: "image_url", image_url: { url: "data:...;base64,..." } }
                             val imageUrl = att["image_url"] as? Map<*, *>
                             val url = imageUrl?.get("url") as? String
-                            if (url != null && url.startswith("data:")) {
+                            if (url != null && url.startsWith("data:")) {
                                 val parts = url.removePrefix("data:").split(";base64,", limit = 2)
                                 if (parts.size == 2) {
                                     val sanitized = com.xiaomo.androidforclaw.media.ImageSanitizer.sanitize(
@@ -211,7 +211,7 @@ class GatewayController(
                                         sourceMimeType = parts[0]
                                     )
                                     if (sanitized != null) {
-                                        imageBlocks.a(com.xiaomo.androidforclaw.providers.llm.ImageBlock(
+                                        imageBlocks.add(com.xiaomo.androidforclaw.providers.llm.ImageBlock(
                                             base64 = sanitized.base64,
                                             mimeType = sanitized.mimeType
                                         ))
@@ -222,51 +222,51 @@ class GatewayController(
                         }
                     }
 
-                    // Build content as raw maps — lossless roundtrip through sessionmanager
+                    // Build content as raw maps — lossless roundtrip through sessionManager
                     val textPart: Map<String, Any?> = mapOf("type" to "text", "text" to userMsg)
                     val userContent: Any = if (attachments.isEmpty()) {
                         userMsg
                     } else {
-                        mutableListOf(textPart).app { aAll(attachments) }
+                        mutableListOf(textPart).apply { addAll(attachments) }
                     }
 
-                    // Store user message via sessionmanager
-                    val session = sessionmanager.getorCreate(sessionKey)
-                    session.aMessage(LegacyMessage(role = "user", content = userContent))
-                    sessionmanager.save(session)
+                    // Store user message via sessionManager
+                    val session = sessionManager.getOrCreate(sessionKey)
+                    session.addMessage(LegacyMessage(role = "user", content = userContent))
+                    sessionManager.save(session)
 
                     // Build context history from session messages
-                    val contextHistory = session.messages.dropLast(1).map { it.tonewMessage() }
+                    val contextHistory = session.messages.dropLast(1).map { it.toNewMessage() }
 
-                    // cancel previous run for the SAME session only
+                    // Cancel previous run for the same session only
                     // Find runIds belonging to this session and cancel them
-                    runTosession.entries.filter { it.value == sessionKey }.forEach { (oldRunId, _) ->
-                        Log.w(TAG, "🛑 [chat.send] cancelling previous run $oldRunId for session $sessionKey")
-                        sessionagentloops[sessionKey]?.stop()
+                    runToSession.entries.filter { it.value == sessionKey }.forEach { (oldRunId, _) ->
+                        Log.w(TAG, "[chat.send] cancelling previous run $oldRunId for session $sessionKey")
+                        sessionAgentLoops[sessionKey]?.stop()
                         activeJobs[oldRunId]?.cancel()
                         activeJobs.remove(oldRunId)
-                        runTosession.remove(oldRunId)
+                        runToSession.remove(oldRunId)
                     }
 
-                    // Create a per-session agentloop so sessions don't share shouldStop flag
-                    val llmprovider = com.xiaomo.androidforclaw.providers.UnifiedLLMprovider(context)
-                    val persessionloop = agentloop(
-                        llmprovider = llmprovider,
+                    // Create a per-session AgentLoop so sessions don't share shouldStop flag
+                    val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(context)
+                    val perSessionLoop = AgentLoop(
+                        llmProvider = llmProvider,
                         toolRegistry = toolRegistry,
-                        androidtoolRegistry = androidtoolRegistry
+                        androidToolRegistry = androidToolRegistry
                     )
-                    // Copy extra tools from the shared agentloop if any
-                    persessionloop.extratools = agentloop.extratools
-                    sessionagentloops[sessionKey] = persessionloop
-                    runTosession[runId] = sessionKey
+                    // Copy extra tools from the shared AgentLoop if any
+                    perSessionLoop.extraTools = agentLoop.extraTools
+                    sessionAgentLoops[sessionKey] = perSessionLoop
+                    runToSession[runId] = sessionKey
 
                     val job = serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                         // Track tool call IDs for correlating start/result pairs
-                        val pendingtoolCallIds = ConcurrentHashMap<String, String>()
+                        val pendingToolCallIds = ConcurrentHashMap<String, String>()
 
-                        // collect streaming progress events in parallel
+                        // Collect streaming progress events in parallel
                         val streamJob = launch {
-                            persessionloop.progressFlow.collect { update ->
+                            perSessionLoop.progressFlow.collect { update ->
                                 when (update) {
                                     is ProgressUpdate.BlockReply -> {
                                         broadcastEvent(EventFrame(event = "agent", payload = mapOf(
@@ -275,9 +275,9 @@ class GatewayController(
                                             "data" to mapOf("text" to update.text)
                                         )))
                                     }
-                                    is ProgressUpdate.toolCall -> {
+                                    is ProgressUpdate.ToolCall -> {
                                         val toolCallId = "tc_${UUID.randomUUID()}"
-                                        pendingtoolCallIds[update.name] = toolCallId
+                                        pendingToolCallIds[update.name] = toolCallId
                                         broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
                                             "stream" to "tool",
@@ -289,8 +289,8 @@ class GatewayController(
                                             )
                                         )))
                                     }
-                                    is ProgressUpdate.toolresult -> {
-                                        val toolCallId = pendingtoolCallIds.remove(update.name) ?: "tc_${UUID.randomUUID()}"
+                                    is ProgressUpdate.ToolResult -> {
+                                        val toolCallId = pendingToolCallIds.remove(update.name) ?: "tc_${UUID.randomUUID()}"
                                         broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
                                             "stream" to "tool",
@@ -315,7 +315,7 @@ class GatewayController(
                             )
                             Log.d(TAG, "[OK] Gateway system prompt built (${systemPrompt.length} chars)")
 
-                            val result = persessionloop.run(
+                            val result = perSessionLoop.run(
                                 systemPrompt = systemPrompt,
                                 userMessage = userMsg,
                                 contextHistory = contextHistory,
@@ -328,9 +328,9 @@ class GatewayController(
                             val msgId = "msg_${UUID.randomUUID()}"
                             val nowMs = System.currentTimeMillis()
 
-                            // Store assistant message via sessionmanager
-                            session.aMessage(LegacyMessage(role = "assistant", content = text))
-                            sessionmanager.save(session)
+                            // Store assistant message via sessionManager
+                            session.addMessage(LegacyMessage(role = "assistant", content = text))
+                            sessionManager.save(session)
 
                             // Send final assistant text (full accumulated)
                             broadcastEvent(EventFrame(event = "agent", payload = mapOf(
@@ -350,7 +350,7 @@ class GatewayController(
                                     "timestamp" to nowMs
                                 )
                             )))
-                        } catch (e: kotlinx.coroutines.cancellationexception) {
+                        } catch (e: kotlinx.coroutines.CancellationException) {
                             streamJob.cancel()
                             Log.i(TAG, "chat.send cancelled (abort): $runId")
                             broadcastEvent(EventFrame(event = "chat", payload = mapOf(
@@ -358,7 +358,7 @@ class GatewayController(
                                 "sessionKey" to sessionKey,
                                 "runId" to runId
                             )))
-                        } catch (e: exception) {
+                        } catch (e: Exception) {
                             streamJob.cancel()
                             Log.e(TAG, "chat.send agent failed: ${e.message}", e)
                             val errorMsg = e.message ?: "error"
@@ -375,8 +375,8 @@ class GatewayController(
                             )))
                         } finally {
                             activeJobs.remove(runId)
-                            runTosession.remove(runId)
-                            sessionagentloops.remove(sessionKey)
+                            runToSession.remove(runId)
+                            sessionAgentLoops.remove(sessionKey)
                         }
                     }
                     activeJobs[runId] = job
@@ -389,18 +389,18 @@ class GatewayController(
                     @Suppress("UNCHECKED_CAST")
                     val p = params as? Map<String, Any?> ?: emptyMap()
                     val sessionKey = p["sessionKey"] as? String ?: "default"
-                    val session = sessionmanager.get(sessionKey)
+                    val session = sessionManager.get(sessionKey)
                     val messageList = session?.messages?.mapIndexed { idx, msg ->
-                        val ts = session.messageTimestamps.getorElse(idx) { System.currentTimeMillis() }
+                        val ts = session.messageTimestamps.getOrElse(idx) { System.currentTimeMillis() }
                         mapOf(
                             "role" to msg.role,
                             "content" to legacyContentToOpenClaw(msg.content),
                             "timestamp" to ts
                         )
                     } ?: emptyList()
-                    val savedThinking = SPhelper.getInstance(context)
+                    val savedThinking = SPHelper.getInstance(context)
                         .getData(PREF_THINKING_LEVEL, "off")
-                        ?.takeif { it.isnotBlank() } ?: "off"
+                        ?.takeIf { it.isNotBlank() } ?: "off"
                     mapOf(
                         "sessionKey" to sessionKey,
                         "sessionId" to session?.sessionId,
@@ -414,7 +414,7 @@ class GatewayController(
                     @Suppress("UNCHECKED_CAST")
                     val p = params as? Map<String, Any?> ?: emptyMap()
                     val level = p["level"] as? String ?: "off"
-                    SPhelper.getInstance(context).saveData(PREF_THINKING_LEVEL, level)
+                    SPHelper.getInstance(context).saveData(PREF_THINKING_LEVEL, level)
                     mapOf("ok" to true)
                 }
 
@@ -429,19 +429,19 @@ class GatewayController(
                     val p = params as? Map<String, Any?> ?: emptyMap()
                     val runId = p["runId"] as? String
                     if (runId != null) {
-                        val sk = runTosession[runId]
-                        if (sk != null) sessionagentloops[sk]?.stop()
+                        val sk = runToSession[runId]
+                        if (sk != null) sessionAgentLoops[sk]?.stop()
                         activeJobs[runId]?.cancel()
                         activeJobs.remove(runId)
-                        runTosession.remove(runId)
+                        runToSession.remove(runId)
                         Log.i(TAG, "Aborted run: $runId")
                     } else {
                         // Abort all active runs
-                        sessionagentloops.values.forEach { it.stop() }
-                        sessionagentloops.clear()
+                        sessionAgentLoops.values.forEach { it.stop() }
+                        sessionAgentLoops.clear()
                         activeJobs.values.forEach { it.cancel() }
                         activeJobs.clear()
-                        runTosession.clear()
+                        runToSession.clear()
                         Log.i(TAG, "Aborted all active runs")
                     }
                     mapOf("aborted" to true)
@@ -460,12 +460,12 @@ class GatewayController(
 
                 // Register agent methods
                 registerMethod("agent") { params ->
-                    val agentParams = parseagentParams(params)
+                    val agentParams = parseAgentParams(params)
                     agentMethods.agent(agentParams)
                 }
 
                 registerMethod("agent.wait") { params ->
-                    val waitParams = parseagentWaitParams(params)
+                    val waitParams = parseAgentWaitParams(params)
                     agentMethods.agentWait(waitParams)
                 }
 
@@ -526,7 +526,7 @@ class GatewayController(
                         else -> com.google.gson.JsonObject()
                     }
                     val result = skillsMethods.status(paramsObj)
-                    if (result.isSuccess) result.getorNull() else throw result.exceptionorNull()!!
+                    if (result.isSuccess) result.getOrNull() else throw result.exceptionOrNull()!!
                 }
 
                 registerMethod("skills.bins") { params ->
@@ -536,7 +536,7 @@ class GatewayController(
                         else -> com.google.gson.JsonObject()
                     }
                     val result = skillsMethods.bins(paramsObj)
-                    if (result.isSuccess) result.getorNull() else throw result.exceptionorNull()!!
+                    if (result.isSuccess) result.getOrNull() else throw result.exceptionOrNull()!!
                 }
 
                 registerMethod("skills.reload") { params ->
@@ -546,7 +546,7 @@ class GatewayController(
                         else -> com.google.gson.JsonObject()
                     }
                     val result = skillsMethods.reload(paramsObj)
-                    if (result.isSuccess) result.getorNull() else throw result.exceptionorNull()!!
+                    if (result.isSuccess) result.getOrNull() else throw result.exceptionOrNull()!!
                 }
 
                 registerMethod("skills.install") { params ->
@@ -556,7 +556,7 @@ class GatewayController(
                         else -> com.google.gson.JsonObject()
                     }
                     val result = skillsMethods.install(paramsObj)
-                    if (result.isSuccess) result.getorNull() else throw result.exceptionorNull()!!
+                    if (result.isSuccess) result.getOrNull() else throw result.exceptionOrNull()!!
                 }
 
                 registerMethod("skills.update") { params ->
@@ -566,7 +566,7 @@ class GatewayController(
                         else -> com.google.gson.JsonObject()
                     }
                     val result = skillsMethods.update(paramsObj)
-                    if (result.isSuccess) result.getorNull() else throw result.exceptionorNull()!!
+                    if (result.isSuccess) result.getOrNull() else throw result.exceptionOrNull()!!
                 }
 
                 registerMethod("skills.search") { params ->
@@ -576,7 +576,7 @@ class GatewayController(
                         else -> com.google.gson.JsonObject()
                     }
                     val result = skillsMethods.search(paramsObj)
-                    if (result.isSuccess) result.getorNull() else throw result.exceptionorNull()!!
+                    if (result.isSuccess) result.getOrNull() else throw result.exceptionOrNull()!!
                 }
 
                 registerMethod("skills.uninstall") { params ->
@@ -586,7 +586,7 @@ class GatewayController(
                         else -> com.google.gson.JsonObject()
                     }
                     val result = skillsMethods.uninstall(paramsObj)
-                    if (result.isSuccess) result.getorNull() else throw result.exceptionorNull()!!
+                    if (result.isSuccess) result.getOrNull() else throw result.exceptionOrNull()!!
                 }
 
                 // Register config methods
@@ -611,8 +611,8 @@ class GatewayController(
                     CronMethods.status(params as JSONObject)
                 }
 
-                registerMethod("cron.a") { params ->
-                    CronMethods.a(params as JSONObject)
+                registerMethod("cron.add") { params ->
+                    CronMethods.add(params as JSONObject)
                 }
 
                 registerMethod("cron.update") { params ->
@@ -631,9 +631,9 @@ class GatewayController(
                     CronMethods.runs(params as JSONObject)
                 }
 
-                // ── Talk (TTS) methods ───────────────────────────────────
+                // Talk (TTS) methods
                 registerMethod("talk.config") { params ->
-                    talkMethods.talkconfig(params)
+                    talkMethods.talkConfig(params)
                 }
                 registerMethod("talk.speak") { params ->
                     talkMethods.talkSpeak(params)
@@ -645,19 +645,19 @@ class GatewayController(
             // Start server in background
             serviceScope.launch(Dispatchers.IO) {
                 try {
-                    // use 60 second timeout for slow operations (like ClawHub API calls)
+                    // Use 60 second timeout for slow operations (like ClawHub API calls)
                     // NanoHTTPD.SOCKET_READ_TIMEOUT is 5000ms by default, too short
                     server?.start(60000, false)  // 60 seconds
                     isRunning = true
                     Log.i(TAG,"Gateway WebSocket server started on port $port with 60s timeout")
                     Log.i(TAG,"Access UI at http://localhost:$port/")
-                } catch (e: IOexception) {
+                } catch (e: IOException) {
                     Log.e(TAG, "Failed to start Gateway server", e)
                     isRunning = false
                 }
             }
 
-        } catch (e: exception) {
+        } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize Gateway", e)
             throw e
         }
@@ -678,7 +678,7 @@ class GatewayController(
             if (::talkMethods.isInitialized) talkMethods.shutdown()
             isRunning = false
             Log.i(TAG, "Gateway WebSocket server stopped")
-        } catch (e: exception) {
+        } catch (e: Exception) {
             Log.e(TAG, "Error stopping Gateway", e)
         }
     }
@@ -710,7 +710,7 @@ class GatewayController(
         )
     }
 
-    // helper methods to parse params
+    // Helper methods to parse params
     // OpenClaw Protocol v3: params is Any? (can be Map, List, primitive, etc.)
 
     /**
@@ -722,18 +722,18 @@ class GatewayController(
     private fun legacyContentToOpenClaw(content: Any?): List<Map<String, Any?>> {
         return when (content) {
             is String -> listOf(mapOf("type" to "text", "text" to content))
-            is List<*> -> content.mapnotNull { block ->
+            is List<*> -> content.mapNotNull { block ->
                 when (block) {
                     is com.xiaomo.androidforclaw.providers.ContentBlock -> when (block.type) {
                         "text" -> mapOf("type" to "text", "text" to (block.text ?: ""))
                         "image_url" -> {
                             val dataUrl = block.imageUrl?.url ?: ""
                             // "data:image/png;base64,..." → extract mimeType
-                            val mimeType = dataUrl.removePrefix("data:").substringbefore(";")
+                            val mimeType = dataUrl.removePrefix("data:").substringBefore(";")
                             mapOf(
                                 "type" to "image_url",
                                 "mimeType" to mimeType.ifEmpty { "image/jpeg" },
-                                "content" to dataUrl.substringafter("base64,")
+                                "content" to dataUrl.substringAfter("base64,")
                             )
                         }
                         else -> null
@@ -747,38 +747,38 @@ class GatewayController(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseagentParams(params: Any?): agentParams {
+    private fun parseAgentParams(params: Any?): AgentParams {
         val paramsMap = params as? Map<String, Any?>
-            ?: throw IllegalArgumentexception("params must be an object for agent method")
+            ?: throw IllegalArgumentException("params must be an object for agent method")
 
-        return agentParams(
+        return AgentParams(
             sessionKey = paramsMap["sessionKey"] as? String
-                ?: throw IllegalArgumentexception("sessionKey required"),
+                ?: throw IllegalArgumentException("sessionKey required"),
             message = paramsMap["message"] as? String
-                ?: throw IllegalArgumentexception("message required"),
+                ?: throw IllegalArgumentException("message required"),
             thinking = paramsMap["thinking"] as? String,
             model = paramsMap["model"] as? String
         )
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseagentWaitParams(params: Any?): agentWaitParams {
+    private fun parseAgentWaitParams(params: Any?): AgentWaitParams {
         val paramsMap = params as? Map<String, Any?>
-            ?: throw IllegalArgumentexception("params must be an object for agent.wait method")
+            ?: throw IllegalArgumentException("params must be an object for agent.wait method")
 
-        return agentWaitParams(
+        return AgentWaitParams(
             runId = paramsMap["runId"] as? String
-                ?: throw IllegalArgumentexception("runId required"),
+                ?: throw IllegalArgumentException("runId required"),
             timeout = (paramsMap["timeout"] as? Number)?.toLong()
         )
     }
 
     /**
-     * 本地Processinside直接call RPC Method(bypass WebSocket), Return JSON String. 
-     * 供 LocalGatewaychannel call. 
+     * Local Process inside directly call RPC method (bypass WebSocket), return JSON string.
+     * Called by LocalGatewayChannel.
      */
     suspend fun handleLocalRequest(method: String, paramsJson: String?): String {
-        val srv = server ?: throw IllegalStateexception("Gateway not started")
+        val srv = server ?: throw IllegalStateException("Gateway not started")
         val result = srv.handleLocalRequest(method, paramsJson)
         return com.google.gson.Gson().toJson(result)
     }

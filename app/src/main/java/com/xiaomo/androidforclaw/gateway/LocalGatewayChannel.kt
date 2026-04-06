@@ -3,14 +3,14 @@ package com.xiaomo.androidforclaw.gateway
 import com.xiaomo.base.IGatewaychannel
 
 /**
- * 本地Processinside gateway channel, 直接call GatewayController, Noneneed WebSocket. 
+ * Local Process inside gateway channel, directly call GatewayController, no need WebSocket.
  *
- * 用于 androidforClaw 自身(ChatController and GatewayController in同oneProcess中). 
- * 远程 OpenClaw gateway Connect仍use Gatewaysession(WebSocket implementation). 
+ * Used for androidforClaw itself (ChatController and GatewayController in the same process).
+ * Remote OpenClaw gateway connect still use GatewaySession (WebSocket implementation).
  */
-class LocalGatewaychannel(private val controller: GatewayController) : IGatewaychannel {
+class LocalGatewayChannel(private val controller: GatewayController) : IGatewayChannel {
 
-    /** NodeRuntime RegisterEventCallback, GatewayController Broadcasthour直接call, not走 WebSocket.  */
+    /** NodeRuntime registerEventCallback, GatewayController broadcast hour directly call, not go through WebSocket. */
     @Volatile
     private var eventListener: ((event: String, payloadJson: String) -> Unit)? = null
 
@@ -24,7 +24,7 @@ class LocalGatewaychannel(private val controller: GatewayController) : IGatewayc
     }
 
     override suspend fun sendNodeEvent(event: String, payloadJson: String?): Boolean {
-        // 本地In mode chat.subscribe 等NodeEvent直接Ignore(None远程 gateway 订阅)
+        // In local mode, chat.subscribe and other NodeEvents are directly ignored (no remote gateway subscription)
         return true
     }
 }

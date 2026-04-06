@@ -10,11 +10,11 @@ package com.xiaomo.androidforclaw.canvas
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.graphics.canvas
+import android.graphics.Canvas
 import android.os.Bundle
 import android.util.Base64
 import android.view.View
-import android.view.Windowmanager
+import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -28,14 +28,14 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 
 /**
- * canvas Activity — 用 WebView Show canvas content. 
+ * Canvas Activity — use WebView to show canvas content.
  *
- * correctshould OpenClaw macOS/iOS Up canvas Window(WKWebView). 
- * agent through canvasmanager 控制本 Activity  WebView. 
+ * Should align with OpenClaw macOS/iOS App canvas window (WKWebView).
+ * Agent through CanvasManager to control this Activity's WebView.
  */
-class canvasActivity : AppCompatActivity() {
+class CanvasActivity : AppCompatActivity() {
     companion object {
-        private const val TAG = "canvasActivity"
+        private const val TAG = "CanvasActivity"
         const val EXTRA_URL = "canvas_url"
     }
 
@@ -45,53 +45,53 @@ class canvasActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // all屏沉浸式
-        window.aFlags(Windowmanager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Full screen immersive
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Create WebView
-        webView = WebView(this).app {
+        webView = WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         }
 
-        val container = FrameLayout(this).app {
+        val container = FrameLayout(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
-            setbackgroundColor(0xFF000000.toInt())
-            aView(webView)
+            setBackgroundColor(0xFF000000.toInt())
+            addView(webView)
         }
         setContentView(container)
 
-        // config WebView
-        webView.settings.app {
+        // Configure WebView
+        webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
             allowFileAccess = true
             @Suppress("DEPRECATION")
-            allowFileAccessfromFileURLs = true
+            allowFileAccessFromFileURLs = true
             @Suppress("DEPRECATION")
-            allowUniversalAccessfromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
             allowContentAccess = true
-            mediaPlaybackRequiresuserGesture = false
+            mediaPlaybackRequiresUserGesture = false
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             useWideViewPort = true
-            loadwithoverviewMode = true
-            // Supportzoom
+            loadWithOverviewMode = true
+            // Support zoom
             setSupportZoom(true)
             builtInZoomControls = true
             displayZoomControls = false
         }
 
-        // 注入 JS Bridge(correctshould OpenClaw  window.openclawcanvasA2UIAction)
-        webView.aJavascriptInterface(canvasJsBridge(), "openclawcanvasA2UIAction")
+        // Inject JS Bridge (should align with OpenClaw window.openclawcanvasA2UIAction)
+        webView.addJavascriptInterface(CanvasJsBridge(), "openclawcanvasA2UIAction")
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldoverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                // canvas inside导航都in WebView insideProcess
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                // Canvas internal navigation all in WebView internal process
                 return false
             }
 
@@ -110,34 +110,34 @@ class canvasActivity : AppCompatActivity() {
             }
         }
 
-        // Registerto canvasmanager
-        canvasmanager.currentActivity = this
+        // Register to CanvasManager
+        CanvasManager.currentActivity = this
 
         // Load URL
         val url = intent.getStringExtra(EXTRA_URL)
         if (url != null) {
             loadUrl(url)
         } else {
-            // LoadDefault canvas index.html
-            val indexFile = File(canvasmanager.getcanvasRoot(), "index.html")
+            // Load default canvas index.html
+            val indexFile = File(CanvasManager.getCanvasRoot(), "index.html")
             if (indexFile.exists()) {
                 loadUrl("file://${indexFile.absolutePath}")
             } else {
-                // Loadinside置Default页面
-                webView.loadData(defaultcanvasHtml(), "text/html", "utf-8")
+                // Load built-in default page
+                webView.loadData(defaultCanvasHtml(), "text/html", "utf-8")
             }
         }
 
-        Log.i(TAG, "canvasActivity created, url=$url")
+        Log.i(TAG, "CanvasActivity created, url=$url")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (canvasmanager.currentActivity === this) {
-            canvasmanager.currentActivity = null
+        if (CanvasManager.currentActivity === this) {
+            CanvasManager.currentActivity = null
         }
         webView.destroy()
-        Log.i(TAG, "canvasActivity destroyed")
+        Log.i(TAG, "CanvasActivity destroyed")
     }
 
     /**
@@ -149,33 +149,33 @@ class canvasActivity : AppCompatActivity() {
     }
 
     /**
-     * execution JavaScript 并Returnresult
+     * Execute JavaScript and return result
      */
     fun evaluateJavaScript(id: String, script: String) {
         webView.evaluateJavascript(script) { result ->
-            canvasmanager.onEvalresult(id, result)
+            CanvasManager.onEvalResult(id, result)
         }
     }
 
     /**
-     * 截取 WebView Screenshot
+     * Capture WebView screenshot
      */
     fun takeSnapshot(id: String, format: String, maxWidth: Int?, quality: Int) {
         try {
-            // Get WebView 实际content尺寸
+            // Get WebView actual content dimensions
             var w = webView.width
             var h = webView.height
             if (w <= 0 || h <= 0) {
-                canvasmanager.onSnapshotresult(id, canvasmanager.Snapshotresult("", format, 0, 0))
+                CanvasManager.onSnapshotResult(id, CanvasManager.SnapshotResult("", format, 0, 0))
                 return
             }
 
-            // Create Bitmap 并绘制 WebView
-            val bitmap = Bitmap.createBitmap(w, h, Bitmap.config.ARGB_8888)
-            val canvas = canvas(bitmap)
+            // Create Bitmap and draw WebView
+            val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
             webView.draw(canvas)
 
-            // ifneedzoom
+            // If need zoom
             val finalBitmap = if (maxWidth != null && maxWidth > 0 && w > maxWidth) {
                 val scale = maxWidth.toFloat() / w.toFloat()
                 val newH = (h * scale).toInt()
@@ -186,49 +186,49 @@ class canvasActivity : AppCompatActivity() {
                 bitmap
             }
 
-            // 转 base64
+            // Convert to base64
             val stream = ByteArrayOutputStream()
-            val compressformat = if (format == "jpeg" || format == "jpg") {
-                Bitmap.compressformat.JPEG
+            val compressFormat = if (format == "jpeg" || format == "jpg") {
+                Bitmap.CompressFormat.JPEG
             } else {
-                Bitmap.compressformat.PNG
+                Bitmap.CompressFormat.PNG
             }
-            finalBitmap.compress(compressformat, quality, stream)
+            finalBitmap.compress(compressFormat, quality, stream)
             val base64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
 
-            val result = canvasmanager.Snapshotresult(
+            val result = CanvasManager.SnapshotResult(
                 base64 = base64,
-                format = if (compressformat == Bitmap.compressformat.JPEG) "jpeg" else "png",
+                format = if (compressFormat == Bitmap.CompressFormat.JPEG) "jpeg" else "png",
                 width = finalBitmap.width,
                 height = finalBitmap.height
             )
             finalBitmap.recycle()
 
-            canvasmanager.onSnapshotresult(id, result)
-        } catch (e: exception) {
+            CanvasManager.onSnapshotResult(id, result)
+        } catch (e: Exception) {
             Log.e(TAG, "Snapshot failed", e)
-            canvasmanager.onSnapshotresult(id, canvasmanager.Snapshotresult("", format, 0, 0))
+            CanvasManager.onSnapshotResult(id, CanvasManager.SnapshotResult("", format, 0, 0))
         }
     }
 
     /**
-     * JS Bridge — correctshould OpenClaw  window.openclawcanvasA2UIAction
+     * JS Bridge — should align with OpenClaw window.openclawcanvasA2UIAction
      *
-     * in a2ui.ts 中定义: 
+     * Defined in a2ui.ts:
      *   window.openclawcanvasA2UIAction.postMessage(raw)
      */
-    inner class canvasJsBridge {
+    inner class CanvasJsBridge {
         @JavascriptInterface
         fun postMessage(raw: String) {
             Log.d(TAG, "JS Bridge received: ${raw.take(200)}")
-            // A2UI action — 目FrontRecordLog, back续canextendProcess
+            // A2UI action — mainly record log, backend can extend process
         }
     }
 
     /**
-     * Default canvas HTML 页面
+     * Default canvas HTML page
      */
-    private fun defaultcanvasHtml(): String = """
+    private fun defaultCanvasHtml(): String = """
 <!doctype html>
 <html>
 <head>
@@ -238,8 +238,8 @@ class canvasActivity : AppCompatActivity() {
 <style>
 html, body { height: 100%; margin: 0; background: #0b1328; color: #e5e7eb; 
   font: 16px system-ui, Roboto, sans-serif; }
-.wrap { min-height: 100%; display: grid; place-items: center; paing: 24px; }
-.card { width: min(560px, 88vw); text-align: center; paing: 24px;
+.wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+.card { width: min(560px, 88vw); text-align: center; padding: 24px;
   border-radius: 16px; background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.10); }
 h1 { margin: 0 0 8px; font-size: 22px; }
@@ -250,7 +250,7 @@ h1 { margin: 0 0 8px; font-size: 22px; }
 <div class="wrap">
   <div class="card">
     <h1>🦞 Claw canvas</h1>
-    <div class="sub">Wait agent Loadcontent...</div>
+    <div class="sub">Wait agent load content...</div>
   </div>
 </div>
 </body>

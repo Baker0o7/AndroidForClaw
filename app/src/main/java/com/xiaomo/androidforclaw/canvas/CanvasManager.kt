@@ -7,7 +7,7 @@
  */
 package com.xiaomo.androidforclaw.canvas
 
-import android.content.context
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Base64
@@ -19,57 +19,57 @@ import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
- * canvas Manage器 — Manage canvas WebView StatusandAction. 
+ * Canvas Manager — Manage canvas WebView status and action.
  *
- * agent through canvastool callthis manager come控制 canvas: 
- * - present: Start canvasActivity and load specified URL/files
- * - hide: Close canvasActivity
- * - navigate: 导航tonew URL
- * - eval: execution JavaScript 并Returnresult
- * - snapshot: ScreenshotReturn base64
+ * Agent through canvas tool call this manager to control canvas:
+ * - present: Start CanvasActivity and load specified URL/files
+ * - hide: Close CanvasActivity
+ * - navigate: navigate to new URL
+ * - eval: execute JavaScript and return result
+ * - snapshot: screenshot return base64
  */
-object canvasmanager {
-    private const val TAG = "canvasmanager"
+object CanvasManager {
+    private const val TAG = "CanvasManager"
 
-    /** canvas 根directory */
+    /** Canvas root directory */
     private val CANVAS_ROOT = StoragePaths.canvas.absolutePath
 
-    /** whenFront canvasActivity Instance(弱引用, Activity DestroyhourAuto清Null) */
+    /** Current CanvasActivity instance (weak reference, Activity destroyed auto clear null) */
     @Volatile
-    var currentActivity: canvasActivity? = null
+    var currentActivity: CanvasActivity? = null
         internal set
 
     /**
-     * Screen tab inside嵌 canvasController 引用(by MainActivityCompose Settings). 
-     * canvastool 优先走thisPath, in Screen tab  WebView 中渲染, 
-     * 而notYesStart独立 canvasActivity. 
+     * Screen tab embedded canvas controller reference (by MainActivityCompose settings).
+     * Canvas tool优先走 this path, in Screen tab WebView 中渲染,
+     * 而 not have start独立 CanvasActivity.
      */
     @Volatile
     var screenTabController: ai.openclaw.app.node.canvasController? = null
 
-    /** pending eval Request */
+    /** Pending eval request */
     private val pendingEvals = mutableMapOf<String, CompletableDeferred<String?>>()
 
-    /** pending snapshot Request */
-    private val pendingSnapshots = mutableMapOf<String, CompletableDeferred<Snapshotresult>>()
+    /** Pending snapshot request */
+    private val pendingSnapshots = mutableMapOf<String, CompletableDeferred<SnapshotResult>>()
 
     /**
-     * Get canvas 根directory, notExiststhenCreate
+     * Get canvas root directory, create if not exists
      */
-    fun getcanvasRoot(): File {
+    fun getCanvasRoot(): File {
         val dir = File(CANVAS_ROOT)
         if (!dir.exists()) dir.mkdirs()
         return dir
     }
 
     /**
-     * present — Show canvas, Load指定 URL or本地files
+     * present — Show canvas, load specified URL or local files
      */
-    fun present(context: context, url: String? = null, placement: Map<String, Int>? = null) {
-        val intent = Intent(context, canvasActivity::class.java).app {
-            aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    fun present(context: Context, url: String? = null, placement: Map<String, Int>? = null) {
+        val intent = Intent(context, CanvasActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             if (url != null) {
-                putExtra(canvasActivity.EXTRA_URL, resolveUrl(url))
+                putExtra(CanvasActivity.EXTRA_URL, resolveUrl(url))
             }
         }
         context.startActivity(intent)
@@ -86,7 +86,7 @@ object canvasmanager {
     }
 
     /**
-     * navigate — 导航tonew URL
+     * navigate — navigate to new URL
      */
     fun navigate(url: String) {
         val resolved = resolveUrl(url)
@@ -95,16 +95,16 @@ object canvasmanager {
             activity.runOnUiThread { activity.loadUrl(resolved) }
             Log.i(TAG, "canvas.navigate url=$resolved")
         } else {
-            Log.w(TAG, "canvas.navigate: no active canvasActivity")
+            Log.w(TAG, "canvas.navigate: no active CanvasActivity")
         }
     }
 
     /**
-     * eval — execution JavaScript, ReturnresultString
+     * eval — execute JavaScript, return result string
      */
     suspend fun eval(javaScript: String, timeoutMs: Long = 10_000): String? {
         val activity = currentActivity
-            ?: throw IllegalStateexception("No active canvas to evaluate JavaScript")
+            ?: throw IllegalStateException("No active canvas to evaluate JavaScript")
 
         val id = java.util.UUID.randomUUID().toString()
         val deferred = CompletableDeferred<String?>()
@@ -120,26 +120,26 @@ object canvasmanager {
     }
 
     /**
-     * by canvasActivity Callback eval result
+     * Called by CanvasActivity callback eval result
      */
-    internal fun onEvalresult(id: String, result: String?) {
+    internal fun onEvalResult(id: String, result: String?) {
         synchronized(pendingEvals) { pendingEvals[id]?.complete(result) }
     }
 
     /**
-     * snapshot — 截取 WebView Screenshot
+     * snapshot — capture WebView screenshot
      */
     suspend fun snapshot(
         format: String = "png",
         maxWidth: Int? = null,
         quality: Int = 90,
         timeoutMs: Long = 15_000
-    ): Snapshotresult {
+    ): SnapshotResult {
         val activity = currentActivity
-            ?: throw IllegalStateexception("No active canvas to snapshot")
+            ?: throw IllegalStateException("No active canvas to snapshot")
 
         val id = java.util.UUID.randomUUID().toString()
-        val deferred = CompletableDeferred<Snapshotresult>()
+        val deferred = CompletableDeferred<SnapshotResult>()
         synchronized(pendingSnapshots) { pendingSnapshots[id] = deferred }
 
         activity.runOnUiThread { activity.takeSnapshot(id, format, maxWidth, quality) }
@@ -152,35 +152,35 @@ object canvasmanager {
     }
 
     /**
-     * by canvasActivity Callback snapshot result
+     * Called by CanvasActivity callback snapshot result
      */
-    internal fun onSnapshotresult(id: String, result: Snapshotresult) {
+    internal fun onSnapshotResult(id: String, result: SnapshotResult) {
         synchronized(pendingSnapshots) { pendingSnapshots[id]?.complete(result) }
     }
 
     /**
-     * 公开 URL ParseMethod, 供 canvastool 等Externaluse
+     * Public URL parse method, for canvas tool and other external use
      */
     fun resolveUrlPublic(url: String): String = resolveUrl(url)
 
     /**
-     * Parse URL — Support本地File path、http(s) URL
+     * Parse URL — support local file path, http(s) URL
      */
     private fun resolveUrl(url: String): String {
-        // alreadyYes完整 URL
-        if (url.startswith("http://") || url.startswith("https://") || url.startswith("file://")) {
+        // Already a complete URL
+        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file://")) {
             return url
         }
-        // absolutelyPath
-        if (url.startswith("/")) {
+        // Absolute path
+        if (url.startsWith("/")) {
             return "file://$url"
         }
-        // relativelyPath → canvas 根directory
-        val file = File(getcanvasRoot(), url)
+        // Relative path → canvas root directory
+        val file = File(getCanvasRoot(), url)
         return "file://${file.absolutePath}"
     }
 
-    data class Snapshotresult(
+    data class SnapshotResult(
         val base64: String,
         val format: String,
         val width: Int,

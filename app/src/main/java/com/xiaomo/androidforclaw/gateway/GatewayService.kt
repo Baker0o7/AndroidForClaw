@@ -11,9 +11,9 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoWSD
-import java.io.IOexception
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CountnextLatch
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -27,49 +27,49 @@ import java.util.concurrent.TimeUnit
  *
  * Reference: OpenClaw Gateway architecture
  */
-class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen on all network interfaces (0.0.0.0)
+class GatewayService(port: Int = 8765) : NanoWSD(null, port) {  // null = listen on all network interfaces (0.0.0.0)
     
     companion object {
-        private const val TAG = "Gatewayservice"
+        private const val TAG = "GatewayService"
     }
 
     private val gson = Gson()
-    private val sessions = mutableMapOf<String, Gatewaysession>()
-    private var agentHandler: agentHandler? = null
+    private val sessions = mutableMapOf<String, GatewaySession>()
+    private var agentHandler: AgentHandler? = null
 
-    // Track active agent runs: runId -> CountnextLatch (signaled on completion)
-    private val activeRuns = ConcurrentHashMap<String, CountnextLatch>()
+    // Track active agent runs: runId -> CountDownLatch (signaled on completion)
+    private val activeRuns = ConcurrentHashMap<String, CountDownLatch>()
 
     /**
      * Set agent handler
      */
-    fun setagentHandler(handler: agentHandler) {
+    fun setAgentHandler(handler: AgentHandler) {
         this.agentHandler = handler
     }
 
-    override fun openWebSocket(handshake: IHTTPsession): WebSocket {
+    override fun openWebSocket(handshake: IHTTPSession): WebSocket {
         return GatewayWebSocket(handshake)
     }
 
     /**
      * WebSocket connection handling
      */
-    inner class GatewayWebSocket(handshake: IHTTPsession) : WebSocket(handshake) {
+    inner class GatewayWebSocket(handshake: IHTTPSession) : WebSocket(handshake) {
         
         private var sessionId: String? = null
 
         override fun onOpen() {
-            sessionId = generatesessionId()
-            val session = Gatewaysession(sessionId!!, this)
+            sessionId = generateSessionId()
+            val session = GatewaySession(sessionId!!, this)
             sessions[sessionId!!] = session
             
-            Log.i(TAG, "[OK] WebSocket Connect建立: session=$sessionId")
+            Log.i(TAG, "[OK] WebSocket Connection established: session=$sessionId")
             
             // Send welcome message
-            sendMessage(JsonObject().app {
-                aProperty("type", "connected")
-                aProperty("sessionId", sessionId)
-                aProperty("message", "Welcome to androidforClaw Gateway")
+            sendMessage(JsonObject().apply {
+                addProperty("type", "connected")
+                addProperty("sessionId", sessionId)
+                addProperty("message", "Welcome to androidforClaw Gateway")
             })
         }
 
@@ -79,18 +79,18 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
             initiatedByRemote: Boolean
         ) {
             sessionId?.let { sessions.remove(it) }
-            Log.i(TAG, "[ERROR] WebSocket ConnectClose: session=$sessionId, reason=$reason")
+            Log.i(TAG, "[ERROR] WebSocket Connection Closed: session=$sessionId, reason=$reason")
         }
 
         override fun onMessage(message: WebSocketFrame) {
             try {
                 val text = message.textPayload
-                Log.d(TAG, "[RECV] 收toMessage: $text")
+                Log.d(TAG, "[RECV] Received message: $text")
 
                 val request: RpcRequest = gson.fromJson(text, RpcRequest::class.java)
                 handleRpcRequest(request)
                 
-            } catch (e: exception) {
+            } catch (e: Exception) {
                 Log.e(TAG, "ProcessMessageFailed", e)
                 sendError("Invalid request: ${e.message}")
             }
@@ -100,7 +100,7 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
             // Heartbeat response
         }
 
-        override fun onexception(exception: IOexception) {
+        override fun onException(exception: IOException) {
             Log.e(TAG, "WebSocket exception", exception)
         }
 
@@ -109,12 +109,12 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
          */
         private fun handleRpcRequest(request: RpcRequest) {
             when (request.method) {
-                "agent" -> handleagentRequest(request)
-                "agent.wait" -> handleagentWaitRequest(request)
+                "agent" -> handleAgentRequest(request)
+                "agent.wait" -> handleAgentWaitRequest(request)
                 "health" -> handleHealthRequest(request)
-                "session.list" -> handlesessionListRequest(request)
-                "session.reset" -> handlesessionResetRequest(request)
-                "session.listAll" -> handlesessionListAllRequest(request)
+                "session.list" -> handleSessionListRequest(request)
+                "session.reset" -> handleSessionResetRequest(request)
+                "session.listAll" -> handleSessionListAllRequest(request)
                 else -> sendError("Unknown method: ${request.method}")
             }
         }
@@ -122,7 +122,7 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
         /**
          * agent() - Execute agent task
          */
-        private fun handleagentRequest(request: RpcRequest) {
+        private fun handleAgentRequest(request: RpcRequest) {
             val params = request.params ?: run {
                 sendError("Missing params")
                 return
@@ -137,11 +137,11 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
             val tools = params.tools
             val maxIterations = params.maxIterations ?: 20
 
-            // 🆔 Support specifying sessionId to switch to another channel's session
+            // Support specifying sessionId to switch to another channel's session
             // if sessionId is specified in params, use it; otherwise use current WebSocket's sessionId
-            val targetsessionId = params.sessionId ?: sessionId!!
+            val targetSessionId = params.sessionId ?: sessionId!!
 
-            Log.d(TAG, "🆔 [agent Request] Target session: $targetsessionId")
+            Log.d(TAG, "[agent Request] Target session: $targetSessionId")
             if (params.sessionId != null) {
                 Log.d(TAG, "   ↳ Switch to external session: ${params.sessionId}")
             } else {
@@ -150,51 +150,51 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
 
             // Generate a runId for tracking by agent.wait
             val runId = "run_${System.currentTimeMillis()}_${(1000..9999).random()}"
-            val latch = CountnextLatch(1)
+            val latch = CountDownLatch(1)
             activeRuns[runId] = latch
 
             // Execute agent asynchronously
             Thread {
                 try {
-                    agentHandler?.executeagent(
-                        sessionId = targetsessionId,
+                    agentHandler?.executeAgent(
+                        sessionId = targetSessionId,
                         userMessage = userMessage,
                         systemPrompt = systemPrompt,
                         tools = tools,
                         maxIterations = maxIterations,
                         progressCallback = { progress ->
-                            // Send progress update (in new thread to avoid NetworkOnMainThreadexception)
+                            // Send progress update (in new thread to avoid NetworkOnMainThreadException)
                             Thread {
                                 try {
-                                    sendMessage(JsonObject().app {
-                                        aProperty("type", "progress")
-                                        aProperty("requestId", request.id)
-                                        a("data", gson.toJsonTree(progress))
+                                    sendMessage(JsonObject().apply {
+                                        addProperty("type", "progress")
+                                        addProperty("requestId", request.id)
+                                        add("data", gson.toJsonTree(progress))
                                     })
-                                } catch (e: exception) {
-                                    Log.w(TAG, "sendprogressFailed: ${e.message}")
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "SendProgressFailed: ${e.message}")
                                 }
                             }.start()
                         },
                         completeCallback = { result ->
                             // Signal completion for agent.wait callers
-                            latch.countnext()
+                            latch.countDown()
                             activeRuns.remove(runId)
 
-                            // Send completion result (in new thread to avoid NetworkOnMainThreadexception)
+                            // Send completion result (in new thread to avoid NetworkOnMainThreadException)
                             Thread {
                                 try {
                                     sendResponse(request.id, result)
-                                } catch (e: exception) {
-                                    Log.w(TAG, "sendresultFailed: ${e.message}")
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "SendResultFailed: ${e.message}")
                                 }
                             }.start()
                         }
                     )
-                } catch (e: exception) {
-                    latch.countnext()
+                } catch (e: Exception) {
+                    latch.countDown()
                     activeRuns.remove(runId)
-                    sendError("agent execution failed: ${e.message}", request.id)
+                    sendError("Agent execution failed: ${e.message}", request.id)
                 }
             }.start()
         }
@@ -202,11 +202,11 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
         /**
          * agent.wait() - Wait for agent completion
          *
-         * Looks up the run by runId in activeRuns. if found and still running,
-         * blocks until completion or timeout. if not found (already completed
+         * Looks up the run by runId in activeRuns. If found and still running,
+         * blocks until completion or timeout. If not found (already completed
          * or never existed), returns completed immediately.
          */
-        private fun handleagentWaitRequest(request: RpcRequest) {
+        private fun handleAgentWaitRequest(request: RpcRequest) {
             val params = request.params ?: run {
                 sendError("Missing params")
                 return
@@ -244,7 +244,7 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                             "runId" to runId
                         ))
                     }
-                } catch (e: interruptedexception) {
+                } catch (e: InterruptedException) {
                     sendResponse(request.id, mapOf(
                         "status" to "timeout",
                         "runId" to runId
@@ -267,29 +267,29 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
         /**
          * session.list() - List all sessions (including those created by channels)
          */
-        private fun handlesessionListRequest(request: RpcRequest) {
+        private fun handleSessionListRequest(request: RpcRequest) {
             try {
-                val sessionmanager = com.xiaomo.androidforclaw.core.MainEntrynew.getsessionmanager()
-                if (sessionmanager == null) {
-                    // if sessionmanager is not initialized, only return WebSocket sessions
+                val sessionManager = com.xiaomo.androidforclaw.core.MainEntryNew.getSessionManager()
+                if (sessionManager == null) {
+                    // If sessionManager is not initialized, only return WebSocket sessions
                     val sessionList = sessions.keys.map { mapOf("id" to it) }
                     sendResponse(request.id, mapOf("sessions" to sessionList, "total" to sessionList.size))
                     return
                 }
 
                 // Get all sessions (Feishu, Discord, WebSocket)
-                val allKeys = sessionmanager.getAllKeys()
+                val allKeys = sessionManager.getAllKeys()
                 val sessionList = allKeys.map { key ->
-                    val session = sessionmanager.get(key)
+                    val session = sessionManager.get(key)
                     mapOf(
                         "id" to key,
                         "messageCount" to (session?.messageCount() ?: 0),
                         "createdAt" to (session?.createdAt ?: ""),
                         "updatedAt" to (session?.updatedAt ?: ""),
                         "type" to when {
-                            key.startswith("discord_") -> "discord"
+                            key.startsWith("discord_") -> "discord"
                             key.contains("_p2p") || key.contains("_group") -> "feishu"
-                            key.startswith("session_") -> "websocket"
+                            key.startsWith("session_") -> "websocket"
                             else -> "other"
                         }
                     )
@@ -300,10 +300,10 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                     "total" to sessionList.size
                 ))
 
-                Log.d(TAG, "[CLIP] [session List] Return ${sessionList.size} countsession")
+                Log.d(TAG, "[session List] Return ${sessionList.size} sessions")
 
-            } catch (e: exception) {
-                Log.e(TAG, "ListsessionFailed", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "ListSessionFailed", e)
                 sendError("Failed to list sessions: ${e.message}", request.id)
             }
         }
@@ -311,11 +311,11 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
         /**
          * session.reset() - Reset session
          */
-        private fun handlesessionResetRequest(request: RpcRequest) {
+        private fun handleSessionResetRequest(request: RpcRequest) {
             val params = request.params
-            val targetsessionId = params?.sessionId ?: sessionId
+            val targetSessionId = params?.sessionId ?: sessionId
 
-            targetsessionId?.let {
+            targetSessionId?.let {
                 sessions[it]?.reset()
                 sendResponse(request.id, mapOf("success" to true))
             } ?: sendError("session not found")
@@ -324,10 +324,10 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
         /**
          * session.listAll() - List all sessions (including those created by channels)
          */
-        private fun handlesessionListAllRequest(request: RpcRequest) {
+        private fun handleSessionListAllRequest(request: RpcRequest) {
             try {
-                val sessionmanager = com.xiaomo.androidforclaw.core.MainEntrynew.getsessionmanager()
-                if (sessionmanager == null) {
+                val sessionManager = com.xiaomo.androidforclaw.core.MainEntryNew.getSessionManager()
+                if (sessionManager == null) {
                     sendResponse(request.id, mapOf(
                         "sessions" to emptyList<Map<String, Any>>(),
                         "total" to 0
@@ -335,16 +335,16 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                     return
                 }
 
-                val allKeys = sessionmanager.getAllKeys()
+                val allKeys = sessionManager.getAllKeys()
                 val sessionList = allKeys.map { key ->
-                    val session = sessionmanager.get(key)
+                    val session = sessionManager.get(key)
                     mapOf(
                         "id" to key,
                         "messageCount" to (session?.messageCount() ?: 0),
                         "createdAt" to (session?.createdAt ?: ""),
                         "updatedAt" to (session?.updatedAt ?: ""),
                         "type" to when {
-                            key.startswith("discord_") -> "discord"
+                            key.startsWith("discord_") -> "discord"
                             key.contains("_p2p") || key.contains("_group") -> "feishu"
                             else -> "other"
                         }
@@ -356,10 +356,10 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
                     "total" to sessionList.size
                 ))
 
-                Log.d(TAG, "[CLIP] [session List] Return ${sessionList.size} countsession")
+                Log.d(TAG, "[session List] Return ${sessionList.size} sessions")
 
-            } catch (e: exception) {
-                Log.e(TAG, "ListsessionFailed", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "ListSessionFailed", e)
                 sendError("Failed to list sessions: ${e.message}", request.id)
             }
         }
@@ -368,10 +368,10 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
          * Send response
          */
         private fun sendResponse(requestId: String?, data: Any) {
-            sendMessage(JsonObject().app {
-                aProperty("type", "response")
-                requestId?.let { aProperty("id", it) }
-                a("data", gson.toJsonTree(data))
+            sendMessage(JsonObject().apply {
+                addProperty("type", "response")
+                requestId?.let { addProperty("id", it) }
+                add("data", gson.toJsonTree(data))
             })
         }
 
@@ -379,10 +379,10 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
          * Send error
          */
         private fun sendError(message: String, requestId: String? = null) {
-            sendMessage(JsonObject().app {
-                aProperty("type", "error")
-                requestId?.let { aProperty("id", it) }
-                aProperty("message", message)
+            sendMessage(JsonObject().apply {
+                addProperty("type", "error")
+                requestId?.let { addProperty("id", it) }
+                addProperty("message", message)
             })
         }
 
@@ -392,8 +392,8 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
         private fun sendMessage(json: JsonObject) {
             try {
                 send(gson.toJson(json))
-            } catch (e: IOexception) {
-                Log.e(TAG, "sendMessageFailed", e)
+            } catch (e: IOException) {
+                Log.e(TAG, "SendMessageFailed", e)
             }
         }
     }
@@ -401,7 +401,7 @@ class Gatewayservice(port: Int = 8765) : NanoWSD(null, port) {  // null = listen
     /**
      * Generate session ID
      */
-    private fun generatesessionId(): String {
+    private fun generateSessionId(): String {
         return "session_${System.currentTimeMillis()}_${(1000..9999).random()}"
     }
 }
@@ -431,7 +431,7 @@ data class RpcParams(
 /**
  * Gateway session
  */
-data class Gatewaysession(
+data class GatewaySession(
     val id: String,
     val webSocket: NanoWSD.WebSocket,
     var lastActivity: Long = System.currentTimeMillis()
@@ -442,10 +442,10 @@ data class Gatewaysession(
 }
 
 /**
- * agent handler interface
+ * Agent handler interface
  */
-interface agentHandler {
-    fun executeagent(
+interface AgentHandler {
+    fun executeAgent(
         sessionId: String,
         userMessage: String,
         systemPrompt: String?,
