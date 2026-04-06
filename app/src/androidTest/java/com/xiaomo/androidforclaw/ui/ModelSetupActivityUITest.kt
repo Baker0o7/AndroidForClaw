@@ -96,7 +96,7 @@ class ModelSetupActivityUITest {
     @Test
     fun test01_activityLaunches() {
         launchActivity()
-        onView(withText("欢迎使用 AndroidForClaw"))
+        onView(withText("Welcome to AndroidForClaw"))
             .check(matches(isDisplayed()))
     }
 
@@ -104,14 +104,14 @@ class ModelSetupActivityUITest {
     fun test02_welcomeElementsDisplayed() {
         launchActivity()
         onView(withText("🤖")).check(matches(isDisplayed()))
-        onView(withText("欢迎使用 AndroidForClaw")).check(matches(isDisplayed()))
-        onView(withText("已Inside置 Key, 可直接Start使用")).check(matches(isDisplayed()))
+        onView(withText("Welcome to AndroidForClaw")).check(matches(isDisplayed()))
+        onView(withText("Key is configured, you can start directly")).check(matches(isDisplayed()))
     }
 
     @Test
     fun test03_tutorialCardDisplayed() {
         launchActivity()
-        onView(withText("📖 如何Get API Key?")).check(matches(isDisplayed()))
+        onView(withText("📖 How to get API Key?")).check(matches(isDisplayed()))
     }
 
     @Test
@@ -133,7 +133,7 @@ class ModelSetupActivityUITest {
         onView(withId(R.id.btn_skip)).check(matches(isDisplayed()))
         onView(withId(R.id.btn_skip)).check(matches(withText("Skip")))
         onView(withId(R.id.btn_start)).check(matches(isDisplayed()))
-        onView(withId(R.id.btn_start)).check(matches(withText("Start使用")))
+        onView(withId(R.id.btn_start)).check(matches(withText("Start")))
     }
 
     @Test
@@ -185,15 +185,15 @@ class ModelSetupActivityUITest {
     fun test12_advancedToggleTextChanges() {
         launchActivity()
         onView(withId(R.id.tv_advanced))
-            .check(matches(withText(containsString("使用Its他Service商"))))
+            .check(matches(withText(containsString("Use other provider"))))
 
         onView(withId(R.id.tv_advanced)).perform(scrollTo(), click())
         onView(withId(R.id.tv_advanced))
-            .check(matches(withText(containsString("收起"))))
+            .check(matches(withText(containsString("Collapse"))))
 
         onView(withId(R.id.tv_advanced)).perform(scrollTo(), click())
         onView(withId(R.id.tv_advanced))
-            .check(matches(withText(containsString("使用Its他Service商"))))
+            .check(matches(withText(containsString("Use other provider"))))
     }
 
     // ==================== 4. Provider switch ====================
@@ -486,7 +486,7 @@ class ModelSetupActivityUITest {
 
         selectProvider(R.id.chip_custom)
         onView(withId(R.id.tv_provider_hint))
-            .check(matches(withText(containsString("兼容"))))
+            .check(matches(withText(containsString("compatible"))))
     }
 
     // ==================== 11. API key input behavior ====================
@@ -502,7 +502,7 @@ class ModelSetupActivityUITest {
     @Test
     fun test30_apiKeyHelperText() {
         launchActivity()
-        // The helper text "Optional, 留Null则使用Inside置 Key" is in a child of TextInputLayout
+        // The helper text "Optional, leave empty to use built-in key" is in a child of TextInputLayout
         onView(withText(containsString("Optional")))
             .check(matches(isDisplayed()))
     }
@@ -512,7 +512,7 @@ class ModelSetupActivityUITest {
     @Test
     fun test31_tutorialStepsDisplayed() {
         launchActivity()
-        onView(withText(containsString("Open openrouter.ai RegisterAccount")))
+        onView(withText(containsString("Go to openrouter.ai to register account")))
             .check(matches(isDisplayed()))
         onView(withText(containsString("Copy Key")))
             .check(matches(isDisplayed()))
@@ -521,7 +521,7 @@ class ModelSetupActivityUITest {
     @Test
     fun test32_descriptionTextDisplayed() {
         launchActivity()
-        onView(withText(containsString("OpenRouter Aggregate了")))
+        onView(withText(containsString("OpenRouter aggregates")))
             .check(matches(isDisplayed()))
     }
 

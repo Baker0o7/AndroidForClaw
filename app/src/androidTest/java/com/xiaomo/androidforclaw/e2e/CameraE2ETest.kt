@@ -18,22 +18,22 @@ import org.junit.Assert.*
 import org.junit.runner.RunWith
 
 /**
- * Camera Skill 端到端Test
+ * Camera Skill End-to-End Test
  *
- * 流程: 
- * 1. 向 AgentLoop 发送"拍照看看Has什么"
- * 2. Agent 调用 eye skill(action=look)
- * 3. Agent 根据拍到的照片DescriptionInside容
- * 4. Validate: 使用了 camera 工具 + 最终OutputHas实质Inside容(非Error)= 通过
+ * Flow:
+ * 1. Send "take a picture and see what's there" to AgentLoop
+ * 2. Agent calls eye skill (action=look)
+ * 3. Agent describes the content of the captured photo
+ * 4. Validate: used camera tool + final output has substantial content (not error) = pass
  *
  * Run:
  * ./gradlew :app:connectedDebugAndroidTest \
  *   -Pandroid.testInstrumentationRunnerArguments.class=com.xiaomo.androidforclaw.e2e.CameraE2ETest
  *
- * ⚠️ Front置Condition:
- * - True机(Has摄Like头)
- * - 已授予 CAMERA Permission
- * - 已Config LLM API Key
+ * ⚠️ Setup Requirements:
+ * - Real device (with camera)
+ * - CAMERA permission granted
+ * - LLM API Key configured
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -41,7 +41,7 @@ class CameraE2ETest {
 
     companion object {
         private const val TAG = "CameraE2E"
-        private const val TIMEOUT_MS = 120_000L // 2 分钟Timeout(拍照 + LLM Response)
+        private const val TIMEOUT_MS = 120_000L // 2 minute timeout (photo + LLM response)
     }
 
     private lateinit var context: Context
@@ -67,7 +67,7 @@ class CameraE2ETest {
     }
 
     /**
-     * 核心Test: 发送"拍照看看Has什么", Validate Agent 调用 camera 并Description照片Inside容
+     * Core Test: Send "take a picture and see what's there", validate Agent calls camera and describes photo content
      */
     @Test
     fun test_cameraSnap_describeContent() {
@@ -87,54 +87,54 @@ class CameraE2ETest {
             withTimeout(TIMEOUT_MS) {
                 agentLoop.run(
                     systemPrompt = systemPrompt,
-                    userMessage = "拍照看看Has什么",
+                    userMessage = "take a picture and see what's there",
                     reasoningEnabledd = false
                 )
             }
         }
 
-        // 打印报告
+        // Print report
         println("═".repeat(60))
-        println("📊 Camera E2E Test报告")
+        println("📊 Camera E2E Test Report")
         println("═".repeat(60))
-        println("🔄 Iterate次数: ${result.iterations}")
-        println("🔧 使用工具: ${result.toolsUsed.joinToString(", ")}")
-        println("📄 最终Output: ${result.finalContent.take(500)}")
+        println("🔄 Iterations: ${result.iterations}")
+        println("🔧 Tools used: ${result.toolsUsed.joinToString(", ")}")
+        println("📄 Final output: ${result.finalContent.take(500)}")
         println("═".repeat(60))
 
-        // Validate 1: 使用了 eye 工具
+        // Validate 1: used eye tool
         assertTrue(
-            "Agent Should调用 eye 工具, 实际使用: ${result.toolsUsed}",
+            "Agent should call eye tool, actually used: ${result.toolsUsed}",
             result.toolsUsed.any { it == "eye" }
         )
 
-        // Validate 2: 最终OutputHas实质Inside容(不YesNull的, Also不Yes纯ErrorInfo)
+        // Validate 2: final output has substantial content (not null, and not pure error info)
         assertTrue(
-            "最终Output不应为Null",
+            "Final output should not be null",
             result.finalContent.isNotBlank()
         )
 
-        // Validate 3: Output不YesPermissionError(说明拍照Success了)
+        // Validate 3: output does not contain permission error (meaning photo was taken successfully)
         assertFalse(
-            "不ShouldYesPermissionError(请先在DeviceUp授予 CAMERA Permission)",
+            "Should not have permission error (please grant CAMERA permission on device first)",
             result.finalContent.contains("CAMERA_PERMISSION_REQUIRED")
         )
 
-        // Validate 4: Output不Yes通用Error
+        // Validate 4: output does not contain generic error
         val isError = result.finalContent.contains("UNAVAILABLE") &&
-            !result.finalContent.contains("拍") // 排除正常Description中偶尔出现的词
+            !result.finalContent.contains("拍") // exclude normal description that may occasionally contain this word
         assertFalse(
-            "拍照不应Failed: ${result.finalContent.take(200)}",
+            "Photo taking should not fail: ${result.finalContent.take(200)}",
             isError
         )
 
-        // Validate 5: Agent ShouldDescription了照片Inside容(Has实质性Description)
-        // 只要Output长度 > 10 且不Yes纯Error, 就认为 Agent Description了Inside容
+        // Validate 5: Agent should describe the photo content (has substantial description)
+        // As long as output length > 10 and not pure error, consider that Agent described the content
         assertTrue(
-            "Agent ShouldDescription照片Inside容, Actual output length: ${result.finalContent.length}",
+            "Agent should describe photo content, actual output length: ${result.finalContent.length}",
             result.finalContent.length > 10
         )
 
-        println("✅ Camera E2E Test通过!Agent Success拍照并Description了Inside容. ")
+        println("✅ Camera E2E Test passed! Agent successfully took photo and described content.")
     }
 }
