@@ -1,31 +1,31 @@
 package com.xiaomo.base
 
 /**
- * 本地ProcessInside gateway 通信Interface. 
+ * In-process gateway communication interface.
  *
- * 替代 WebSocket Implementation, 允许同Process的 ChatController 直接与 GatewayController 交互, 
- * None需经过本地 localhost:8765 WebSocket 中转. 
+ * Alternative to WebSocket implementation, allows ChatController in the same process
+ * to directly interact with GatewayController, without going through local localhost:8765 WebSocket relay.
  *
- * - 远程 gateway Connect仍使用 GatewaySession(WebSocket), 它Implementation本Interface. 
- * - 本地同ProcessConnect使用 LocalGatewayChannel(app Module), 同样Implementation本Interface. 
+ * - Remote gateway connection still uses GatewaySession(WebSocket), which implements this interface.
+ * - Local in-process connection uses LocalGatewayChannel (app module), which also implements this interface.
  */
 interface IGatewayChannel {
     /**
-     * 发起 RPC Request, Return JSON StringResponse. 
+     * Initiate RPC request, return JSON string response.
      */
     suspend fun request(method: String, paramsJson: String?, timeoutMs: Long = 15_000L): String
 
     /**
-     * 发送NodeEvent(chat.subscribe 等). 
-     * 本地Implementation可直接Ignore或Process. 
+     * Send NodeEvent (e.g., chat.subscribe).
+     * Local implementation can directly ignore or process.
      */
     suspend fun sendNodeEvent(event: String, payloadJson: String?): Boolean
 
     /**
-     * RegisterEventListener, 用于接收来自 gateway 的推送Event(agent Into度、chat Status等). 
+     * Register event listener to receive push events from gateway (agent input, chat status, etc.).
      *
-     * - LocalGatewayChannel: 将ListenerRegister到 GatewayController, Event直接投递, 不走 WebSocket. 
-     * - GatewaySession: Default no-op, Event已通过构造时传入的 onEvent CallbackRoute. 
+     * - LocalGatewayChannel: registers listener to GatewayController, events delivered directly, no WebSocket.
+     * - GatewaySession: default no-op, events already routed via onEvent callback passed during construction.
      */
     fun setEventListener(listener: ((event: String, payloadJson: String) -> Unit)?) {}
 }

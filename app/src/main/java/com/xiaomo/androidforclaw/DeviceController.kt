@@ -66,7 +66,7 @@ object DeviceController {
     }
 
     // Check whether ADB Keyboard is enabled as Input method
-    fun isClawKeyboardActive(context: context): Boolean {
+    fun isClawKeyboardActive(context: Context): Boolean {
         val currentInputMethod = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.DEFAULT_INPUT_METHOD
@@ -78,26 +78,26 @@ object DeviceController {
     }
 
     // Check whether focus is in an input field
-    fun findFocusedEditText(service: Accessibilityservice): AccessibilityNodeInfo? {
+    fun findFocusedEditText(service: AccessibilityService): AccessibilityNodeInfo? {
         val rootNode = service.rootInActiveWindow ?: return null
         return rootNode.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
     }
 
 
     // Comprehensive Check: whether ADB Keyboard + Focus in Input field
-    fun isAdbKeyboardVisible(service: Accessibilityservice, context: context): Boolean {
+    fun isAdbKeyboardVisible(service: AccessibilityService, context: Context): Boolean {
         val focusedNode = findFocusedEditText(service)
         val isClawIme = isClawKeyboardActive(context)
-        Log.d("ADBKeyboardCheck", "WhetherFocusinEditText: ${focusedNode != null}")
+        Log.d("ADBKeyboardCheck", "Focus in EditText: ${focusedNode != null}")
         return focusedNode != null && isClawIme
     }
 
 
-    // TODO: Screenshot and dump tree merge to one
-    fun detectIcons(context: context): Pair<List<ViewNode>, List<ViewNode>>? {
+    // TODO: Merge screenshot and dump tree into one
+    fun detectIcons(context: Context): Pair<List<ViewNode>, List<ViewNode>>? {
         // Check if Accessibility service is connected
-        if (!AccessibilityProxy.isserviceReady()) {
-            Log.w(TAG, "AccessibilityservicenotReady")
+        if (!AccessibilityProxy.isServiceReady()) {
+            Log.w(TAG, "Accessibility service not ready")
             return null
         }
 
@@ -106,7 +106,7 @@ object DeviceController {
                 Log.d(TAG, "detectIcons: dumpView via AIDL")
                 var dumpView = AccessibilityProxy.dumpViewTree(useCache = false)
 
-                // Most many retry 3 times
+                // Retry up to 3 times
                 var retryCount = 0
                 while (dumpView.isEmpty() && retryCount < 3) {
                     Log.d(TAG, "detectIcons: retry $retryCount")
@@ -116,7 +116,7 @@ object DeviceController {
                 }
 
                 if (dumpView.isEmpty()) {
-                    Log.w(TAG, "cannotGet UI Tree(alreadyretry $retryCount times)")
+                    Log.w(TAG, "Cannot get UI Tree (retry $retryCount times)")
                     return@runBlocking null
                 }
 
@@ -127,8 +127,8 @@ object DeviceController {
                 val processedNodes = processHierarchy(dumpView)
 
                 Pair(originalNodes, processedNodes)
-            } catch (e: exception) {
-                Log.e(TAG, "Get UI TreeFailed", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Get UI Tree failed", e)
                 null
             }
         }
@@ -213,6 +213,6 @@ object DeviceController {
         AccessibilityProxy.pressHome()
     }
 
-    // alreadyremoveADBDependency, not再提供shell命令execution
+    // Already removed ADB dependency, no longer provide shell command execution
 
 }

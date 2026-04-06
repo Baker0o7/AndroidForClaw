@@ -107,7 +107,7 @@ class toolRegistry(
         register(skillsInstalltool(context))
         register(ClawHubconfigtool(context))
 
-        // === Lark CLI (飞书官方 CLI) ===
+        // === Lark CLI (Lark official CLI) ===
         register(LarkClitool(context))
 
         Log.d(TAG, "[OK] Registered ${tools.size} universal tools (memory tools in androidtoolRegistry)")

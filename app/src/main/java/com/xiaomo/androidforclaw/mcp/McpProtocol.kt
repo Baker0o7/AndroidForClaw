@@ -154,7 +154,7 @@ data class JsonRpcError(
 }
 
 /**
- * MCP tool 定义
+ * MCP tool definition
  */
 data class Mcptool(
     val name: String,

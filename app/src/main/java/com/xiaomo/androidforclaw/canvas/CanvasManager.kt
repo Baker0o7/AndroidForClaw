@@ -41,8 +41,8 @@ object CanvasManager {
 
     /**
      * Screen tab embedded canvas controller reference (by MainActivityCompose settings).
-     * Canvas tool优先走 this path, in Screen tab WebView 中渲染,
-     * 而 not have start独立 CanvasActivity.
+     * Canvas tool prefers this path, renders in Screen tab WebView,
+     * instead of starting a standalone CanvasActivity.
      */
     @Volatile
     var screenTabController: ai.openclaw.app.node.canvasController? = null
