@@ -218,41 +218,41 @@ fun openAutoStartSettings(context: Context): Boolean {
     }
 
     /**
-     * inmainThreadShow Toast Hintuser. 
+     * Show toast hint on main thread.
      */
-    fun showAutoStartGuide(context: context) {
-        Handler(looper.getMainlooper()).post {
+    fun showAutoStartGuide(context: Context) {
+        Handler(Looper.getMainLooper()).post {
             Toast.makeText(
                 context,
-                "[WARN] small米系统拦截 Termux 自Start, pleasein弹出Settings页中找to Termux 并open自StartPermission",
+                "Warning: MIUI system blocked Termux auto-start. Please find Termux in settings and enable auto-start permission.",
                 Toast.LENGTH_LONG
             ).show()
         }
-        // TryOpenSettings页
+        // Try to open settings page
         openAutoStartSettings(context)
     }
 
     /**
-     * 先Ensure Termux alreadyStart, WaitItsInitializeComplete, 再send RUN_COMMAND execution sshd. 
-     * if RUN_COMMAND Failed(Termux 尚notReady), willretrymostmany [MAX_LAUNCH_RETRIES] times. 
-     * 适合in IO 协程中call(Contains delay). 
+     * First ensure Termux is started, wait for it to initialize, then send RUN_COMMAND to execute sshd.
+     * If RUN_COMMAND fails (Termux not ready), will retry up to [MAX_LAUNCH_RETRIES] times.
+     * Suitable for calling in IO coroutine (contains delay).
      */
-    suspend fun ensureandLaunch(context: context) {
-        // 先拉up Termux
+    suspend fun ensureAndLaunch(context: Context) {
+        // First launch Termux
         ensureTermuxRunning(context)
-        // 等 Termux Initialize(RunCommandservice Register)
-        kotlinx.coroutines.delay(TERMUX_LAUNCH_WAIT_MS)
+        // Wait for Termux to initialize (RunCommandService registered)
+        delay(TERMUX_LAUNCH_WAIT_MS)
 
-        // send RUN_COMMAND, Failedthenretry
+        // Send RUN_COMMAND, retry on failure
         for (attempt in 1..MAX_LAUNCH_RETRIES) {
             try {
                 launch(context)
-                Log.i(TAG, "RUN_COMMAND sendSuccess(第 ${attempt} times)")
+                Log.i(TAG, "RUN_COMMAND sent successfully (attempt ${attempt})")
                 return
-            } catch (e: exception) {
-                Log.w(TAG, "RUN_COMMAND 第 ${attempt} timesFailed: ${e.message}")
+            } catch (e: Exception) {
+                Log.w(TAG, "RUN_COMMAND attempt ${attempt} failed: ${e.message}")
                 if (attempt < MAX_LAUNCH_RETRIES) {
-                    kotlinx.coroutines.delay(RETRY_INTERVAL_MS)
+                    delay(RETRY_INTERVAL_MS)
                 } else {
                     throw e
                 }

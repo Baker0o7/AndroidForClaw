@@ -40,29 +40,29 @@ import com.xiaomo.androidforclaw.providers.Parametersschema
 import com.xiaomo.androidforclaw.providers.Propertyschema
 import com.xiaomo.androidforclaw.providers.toolDefinition
 
-class androidApiskill(private val context: context) : skill {
+class AndroidApiSkill(private val context: Context) : Skill {
     companion object {
-        private const val TAG = "androidApiskill"
+        private const val TAG = "AndroidApiSkill"
     }
 
     override val name = "android_api"
-    override val description = """android 系统 API 工具. directly call system API ActionDeviceFeature, Noneneed UI Auto化. 
-SupportAction: 
-- set_alarm: Settings闹钟 (Parameters: hour, minute, message)
-- set_timer: Settings倒计hour (Parameters: seconds, message)
-- get_clipboard: Read剪贴板
-- set_clipboard: Write剪贴板 (Parameters: text)
-- get_battery: Get电池Status
-- get_storage: GetStorageSpace
-- flashlight: 开关手电筒 (Parameters: on=true/false)
-- get_volume: Get音量Info
-- set_volume: Settings音量 (Parameters: stream, level 0-100)
-- set_brightness: SettingsScreenhighlight度 (Parameters: level 0-255, auto=true/false)
-- start_app: Start App (Parameters: package)
-- start_activity: Start Activity (Parameters: action, data?, package?)
-- send_broadcast: sendBroadcast (Parameters: action, package?)
-- set_screen_timeout: SettingsScreenTimeout (Parameters: seconds)
-- open_settings: Open系统Settings页 (Parameters: page)"""
+    override val description = """Android system API tool. Directly call system API to control device features, no need for UI automation. 
+Supported Actions: 
+- set_alarm: Set alarm (Parameters: hour, minute, message)
+- set_timer: Set timer (Parameters: seconds, message)
+- get_clipboard: Read clipboard
+- set_clipboard: Write clipboard (Parameters: text)
+- get_battery: Get battery status
+- get_storage: Get storage space
+- flashlight: Toggle flashlight (Parameters: on=true/false)
+- get_volume: Get volume info
+- set_volume: Set volume (Parameters: stream, level 0-100)
+- set_brightness: Set screen brightness (Parameters: level 0-255, auto=true/false)
+- start_app: Start app (Parameters: package)
+- start_activity: Start activity (Parameters: action, data?, package?)
+- send_broadcast: Send broadcast (Parameters: action, package?)
+- set_screen_timeout: Set screen timeout (Parameters: seconds)
+- open_settings: Open system settings page (Parameters: page)"""
 
     override fun gettoolDefinition(): toolDefinition {
         return toolDefinition(
@@ -137,110 +137,110 @@ SupportAction:
         }
     }
 
-    // ========== 闹钟/定hour器 ==========
+    // ========== Alarm / Timer ==========
 
-    private fun setAlarm(args: Map<String, Any?>): skillresult {
-        val hour = (args["hour"] as? Number)?.toInt() ?: return skillresult.error("Missing 'hour'")
-        val minute = (args["minute"] as? Number)?.toInt() ?: return skillresult.error("Missing 'minute'")
-        val message = args["message"] as? String ?: "androidClaw 闹钟"
+    private fun setAlarm(args: Map<String, Any?>): SkillResult {
+        val hour = (args["hour"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'hour'")
+        val minute = (args["minute"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'minute'")
+        val message = args["message"] as? String ?: "AndroidClaw alarm"
 
-        val intent = Intent("android.intent.action.SET_ALARM").app {
+        val intent = Intent("android.intent.action.SET_ALARM").apply {
             putExtra("android.intent.extra.alarm.HOUR", hour)
             putExtra("android.intent.extra.alarm.MINUTES", minute)
             putExtra("android.intent.extra.alarm.MESSAGE", message)
-            aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         return try {
             context.startActivity(intent)
-            skillresult.success("alreadySettings闹钟: ${hour}hour${minute}minute - $message")
-        } catch (e: ActivitynotFoundexception) {
-            skillresult.error("not找tohour钟app")
+            SkillResult.success("Alarm set: ${hour}h ${minute}m - $message")
+        } catch (e: ActivityNotFoundException) {
+            SkillResult.error("Clock app not found")
         }
     }
 
-    private fun setTimer(args: Map<String, Any?>): skillresult {
-        val seconds = (args["seconds"] as? Number)?.toInt() ?: return skillresult.error("Missing 'seconds'")
-        val message = args["message"] as? String ?: "androidClaw 定hour器"
+    private fun setTimer(args: Map<String, Any?>): SkillResult {
+        val seconds = (args["seconds"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'seconds'")
+        val message = args["message"] as? String ?: "AndroidClaw timer"
 
-        val intent = Intent("android.intent.action.SET_TIMER").app {
+        val intent = Intent("android.intent.action.SET_TIMER").apply {
             putExtra("android.intent.extra.alarm.LENGTH", seconds)
             putExtra("android.intent.extra.alarm.MESSAGE", message)
             putExtra("android.intent.extra.alarm.SKIP_UI", true)
-            aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         return try {
             context.startActivity(intent)
-            skillresult.success("alreadySettings定hour器: ${seconds}seconds - $message")
-        } catch (e: ActivitynotFoundexception) {
-            skillresult.error("not找tohour钟app")
+            SkillResult.success("Timer set: ${seconds}s - $message")
+        } catch (e: ActivityNotFoundException) {
+            SkillResult.error("Clock app not found")
         }
     }
 
-    // ========== 剪贴板 ==========
+    // ========== Clipboard ==========
 
-    private fun getClipboard(): skillresult {
-        val cm = context.getSystemservice(context.CLIPBOARD_SERVICE) as Clipboardmanager
+    private fun getClipboard(): SkillResult {
+        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = cm.primaryClip
         if (clip == null || clip.itemCount == 0) {
-            return skillresult.success("剪贴板forNull")
+            return SkillResult.success("Clipboard is empty")
         }
         val text = clip.getItemAt(0).text?.toString() ?: ""
-        return skillresult.success("剪贴板content: $text")
+        return SkillResult.success("Clipboard content: $text")
     }
 
-    private fun setClipboard(args: Map<String, Any?>): skillresult {
-        val text = args["text"] as? String ?: return skillresult.error("Missing 'text'")
-        val cm = context.getSystemservice(context.CLIPBOARD_SERVICE) as Clipboardmanager
-        cm.setPrimaryClip(ClipData.newPlainText("androidClaw", text))
-        return skillresult.success("alreadyCopyto剪贴板: ${text.take(50)}${if (text.length > 50) "..." else ""}")
+    private fun setClipboard(args: Map<String, Any?>): SkillResult {
+        val text = args["text"] as? String ?: return SkillResult.error("Missing 'text'")
+        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(ClipData.newPlainText("AndroidClaw", text))
+        return SkillResult.success("Copied to clipboard: ${text.take(50)}${if (text.length > 50) "..." else ""}")
     }
 
-    // ========== 电池 ==========
+    // ========== Battery ==========
 
-    private fun getBattery(): skillresult {
-        val bm = context.getSystemservice(context.BATTERY_SERVICE) as Batterymanager
-        val level = bm.getIntProperty(Batterymanager.BATTERY_PROPERTY_CAPACITY)
-        val status = bm.getIntProperty(Batterymanager.BATTERY_PROPERTY_STATUS)
+    private fun getBattery(): SkillResult {
+        val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val level = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        val status = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS)
 
         val statusStr = when (status) {
-            Batterymanager.BATTERY_STATUS_CHARGING -> "充电中"
-            Batterymanager.BATTERY_STATUS_DISCHARGING -> "放电中"
-            Batterymanager.BATTERY_STATUS_FULL -> "already充满"
-            Batterymanager.BATTERY_STATUS_NOT_CHARGING -> "not充电"
+            BatteryManager.BATTERY_STATUS_CHARGING -> "Charging"
+            BatteryManager.BATTERY_STATUS_DISCHARGING -> "Discharging"
+            BatteryManager.BATTERY_STATUS_FULL -> "Full"
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "Not charging"
             else -> "Unknown"
         }
 
-        val chargingInfo = if (status == Batterymanager.BATTERY_STATUS_CHARGING) {
-            val currentNow = bm.getIntProperty(Batterymanager.BATTERY_PROPERTY_CURRENT_NOW)
-            val currentAvg = bm.getIntProperty(Batterymanager.BATTERY_PROPERTY_CURRENT_AVERAGE)
-            " (Current: ${currentNow / 1000}mA, 平均: ${currentAvg / 1000}mA)"
+        val chargingInfo = if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
+            val currentNow = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+            val currentAvg = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
+            " (Current: ${currentNow / 1000}mA, Avg: ${currentAvg / 1000}mA)"
         } else ""
 
-        return skillresult.success("电池: ${level}% | Status: $statusStr$chargingInfo")
+        return SkillResult.success("Battery: ${level}% | Status: $statusStr$chargingInfo")
     }
 
     // ========== Storage ==========
 
-    private fun getStorage(): skillresult {
+    private fun getStorage(): SkillResult {
         val internal = StatFs(Environment.getDataDirectory().path)
         val internalTotal = internal.totalBytes
         val internalFree = internal.availableBytes
 
         val result = StringBuilder()
-        result.appendLine("InternalStorage:")
+        result.appendLine("Internal Storage:")
         result.appendLine("  Total: ${formatBytes(internalTotal)}")
         result.appendLine("  Available: ${formatBytes(internalFree)}")
-        result.appendLine("  already用: ${formatBytes(internalTotal - internalFree)} (${(internalTotal - internalFree) * 100 / internalTotal}%)")
+        result.appendLine("  Used: ${formatBytes(internalTotal - internalFree)} (${(internalTotal - internalFree) * 100 / internalTotal}%)")
 
         // External storage if available
         if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
             val external = StatFs(Environment.getExternalStorageDirectory().path)
-            result.appendLine("ExternalStorage:")
+            result.appendLine("External Storage:")
             result.appendLine("  Total: ${formatBytes(external.totalBytes)}")
             result.appendLine("  Available: ${formatBytes(external.availableBytes)}")
         }
 
-        return skillresult.success(result.toString().trim())
+        return SkillResult.success(result.toString().trim())
     }
 
     private fun formatBytes(bytes: Long): String = when {
@@ -250,148 +250,148 @@ SupportAction:
         else -> "$bytes B"
     }
 
-    // ========== 手电筒 ==========
+    // ========== Flashlight ==========
 
-    private fun toggleFlashlight(args: Map<String, Any?>): skillresult {
-        val on = args["on"] as? Boolean ?: return skillresult.error("Missing 'on' parameter (true/false)")
-        val cm = context.getSystemservice(context.CAMERA_SERVICE) as Cameramanager
+    private fun toggleFlashlight(args: Map<String, Any?>): SkillResult {
+        val on = args["on"] as? Boolean ?: return SkillResult.error("Missing 'on' parameter (true/false)")
+        val cm = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
-            val cameraId = cm.cameraIdList.firstorNull() ?: return skillresult.error("NoneAvailable camera")
+            val cameraId = cm.cameraIdList.firstOrNull() ?: return SkillResult.error("No available camera")
             cm.setTorchMode(cameraId, on)
-            return skillresult.success(if (on) "手电筒alreadyopen" else "手电筒alreadyClose")
-        } catch (e: exception) {
-            return skillresult.error("手电筒ActionFailed: ${e.message}")
+            return SkillResult.success(if (on) "Flashlight turned on" else "Flashlight turned off")
+        } catch (e: Exception) {
+            return SkillResult.error("Flashlight operation failed: ${e.message}")
         }
     }
 
-    // ========== 音量 ==========
+    // ========== Volume ==========
 
-    private fun getVolume(): skillresult {
-        val am = context.getSystemservice(context.AUDIO_SERVICE) as Audiomanager
+    private fun getVolume(): SkillResult {
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val streams = listOf(
-            "music" to Audiomanager.STREAM_MUSIC,
-            "call" to Audiomanager.STREAM_VOICE_CALL,
-            "ring" to Audiomanager.STREAM_RING,
-            "notification" to Audiomanager.STREAM_NOTIFICATION,
-            "alarm" to Audiomanager.STREAM_ALARM,
-            "system" to Audiomanager.STREAM_SYSTEM
+            "music" to AudioManager.STREAM_MUSIC,
+            "call" to AudioManager.STREAM_VOICE_CALL,
+            "ring" to AudioManager.STREAM_RING,
+            "notification" to AudioManager.STREAM_NOTIFICATION,
+            "alarm" to AudioManager.STREAM_ALARM,
+            "system" to AudioManager.STREAM_SYSTEM
         )
-        val result = StringBuilder("音量Info:\n")
+        val result = StringBuilder("Volume Info:\n")
         for ((name, stream) in streams) {
             val current = am.getStreamVolume(stream)
             val max = am.getStreamMaxVolume(stream)
             val percent = if (max > 0) current * 100 / max else 0
-            val mute = if (am.isStreamMute(stream)) " [静音]" else ""
+            val mute = if (am.isStreamMute(stream)) " [Muted]" else ""
             result.appendLine("  $name: $current/$max (${percent}%)$mute")
         }
-        return skillresult.success(result.toString().trim())
+        return SkillResult.success(result.toString().trim())
     }
 
-    private fun setVolume(args: Map<String, Any?>): skillresult {
+    private fun setVolume(args: Map<String, Any?>): SkillResult {
         val streamName = args["stream"] as? String ?: "music"
-        val level = (args["level"] as? Number)?.toInt() ?: return skillresult.error("Missing 'level'")
+        val level = (args["level"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'level'")
 
         val stream = when (streamName) {
-            "music" -> Audiomanager.STREAM_MUSIC
-            "call" -> Audiomanager.STREAM_VOICE_CALL
-            "ring" -> Audiomanager.STREAM_RING
-            "notification" -> Audiomanager.STREAM_NOTIFICATION
-            "alarm" -> Audiomanager.STREAM_ALARM
-            "system" -> Audiomanager.STREAM_SYSTEM
-            else -> return skillresult.error("Unknown stream: $streamName")
+            "music" -> AudioManager.STREAM_MUSIC
+            "call" -> AudioManager.STREAM_VOICE_CALL
+            "ring" -> AudioManager.STREAM_RING
+            "notification" -> AudioManager.STREAM_NOTIFICATION
+            "alarm" -> AudioManager.STREAM_ALARM
+            "system" -> AudioManager.STREAM_SYSTEM
+            else -> return SkillResult.error("Unknown stream: $streamName")
         }
 
-        val am = context.getSystemservice(context.AUDIO_SERVICE) as Audiomanager
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val max = am.getStreamMaxVolume(stream)
         val vol = (level * max / 100).coerceIn(0, max)
         am.setStreamVolume(stream, vol, 0)
 
-        return skillresult.success("alreadySettings $streamName 音量: $vol/$max (${level}%)")
+        return SkillResult.success("Set $streamName volume: $vol/$max (${level}%)")
     }
 
-    // ========== highlight度 ==========
+    // ========== Brightness ==========
 
-    private fun setBrightness(args: Map<String, Any?>): skillresult {
+    private fun setBrightness(args: Map<String, Any?>): SkillResult {
         val auto = args["auto"] as? Boolean
         if (auto == true) {
             Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC)
-            return skillresult.success("alreadyswitchforAutohighlight度")
+            return SkillResult.success("Switched to auto brightness")
         }
 
         val level = (args["level"] as? Number)?.toInt()
-            ?: return skillresult.error("Missing 'level' (0-255) or 'auto' (true)")
+            ?: return SkillResult.error("Missing 'level' (0-255) or 'auto' (true)")
 
-        // need to disable auto brightness first
+        // Need to disable auto brightness first
         Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL)
         Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, level.coerceIn(0, 255))
 
-        return skillresult.success("alreadySettingshighlight度: $level/255")
+        return SkillResult.success("Set brightness: $level/255")
     }
 
     // ========== Start App ==========
 
-    private fun startApp(args: Map<String, Any?>): skillresult {
-        val packageName = args["package"] as? String ?: return skillresult.error("Missing 'package'")
-        val intent = context.packagemanager.getLaunchIntentforPackage(packageName)
-            ?: return skillresult.error("not找toapp: $packageName")
-        intent.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    private fun startApp(args: Map<String, Any?>): SkillResult {
+        val packageName = args["package"] as? String ?: return SkillResult.error("Missing 'package'")
+        val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+            ?: return SkillResult.error("App not found: $packageName")
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
-        return skillresult.success("alreadyStart: $packageName")
+        return SkillResult.success("Started: $packageName")
     }
 
-    private fun startActivity(args: Map<String, Any?>): skillresult {
-        val action = args["action"] as? String ?: return skillresult.error("Missing 'action' (Intent action)")
+    private fun startActivity(args: Map<String, Any?>): SkillResult {
+        val action = args["action"] as? String ?: return SkillResult.error("Missing 'action' (Intent action)")
         val data = args["data"] as? String
         val pkg = args["package"] as? String
 
-        val intent = Intent(action).app {
-            aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val intent = Intent(action).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             if (data != null) setData(android.net.Uri.parse(data))
             if (pkg != null) setPackage(pkg)
         }
         return try {
             context.startActivity(intent)
-            skillresult.success("alreadyStart Activity: $action")
-        } catch (e: ActivitynotFoundexception) {
-            skillresult.error("not找to目标 Activity: $action")
+            SkillResult.success("Started activity: $action")
+        } catch (e: ActivityNotFoundException) {
+            SkillResult.error("Target activity not found: $action")
         }
     }
 
-    // ========== 发Broadcast ==========
+    // ========== Broadcast ==========
 
-    private fun sendBroadcast(args: Map<String, Any?>): skillresult {
-        val action = args["action"] as? String ?: return skillresult.error("Missing 'action'")
+    private fun sendBroadcast(args: Map<String, Any?>): SkillResult {
+        val action = args["action"] as? String ?: return SkillResult.error("Missing 'action'")
         val pkg = args["package"] as? String
 
-        val intent = Intent(action).app {
+        val intent = Intent(action).apply {
             if (pkg != null) setPackage(pkg)
         }
         context.sendBroadcast(intent)
-        return skillresult.success("alreadysendBroadcast: $action")
+        return SkillResult.success("Sent broadcast: $action")
     }
 
-    // ========== ScreenTimeout ==========
+    // ========== Screen Timeout ==========
 
-    private fun setScreenTimeout(args: Map<String, Any?>): skillresult {
-        val seconds = (args["seconds"] as? Number)?.toInt() ?: return skillresult.error("Missing 'seconds'")
+    private fun setScreenTimeout(args: Map<String, Any?>): SkillResult {
+        val seconds = (args["seconds"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'seconds'")
 
-        // use Intent to open screen timeout settings (direct write needs WRITE_SETTINGS which we may not have)
+        // Use Intent to open screen timeout settings (direct write needs WRITE_SETTINGS which we may not have)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(context)) {
             // Fall back to opening settings
-            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).app {
-                aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-            return skillresult.error("need WRITE_SETTINGS Permission, alreadyOpenAuthorize页面")
+            return SkillResult.error("WRITE_SETTINGS permission required, opened authorization page")
         }
 
         Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT, seconds * 1000)
-        return skillresult.success("alreadySettingsScreenTimeout: ${seconds}seconds")
+        return SkillResult.success("Set screen timeout: ${seconds}s")
     }
 
-    // ========== Settings页跳转 ==========
+    // ========== Settings Page ==========
 
-    private fun openSettings(args: Map<String, Any?>): skillresult {
+    private fun openSettings(args: Map<String, Any?>): SkillResult {
         val page = args["page"] as? String ?: "all"
         val intentAction = when (page) {
             "wifi" -> Settings.ACTION_WIFI_SETTINGS
@@ -402,15 +402,15 @@ SupportAction:
             "storage" -> Settings.ACTION_INTERNAL_STORAGE_SETTINGS
             "app" -> Settings.ACTION_APPLICATION_SETTINGS
             "all" -> Settings.ACTION_SETTINGS
-            else -> return skillresult.error("Unknown settings page: $page")
+            else -> return SkillResult.error("Unknown settings page: $page")
         }
 
-        val intent = Intent(intentAction).app { aFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        val intent = Intent(intentAction).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
         return try {
             context.startActivity(intent)
-            skillresult.success("alreadyOpenSettings页面: $page")
-        } catch (e: ActivitynotFoundexception) {
-            skillresult.error("not找toSettings页面: $page")
+            SkillResult.success("Opened settings page: $page")
+        } catch (e: ActivityNotFoundException) {
+            SkillResult.error("Settings page not found: $page")
         }
     }
 }

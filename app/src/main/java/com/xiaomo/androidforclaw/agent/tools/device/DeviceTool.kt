@@ -132,19 +132,19 @@ class Devicetool(private val context: context) : tool {
 
         val viewNodes = try {
             proxy.dumpViewTree(useCache = false)
-        } catch (e: IllegalStateexception) {
+        } catch (e: IllegalStateException) {
             Log.e(TAG, "Accessibility service not available", e)
-            return toolresult.error("Accessibilityservicenotopen. pleaseto Settings → Accessibility → androidforClaw openAccessibilityPermission, 才canGetScreenElement. ")
-        } catch (e: exception) {
+            return toolResult.error("Accessibility service not open. Please go to Settings → Accessibility → AndroidForClaw to open Accessibility Permission, then you can get screen elements.")
+        } catch (e: Exception) {
             Log.e(TAG, "Failed to dump view tree", e)
-            return toolresult.error("Get UI TreeFailed: ${e.message}. pleaseCheckAccessibilityservicewhether正常Run. ")
+            return toolResult.error("Get UI Tree failed: ${e.message}. Please check if Accessibility service is running normally.")
         }
 
         if (viewNodes.isEmpty()) {
-            val accessibilityOn = try { proxy.isConnected.value == true && proxy.isserviceReady() } catch (_: exception) { false }
-            val status = if (accessibilityOn) "Accessibilityservice: [OK] alreadyopen(butwhenFront页面NoneIdentifiable elements, possibly页面currentlyLoad, suggest等 1-2 secondsretry)" 
-                         else "Accessibilityservice: [ERROR] notopen. pleaseto Settings → Accessibility → androidforClaw openAccessibilityPermission. "
-            return toolresult.error(status)
+            val accessibilityOn = try { proxy.isConnected.value == true && proxy.isServiceReady() } catch (_: Exception) { false }
+            val status = if (accessibilityOn) "Accessibility service: [OK] already open (but current front page has no identifiable elements, possibly page is still loading, suggest wait 1-2 seconds and retry)" 
+                         else "Accessibility service: [ERROR] not open. Please go to Settings → Accessibility → AndroidForClaw to open Accessibility Permission."
+            return toolResult.error(status)
         }
 
         val nodes = SnapshotBuilder.buildfromViewNodes(viewNodes)
@@ -195,7 +195,7 @@ class Devicetool(private val context: context) : tool {
                     return toolresult.success("Screenshot saved: $path (${file.length()} bytes)")
                 }
             } catch (_: exception) {}
-            return toolresult.error("Screenshot failed. please grant screen capture permission.")
+            return toolResult.error("Screenshot failed. Please grant screen capture permission.")
         }
 
         val (bitmap, path) = screenshotresult
@@ -240,13 +240,13 @@ class Devicetool(private val context: context) : tool {
     private suspend fun executeType(args: Map<String, Any?>): toolresult {
         val text = args["text"] as? String ?: return toolresult.error("Missing 'text' for kind=type")
 
-        val clipboardhelper = com.xiaomo.androidforclaw.service.ClipboardInputhelper
-        val clawIme = com.xiaomo.androidforclaw.service.ClawIMEmanager
+        val clipboardHelper = com.xiaomo.androidforclaw.service.ClipboardInputHelper
+        val clawIme = com.xiaomo.androidforclaw.service.ClawIMEManager
         val clawImeActive = clawIme.isClawImeEnabled(context) && clawIme.isConnected()
-        val accessibilityAvailable = AccessibilityProxy.isserviceReady()
-        val clipboardAvailable = accessibilityAvailable && clipboardhelper.isClipboardAvailable(context)
+        val accessibilityAvailable = AccessibilityProxy.isServiceReady()
+        val clipboardAvailable = accessibilityAvailable && clipboardHelper.isClipboardAvailable(context)
 
-        // if ref provided, try to focus input
+        // If ref provided, try to focus input
         val resolved = resolveCoordinate(args)
         if (resolved != null) {
             val (x, y, _) = resolved
@@ -254,33 +254,33 @@ class Devicetool(private val context: context) : tool {
                 AccessibilityProxy.tap(x, y)
                 delay(POST_ACTION_DELAY_MS)
             } else if (clawImeActive) {
-                Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitfor()
+                Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
                 delay(POST_ACTION_DELAY_MS)
             } else {
-                return toolresult.error("InputFailed: Accessibilityserviceand ClawIME 均notEnable, cannot聚焦Input field")
+                return toolResult.error("Input failed: Both Accessibility service and ClawIME are not enabled, cannot focus input field")
             }
         }
 
-        // Type text: 优先cut板 → 兜底 ClawIME → 兜底 shell input
+        // Type text: prefer clipboard → fallback to ClawIME → fallback to shell input
         try {
             val typed: Boolean
             val method: String
 
             if (clipboardAvailable) {
-                // 优先走cut板paste(Most reliable, SupportAllcharacters)
-                typed = clipboardhelper.inputTextViaClipboard(context, text)
+                // Prefer clipboard paste (most reliable, supports all characters)
+                typed = clipboardHelper.inputTextViaClipboard(context, text)
                 method = "clipboard"
                 Log.d(TAG, "Clipboard.inputText('${text.take(30)}'): $typed")
             } else if (clawImeActive) {
-                // 兜底to ClawIME Key盘Input
+                // Fallback to ClawIME keyboard input
                 typed = clawIme.inputText(text)
                 method = "clawime"
                 Log.d(TAG, "ClawIME.inputText('${text.take(30)}'): $typed")
             } else {
-                // most终兜底: shell input text(仅Support ASCII)
+                // Final fallback: shell input text (only supports ASCII)
                 val escaped = text.replace("'", "'\\''")
                 val proc = Runtime.getRuntime().exec(arrayOf("sh", "-c", "input text '$escaped'"))
-                val exitCode = proc.waitfor()
+                val exitCode = proc.waitFor()
                 typed = exitCode == 0
                 method = "shell"
                 Log.d(TAG, "shell input text exitCode: $exitCode")
@@ -288,13 +288,13 @@ class Devicetool(private val context: context) : tool {
 
             if (!typed) {
                 val hint = if (!accessibilityAvailable && !clawImeActive) {
-                    "pleaseopenAccessibilityservice(recommend, Supportcut板paste), orswitchto ClawIME Input method"
+                    "Please open Accessibility service (recommended, supports clipboard paste), or switch to ClawIME input method"
                 } else if (!accessibilityAvailable) {
-                    "cut板pasteneedAccessibilityservice. pleaseinSettings中openAccessibilityPermissionbyobtainmoreokInput体验"
+                    "Clipboard paste needs Accessibility service. Please open Accessibility Permission in Settings for better input experience"
                 } else {
-                    "InputFailed, pleaseretry"
+                    "Input failed, please retry"
                 }
-                return toolresult.error("Type failed: $hint")
+                return toolResult.error("Type failed: $hint")
             }
             val refLabel = (args["ref"] as? String)?.let { refmanager.getRefNode(it)?.name }
             return toolresult.success("Typed '${text.take(100)}'${refLabel?.let { " into '$it'" } ?: ""} (via $method)")
