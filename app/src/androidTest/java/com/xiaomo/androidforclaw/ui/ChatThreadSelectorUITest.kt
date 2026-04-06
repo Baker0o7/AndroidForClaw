@@ -13,16 +13,16 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * ChatThreadSelector UI 自动化测试
+ * ChatThreadSelector UI Auto化Test
  *
- * 覆盖场景:
- * 1. 会话 chip 正常显示
- * 2. 点击切换会话
- * 3. 长按弹出删除确认对话框
- * 4. 确认删除触发回调
- * 5. 取消删除关闭对话框
+ * Override场景:
+ * 1. Session chip 正常Show
+ * 2. 点击切换Session
+ * 3. 长按弹出DeleteConfirmConversation框
+ * 4. ConfirmDelete触发Callback
+ * 5. CancelDeleteCloseConversation框
  *
- * 运行:
+ * Run:
  * adb shell am instrument -w -e class com.xiaomo.androidforclaw.ui.ChatThreadSelectorUITest \
  *   com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
  */
@@ -45,7 +45,7 @@ class ChatThreadSelectorUITest {
     private val actionCancel get() = res.getString(R.string.action_cancel)
 
     // ========================================================================
-    // 1. 会话 chip 显示
+    // 1. Session chip Show
     // ========================================================================
 
     @Test
@@ -64,7 +64,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 2. 点击切换会话
+    // 2. 点击切换Session
     // ========================================================================
 
     @Test
@@ -88,7 +88,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 3. 长按弹出删除确认对话框
+    // 3. 长按弹出DeleteConfirmConversation框
     // ========================================================================
 
     @Test
@@ -113,7 +113,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 4. 确认删除触发回调
+    // 4. ConfirmDelete触发Callback
     // ========================================================================
 
     @Test
@@ -146,7 +146,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 5. 取消删除关闭对话框
+    // 5. CancelDeleteCloseConversation框
     // ========================================================================
 
     @Test
@@ -178,7 +178,7 @@ class ChatThreadSelectorUITest {
     }
 
     // ========================================================================
-    // 6. 无删除回调时长按不弹框
+    // 6. NoneDeleteCallback时长按不弹框
     // ========================================================================
 
     @Test

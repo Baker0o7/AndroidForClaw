@@ -26,8 +26,8 @@ import com.xiaomo.feishu.tools.urgent.FeishuUrgentTools
 import com.xiaomo.feishu.tools.wiki.FeishuWikiTools
 
 /**
- * 飞书工具注册中心
- * 统一管理所有工具集
+ * 飞书工具Register中心
+ * 统一ManageAll工具集
  */
 class FeishuToolRegistry(
     private val config: FeishuConfig,
@@ -49,7 +49,7 @@ class FeishuToolRegistry(
     private val commonTools = FeishuCommonTools(config, client)
 
     /**
-     * 获取所有工具
+     * GetAll工具
      */
     fun getAllTools(): List<FeishuToolBase> {
         return buildList {
@@ -71,41 +71,41 @@ class FeishuToolRegistry(
     }
 
     /**
-     * 获取所有启用的工具定义（用于 LLM）
+     * GetAllEnabled的Tool definition(用于 LLM)
      */
     fun getToolDefinitions(): List<ToolDefinition> {
         return getAllTools()
-            .filter { it.isEnabled() }
+            .filter { it.isEnabledd() }
             .map { it.getToolDefinition() }
     }
 
     /**
-     * 根据名称获取工具
+     * according toNameGet工具
      */
     fun getTool(name: String): FeishuToolBase? {
         return getAllTools().find { it.name == name }
     }
 
     /**
-     * 执行工具
+     * 执Row工具
      */
-    suspend fun execute(name: String, args: Map<String, Any?>): ToolResult {
+    suspend fun execute(name: String, args: Map<String, Any?>): Toolresult {
         val tool = getTool(name)
-            ?: return ToolResult.error("Tool not found: $name")
+            ?: return Toolresult.error("Tool not found: $name")
 
-        if (!tool.isEnabled()) {
-            return ToolResult.error("Tool is disabled: $name")
+        if (!tool.isEnabledd()) {
+            return Toolresult.error("Tool is disabled: $name")
         }
 
         return tool.execute(args)
     }
 
     /**
-     * 获取工具统计
+     * Get工具count
      */
     fun getStats(): ToolStats {
         val allTools = getAllTools()
-        val enabledTools = allTools.filter { it.isEnabled() }
+        val enabledTools = allTools.filter { it.isEnabledd() }
 
         return ToolStats(
             totalTools = allTools.size,
@@ -131,7 +131,7 @@ class FeishuToolRegistry(
 }
 
 /**
- * 工具统计
+ * 工具count
  */
 data class ToolStats(
     val totalTools: Int,

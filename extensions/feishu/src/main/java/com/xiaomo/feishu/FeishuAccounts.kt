@@ -11,20 +11,20 @@ package com.xiaomo.feishu
 import android.util.Log
 
 /**
- * 飞书账号管理
- * 对齐 OpenClaw accounts.ts
+ * 飞书AccountManage
+ * Aligned with OpenClaw accounts.ts
  *
- * 功能：
- * - 多账号配置管理
- * - 账号选择和解析
- * - 凭证验证
+ * Feature: 
+ * - 多AccountConfigManage
+ * - Accountchoose和Parse
+ * - 凭证Validate
  */
 object FeishuAccounts {
     private const val TAG = "FeishuAccounts"
     private const val DEFAULT_ACCOUNT_ID = "default"
 
     /**
-     * 账号配置
+     * AccountConfig
      */
     data class AccountConfig(
         val name: String? = null,
@@ -38,7 +38,7 @@ object FeishuAccounts {
     )
 
     /**
-     * 多账号配置
+     * 多AccountConfig
      */
     data class MultiAccountConfig(
         val defaultAccount: String? = null,
@@ -47,17 +47,17 @@ object FeishuAccounts {
     )
 
     /**
-     * 账号选择来源
+     * Accountchoose来源
      */
     enum class AccountSelectionSource {
-        EXPLICIT,           // 明确指定的账号
-        EXPLICIT_DEFAULT,   // 配置中明确指定的默认账号
-        MAPPED_DEFAULT,     // 映射到 default 账号
-        FALLBACK            // 回退到第一个账号
+        EXPLICIT,           // 明确指定的Account
+        EXPLICIT_DEFAULT,   // Config中明确指定的DefaultAccount
+        MAPPED_DEFAULT,     // Map到 default Account
+        FALLBACK            // Fallback到FirstAccount
     }
 
     /**
-     * 解析后的账号
+     * ParseBack的Account
      */
     data class ResolvedAccount(
         val accountId: String,
@@ -74,53 +74,53 @@ object FeishuAccounts {
     )
 
     /**
-     * 规范化账号 ID
+     * 规范化Account ID
      */
     fun normalizeAccountId(accountId: String?): String {
         return accountId?.trim()?.ifEmpty { DEFAULT_ACCOUNT_ID } ?: DEFAULT_ACCOUNT_ID
     }
 
     /**
-     * 列出配置的所有账号 ID
+     * ListConfig的AllAccount ID
      */
     fun listAccountIds(config: MultiAccountConfig): List<String> {
         val ids = config.accounts.keys.filter { it.isNotBlank() }
         if (ids.isEmpty()) {
-            // 向后兼容：没有配置账号时返回 default
+            // 向Back兼容: NoneConfigAccount时Return default
             return listOf(DEFAULT_ACCOUNT_ID)
         }
         return ids.sorted()
     }
 
     /**
-     * 解析默认账号选择
+     * ParseDefaultAccountchoose
      */
     fun resolveDefaultAccountSelection(config: MultiAccountConfig): Pair<String, AccountSelectionSource> {
-        // 1. 明确指定的默认账号
+        // 1. 明确指定的DefaultAccount
         val preferred = config.defaultAccount?.trim()
         if (!preferred.isNullOrEmpty()) {
             return Pair(normalizeAccountId(preferred), AccountSelectionSource.EXPLICIT_DEFAULT)
         }
 
-        // 2. 映射到 default 账号
+        // 2. Map到 default Account
         val ids = listAccountIds(config)
         if (ids.contains(DEFAULT_ACCOUNT_ID)) {
             return Pair(DEFAULT_ACCOUNT_ID, AccountSelectionSource.MAPPED_DEFAULT)
         }
 
-        // 3. 回退到第一个账号
+        // 3. Fallback到FirstAccount
         return Pair(ids.firstOrNull() ?: DEFAULT_ACCOUNT_ID, AccountSelectionSource.FALLBACK)
     }
 
     /**
-     * 解析默认账号 ID
+     * ParseDefaultAccount ID
      */
     fun resolveDefaultAccountId(config: MultiAccountConfig): String {
         return resolveDefaultAccountSelection(config).first
     }
 
     /**
-     * 获取账号特定配置
+     * GetAccount特定Config
      */
     private fun getAccountConfig(
         config: MultiAccountConfig,
@@ -130,8 +130,8 @@ object FeishuAccounts {
     }
 
     /**
-     * 合并账号配置
-     * 账号特定配置覆盖基础配置
+     * MergeAccountConfig
+     * Account特定ConfigOverride基础Config
      */
     private fun mergeAccountConfig(
         config: MultiAccountConfig,
@@ -140,17 +140,17 @@ object FeishuAccounts {
         val base = config.baseConfig
         val account = getAccountConfig(config, accountId)
 
-        // 如果没有基础配置，使用账号配置
+        // ifNone基础Config, useAccountConfig
         if (base == null) {
             return account?.config
         }
 
-        // 如果没有账号配置，使用基础配置
+        // ifNoneAccountConfig, use基础Config
         if (account?.config == null) {
             return base
         }
 
-        // 合并配置（账号配置优先）
+        // MergeConfig(AccountConfig优先)
         return base.copy(
             enabled = account.config.enabled,
             appId = account.appId,
@@ -162,7 +162,7 @@ object FeishuAccounts {
     }
 
     /**
-     * 验证凭证
+     * Validate凭证
      */
     fun validateCredentials(
         appId: String?,
@@ -172,11 +172,11 @@ object FeishuAccounts {
     }
 
     /**
-     * 解析账号
+     * ParseAccount
      *
-     * @param config 多账号配置
-     * @param accountId 账号 ID（null 表示使用默认账号）
-     * @return 解析后的账号
+     * @param config 多AccountConfig
+     * @param accountId Account ID(null Table示useDefaultAccount)
+     * @return ParseBack的Account
      */
     fun resolveAccount(
         config: MultiAccountConfig,
@@ -202,16 +202,16 @@ object FeishuAccounts {
             defaultSelection?.second ?: AccountSelectionSource.FALLBACK
         }
 
-        // 获取账号配置
+        // GetAccountConfig
         val accountConfig = getAccountConfig(config, resolvedAccountId)
-        val baseEnabled = config.baseConfig?.enabled ?: true
-        val accountEnabled = accountConfig?.enabled ?: true
-        val enabled = baseEnabled && accountEnabled
+        val baseEnabledd = config.baseConfig?.enabled ?: true
+        val accountEnabledd = accountConfig?.enabled ?: true
+        val enabled = baseEnabledd && accountEnabledd
 
-        // 合并配置
+        // MergeConfig
         val mergedConfig = mergeAccountConfig(config, resolvedAccountId)
 
-        // 验证凭证
+        // Validate凭证
         val configured = validateCredentials(accountConfig?.appId, accountConfig?.appSecret)
 
         Log.d(TAG, "Resolved account: id=$resolvedAccountId, source=$selectionSource, " +
@@ -233,16 +233,16 @@ object FeishuAccounts {
     }
 
     /**
-     * 列出所有启用且配置完整的账号
+     * ListAllEnabled且Config完整的Account
      */
-    fun listEnabledAccounts(config: MultiAccountConfig): List<ResolvedAccount> {
+    fun listEnableddAccounts(config: MultiAccountConfig): List<ResolvedAccount> {
         return listAccountIds(config)
             .map { accountId -> resolveAccount(config, accountId) }
             .filter { it.enabled && it.configured }
     }
 
     /**
-     * 从单一配置创建多账号配置（向后兼容）
+     * 从单一ConfigCreate多AccountConfig(向Back兼容)
      */
     fun fromSingleConfig(config: FeishuConfig): MultiAccountConfig {
         return MultiAccountConfig(

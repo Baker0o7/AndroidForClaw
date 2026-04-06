@@ -21,13 +21,13 @@ import org.junit.runner.RunWith
 import java.io.File
 
 /**
- * 首次安装后的聊天 E2E 测试
+ * 首次InstallBack的Chat E2E Test
  *
- * 成功标准：
+ * Success标准: 
  * 1. 走完首装引导
- * 2. 进入聊天页
- * 3. 发送固定测试消息
- * 4. 以聊天返回内容正确作为最终成功判断
+ * 2. Into入Chat页
+ * 3. 发送固定TestMessage
+ * 4. 以ChatReturnInside容正确作为最终SuccessDetermine
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -38,14 +38,14 @@ class FirstInstallChatE2ETest {
         private const val PACKAGE_NAME = "com.xiaomo.androidforclaw"
         private const val TIMEOUT = 15_000L
         private const val RESPONSE_TIMEOUT = 45_000L
-        private const val TEST_PROMPT = "请只回复：ANDROIDFORCLAW_TEST_OK"
+        private const val TEST_PROMPT = "请只回复: ANDROIDFORCLAW_TEST_OK"
         private val ERROR_KEYWORDS = listOf(
             "Provider not found",
             "LLM request failed",
             "timed out",
             "API request failed",
-            "执行出错",
-            "错误类型"
+            "执Row出错",
+            "ErrorType"
         )
     }
 
@@ -117,7 +117,7 @@ class FirstInstallChatE2ETest {
     private fun completeFirstInstallIfShown(useSkip: Boolean) {
         val welcome = device.wait(Until.findObject(By.text("欢迎使用 AndroidForClaw")), 5000)
         if (welcome != null) {
-            val buttonText = if (useSkip) "跳过" else "开始使用"
+            val buttonText = if (useSkip) "Skip" else "Start使用"
             val button = device.wait(Until.findObject(By.text(buttonText)), 5000)
             assertNotNull("First-install $buttonText button should exist", button)
             button!!.click()

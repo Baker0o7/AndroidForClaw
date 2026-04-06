@@ -7,28 +7,28 @@ import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
 /**
- * AndroidForClaw UI 自动化测试套件
+ * AndroidForClaw UI Auto化Test套件
  *
- * 包含所有 UI 和集成测试
+ * ContainsAll UI 和集成Test
  *
- * 运行所有测试:
+ * RunAllTest:
  * ./gradlew connectedDebugAndroidTest
  *
- * 运行此测试套件:
+ * Run此Test套件:
  * ./gradlew connectedDebugAndroidTest --tests "AndroidTestSuite"
  */
 @RunWith(Suite::class)
 @Suite.SuiteClasses(
-    // UI 测试
+    // UI Test
     PermissionUITest::class,
     ConfigActivityUITest::class,
     FloatingWindowUITest::class,
     ForClawMainTabsUITest::class,
 
-    // E2E 测试
+    // E2E Test
     CameraE2ETest::class,
 
-    // 集成测试
+    // 集成Test
     AgentIntegrationTest::class
 )
 class AndroidTestSuite

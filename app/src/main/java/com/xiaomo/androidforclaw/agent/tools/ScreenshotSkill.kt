@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -54,7 +54,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         Log.d(TAG, "Taking screenshot with UI tree...")
 
         // Screenshot function is always enabled, controlled by MediaProjection permission
@@ -64,7 +64,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
             val (originalNodes, processedNodes) = run {
                 val result = DeviceController.detectIcons(context)
                 if (result == null) {
-                    Log.w(TAG, "无法获取 UI 树（无障碍服务未启用或失败），继续截图")
+                    Log.w(TAG, "CannotGet UI Tree(AccessibilityService未Enabledd或Failed), ContinueScreenshot")
                     Pair(emptyList(), emptyList())
                 } else {
                     result
@@ -77,10 +77,10 @@ class ScreenshotSkill(private val context: Context) : Skill {
             delay(50)
 
             // 3. Take screenshot (MediaProjection → shell screencap fallback)
-            var screenshotResult = DeviceController.getScreenshot(context)
-            if (screenshotResult == null) {
+            var screenshotresult = DeviceController.getScreenshot(context)
+            if (screenshotresult == null) {
                 Log.w(TAG, "MediaProjection unavailable, trying shell screencap fallback...")
-                screenshotResult = try {
+                screenshotresult = try {
                     val screenshotPath = "${StoragePaths.workspaceScreenshots.absolutePath}/screenshot_${System.currentTimeMillis()}.png"
                     val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "screencap -p $screenshotPath"))
                     process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
@@ -97,11 +97,11 @@ class ScreenshotSkill(private val context: Context) : Skill {
                     null
                 }
             }
-            if (screenshotResult == null) {
-                return SkillResult.error("Screenshot failed: MediaProjection not authorized and shell screencap unavailable. Please open the app and grant screen capture permission.")
+            if (screenshotresult == null) {
+                return Skillresult.error("Screenshot failed: MediaProjection not authorized and shell screencap unavailable. Please open the app and grant screen capture permission.")
             }
 
-            val (bitmap, path) = screenshotResult
+            val (bitmap, path) = screenshotresult
             Log.d(TAG, "Screenshot captured: ${bitmap.width}x${bitmap.height}, path: $path")
 
             // 4. Compress screenshot for model (aligned with OpenClaw image-sanitization)
@@ -121,34 +121,34 @@ class ScreenshotSkill(private val context: Context) : Skill {
 
             // 5. Combine output
             val output = buildString {
-                appendLine("【截图信息】")
+                appendLine("【ScreenshotInfo】")
                 appendLine("分辨率: ${bitmap.width}x${bitmap.height}")
-                appendLine("路径: $path")
-                appendLine("（截图已内嵌，请直接描述你看到的内容）")
+                appendLine("Path: $path")
+                appendLine("(Screenshot已Inside嵌, 请直接Description你看到的Inside容)")
                 appendLine()
 
-                appendLine("【屏幕 UI 元素】（共 ${processedNodes.size} 个）")
+                appendLine("【Screen UI Element】(共 ${processedNodes.size} 个)")
                 appendLine()
 
                 processedNodes.forEachIndexed { index, node ->
                     val text = node.text?.takeIf { it.isNotBlank() }
                         ?: node.contentDesc?.takeIf { it.isNotBlank() }
-                        ?: "[无文本]"
+                        ?: "[NoneText]"
 
                     append("[$index] \"$text\" (${node.point.x}, ${node.point.y})")
 
                     if (node.clickable) {
-                        append(" [可点击]")
+                        append(" [可click]")
                     }
 
                     appendLine()
                 }
 
                 appendLine()
-                appendLine("提示：使用坐标 (x,y) 进行 tap 操作")
+                appendLine("Hint: use坐标 (x,y) IntoRow tap Action")
             }
 
-            SkillResult.success(
+            Skillresult.success(
                 output,
                 mapOf(
                     "screenshot_path" to path,
@@ -161,7 +161,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Screenshot with UI tree failed", e)
-            SkillResult.error("Screenshot with UI tree failed: ${e.message}")
+            Skillresult.error("Screenshot with UI tree failed: ${e.message}")
         }
     }
 }

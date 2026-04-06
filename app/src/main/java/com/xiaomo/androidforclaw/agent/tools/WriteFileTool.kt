@@ -39,8 +39,8 @@ class WriteFileTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要写入的文件路径"),
-                        "content" to PropertySchema("string", "要写入的内容")
+                        "path" to PropertySchema("string", "要Write的File path"),
+                        "content" to PropertySchema("string", "要Write的Inside容")
                     ),
                     required = listOf("path", "content")
                 )
@@ -48,12 +48,12 @@ class WriteFileTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val path = args["path"] as? String
         val content = args["content"] as? String
 
         if (path == null || content == null) {
-            return ToolResult.error("Missing required parameters: path, content")
+            return Toolresult.error("Missing required parameters: path, content")
         }
 
         Log.d(TAG, "Writing file: $path (${content.length} bytes)")
@@ -65,7 +65,7 @@ class WriteFileTool(
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
                 if (!canonicalFile.path.startsWith(canonicalAllowed.path)) {
-                    return ToolResult.error("Path is outside allowed directory: $path")
+                    return Toolresult.error("Path is outside allowed directory: $path")
                 }
             }
 
@@ -75,10 +75,10 @@ class WriteFileTool(
             // Write file
             file.writeText(content, Charsets.UTF_8)
 
-            ToolResult.success("Successfully wrote ${content.length} bytes to ${file.absolutePath}")
+            Toolresult.success("Successfully wrote ${content.length} bytes to ${file.absolutePath}")
         } catch (e: Exception) {
             Log.e(TAG, "Write file failed", e)
-            ToolResult.error("Write file failed: ${e.message}")
+            Toolresult.error("Write file failed: ${e.message}")
         }
     }
 

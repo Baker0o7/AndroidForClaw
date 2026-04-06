@@ -99,17 +99,17 @@ class GatewayController(
     var isRunning = false
         private set
 
-    /** 本地进程内事件接收器，由 LocalGatewayChannel 注册，绕过 WebSocket 直接收取事件。 */
+    /** 本地ProcessInsideEventreceive器, by LocalGatewayChannel Register, 绕过 WebSocket 直receive取Event.  */
     @Volatile var localEventSink: ((event: String, payloadJson: String) -> Unit)? = null
 
-    /** 广播事件：同时发给 WebSocket 客户端和本地 channel。 */
+    /** BroadcastEvent: at the same time发给 WebSocket Client和本地 channel.  */
     private fun broadcastEvent(frame: EventFrame) {
         server?.broadcast(frame)
         localEventSink?.let { sink ->
             try {
                 val payloadJson = com.google.gson.Gson().toJson(frame.payload)
                 sink(frame.event, payloadJson)
-            } catch (_: Throwable) { /* 序列化失败忽略 */ }
+            } catch (_: Throwable) { /* SerializeFailedIgnore */ }
         }
     }
 
@@ -172,7 +172,7 @@ class GatewayController(
                     val userMsg = p["message"] as? String ?: ""
                     val thinking = p["thinking"] as? String ?: "off"
                     SPHelper.getInstance(context).saveData(PREF_THINKING_LEVEL, thinking)
-                    val reasoningEnabled = thinking != "off"
+                    val reasoningEnableddd = thinking != "off"
                     @Suppress("UNCHECKED_CAST")
                     val attachments = p["attachments"] as? List<Map<String, Any?>> ?: emptyList()
                     val runId = "run_${UUID.randomUUID()}"
@@ -289,7 +289,7 @@ class GatewayController(
                                             )
                                         )))
                                     }
-                                    is ProgressUpdate.ToolResult -> {
+                                    is ProgressUpdate.Toolresult -> {
                                         val toolCallId = pendingToolCallIds.remove(update.name) ?: "tc_${UUID.randomUUID()}"
                                         broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
@@ -319,7 +319,7 @@ class GatewayController(
                                 systemPrompt = systemPrompt,
                                 userMessage = userMsg,
                                 contextHistory = contextHistory,
-                                reasoningEnabled = reasoningEnabled,
+                                reasoningEnableddd = reasoningEnableddd,
                                 images = imageBlocks.ifEmpty { null }
                             )
                             streamJob.cancel()
@@ -774,8 +774,8 @@ class GatewayController(
     }
 
     /**
-     * 本地进程内直接调用 RPC 方法（绕过 WebSocket），返回 JSON 字符串。
-     * 供 LocalGatewayChannel 调用。
+     * 本地ProcessInside直接call RPC Method(绕过 WebSocket), Return JSON String. 
+     * 供 LocalGatewayChannel call. 
      */
     suspend fun handleLocalRequest(method: String, paramsJson: String?): String {
         val srv = server ?: throw IllegalStateException("Gateway not started")

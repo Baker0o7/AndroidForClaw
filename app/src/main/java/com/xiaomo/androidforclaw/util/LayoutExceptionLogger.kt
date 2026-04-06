@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -8,15 +8,15 @@ import com.xiaomo.androidforclaw.logging.Log
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
- * 局部布局异常记录器
- * 用于在各模块的 catch 中记录布局相关异常，方便快速定位失败模块
+ * Local布局ExceptionRecord器
+ * 用于在各Module的 catch 中Record布局相关Exception, 方便Fast定位FailedModule
  */
 object LayoutExceptionLogger {
 
     private const val TAG = "LayoutExceptionLogger"
 
     /**
-     * 异常信息数据类
+     * ExceptionInfoDataClass
      */
     data class ExceptionInfo(
         val moduleName: String,
@@ -25,57 +25,57 @@ object LayoutExceptionLogger {
         val timestamp: Long = System.currentTimeMillis()
     )
 
-    // 线程安全的异常队列
+    // ThreadSafe的ExceptionQueue
     private val exceptionQueue = ConcurrentLinkedQueue<ExceptionInfo>()
 
-    // 防止递归调用的标志位（使用 ThreadLocal 确保线程安全）
+    // PreventRecursecall的标志位(use ThreadLocal EnsureThreadSafe)
     private val isLogging = ThreadLocal<Boolean>().apply { set(false) }
 
     /**
-     * 记录异常信息（仅本地日志）
+     * RecordExceptionInfo(仅本地Log)
      */
     fun log(moduleName: String, throwable: Throwable) {
-        // 防止递归调用：如果当前线程正在记录异常，则跳过
+        // PreventRecursecall: if当FrontThread正在RecordException, 则Skip
         if (isLogging.get() == true) {
-            Log.w(TAG, "检测到递归调用，跳过异常记录以避免无限循环。模块: $moduleName")
+            Log.w(TAG, "DetectedRecursecall, SkipExceptionRecord以避免None限Loop. Module: $moduleName")
             return
         }
 
-        // 设置标志位
+        // Settings标志位
         isLogging.set(true)
 
         try {
-            // 记录到日志
+            // Record到Log
             Log.e(
                 TAG,
-                "模块[$moduleName]执行失败，异常信息: ${throwable.message}",
+                "Module[$moduleName]执RowFailed, ExceptionInfo: ${throwable.message}",
                 throwable
             )
 
-            // 存储异常信息
+            // StorageExceptionInfo
             val stackTrace = throwable.stackTraceToString()
             val exceptionInfo = ExceptionInfo(
                 moduleName = moduleName,
-                message = throwable.message ?: "未知异常",
+                message = throwable.message ?: "Unknown exception",
                 stackTrace = stackTrace,
                 timestamp = System.currentTimeMillis()
             )
             exceptionQueue.offer(exceptionInfo)
         } finally {
-            // 清除标志位
+            // clear标志位
             isLogging.set(false)
         }
     }
 
     /**
-     * 获取异常数量
+     * GetException数量
      */
     fun getExceptionCount(): Int {
         return exceptionQueue.size
     }
 
     /**
-     * 清空异常队列
+     * 清NullExceptionQueue
      */
     fun clear() {
         exceptionQueue.clear()

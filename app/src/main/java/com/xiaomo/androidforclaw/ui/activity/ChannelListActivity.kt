@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -46,11 +46,11 @@ fun ChannelListScreen(onBack: () -> Unit) {
 
     // Read channel enabled status from openclaw.json instead of MMKV
     val config = remember { configLoader.loadOpenClawConfig() }
-    var feishuEnabled by remember {
+    var feishuEnableddd by remember {
         mutableStateOf(config.channels.feishu.enabled)
     }
 
-    var discordEnabled by remember {
+    var discordEnableddd by remember {
         mutableStateOf(config.channels.discord?.enabled ?: false)
     }
 
@@ -60,7 +60,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.channels_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Return")
                     }
                 }
             )
@@ -74,7 +74,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "配置多渠道接入",
+                text = "Config多渠道接入",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -85,7 +85,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             ChannelCard(
                 name = "Feishu (飞书)",
                 description = "飞书群聊和私聊接入",
-                enabled = feishuEnabled,
+                enabled = feishuEnableddd,
                 onClick = {
                     // Navigate to Feishu configuration page
                     val intent = Intent(context, FeishuChannelActivity::class.java)
@@ -96,8 +96,8 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // Discord Channel card
             ChannelCard(
                 name = "Discord",
-                description = "Discord 服务器和私聊接入",
-                enabled = discordEnabled,
+                description = "Discord Service器和私聊接入",
+                enabled = discordEnableddd,
                 onClick = {
                     val intent = Intent(context, DiscordChannelActivity::class.java)
                     context.startActivity(intent)
@@ -129,7 +129,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // Signal Channel card
             ChannelCard(
                 name = "Signal",
-                description = "Signal 消息接入",
+                description = "Signal Message接入",
                 enabled = false,
                 onClick = {
                     val intent = Intent(context, SignalChannelActivity::class.java)
@@ -140,7 +140,7 @@ fun ChannelListScreen(onBack: () -> Unit) {
             // WhatsApp Channel card
             ChannelCard(
                 name = "WhatsApp",
-                description = "WhatsApp 消息接入",
+                description = "WhatsApp Message接入",
                 enabled = false,
                 onClick = {
                     val intent = Intent(context, WhatsAppChannelActivity::class.java)
@@ -199,7 +199,7 @@ fun ChannelCard(
             if (enabled) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "已启用",
+                    contentDescription = "已Enabledd",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }

@@ -18,10 +18,10 @@ import org.junit.runner.RunWith
 import org.junit.Assert.*
 
 /**
- * 悬浮窗 UI 自动化测试
- * 使用 UiAutomator 测试悬浮窗功能
+ * 悬浮窗 UI Auto化Test
+ * 使用 UiAutomator Test悬浮窗Feature
  *
- * 运行:
+ * Run:
  * ./gradlew connectedDebugAndroidTest --tests "FloatingWindowUITest"
  */
 @RunWith(AndroidJUnit4::class)
@@ -36,14 +36,14 @@ class FloatingWindowUITest {
         device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         context = ApplicationProvider.getApplicationContext()
 
-        // 确保设备回到主屏幕
+        // 确保Device回到主Screen
         device.pressHome()
         device.waitForIdle()
     }
 
     @Test
     fun testFloatingWindow_canDisplay() {
-        // 启动应用
+        // Start应用
         val intent = context.packageManager.getLaunchIntentForPackage(
             "com.xiaomo.androidforclaw"
         )?.apply {
@@ -51,98 +51,98 @@ class FloatingWindowUITest {
         }
 
         if (intent == null) {
-            println("⚠️ 无法获取启动 Intent，跳过测试")
+            println("⚠️ CannotGetStart Intent, SkipTest")
             return
         }
         context.startActivity(intent)
 
-        // 等待应用启动
+        // Wait应用Start
         device.wait(Until.hasObject(By.pkg("com.xiaomo.androidforclaw")), 5000)
 
-        // 验证应用已启动
+        // Validate应用已Start
         val app = device.findObject(By.pkg("com.xiaomo.androidforclaw"))
-        assertNotNull("应用应该已启动", app)
+        assertNotNull("应用Should已Start", app)
     }
 
     @Test
-    @Ignore("跳过:飞书SDK protobuf冲突导致后台切换时崩溃")
+    @Ignore("Skip:飞书SDK protobuf冲突导致Back台切换时崩溃")
     fun testFloatingWindow_survivesBackground() {
-        // 启动应用
+        // Start应用
         launchApp()
 
-        // 按Home键将应用置于后台
+        // 按HomeKey将应用置于Back台
         device.pressHome()
         device.waitForIdle()
 
-        // 等待一段时间
+        // Wait一段Time
         Thread.sleep(2000)
 
-        // 返回应用
+        // Return应用
         launchApp()
 
-        // 验证应用仍然正常
+        // Validate应用仍然正常
         device.wait(Until.hasObject(By.pkg("com.xiaomo.androidforclaw")), 3000)
 
         val app = device.findObject(By.pkg("com.xiaomo.androidforclaw"))
-        assertNotNull("应用应该仍然可用", app)
+        assertNotNull("应用Should仍然Available", app)
     }
 
     @Test
     fun testFloatingWindow_handlesRecentApps() {
-        // 启动应用
+        // Start应用
         launchApp()
 
-        // 打开最近任务
+        // Open最近Task
         try {
             device.pressRecentApps()
             device.waitForIdle()
 
             Thread.sleep(1000)
 
-            // 返回到应用
+            // Return到应用
             device.pressHome()
             device.waitForIdle()
 
         } catch (e: Exception) {
-            // 某些设备可能不支持这个操作
+            // 某些Device可能不Support这个Action
         }
     }
 
     @Test
     fun testDeviceRotation_handlesCorrectly() {
-        // 启动应用
+        // Start应用
         launchApp()
 
-        // 获取当前方向
+        // Get当Front方向
         val naturalOrientation = device.displayRotation
 
         try {
-            // 旋转设备
+            // 旋转Device
             device.setOrientationLeft()
             device.waitForIdle()
             Thread.sleep(1000)
 
-            // 验证应用仍然可见
+            // Validate应用仍然可见
             val app = device.findObject(By.pkg("com.xiaomo.androidforclaw"))
-            assertNotNull("旋转后应用应该仍然可见", app)
+            assertNotNull("旋转Back应用Should仍然可见", app)
 
-            // 恢复原方向
+            // Resume原方向
             device.setOrientationNatural()
             device.waitForIdle()
 
         } catch (e: Exception) {
-            // 旋转可能不被支持
+            // 旋转可能不被Support
         }
     }
 
     @Test
-    @Ignore("跳过:飞书SDK protobuf冲突导致多应用切换时崩溃")
+    @Ignore("Skip:飞书SDK protobuf冲突导致多应用切换时崩溃")
     fun testMultipleAppSwitching() {
-        // 启动应用
+        // Start应用
         launchApp()
         Thread.sleep(1000)
 
-        // 打开设置应用
+        // OpenSettings应用
         val settingsIntent = Intent(android.provider.Settings.ACTION_SETTINGS)
         settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(settingsIntent)
@@ -150,15 +150,15 @@ class FloatingWindowUITest {
         device.waitForIdle()
         Thread.sleep(1000)
 
-        // 返回到我们的应用
+        // Return到我们的应用
         device.pressBack()
         device.waitForIdle()
 
         Thread.sleep(1000)
 
-        // 验证应用仍然正常
+        // Validate应用仍然正常
         val app = device.findObject(By.pkg("com.xiaomo.androidforclaw"))
-        assertNotNull("应用切换后应该仍然可用", app)
+        assertNotNull("应用切换BackShould仍然Available", app)
     }
 
     private fun launchApp() {

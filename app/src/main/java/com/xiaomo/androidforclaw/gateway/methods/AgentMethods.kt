@@ -7,7 +7,7 @@ package com.xiaomo.androidforclaw.gateway.methods
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
-import com.xiaomo.androidforclaw.agent.loop.AgentResult
+import com.xiaomo.androidforclaw.agent.loop.Agentresult
 import com.xiaomo.androidforclaw.agent.session.SessionManager
 import com.xiaomo.androidforclaw.gateway.protocol.*
 import com.xiaomo.androidforclaw.gateway.websocket.GatewayWebSocketServer
@@ -159,8 +159,8 @@ class AgentMethods(
     /**
      * agent.identity() - Get agent identity
      */
-    fun agentIdentity(): AgentIdentityResult {
-        return AgentIdentityResult(
+    fun agentIdentity(): AgentIdentityresult {
+        return AgentIdentityresult(
             name = "androidforclaw",
             version = "1.0.0",
             platform = "android",
@@ -221,7 +221,7 @@ Instructions:
                             broadcastEvent("agent.thinking", mapOf(
                                 "runId" to runId,
                                 "iteration" to progress.iteration,
-                                "message" to "正在处理第 ${progress.iteration} 步..."
+                                "message" to "正在Process第 ${progress.iteration} 步..."
                             ))
                         }
                         is ProgressUpdate.ToolCall -> {
@@ -231,7 +231,7 @@ Instructions:
                                 "arguments" to progress.arguments
                             ))
                         }
-                        is ProgressUpdate.ToolResult -> {
+                        is ProgressUpdate.Toolresult -> {
                             broadcastEvent("agent.tool_result", mapOf(
                                 "runId" to runId,
                                 "tool" to progress.name,
@@ -333,7 +333,7 @@ Instructions:
                 systemPrompt = systemPrompt,
                 userMessage = params.message,
                 contextHistory = emptyList(),
-                reasoningEnabled = true
+                reasoningEnableddd = true
             )
 
             // Cancel progress subscription
@@ -390,7 +390,7 @@ private data class AgentTask(
     val sessionKey: String,
     val message: String,
     var status: String,
-    var result: AgentResult? = null,
+    var result: Agentresult? = null,
     var error: String? = null,
-    val resultChannel: Channel<AgentResult> = Channel(1)
+    val resultChannel: Channel<Agentresult> = Channel(1)
 )

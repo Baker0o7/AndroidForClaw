@@ -21,8 +21,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 /**
- * 飞书 API 客户端
- * 对齐 OpenClaw feishu client.ts
+ * 飞书 API Client
+ * Aligned with OpenClaw feishu client.ts
  */
 class FeishuClient(private val config: FeishuConfig) {
     companion object {
@@ -45,22 +45,22 @@ class FeishuClient(private val config: FeishuConfig) {
     private val gson = Gson()
     private val baseUrl = config.getApiBaseUrl()
 
-    // Access token 缓存
+    // Access token Cache
     private var cachedAccessToken: String? = null
     private var tokenExpireTime: Long = 0
 
     /**
-     * 获取 tenant_access_token (协程版本)
+     * Get tenant_access_token (协程Version)
      */
-    suspend fun getTenantAccessToken(): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun getTenantAccessToken(): result<String> = withContext(Dispatchers.IO) {
         try {
-            // 检查缓存
+            // CheckCache
             val now = System.currentTimeMillis()
             if (cachedAccessToken != null && now < tokenExpireTime) {
-                return@withContext Result.success(cachedAccessToken!!)
+                return@withContext result.success(cachedAccessToken!!)
             }
 
-            // 请求新 token
+            // RequestNew token
             val url = "$baseUrl/open-apis/auth/v3/tenant_access_token/internal"
             val requestBody = mapOf(
                 "app_id" to config.appId,
@@ -80,7 +80,7 @@ class FeishuClient(private val config: FeishuConfig) {
 
             if (!response.isSuccessful) {
                 Log.e(TAG, "Failed to get tenant access token: $responseBody")
-                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                return@withContext result.failure(Exception("HTTP ${response.code}"))
             }
 
             val json = gson.fromJson(responseBody, JsonObject::class.java)
@@ -89,40 +89,40 @@ class FeishuClient(private val config: FeishuConfig) {
             if (code != 0) {
                 val msg = json.get("msg")?.asString ?: "Unknown error"
                 Log.e(TAG, "Feishu API error: $msg")
-                return@withContext Result.failure(Exception(msg))
+                return@withContext result.failure(Exception(msg))
             }
 
             val token = json.get("tenant_access_token")?.asString
-                ?: return@withContext Result.failure(Exception("Missing tenant_access_token"))
+                ?: return@withContext result.failure(Exception("Missing tenant_access_token"))
 
             val expire = json.get("expire")?.asInt ?: 7200
 
-            // 缓存 token（提前 5 分钟过期）
+            // Cache token(提Front 5 分钟过期)
             cachedAccessToken = token
             tokenExpireTime = now + (expire - 300) * 1000L
 
             Log.d(TAG, "Got tenant access token, expires in ${expire}s")
-            Result.success(token)
+            result.success(token)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get tenant access token", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 获取 tenant_access_token (同步版本)
-     * 用于在 IO 线程中直接调用
+     * Get tenant_access_token (SyncVersion)
+     * 用于在 IO Thread中直接call
      */
     fun getTenantAccessTokenSync(): String? {
         try {
-            // 检查缓存
+            // CheckCache
             val now = System.currentTimeMillis()
             if (cachedAccessToken != null && now < tokenExpireTime) {
                 return cachedAccessToken
             }
 
-            // 请求新 token
+            // RequestNew token
             val url = "$baseUrl/open-apis/auth/v3/tenant_access_token/internal"
             val requestBody = mapOf(
                 "app_id" to config.appId,
@@ -157,7 +157,7 @@ class FeishuClient(private val config: FeishuConfig) {
             val token = json.get("tenant_access_token")?.asString ?: return null
             val expire = json.get("expire")?.asInt ?: 7200
 
-            // 缓存 token（提前 5 分钟过期）
+            // Cache token(提Front 5 分钟过期)
             cachedAccessToken = token
             tokenExpireTime = now + (expire - 300) * 1000L
 
@@ -171,8 +171,8 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * 发送 API 请求
-     * @param headers 额外的请求头（可选），用于如 X-Chat-Custom-Header 等场景
+     * send API Request
+     * @param headers 额Outside的Request头(Optional), Used for X-Chat-Custom-Header 等场景
      */
     suspend fun apiRequest(
         method: String,
@@ -180,27 +180,27 @@ class FeishuClient(private val config: FeishuConfig) {
         body: Any? = null,
         requireAuth: Boolean = true,
         headers: Map<String, String>? = null
-    ): Result<JsonObject> = withContext(Dispatchers.IO) {
+    ): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val url = "$baseUrl$path"
 
             val requestBuilder = Request.Builder().url(url)
 
-            // 添加认证头
+            // AddAuthenticate头
             if (requireAuth) {
-                val tokenResult = getTenantAccessToken()
-                if (tokenResult.isFailure) {
-                    return@withContext Result.failure(tokenResult.exceptionOrNull()!!)
+                val tokenresult = getTenantAccessToken()
+                if (tokenresult.isFailure) {
+                    return@withContext result.failure(tokenresult.exceptionOrNull()!!)
                 }
-                requestBuilder.addHeader("Authorization", "Bearer ${tokenResult.getOrNull()}")
+                requestBuilder.addHeader("Authorization", "Bearer ${tokenresult.getOrNull()}")
             }
 
-            // 添加额外请求头
+            // Add额OutsideRequest头
             headers?.forEach { (key, value) ->
                 requestBuilder.addHeader(key, value)
             }
 
-            // 添加请求体
+            // AddRequest体
             if (body != null) {
                 val json = if (body is String) body else gson.toJson(body)
                 val requestBody = json.toRequestBody("application/json".toMediaType())
@@ -226,7 +226,7 @@ class FeishuClient(private val config: FeishuConfig) {
             if (!response.isSuccessful) {
                 Log.e(TAG, "API request failed: $method $path - HTTP ${response.code}")
                 Log.e(TAG, "Response: $responseBody")
-                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                return@withContext result.failure(Exception("HTTP ${response.code}"))
             }
 
             // Defensive JSON parsing — handle non-JSON or non-Object responses
@@ -234,12 +234,12 @@ class FeishuClient(private val config: FeishuConfig) {
                 gson.fromJson(responseBody, com.google.gson.JsonElement::class.java)
             } catch (e: Exception) {
                 Log.e(TAG, "Response is not valid JSON: $responseBody")
-                return@withContext Result.failure(Exception("Invalid JSON response from $method $path"))
+                return@withContext result.failure(Exception("Invalid JSON response from $method $path"))
             }
 
             if (jsonElement == null || !jsonElement.isJsonObject) {
                 Log.e(TAG, "Response is not a JSON object: $responseBody")
-                return@withContext Result.failure(Exception("Expected JSON object from $method $path, got: ${jsonElement?.javaClass?.simpleName ?: "null"}"))
+                return@withContext result.failure(Exception("Expected JSON object from $method $path, got: ${jsonElement?.javaClass?.simpleName ?: "null"}"))
             }
 
             val json = jsonElement.asJsonObject
@@ -248,46 +248,46 @@ class FeishuClient(private val config: FeishuConfig) {
             if (code != 0) {
                 val msg = json.get("msg")?.asString ?: "Unknown error"
                 Log.e(TAG, "Feishu API error: $msg (code=$code)")
-                return@withContext Result.failure(Exception("$msg (code=$code)"))
+                return@withContext result.failure(Exception("$msg (code=$code)"))
             }
 
-            Result.success(json)
+            result.success(json)
 
         } catch (e: Exception) {
             Log.e(TAG, "API request exception: $method $path", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * GET 请求
+     * GET Request
      */
-    suspend fun get(path: String, headers: Map<String, String>? = null): Result<JsonObject> =
+    suspend fun get(path: String, headers: Map<String, String>? = null): result<JsonObject> =
         apiRequest("GET", path, headers = headers)
 
     /**
-     * POST 请求
+     * POST Request
      */
-    suspend fun post(path: String, body: Any, headers: Map<String, String>? = null): Result<JsonObject> =
+    suspend fun post(path: String, body: Any, headers: Map<String, String>? = null): result<JsonObject> =
         apiRequest("POST", path, body, headers = headers)
 
     /**
-     * PUT 请求
+     * PUT Request
      */
-    suspend fun put(path: String, body: Any): Result<JsonObject> = apiRequest("PUT", path, body)
+    suspend fun put(path: String, body: Any): result<JsonObject> = apiRequest("PUT", path, body)
 
     /**
-     * DELETE 请求
+     * DELETE Request
      */
-    suspend fun delete(path: String): Result<JsonObject> = apiRequest("DELETE", path)
+    suspend fun delete(path: String): result<JsonObject> = apiRequest("DELETE", path)
 
     /**
-     * PATCH 请求
+     * PATCH Request
      */
-    suspend fun patch(path: String, body: Any): Result<JsonObject> = apiRequest("PATCH", path, body)
+    suspend fun patch(path: String, body: Any): result<JsonObject> = apiRequest("PATCH", path, body)
 
     /**
-     * 上传文件到云空间 (upload_all，小文件 <=15MB)
+     * Upload文件到云Space (upload_all, 小文件 <=15MB)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadFile(
@@ -296,7 +296,7 @@ class FeishuClient(private val config: FeishuConfig) {
         parentNode: String,
         size: Int,
         data: ByteArray
-    ): Result<JsonObject> = withContext(Dispatchers.IO) {
+    ): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val token = getTenantAccessToken().getOrThrow()
             val url = "$baseUrl/open-apis/drive/v1/files/upload_all"
@@ -323,25 +323,25 @@ class FeishuClient(private val config: FeishuConfig) {
 
             if (!response.isSuccessful) {
                 Log.e(TAG, "Upload file failed: HTTP ${response.code} - $responseBody")
-                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                return@withContext result.failure(Exception("HTTP ${response.code}"))
             }
 
             val json = gson.fromJson(responseBody, JsonObject::class.java)
             val code = json.get("code")?.asInt ?: 0
             if (code != 0) {
                 val msg = json.get("msg")?.asString ?: "Unknown error"
-                return@withContext Result.failure(Exception("$msg (code=$code)"))
+                return@withContext result.failure(Exception("$msg (code=$code)"))
             }
 
-            Result.success(json)
+            result.success(json)
         } catch (e: Exception) {
             Log.e(TAG, "Upload file failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 分片上传 - 预上传 (uploadPrepare)
+     * ShardingUpload - 预Upload (uploadPrepare)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadPrepare(
@@ -349,7 +349,7 @@ class FeishuClient(private val config: FeishuConfig) {
         parentType: String,
         parentNode: String,
         size: Int
-    ): Result<JsonObject> {
+    ): result<JsonObject> {
         val body = mapOf(
             "file_name" to fileName,
             "parent_type" to parentType,
@@ -360,7 +360,7 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * 分片上传 - 上传分片 (uploadPart)
+     * ShardingUpload - UploadSharding (uploadPart)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadPart(
@@ -368,7 +368,7 @@ class FeishuClient(private val config: FeishuConfig) {
         seq: Int,
         size: Int,
         data: ByteArray
-    ): Result<JsonObject> = withContext(Dispatchers.IO) {
+    ): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val token = getTenantAccessToken().getOrThrow()
             val url = "$baseUrl/open-apis/drive/v1/files/upload_part"
@@ -394,31 +394,31 @@ class FeishuClient(private val config: FeishuConfig) {
 
             if (!response.isSuccessful) {
                 Log.e(TAG, "Upload part failed: HTTP ${response.code} - $responseBody")
-                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                return@withContext result.failure(Exception("HTTP ${response.code}"))
             }
 
             val json = gson.fromJson(responseBody, JsonObject::class.java)
             val code = json.get("code")?.asInt ?: 0
             if (code != 0) {
                 val msg = json.get("msg")?.asString ?: "Unknown error"
-                return@withContext Result.failure(Exception("$msg (code=$code)"))
+                return@withContext result.failure(Exception("$msg (code=$code)"))
             }
 
-            Result.success(json)
+            result.success(json)
         } catch (e: Exception) {
             Log.e(TAG, "Upload part failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 分片上传 - 完成上传 (uploadFinish)
+     * ShardingUpload - CompleteUpload (uploadFinish)
      * @aligned openclaw-lark v2026.3.30 — line-by-line
      */
     suspend fun uploadFinish(
         uploadId: String,
         blockNum: Int
-    ): Result<JsonObject> {
+    ): result<JsonObject> {
         val body = mapOf(
             "upload_id" to uploadId,
             "block_num" to blockNum
@@ -427,10 +427,10 @@ class FeishuClient(private val config: FeishuConfig) {
     }
 
     /**
-     * 下载二进制数据（用于媒体文件下载）
-     * 对齐 OpenClaw downloadImageFeishu / downloadMessageResourceFeishu
+     * Download二Into制Data(用于媒体文件Download)
+     * Aligned with OpenClaw downloadImageFeishu / downloadMessageResourceFeishu
      */
-    suspend fun downloadRaw(path: String): Result<ByteArray> = withContext(Dispatchers.IO) {
+    suspend fun downloadRaw(path: String): result<ByteArray> = withContext(Dispatchers.IO) {
         try {
             val url = "$baseUrl$path"
             val token = getTenantAccessToken().getOrThrow()
@@ -446,18 +446,18 @@ class FeishuClient(private val config: FeishuConfig) {
             if (!response.isSuccessful) {
                 val errorBody = response.body?.string() ?: ""
                 Log.e(TAG, "Download failed: HTTP ${response.code} - $errorBody")
-                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                return@withContext result.failure(Exception("HTTP ${response.code}"))
             }
 
             val bytes = response.body?.bytes()
-                ?: return@withContext Result.failure(Exception("Empty response body"))
+                ?: return@withContext result.failure(Exception("Empty response body"))
 
             Log.d(TAG, "Downloaded ${bytes.size} bytes from $path")
-            Result.success(bytes)
+            result.success(bytes)
 
         } catch (e: Exception) {
             Log.e(TAG, "Download failed: $path", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
@@ -466,7 +466,7 @@ class FeishuClient(private val config: FeishuConfig) {
      * @aligned openclaw-lark v2026.3.30
      * Returns Pair(bytes, headers) where headers is a map of response headers.
      */
-    suspend fun downloadRawWithHeaders(path: String): Result<Pair<ByteArray, Map<String, String>>> = withContext(Dispatchers.IO) {
+    suspend fun downloadRawWithHeaders(path: String): result<Pair<ByteArray, Map<String, String>>> = withContext(Dispatchers.IO) {
         try {
             val url = "$baseUrl$path"
             val token = getTenantAccessToken().getOrThrow()
@@ -482,11 +482,11 @@ class FeishuClient(private val config: FeishuConfig) {
             if (!response.isSuccessful) {
                 val errorBody = response.body?.string() ?: ""
                 Log.e(TAG, "Download failed: HTTP ${response.code} - $errorBody")
-                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                return@withContext result.failure(Exception("HTTP ${response.code}"))
             }
 
             val bytes = response.body?.bytes()
-                ?: return@withContext Result.failure(Exception("Empty response body"))
+                ?: return@withContext result.failure(Exception("Empty response body"))
 
             val headers = mutableMapOf<String, String>()
             response.headers.forEach { (name, value) ->
@@ -494,16 +494,16 @@ class FeishuClient(private val config: FeishuConfig) {
             }
 
             Log.d(TAG, "Downloaded ${bytes.size} bytes from $path, content-type=${headers["content-type"]}")
-            Result.success(bytes to headers)
+            result.success(bytes to headers)
 
         } catch (e: Exception) {
             Log.e(TAG, "Download failed: $path", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 上传媒体文件（图片/文件）到飞书
+     * Upload媒体文件(Graph片/文件)到飞书
      * Aligned with @larksuite/openclaw-lark doc-media insert flow.
      *
      * @param fileName File name
@@ -518,7 +518,7 @@ class FeishuClient(private val config: FeishuConfig) {
         parentType: String,
         parentNode: String,
         extra: Map<String, Any?>? = null
-    ): Result<JsonObject> = withContext(Dispatchers.IO) {
+    ): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val token = getTenantAccessToken().getOrThrow()
             val url = "$baseUrl/open-apis/drive/v1/medias/upload_all"
@@ -549,7 +549,7 @@ class FeishuClient(private val config: FeishuConfig) {
 
             if (!response.isSuccessful) {
                 Log.e(TAG, "Upload media failed: HTTP ${response.code} - $responseBody")
-                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                return@withContext result.failure(Exception("HTTP ${response.code}"))
             }
 
             val json = gson.fromJson(responseBody, JsonObject::class.java)
@@ -557,21 +557,21 @@ class FeishuClient(private val config: FeishuConfig) {
             if (code != 0) {
                 val msg = json.get("msg")?.asString ?: "Unknown error"
                 Log.e(TAG, "Upload media error: $msg (code=$code)")
-                return@withContext Result.failure(Exception("$msg (code=$code)"))
+                return@withContext result.failure(Exception("$msg (code=$code)"))
             }
 
-            Result.success(json.getAsJsonObject("data") ?: JsonObject())
+            result.success(json.getAsJsonObject("data") ?: JsonObject())
         } catch (e: Exception) {
             Log.e(TAG, "Upload media failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 获取机器人信息 (对齐 OpenClaw probe.ts)
+     * Get机器人Info (Aligned with OpenClaw probe.ts)
      * https://open.feishu.cn/document/server-docs/bot-v3/bot-overview
      */
-    suspend fun getBotInfo(): Result<BotInfo> = withContext(Dispatchers.IO) {
+    suspend fun getBotInfo(): result<BotInfo> = withContext(Dispatchers.IO) {
         try {
             val token = getTenantAccessToken().getOrThrow()
             val url = "$baseUrl/open-apis/bot/v3/info"
@@ -584,7 +584,7 @@ class FeishuClient(private val config: FeishuConfig) {
 
             val response = httpClient.newCall(request).execute()
             val responseBody = response.body?.string()
-                ?: return@withContext Result.failure(Exception("Empty response"))
+                ?: return@withContext result.failure(Exception("Empty response"))
 
             if (!response.isSuccessful) {
                 val error = try {
@@ -593,7 +593,7 @@ class FeishuClient(private val config: FeishuConfig) {
                 } catch (e: Exception) {
                     responseBody
                 }
-                return@withContext Result.failure(Exception("getBotInfo failed: $error"))
+                return@withContext result.failure(Exception("getBotInfo failed: $error"))
             }
 
             val json = gson.fromJson(responseBody, JsonObject::class.java)
@@ -603,15 +603,15 @@ class FeishuClient(private val config: FeishuConfig) {
 
             if (code != 0) {
                 val msg = json.get("msg")?.asString ?: "Unknown error"
-                return@withContext Result.failure(Exception("getBotInfo failed: $msg (code: $code)"))
+                return@withContext result.failure(Exception("getBotInfo failed: $msg (code: $code)"))
             }
 
-            // 飞书 API v3 的响应结构: { code: 0, bot: { activate_status: 2, app_name: "...", open_id: "...", ... }, msg: "ok" }
+            // 飞书 API v3 的Response结构: { code: 0, bot: { activate_status: 2, app_name: "...", open_id: "...", ... }, msg: "ok" }
             val bot = json.getAsJsonObject("bot")
             Log.d(TAG, "bot object: $bot")
 
             if (bot == null) {
-                return@withContext Result.failure(Exception("Missing bot in response"))
+                return@withContext result.failure(Exception("Missing bot in response"))
             }
 
             val openId = bot.get("open_id")?.asString
@@ -619,17 +619,17 @@ class FeishuClient(private val config: FeishuConfig) {
 
             Log.d(TAG, "Got bot info: open_id=$openId, name=$name")
 
-            Result.success(BotInfo(openId = openId, name = name))
+            result.success(BotInfo(openId = openId, name = name))
 
         } catch (e: Exception) {
             Log.e(TAG, "getBotInfo failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 }
 
 /**
- * 机器人信息
+ * 机器人Info
  */
 data class BotInfo(
     val openId: String?,

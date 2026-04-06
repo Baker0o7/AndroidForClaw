@@ -18,8 +18,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书流式卡片会话
- * 对齐 OpenClaw streaming-card-controller.js
+ * 飞书流式卡片Session
+ * Aligned with OpenClaw streaming-card-controller.js
  *
  * Uses Card Kit API to create a streaming card that updates in real-time:
  * 1. POST /cardkit/v1/cards — create card entity with streaming_mode: true
@@ -48,12 +48,12 @@ class FeishuStreamingCard(
     private var lastUpdateTime: Long = 0
 
     /**
-     * 创建流式卡片
-     * 对齐 OpenClaw streaming-card-controller.js STREAMING_THINKING_CARD
+     * Create流式卡片
+     * Aligned with OpenClaw streaming-card-controller.js STREAMING_THINKING_CARD
      *
      * @return cardId on success
      */
-    suspend fun start(initialText: String = ""): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun start(initialText: String = ""): result<String> = withContext(Dispatchers.IO) {
         try {
             // Card JSON 2.0 payload — aligned with OpenClaw STREAMING_THINKING_CARD
             val cardData = mapOf(
@@ -83,12 +83,12 @@ class FeishuStreamingCard(
 
             val result = client.post("/open-apis/cardkit/v1/cards", requestBody)
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val id = data?.get("card_id")?.asString
-                ?: return@withContext Result.failure(Exception("Missing card_id in response"))
+                ?: return@withContext result.failure(Exception("Missing card_id in response"))
 
             cardId = id
             sequence = 1 // OpenClaw starts at 1
@@ -97,23 +97,23 @@ class FeishuStreamingCard(
             lastUpdateTime = System.currentTimeMillis()
 
             Log.d(TAG, "Streaming card created: $id")
-            Result.success(id)
+            result.success(id)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create streaming card", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 追加文本到流式卡片
-     * 对齐 OpenClaw streaming-card-controller.js performFlush()
+     * 追加Text到流式卡片
+     * Aligned with OpenClaw streaming-card-controller.js performFlush()
      *
      * Throttled to max 10 updates/second. Text is accumulated and sent in batch.
      */
-    suspend fun appendText(newText: String): Result<Unit> {
+    suspend fun appendText(newText: String): result<Unit> {
         if (!isOpen || cardId == null) {
-            return Result.failure(Exception("Streaming card not open"))
+            return result.failure(Exception("Streaming card not open"))
         }
 
         return mutex.withLock {
@@ -123,29 +123,29 @@ class FeishuStreamingCard(
                 // Throttle: skip if too soon since last update
                 val now = System.currentTimeMillis()
                 if (now - lastUpdateTime < THROTTLE_MS) {
-                    return@withLock Result.success(Unit)
+                    return@withLock result.success(Unit)
                 }
 
                 flushUpdate()
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to update streaming card: ${e.message}")
-                Result.failure(e)
+                result.failure(e)
             }
         }
     }
 
     /**
-     * 关闭流式卡片，显示最终内容
-     * 对齐 OpenClaw streaming-card-controller.js closeStreamingAndUpdate()
+     * Close流式卡片, Showmost终Inside容
+     * Aligned with OpenClaw streaming-card-controller.js closeStreamingAndUpdate()
      *
      * Steps:
      * 1. Flush final content update
      * 2. Close streaming mode via PUT settings
      * 3. (Optional) Update full card with final layout
      */
-    suspend fun close(finalText: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun close(finalText: String? = null): result<Unit> = withContext(Dispatchers.IO) {
         if (!isOpen || cardId == null) {
-            return@withContext Result.success(Unit)
+            return@withContext result.success(Unit)
         }
 
         try {
@@ -173,23 +173,23 @@ class FeishuStreamingCard(
 
             isOpen = false
             Log.d(TAG, "Streaming card closed: $cardId")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to close streaming card", e)
             isOpen = false
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     fun isActive(): Boolean = isOpen && cardId != null
 
     /**
-     * 刷新累积文本到卡片元素
-     * 对齐 OpenClaw cardkit.js updateCardKitElement()
+     * Refresh累积Text到卡片Element
+     * Aligned with OpenClaw cardkit.js updateCardKitElement()
      */
-    private suspend fun flushUpdate(): Result<Unit> = withContext(Dispatchers.IO) {
-        val id = cardId ?: return@withContext Result.failure(Exception("No card_id"))
+    private suspend fun flushUpdate(): result<Unit> = withContext(Dispatchers.IO) {
+        val id = cardId ?: return@withContext result.failure(Exception("No card_id"))
 
         sequence++
         val updatePayload = mapOf(
@@ -206,9 +206,9 @@ class FeishuStreamingCard(
 
         if (result.isFailure) {
             Log.w(TAG, "Card element update failed: ${result.exceptionOrNull()?.message}")
-            return@withContext Result.failure(result.exceptionOrNull()!!)
+            return@withContext result.failure(result.exceptionOrNull()!!)
         }
 
-        Result.success(Unit)
+        result.success(Unit)
     }
 }

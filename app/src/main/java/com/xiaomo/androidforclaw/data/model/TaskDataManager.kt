@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.data.model
 
@@ -34,7 +34,7 @@ class TaskDataManager {
      * Start new task, create new TaskData
      */
     fun startNewTask(taskId: String,packageName: String) {
-        Log.d(TAG, "启动新任务: $taskId")
+        Log.d(TAG, "StartNewTask: $taskId")
         val newTaskData = TaskData(taskId,packageName)
         _currentTaskData.value = newTaskData
     }
@@ -48,7 +48,7 @@ class TaskDataManager {
      * Clear current task data
      */
     fun clearCurrentTask() {
-        Log.d(TAG, "清理当前任务数据")
+        Log.d(TAG, "清理当FrontTaskData")
         _currentTaskData.value = null
     }
 

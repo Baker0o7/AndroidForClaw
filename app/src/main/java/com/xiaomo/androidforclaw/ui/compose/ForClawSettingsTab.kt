@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.compose
 
@@ -48,20 +48,20 @@ import kotlinx.coroutines.withContext
 fun ForClawSettingsTab() {
     val context = LocalContext.current
 
-    // ── 状态数据 ──────────────────────────────────────────────
+    // ── StatusData ──────────────────────────────────────────────
     val loadingText = stringResource(R.string.connect_loading)
     var providerName by remember { mutableStateOf(loadingText) }
     var modelId by remember { mutableStateOf("") }
     var apiKeyOk by remember { mutableStateOf(false) }
     var gatewayRunning by remember { mutableStateOf(false) }
     var skillsCount by remember { mutableStateOf(0) }
-    var feishuEnabled by remember { mutableStateOf(false) }
-    var discordEnabled by remember { mutableStateOf(false) }
-    var slackEnabled by remember { mutableStateOf(false) }
-    var telegramEnabled by remember { mutableStateOf(false) }
-    var whatsappEnabled by remember { mutableStateOf(false) }
-    var signalEnabled by remember { mutableStateOf(false) }
-    var weixinEnabled by remember { mutableStateOf(false) }
+    var feishuEnableddd by remember { mutableStateOf(false) }
+    var discordEnableddd by remember { mutableStateOf(false) }
+    var slackEnableddd by remember { mutableStateOf(false) }
+    var telegramEnableddd by remember { mutableStateOf(false) }
+    var whatsappEnableddd by remember { mutableStateOf(false) }
+    var signalEnableddd by remember { mutableStateOf(false) }
+    var weixinEnableddd by remember { mutableStateOf(false) }
 
     val accessibilityOk by AccessibilityProxy.isConnected.observeAsState(false)
     val overlayOk by AccessibilityProxy.overlayGranted.observeAsState(false)
@@ -84,18 +84,18 @@ fun ForClawSettingsTab() {
                     providerName = entry.first
                     modelId = resolvedModel
                     val key = entry.second.apiKey
-                    apiKeyOk = !key.isNullOrBlank() && !key.startsWith("\${") && key != "未配置"
+                    apiKeyOk = !key.isNullOrBlank() && !key.startsWith("\${") && key != "Not configured"
                 } else {
                     providerName = context.getString(R.string.connect_api_not_configured)
                     apiKeyOk = false
                 }
-                feishuEnabled = config.channels.feishu.enabled && config.channels.feishu.appId.isNotBlank()
-                discordEnabled = config.channels.discord?.let { it.enabled && !it.token.isNullOrBlank() } ?: false
-                slackEnabled = config.channels.slack?.let { it.enabled && it.botToken.isNotBlank() } ?: false
-                telegramEnabled = config.channels.telegram?.let { it.enabled && it.botToken.isNotBlank() } ?: false
-                whatsappEnabled = config.channels.whatsapp?.let { it.enabled && it.phoneNumber.isNotBlank() } ?: false
-                signalEnabled = config.channels.signal?.let { it.enabled && it.phoneNumber.isNotBlank() } ?: false
-                weixinEnabled = config.channels.weixin?.let { it.enabled } ?: false
+                feishuEnableddd = config.channels.feishu.enabled && config.channels.feishu.appId.isNotBlank()
+                discordEnableddd = config.channels.discord?.let { it.enabled && !it.token.isNullOrBlank() } ?: false
+                slackEnableddd = config.channels.slack?.let { it.enabled && it.botToken.isNotBlank() } ?: false
+                telegramEnableddd = config.channels.telegram?.let { it.enabled && it.botToken.isNotBlank() } ?: false
+                whatsappEnableddd = config.channels.whatsapp?.let { it.enabled && it.phoneNumber.isNotBlank() } ?: false
+                signalEnableddd = config.channels.signal?.let { it.enabled && it.phoneNumber.isNotBlank() } ?: false
+                weixinEnableddd = config.channels.weixin?.let { it.enabled } ?: false
             } catch (_: Exception) {
                 providerName = context.getString(R.string.connect_read_failed)
             }
@@ -111,7 +111,7 @@ fun ForClawSettingsTab() {
             .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        // ── 状态总览 ──────────────────────────────────────────
+        // ── Status总览 ──────────────────────────────────────────
         val notConfigured = stringResource(R.string.connect_api_not_configured)
         val configured = stringResource(R.string.connect_api_configured)
 
@@ -154,7 +154,7 @@ fun ForClawSettingsTab() {
         if (editingGateway) {
             AlertDialog(
                 onDismissRequest = { editingGateway = false },
-                title = { Text("修改 Gateway 地址") },
+                title = { Text("Modify Gateway 地址") },
                 text = {
                     OutlinedTextField(
                         value = editGatewayUrl,
@@ -170,16 +170,16 @@ fun ForClawSettingsTab() {
                         gatewayUrl = editGatewayUrl
                         mmkv.encode(MMKVKeys.GATEWAY_URL.key, editGatewayUrl)
                         editingGateway = false
-                        // 需要重启应用才能生效
+                        // NeedRestartapply才能生效
                         android.widget.Toast.makeText(context,
-                            "已保存，重启应用后生效", android.widget.Toast.LENGTH_SHORT).show()
+                            "已Save, RestartapplyBack生效", android.widget.Toast.LENGTH_SHORT).show()
                     }) {
-                        Text("保存")
+                        Text("Save")
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { editingGateway = false }) {
-                        Text("取消")
+                        Text("Cancel")
                     }
                 }
             )
@@ -191,8 +191,8 @@ fun ForClawSettingsTab() {
                 java.net.NetworkInterface.getNetworkInterfaces()?.toList()
                     ?.flatMap { it.inetAddresses.toList() }
                     ?.firstOrNull { !it.isLoopbackAddress && it is java.net.Inet4Address }
-                    ?.hostAddress ?: "未连接 WiFi"
-            } catch (_: Exception) { "获取失败" }
+                    ?.hostAddress ?: "Not connected WiFi"
+            } catch (_: Exception) { "GetFailed" }
         }
         val clipboardUrl = if (localIp.contains(".")) "http://$localIp:19789/clipboard" else localIp
         StatusCard(
@@ -200,26 +200,26 @@ fun ForClawSettingsTab() {
             icon = Icons.Default.ContentPaste,
             rows = listOf(
                 StatusRow("地址", clipboardUrl),
-                StatusRow("用途", "电脑输入 → 手机剪切板"),
+                StatusRow("用途", "电脑Input → 手机cut板"),
             ),
             onClick = {
                 if (clipboardUrl.startsWith("http")) {
                     context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(clipboardUrl)))
                 }
             },
-            clickLabel = "打开",
+            clickLabel = "Open",
         )
 
         // Channels
         val enabled = stringResource(R.string.connect_enabled)
         val channelEntries = buildList {
-            if (feishuEnabled)   add(StatusRow(stringResource(R.string.connect_feishu), enabled, StatusLevel.Ok))
-            if (discordEnabled)  add(StatusRow("Discord",  enabled, StatusLevel.Ok))
-            if (telegramEnabled) add(StatusRow("Telegram", enabled, StatusLevel.Ok))
-            if (slackEnabled)    add(StatusRow("Slack",    enabled, StatusLevel.Ok))
-            if (whatsappEnabled) add(StatusRow("WhatsApp", enabled, StatusLevel.Ok))
-            if (signalEnabled)   add(StatusRow("Signal",   enabled, StatusLevel.Ok))
-            if (weixinEnabled)   add(StatusRow(stringResource(R.string.connect_weixin), enabled, StatusLevel.Ok))
+            if (feishuEnableddd)   add(StatusRow(stringResource(R.string.connect_feishu), enabled, StatusLevel.Ok))
+            if (discordEnableddd)  add(StatusRow("Discord",  enabled, StatusLevel.Ok))
+            if (telegramEnableddd) add(StatusRow("Telegram", enabled, StatusLevel.Ok))
+            if (slackEnableddd)    add(StatusRow("Slack",    enabled, StatusLevel.Ok))
+            if (whatsappEnableddd) add(StatusRow("WhatsApp", enabled, StatusLevel.Ok))
+            if (signalEnableddd)   add(StatusRow("Signal",   enabled, StatusLevel.Ok))
+            if (weixinEnableddd)   add(StatusRow(stringResource(R.string.connect_weixin), enabled, StatusLevel.Ok))
         }
         StatusCard(
             title = stringResource(R.string.connect_channels),
@@ -251,7 +251,7 @@ fun ForClawSettingsTab() {
             clickLabel = stringResource(R.string.connect_mcp_config),
         )
 
-        // 权限
+        // Permission
         val allPermissionsOk = accessibilityOk && screenCaptureOk
         val granted = stringResource(R.string.connect_granted)
         val notGranted = stringResource(R.string.connect_not_granted)
@@ -282,7 +282,7 @@ fun ForClawSettingsTab() {
             clickLabel = if (allPermissionsOk) stringResource(R.string.connect_view) else stringResource(R.string.connect_go_grant),
         )
 
-        // ── 配置 ─────────────────────────────────────────────────
+        // ── Config ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_config)) {
             SettingsNavItem(
                 icon = Icons.Default.Terminal,
@@ -331,7 +331,7 @@ fun ForClawSettingsTab() {
             FloatWindowToggleItem()
         }
 
-        // ── 应用 ─────────────────────────────────────────────────
+        // ── apply ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_app)) {
             CheckUpdateItem()
             RestartAppItem()
@@ -353,7 +353,7 @@ fun ForClawSettingsTab() {
             )
         }
 
-        // ── 关于 ─────────────────────────────────────────────────
+        // ── About ─────────────────────────────────────────────────
         AboutSection()
     }
 }
@@ -652,7 +652,7 @@ private fun FloatWindowToggleItem() {
                 checked = enabled,
                 onCheckedChange = { v ->
                     enabled = v
-                    SessionFloatWindow.setEnabled(context, v)
+                    SessionFloatWindow.setEnableddd(context, v)
                 }
             )
         }
@@ -676,20 +676,20 @@ private fun CheckUpdateItem() {
                 try {
                     val info = updater.checkForUpdate()
                     if (info.hasUpdate && info.downloadUrl != null) {
-                        // 后台下载
+                        // Back台Download
                         val success = updater.downloadUpdate(info.downloadUrl, info.latestVersion)
                         if (success) {
-                            // 安装确认
+                            // InstallConfirm
                             androidx.appcompat.app.AlertDialog.Builder(context)
-                                .setTitle("更新已就绪")
-                                .setMessage("v${info.latestVersion} 已下载完成，是否安装？")
-                                .setPositiveButton("安装") { _, _ ->
+                                .setTitle("Update已Ready")
+                                .setMessage("v${info.latestVersion} 已DownloadComplete, YesNoInstall?")
+                                .setPositiveButton("Install") { _, _ ->
                                     updater.installUpdate()
                                 }
-                                .setNegativeButton("稍后", null)
+                                .setNegativeButton("稍Back", null)
                                 .show()
                         } else {
-                            android.widget.Toast.makeText(context, "下载失败，请重试", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(context, "DownloadFailed, 请Retry", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         android.widget.Toast.makeText(context, context.getString(R.string.settings_up_to_date, info.currentVersion), android.widget.Toast.LENGTH_SHORT).show()

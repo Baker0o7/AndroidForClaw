@@ -20,14 +20,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 /**
- * 飞书 Channel 核心类
- * 对齐 OpenClaw channel.ts
+ * 飞书 Channel 核心Class
+ * Aligned with OpenClaw channel.ts
  *
- * 功能：
- * - WebSocket/Webhook 连接管理
- * - 消息接收和发送
- * - 事件分发
- * - 会话管理
+ * Feature: 
+ * - WebSocket/Webhook ConnectManage
+ * - Messagereceive和send
+ * - Event分发
+ * - SessionManage
  */
 class FeishuChannel(private val config: FeishuConfig) {
     companion object {
@@ -58,21 +58,21 @@ class FeishuChannel(private val config: FeishuConfig) {
 
     /**
      * Create a new streaming card session (Card Kit API)
-     * 对齐 OpenClaw FeishuStreamingSession
+     * Aligned with OpenClaw FeishuStreamingSession
      */
     fun createStreamingCard(): com.xiaomo.feishu.messaging.FeishuStreamingCard =
         com.xiaomo.feishu.messaging.FeishuStreamingCard(client)
 
     /**
-     * FeishuSender - 支持 Markdown 卡片渲染
+     * FeishuSender - Support Markdown 卡片渲染
      */
     val sender by lazy { com.xiaomo.feishu.messaging.FeishuSender(config, client) }
 
-    // 事件流
+    // Event流
     private val _eventFlow = MutableSharedFlow<FeishuEvent>(replay = 0, extraBufferCapacity = 100)
     val eventFlow: SharedFlow<FeishuEvent> = _eventFlow.asSharedFlow()
 
-    // 连接状态
+    // ConnectStatus
     private var isConnected = false
     private var connectionHandler: FeishuConnectionHandler? = null
 
@@ -80,11 +80,11 @@ class FeishuChannel(private val config: FeishuConfig) {
     private var botOpenId: String? = null
     private var botName: String? = null
 
-    // 当前对话上下文 (用于 Agent 工具调用)
+    // 当FrontConversationUpDown文 (用于 Agent 工具call)
     private var currentChatContext: ChatContext? = null
 
     /**
-     * 当前对话上下文
+     * 当FrontConversationUpDown文
      */
     data class ChatContext(
         val receiveId: String,
@@ -94,14 +94,14 @@ class FeishuChannel(private val config: FeishuConfig) {
     )
 
     /**
-     * 获取机器人的 open_id
+     * Get机器人的 open_id
      */
     fun getBotOpenId(): String? = botOpenId
 
     fun getBotName(): String? = botName
 
     /**
-     * 设置机器人的 open_id
+     * Settings机器人的 open_id
      */
     fun setBotOpenId(openId: String) {
         botOpenId = openId
@@ -124,9 +124,9 @@ class FeishuChannel(private val config: FeishuConfig) {
                 delay(delayMs)
                 if (botOpenId != null || !isConnected) return@launch
                 try {
-                    val botInfoResult = client.getBotInfo()
-                    if (botInfoResult.isSuccess) {
-                        val botInfo = botInfoResult.getOrNull()
+                    val botInforesult = client.getBotInfo()
+                    if (botInforesult.isSuccess) {
+                        val botInfo = botInforesult.getOrNull()
                         val openId = botInfo?.openId
                         if (openId != null) {
                             botOpenId = openId
@@ -146,8 +146,8 @@ class FeishuChannel(private val config: FeishuConfig) {
     }
 
     /**
-     * 更新当前对话上下文 (从消息事件中更新)
-     * 应在收到消息时调用,记录当前对话信息供 Agent 工具使用
+     * Update当FrontConversationUpDown文 (从MessageEvent中Update)
+     * 应在收到Message时call,Record当FrontConversationInfo供 Agent 工具use
      */
     fun updateCurrentChatContext(receiveId: String, receiveIdType: String = "chat_id", messageId: String? = null) {
         currentChatContext = ChatContext(
@@ -160,79 +160,79 @@ class FeishuChannel(private val config: FeishuConfig) {
     }
 
     /**
-     * 获取当前对话上下文
+     * Get当FrontConversationUpDown文
      */
     fun getCurrentChatContext(): ChatContext? = currentChatContext
 
     /**
-     * 发送图片到当前对话
-     * 供 Agent 工具调用 (FeishuSendImageSkill)
+     * sendGraph片到当FrontConversation
+     * 供 Agent 工具call (FeishuSendImageSkill)
      */
-    suspend fun sendImageToCurrentChat(imageFile: java.io.File): Result<String> {
+    suspend fun sendImageToCurrentChat(imageFile: java.io.File): result<String> {
         val context = currentChatContext
         if (context == null) {
             Log.e(TAG, "No active chat context")
-            return Result.failure(Exception("No active chat context. Cannot determine recipient."))
+            return result.failure(Exception("No active chat context. Cannot determine recipient."))
         }
 
-        // 检查上下文是否过期 (超过 5 分钟)
+        // CheckUpDown文YesNo过期 (超过 5 分钟)
         val ageMs = System.currentTimeMillis() - context.timestamp
         if (ageMs > 5 * 60 * 1000) {
             Log.w(TAG, "Chat context is stale (${ageMs}ms old)")
-            return Result.failure(Exception("Chat context is stale. Please send a message first."))
+            return result.failure(Exception("Chat context is stale. Please send a message first."))
         }
 
         return try {
-            // 使用新的 FeishuImageUploadTool 上传图片
+            // useNew的 FeishuImageUploadTool UploadGraph片
             val uploadTool = com.xiaomo.feishu.tools.media.FeishuImageUploadTool(config, client)
 
-            // 1. 上传图片
+            // 1. UploadGraph片
             Log.d(TAG, "Uploading image: ${imageFile.name} (${imageFile.length()} bytes)")
-            val toolResult = uploadTool.execute(mapOf("image_path" to imageFile.absolutePath))
+            val toolresult = uploadTool.execute(mapOf("image_path" to imageFile.absolutePath))
 
-            if (!toolResult.success) {
-                Log.e(TAG, "Failed to upload image: ${toolResult.error}")
-                return Result.failure(Exception(toolResult.error ?: "Upload failed"))
+            if (!toolresult.success) {
+                Log.e(TAG, "Failed to upload image: ${toolresult.error}")
+                return result.failure(Exception(toolresult.error ?: "Upload failed"))
             }
 
-            val imageKey = toolResult.data as? String
-                ?: return Result.failure(Exception("Upload succeeded but no image_key"))
+            val imageKey = toolresult.data as? String
+                ?: return result.failure(Exception("Upload succeeded but no image_key"))
 
             Log.d(TAG, "Image uploaded successfully. image_key: $imageKey")
 
-            // 2. 发送图片消息 (仍使用 FeishuMedia)
+            // 2. sendGraph片Message (仍use FeishuMedia)
             val media = com.xiaomo.feishu.messaging.FeishuMedia(config, client)
             Log.d(TAG, "Sending image to ${context.receiveId} (type: ${context.receiveIdType})")
-            val sendResult = media.sendImage(
+            val sendresult = media.sendImage(
                 receiveId = context.receiveId,
                 imageKey = imageKey,
                 receiveIdType = context.receiveIdType
             )
 
-            if (sendResult.isFailure) {
-                val error = sendResult.exceptionOrNull()
+            if (sendresult.isFailure) {
+                val error = sendresult.exceptionOrNull()
                 Log.e(TAG, "Failed to send image", error)
-                return Result.failure(error ?: Exception("Send failed"))
+                return result.failure(error ?: Exception("Send failed"))
             }
 
-            val messageId = sendResult.getOrNull()
-                ?: return Result.failure(Exception("Send succeeded but no message_id"))
+            val messageId = sendresult.getOrNull()
+                ?: return result.failure(Exception("Send succeeded but no message_id"))
 
             Log.i(TAG, "✅ Image sent successfully. message_id: $messageId")
-            Result.success(messageId)
+            result.success(messageId)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send image to current chat", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 启动 Channel
+     * Start Channel
      */
-    suspend fun start(): Result<Unit> {
+    suspend fun start(): result<Unit> {
         return try {
-            // 验证配置
+            // ValidateConfig
             config.validate().getOrThrow()
 
             Log.i(TAG, "Starting Feishu Channel...")
@@ -241,22 +241,22 @@ class FeishuChannel(private val config: FeishuConfig) {
             Log.i(TAG, "  DM Policy: ${config.dmPolicy}")
             Log.i(TAG, "  Group Policy: ${config.groupPolicy}")
 
-            // 获取机器人信息 (对齐 OpenClaw)
-            val botInfoResult = client.getBotInfo()
-            if (botInfoResult.isSuccess) {
-                val botInfo = botInfoResult.getOrNull()
+            // Get机器人Info (Aligned with OpenClaw)
+            val botInforesult = client.getBotInfo()
+            if (botInforesult.isSuccess) {
+                val botInfo = botInforesult.getOrNull()
                 botOpenId = botInfo?.openId
                 botName = botInfo?.name
                 Log.i(TAG, "  Bot open_id: ${botOpenId ?: "unknown"}")
                 Log.i(TAG, "  Bot name: ${botInfo?.name ?: "unknown"}")
             } else {
-                Log.w(TAG, "Failed to get bot info: ${botInfoResult.exceptionOrNull()?.message}")
+                Log.w(TAG, "Failed to get bot info: ${botInforesult.exceptionOrNull()?.message}")
                 Log.w(TAG, "Will continue without bot open_id (mention check may not work correctly)")
                 // Background retry with escalating delays (aligned with OpenClaw monitor.account.ts)
                 startBotIdentityRetry()
             }
 
-            // 根据连接模式创建 handler
+            // according toConnectSchemaCreate handler
             connectionHandler = when (config.connectionMode) {
                 FeishuConfig.ConnectionMode.WEBSOCKET -> {
                     FeishuWebSocketHandler(config, client, _eventFlow)
@@ -266,21 +266,21 @@ class FeishuChannel(private val config: FeishuConfig) {
                 }
             }
 
-            // 启动连接
+            // StartConnect
             connectionHandler?.start()
             isConnected = true
 
             Log.i(TAG, "✅ Feishu Channel started successfully")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start Feishu Channel", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 停止 Channel
+     * Stop Channel
      */
     fun stop() {
         Log.i(TAG, "Stopping Feishu Channel...")
@@ -291,9 +291,9 @@ class FeishuChannel(private val config: FeishuConfig) {
     }
 
     /**
-     * 添加消息反应（表情）
+     * AddMessage反应(Table情)
      */
-    suspend fun addReaction(messageId: String, emojiType: String): Result<String> {
+    suspend fun addReaction(messageId: String, emojiType: String): result<String> {
         return try {
             val body = mapOf(
                 "reaction_type" to mapOf(
@@ -303,52 +303,52 @@ class FeishuChannel(private val config: FeishuConfig) {
 
             val result = client.post("/open-apis/im/v1/messages/$messageId/reactions", body)
             if (result.isFailure) {
-                return Result.failure(result.exceptionOrNull()!!)
+                return result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val reactionId = data?.get("reaction_id")?.asString
-                ?: return Result.failure(Exception("Missing reaction_id in response"))
+                ?: return result.failure(Exception("Missing reaction_id in response"))
 
             Log.d(TAG, "Reaction added: $reactionId")
-            Result.success(reactionId)
+            result.success(reactionId)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to add reaction", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 移除消息反应
+     * 移除Message反应
      */
-    suspend fun removeReaction(messageId: String, reactionId: String): Result<Unit> {
+    suspend fun removeReaction(messageId: String, reactionId: String): result<Unit> {
         return try {
             val result = client.delete("/open-apis/im/v1/messages/$messageId/reactions/$reactionId")
             if (result.isFailure) {
-                return Result.failure(result.exceptionOrNull()!!)
+                return result.failure(result.exceptionOrNull()!!)
             }
 
             Log.d(TAG, "Reaction removed: $reactionId")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to remove reaction", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送文本消息
+     * sendTextMessage
      */
     suspend fun sendMessage(
         receiveId: String,
         receiveIdType: String = "open_id",
         content: String,
         msgType: String = "text"
-    ): Result<String> {
+    ): result<String> {
         return try {
-            // 构建消息内容的JSON字符串
+            // BuildMessageInside容的JSONString
             val contentJson = when (msgType) {
                 "text" -> {
                     val textContent = mapOf("text" to content)
@@ -365,80 +365,80 @@ class FeishuChannel(private val config: FeishuConfig) {
 
             val result = client.post("/open-apis/im/v1/messages?receive_id_type=$receiveIdType", body)
             if (result.isFailure) {
-                return Result.failure(result.exceptionOrNull()!!)
+                return result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val messageId = data?.get("message_id")?.asString
-                ?: return Result.failure(Exception("Missing message_id in response"))
+                ?: return result.failure(Exception("Missing message_id in response"))
 
             Log.d(TAG, "Message sent: $messageId")
-            Result.success(messageId)
+            result.success(messageId)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送卡片消息
+     * send卡片Message
      */
     suspend fun sendCard(
         receiveId: String,
         receiveIdType: String = "open_id",
         card: String
-    ): Result<String> {
+    ): result<String> {
         return sendMessage(receiveId, receiveIdType, card, "interactive")
     }
 
     /**
-     * 上传并发送图片文件
-     * 对齐 OpenClaw sendMediaFeishu
+     * UploadConcurrency送Graph片文件
+     * Aligned with OpenClaw sendMediaFeishu
      *
-     * @param imageFile 图片文件
-     * @param receiveId 接收者 ID
-     * @param receiveIdType 接收者 ID 类型
-     * @return 消息 ID
+     * @param imageFile Graph片文件
+     * @param receiveId receive者 ID
+     * @param receiveIdType receive者 ID Type
+     * @return Message ID
      */
     suspend fun uploadAndSendImage(
         imageFile: java.io.File,
         receiveId: String,
         receiveIdType: String = "open_id"
-    ): Result<String> {
+    ): result<String> {
         return try {
-            // 使用新的 FeishuImageUploadTool 上传图片
+            // useNew的 FeishuImageUploadTool UploadGraph片
             val uploadTool = com.xiaomo.feishu.tools.media.FeishuImageUploadTool(config, client)
 
-            // 1. 上传图片
-            val toolResult = uploadTool.execute(mapOf("image_path" to imageFile.absolutePath))
-            if (!toolResult.success) {
-                return Result.failure(Exception(toolResult.error ?: "Upload failed"))
+            // 1. UploadGraph片
+            val toolresult = uploadTool.execute(mapOf("image_path" to imageFile.absolutePath))
+            if (!toolresult.success) {
+                return result.failure(Exception(toolresult.error ?: "Upload failed"))
             }
-            val imageKey = toolResult.data as? String
-                ?: return Result.failure(Exception("Upload succeeded but no image_key"))
+            val imageKey = toolresult.data as? String
+                ?: return result.failure(Exception("Upload succeeded but no image_key"))
 
-            // 2. 发送图片消息
+            // 2. sendGraph片Message
             val media = com.xiaomo.feishu.messaging.FeishuMedia(config, client)
             media.sendImage(receiveId, imageKey, receiveIdType)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to upload and send image", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 获取用户信息
+     * GetUserInfo
      */
-    suspend fun getUserInfo(userId: String): Result<FeishuUser> {
+    suspend fun getUserInfo(userId: String): result<FeishuUser> {
         return try {
             val result = client.get("/open-apis/contact/v3/users/$userId")
             if (result.isFailure) {
-                return Result.failure(result.exceptionOrNull()!!)
+                return result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")?.getAsJsonObject("user")
-                ?: return Result.failure(Exception("Missing user data"))
+                ?: return result.failure(Exception("Missing user data"))
 
             val user = FeishuUser(
                 userId = data.get("user_id")?.asString ?: userId,
@@ -448,26 +448,26 @@ class FeishuChannel(private val config: FeishuConfig) {
                 mobile = data.get("mobile")?.asString
             )
 
-            Result.success(user)
+            result.success(user)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get user info", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 获取群组信息
+     * GetGroupInfo
      */
-    suspend fun getChatInfo(chatId: String): Result<FeishuChat> {
+    suspend fun getChatInfo(chatId: String): result<FeishuChat> {
         return try {
             val result = client.get("/open-apis/im/v1/chats/$chatId")
             if (result.isFailure) {
-                return Result.failure(result.exceptionOrNull()!!)
+                return result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
-                ?: return Result.failure(Exception("Missing chat data"))
+                ?: return result.failure(Exception("Missing chat data"))
 
             val chat = FeishuChat(
                 chatId = data.get("chat_id")?.asString ?: chatId,
@@ -476,22 +476,22 @@ class FeishuChannel(private val config: FeishuConfig) {
                 ownerId = data.get("owner_id")?.asString
             )
 
-            Result.success(chat)
+            result.success(chat)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get chat info", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 是否已连接
+     * YesNo已Connect
      */
     fun isConnected(): Boolean = isConnected
 }
 
 /**
- * 飞书事件基类
+ * 飞书Event基Class
  */
 sealed class FeishuEvent {
     data class Message(
@@ -521,7 +521,7 @@ sealed class FeishuEvent {
 }
 
 /**
- * 飞书用户信息
+ * 飞书UserInfo
  */
 data class FeishuUser(
     val userId: String,
@@ -532,7 +532,7 @@ data class FeishuUser(
 )
 
 /**
- * 飞书群组信息
+ * 飞书GroupInfo
  */
 data class FeishuChat(
     val chatId: String,
@@ -542,7 +542,7 @@ data class FeishuChat(
 )
 
 /**
- * 连接 Handler 接口
+ * Connect Handler Interface
  */
 interface FeishuConnectionHandler {
     fun start()

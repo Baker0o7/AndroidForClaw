@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.providers.llm
 import com.google.gson.annotations.SerializedName
 
 /**
- * LLM 通用数据模型
+ * LLM 通用Data模型
  * Used to unify interfaces of different API providers
  *
  * Reference: OpenClaw src/agents/llm-types.ts
@@ -27,7 +27,7 @@ data class ImageBlock(
 )
 
 /**
- * 通用消息格式
+ * 通用Message格式
  *
  * For multimodal messages the text goes in [content] and images in [images].
  * The API adapter will assemble them into the provider-specific content array.
@@ -42,7 +42,7 @@ data class Message(
 )
 
 /**
- * Tool Call（工具调用）
+ * Tool Call(工具call)
  */
 data class ToolCall(
     val id: String,
@@ -53,7 +53,7 @@ data class ToolCall(
 // ============= Tool Definition Models =============
 
 /**
- * 工具定义
+ * Tool definition
  */
 data class ToolDefinition(
     val type: String = "function",
@@ -65,7 +65,7 @@ data class ToolDefinition(
 }
 
 /**
- * 函数定义
+ * Function定义
  */
 data class FunctionDefinition(
     val name: String,
@@ -78,7 +78,7 @@ data class FunctionDefinition(
 }
 
 /**
- * 参数 Schema
+ * Parameters Schema
  */
 data class ParametersSchema(
     val type: String = "object",
@@ -95,7 +95,7 @@ data class ParametersSchema(
 }
 
 /**
- * 属性 Schema
+ * Property Schema
  */
 data class PropertySchema(
     val type: String,  // "string", "number", "boolean", "array", "object"
@@ -128,7 +128,7 @@ data class PropertySchema(
 // ============= Response Models =============
 
 /**
- * LLM 响应（通用格式）
+ * LLM Response(通用格式)
  */
 data class LLMResponse(
     val content: String?,
@@ -139,7 +139,7 @@ data class LLMResponse(
 )
 
 /**
- * Token 使用统计
+ * Token usecount
  */
 data class TokenUsage(
     val promptTokens: Int,
@@ -150,7 +150,7 @@ data class TokenUsage(
 // ============= Helper Extensions =============
 
 /**
- * 将 Message 转换为适用于日志的简短描述
+ * 将 Message Convert为适用于Log的简短Description
  */
 fun Message.toLogString(): String {
     val preview = content.take(50) + if (content.length > 50) "..." else ""
@@ -160,7 +160,7 @@ fun Message.toLogString(): String {
 }
 
 /**
- * 创建系统消息
+ * Create系统Message
  */
 fun systemMessage(content: String) = Message(
     role = "system",
@@ -168,7 +168,7 @@ fun systemMessage(content: String) = Message(
 )
 
 /**
- * 创建用户消息
+ * CreateUserMessage
  */
 fun userMessage(content: String) = Message(
     role = "user",
@@ -176,7 +176,7 @@ fun userMessage(content: String) = Message(
 )
 
 /**
- * 创建带图片的用户消息 (multimodal)
+ * Create带Graph片的UserMessage (multimodal)
  */
 fun userMessage(content: String, images: List<ImageBlock>) = Message(
     role = "user",
@@ -185,7 +185,7 @@ fun userMessage(content: String, images: List<ImageBlock>) = Message(
 )
 
 /**
- * 创建助手消息
+ * Create助手Message
  */
 fun assistantMessage(
     content: String? = null,
@@ -197,7 +197,7 @@ fun assistantMessage(
 )
 
 /**
- * 创建工具结果消息
+ * Create工具resultMessage
  */
 fun toolMessage(
     toolCallId: String,
@@ -215,7 +215,7 @@ fun toolMessage(
 // ============= Compatibility Extensions =============
 
 /**
- * 从旧的 LegacyMessage 转换到新的 Message
+ * 从Old的 LegacyMessage Convert到New的 Message
  *
  * LegacyMessage.content can be:
  *   - String  → plain text
@@ -302,7 +302,7 @@ fun com.xiaomo.androidforclaw.providers.LegacyMessage.toNewMessage(): Message {
 }
 
 /**
- * 从新的 Message 转换到旧的 LegacyMessage
+ * 从New的 Message Convert到Old的 LegacyMessage
  *
  * If the message carries images, content is stored as List<Map> (multimodal blocks)
  * so it round-trips correctly through session persistence.

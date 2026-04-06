@@ -13,19 +13,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书联系人目录
- * 对齐 OpenClaw directory.ts
+ * 飞书Contact目录
+ * Aligned with OpenClaw directory.ts
  *
- * 功能：
- * - 列出配置的用户和群组
- * - 从 API 实时获取用户和群组列表
- * - 支持搜索和限制数量
+ * Feature: 
+ * - ListConfig的User和Group
+ * - 从 API 实时GetUser和GroupList
+ * - SupportSearch和Limit数量
  */
 object FeishuDirectory {
     private const val TAG = "FeishuDirectory"
 
     /**
-     * 用户信息
+     * UserInfo
      */
     data class DirectoryPeer(
         val kind: String = "user",
@@ -34,7 +34,7 @@ object FeishuDirectory {
     )
 
     /**
-     * 群组信息
+     * GroupInfo
      */
     data class DirectoryGroup(
         val kind: String = "group",
@@ -43,12 +43,12 @@ object FeishuDirectory {
     )
 
     /**
-     * 列出配置的用户
+     * ListConfig的User
      *
-     * @param config 飞书配置
-     * @param query 搜索查询（可选）
-     * @param limit 限制数量（可选）
-     * @return 用户列表
+     * @param config 飞书Config
+     * @param query SearchQuery(Optional)
+     * @param limit Limit数量(Optional)
+     * @return UserList
      */
     fun listConfiguredPeers(
         config: FeishuConfig,
@@ -58,7 +58,7 @@ object FeishuDirectory {
         val q = query?.trim()?.lowercase() ?: ""
         val ids = mutableSetOf<String>()
 
-        // 从 allowFrom 获取
+        // 从 allowFrom Get
         for (entry in config.allowFrom) {
             val trimmed = entry.trim()
             if (trimmed.isNotEmpty() && trimmed != "*") {
@@ -66,7 +66,7 @@ object FeishuDirectory {
             }
         }
 
-        // 过滤和限制
+        // Filter and limit
         return ids
             .filter { id -> q.isEmpty() || id.lowercase().contains(q) }
             .let { list -> if (limit != null && limit > 0) list.take(limit) else list }
@@ -74,12 +74,12 @@ object FeishuDirectory {
     }
 
     /**
-     * 列出配置的群组
+     * ListConfig的Group
      *
-     * @param config 飞书配置
-     * @param query 搜索查询（可选）
-     * @param limit 限制数量（可选）
-     * @return 群组列表
+     * @param config 飞书Config
+     * @param query SearchQuery(Optional)
+     * @param limit Limit数量(Optional)
+     * @return GroupList
      */
     fun listConfiguredGroups(
         config: FeishuConfig,
@@ -89,7 +89,7 @@ object FeishuDirectory {
         val q = query?.trim()?.lowercase() ?: ""
         val ids = mutableSetOf<String>()
 
-        // 从 groupAllowFrom 获取
+        // 从 groupAllowFrom Get
         for (entry in config.groupAllowFrom) {
             val trimmed = entry.trim()
             if (trimmed.isNotEmpty() && trimmed != "*") {
@@ -97,7 +97,7 @@ object FeishuDirectory {
             }
         }
 
-        // 过滤和限制
+        // Filter and limit
         return ids
             .filter { id -> q.isEmpty() || id.lowercase().contains(q) }
             .let { list -> if (limit != null && limit > 0) list.take(limit) else list }
@@ -105,13 +105,13 @@ object FeishuDirectory {
     }
 
     /**
-     * 从 API 实时获取用户列表
+     * 从 API 实时GetUserList
      *
-     * @param client Feishu 客户端
-     * @param config 飞书配置
-     * @param query 搜索查询（可选）
-     * @param limit 限制数量（默认 50）
-     * @return 用户列表
+     * @param client Feishu Client
+     * @param config 飞书Config
+     * @param query SearchQuery(Optional)
+     * @param limit Limit数量(Default 50)
+     * @return UserList
      */
     suspend fun listPeersLive(
         client: FeishuClient,
@@ -146,7 +146,7 @@ object FeishuDirectory {
                 val openId = user.get("open_id")?.asString ?: continue
                 val name = user.get("name")?.asString ?: ""
 
-                // 搜索过滤
+                // SearchFilter
                 if (q.isNotEmpty() && !openId.lowercase().contains(q) && !name.lowercase().contains(q)) {
                     continue
                 }
@@ -167,13 +167,13 @@ object FeishuDirectory {
     }
 
     /**
-     * 从 API 实时获取群组列表
+     * 从 API 实时GetGroupList
      *
-     * @param client Feishu 客户端
-     * @param config 飞书配置
-     * @param query 搜索查询（可选）
-     * @param limit 限制数量（默认 50）
-     * @return 群组列表
+     * @param client Feishu Client
+     * @param config 飞书Config
+     * @param query SearchQuery(Optional)
+     * @param limit Limit数量(Default 50)
+     * @return GroupList
      */
     suspend fun listGroupsLive(
         client: FeishuClient,
@@ -208,7 +208,7 @@ object FeishuDirectory {
                 val chatId = chat.get("chat_id")?.asString ?: continue
                 val name = chat.get("name")?.asString ?: ""
 
-                // 搜索过滤
+                // SearchFilter
                 if (q.isNotEmpty() && !chatId.lowercase().contains(q) && !name.lowercase().contains(q)) {
                     continue
                 }

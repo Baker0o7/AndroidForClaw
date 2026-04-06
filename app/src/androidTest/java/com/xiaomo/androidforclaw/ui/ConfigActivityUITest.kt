@@ -14,10 +14,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * 配置界面 UI 自动化测试
- * 测试配置相关的 UI 交互
+ * Config界面 UI Auto化Test
+ * TestConfig相关的 UI 交互
  *
- * 运行:
+ * Run:
  * ./gradlew connectedDebugAndroidTest --tests "ConfigActivityUITest"
  */
 @RunWith(AndroidJUnit4::class)
@@ -30,42 +30,42 @@ class ConfigActivityUITest {
 
     @Test
     fun testConfigActivity_launches() {
-        // 验证配置界面启动 - 检查 API 配置标题
-        onView(withText("API 配置"))
+        // ValidateConfig界面Start - Check API ConfigTitle
+        onView(withText("API Config"))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testModelConfiguration_isVisible() {
-        // 验证功能开关部分可见
-        onView(withText("功能开关"))
+        // ValidateFeature开关部分可见
+        onView(withText("Feature开关"))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testConfigSave_works() {
-        // 测试保存配置（如果有保存按钮）
+        // TestSaveConfig(如果HasSave按钮)
         try {
-            onView(withText("保存"))
+            onView(withText("Save"))
                 .check(matches(isDisplayed()))
                 .perform(click())
 
             Thread.sleep(500)
 
-            // 验证保存成功提示（如果有）
+            // ValidateSaveSuccessHint(如果Has)
         } catch (e: Exception) {
-            // 可能没有保存按钮
+            // 可能NoneSave按钮
         }
     }
 
     @Test
     fun testBackNavigation_works() {
-        // 测试返回导航
+        // TestReturn导航
         activityRule.scenario.onActivity { activity ->
             activity.onBackPressed()
         }
 
-        // 验证活动已关闭
+        // Validate活动已Close
         Thread.sleep(500)
     }
 }

@@ -99,7 +99,7 @@ class AccessibilityE2ETest {
         println("$TAG: test01 — snapshot (view tree)")
 
         val result = toolRegistry.execute("device", mapOf("action" to "snapshot"))
-        assumeTrue("snapshot 需要无障碍服务，跳过", result.success)
+        assumeTrue("snapshot NeedAccessibilityService, Skip", result.success)
 
         assertTrue("snapshot should return content", result.content.isNotEmpty())
         // snapshot returns a structured view tree with refs
@@ -119,7 +119,7 @@ class AccessibilityE2ETest {
         val result = toolRegistry.execute("device", mapOf(
             "action" to "act", "kind" to "home"
         ))
-        assumeTrue("home 需要无障碍服务，跳过", result.success)
+        assumeTrue("home NeedAccessibilityService, Skip", result.success)
 
         device.waitForIdle(2000)
         val currentPkg = device.currentPackageName
@@ -140,7 +140,7 @@ class AccessibilityE2ETest {
         val result = toolRegistry.execute("device", mapOf(
             "action" to "act", "kind" to "press", "key" to "BACK"
         ))
-        assumeTrue("back 需要无障碍服务，跳过", result.success)
+        assumeTrue("back NeedAccessibilityService, Skip", result.success)
 
         device.waitForIdle(1000)
         println("$TAG: ✅ back succeeded")
@@ -163,7 +163,7 @@ class AccessibilityE2ETest {
             "x" to w / 2,
             "y" to h / 2
         ))
-        assumeTrue("tap 需要无障碍服务，跳过", result.success)
+        assumeTrue("tap NeedAccessibilityService, Skip", result.success)
 
         device.waitForIdle(1000)
         println("$TAG: ✅ tap at (${w / 2}, ${h / 2}) succeeded")
@@ -189,7 +189,7 @@ class AccessibilityE2ETest {
             "endX" to w / 2,
             "endY" to h / 4
         ))
-        assumeTrue("swipe 需要无障碍服务，跳过", result.success)
+        assumeTrue("swipe NeedAccessibilityService, Skip", result.success)
 
         device.waitForIdle(1000)
         println("$TAG: ✅ swipe up succeeded")
@@ -220,7 +220,7 @@ class AccessibilityE2ETest {
         println("$TAG: test07 — screenshot")
 
         val result = toolRegistry.execute("device", mapOf("action" to "screenshot"))
-        assumeTrue("screenshot 需要 MediaProjection 权限，跳过", result.success)
+        assumeTrue("screenshot Need MediaProjection Permission, Skip", result.success)
 
         assertTrue("screenshot should return content", result.content.isNotEmpty())
         println("$TAG: ✅ screenshot returned ${result.content.length} chars")
@@ -249,7 +249,7 @@ class AccessibilityE2ETest {
         val t1 = System.currentTimeMillis()
         val r1 = toolRegistry.execute("device", mapOf("action" to "snapshot"))
         val d1 = System.currentTimeMillis() - t1
-        assumeTrue("snapshot 需要无障碍服务，跳过", r1.success)
+        assumeTrue("snapshot NeedAccessibilityService, Skip", r1.success)
 
         // Second call immediately — should be faster due to view tree cache
         val t2 = System.currentTimeMillis()
@@ -268,7 +268,7 @@ class AccessibilityE2ETest {
 
         // Step 1: snapshot to see the UI
         val snap1 = toolRegistry.execute("device", mapOf("action" to "snapshot"))
-        assumeTrue("workflow 需要无障碍服务，跳过", snap1.success)
+        assumeTrue("workflow NeedAccessibilityService, Skip", snap1.success)
         println("  1. snapshot: ${snap1.content.length} chars")
 
         // Step 2: tap center

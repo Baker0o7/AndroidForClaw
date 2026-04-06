@@ -22,13 +22,13 @@ private const val TAG = "FeishuCommonTools"
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_get_user"
-    override val description = "获取用户信息。不传 user_id 时获取当前用户自己的信息；传 user_id 时获取指定用户的信息。" +
-        "返回用户姓名、头像、邮箱、手机号、部门等信息。"
+    override val description = "GetUserInfo. 不传 user_id 时Get当FrontUser自己的Info；传 user_id 时Get指定User的Info. " +
+        "ReturnUser姓名、头Like、邮箱、手机号、Department等Info. "
 
-    override fun isEnabled() = config.enableCommonTools
+    override fun isEnabledd() = config.enableCommonTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             val userId = args["user_id"] as? String
             val userIdType = args["user_id_type"] as? String ?: "open_id"
@@ -43,26 +43,26 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
                         // Check for error code 41050: org visibility restriction
                         val errMsg = result.exceptionOrNull()?.message ?: ""
                         if (errMsg.contains("41050")) {
-                            return@withContext ToolResult.error(
-                                "无权限查询该用户信息。\n\n" +
-                                "说明：使用用户身份调用通讯录 API 时，可操作的权限范围不受应用的通讯录权限范围影响，" +
-                                "而是受当前用户的组织架构可见范围影响。该范围限制了用户在企业内可见的组织架构数据范围。"
+                            return@withContext Toolresult.error(
+                                "NonePermissionQuery该UserInfo. \n\n" +
+                                "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
+                                "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. "
                             )
                         }
-                        return@withContext ToolResult.error(errMsg.ifBlank { "Failed to get current user info" })
+                        return@withContext Toolresult.error(errMsg.ifBlank { "Failed to get current user info" })
                     }
                     Log.i(TAG, "get_user: current user fetched successfully")
                     val response = JsonObject().apply {
                         add("user", result.getOrNull()?.getAsJsonObject("data"))
                     }
-                    return@withContext ToolResult.success(response)
+                    return@withContext Toolresult.success(response)
                 } catch (invokeErr: Exception) {
                     // Check for error code 41050
                     if (invokeErr.message?.contains("41050") == true) {
-                        return@withContext ToolResult.error(
-                            "无权限查询该用户信息。\n\n" +
-                            "说明：使用用户身份调用通讯录 API 时，可操作的权限范围不受应用的通讯录权限范围影响，" +
-                            "而是受当前用户的组织架构可见范围影响。该范围限制了用户在企业内可见的组织架构数据范围。"
+                        return@withContext Toolresult.error(
+                            "NonePermissionQuery该UserInfo. \n\n" +
+                            "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
+                            "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. "
                         )
                     }
                     throw invokeErr
@@ -77,34 +77,34 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
                 if (result.isFailure) {
                     val errMsg = result.exceptionOrNull()?.message ?: ""
                     if (errMsg.contains("41050")) {
-                        return@withContext ToolResult.error(
-                            "无权限查询该用户信息。\n\n" +
-                            "说明：使用用户身份调用通讯录 API 时，可操作的权限范围不受应用的通讯录权限范围影响，" +
-                            "而是受当前用户的组织架构可见范围影响。该范围限制了用户在企业内可见的组织架构数据范围。\n\n" +
-                            "建议：请联系管理员调整当前用户的组织架构可见范围，或使用应用身份（tenant_access_token）调用 API。"
+                        return@withContext Toolresult.error(
+                            "NonePermissionQuery该UserInfo. \n\n" +
+                            "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
+                            "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. \n\n" +
+                            "suggest: 请联系Manage员adjust当FrontUser的Group织架构可见Range, 或useapply身份(tenant_access_token)call API. "
                         )
                     }
-                    return@withContext ToolResult.error(errMsg.ifBlank { "Failed to get user info" })
+                    return@withContext Toolresult.error(errMsg.ifBlank { "Failed to get user info" })
                 }
                 Log.i(TAG, "get_user: user $userId fetched successfully")
                 val response = JsonObject().apply {
                     add("user", result.getOrNull()?.getAsJsonObject("data")?.getAsJsonObject("user"))
                 }
-                ToolResult.success(response)
+                Toolresult.success(response)
             } catch (invokeErr: Exception) {
                 if (invokeErr.message?.contains("41050") == true) {
-                    return@withContext ToolResult.error(
-                        "无权限查询该用户信息。\n\n" +
-                        "说明：使用用户身份调用通讯录 API 时，可操作的权限范围不受应用的通讯录权限范围影响，" +
-                        "而是受当前用户的组织架构可见范围影响。该范围限制了用户在企业内可见的组织架构数据范围。\n\n" +
-                        "建议：请联系管理员调整当前用户的组织架构可见范围，或使用应用身份（tenant_access_token）调用 API。"
+                    return@withContext Toolresult.error(
+                        "NonePermissionQuery该UserInfo. \n\n" +
+                        "illustrate: useUserIdentity call contacts API 时, 可Action的PermissionRange不受apply的通讯录PermissionRange影响, " +
+                        "而Yes受当FrontUser的Group织架构可见Range影响. 该RangeLimit了User在企业Inside可见的Group织架构DataRange. \n\n" +
+                        "suggest: 请联系Manage员adjust当FrontUser的Group织架构可见Range, 或useapply身份(tenant_access_token)call API. "
                     )
                 }
                 throw invokeErr
             }
         } catch (e: Exception) {
             Log.e(TAG, "feishu_get_user failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -115,8 +115,8 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "user_id" to PropertySchema("string", "用户 ID（格式如 ou_xxx）。若不传入，则获取当前用户自己的信息"),
-                    "user_id_type" to PropertySchema("string", "用户 ID 类型（默认 open_id）",
+                    "user_id" to PropertySchema("string", "User ID(格式such as ou_xxx). 若不传入, 则Get当FrontUser自己的Info"),
+                    "user_id_type" to PropertySchema("string", "User ID Type(Default open_id)",
                         enum = listOf("open_id", "union_id", "user_id"))
                 ),
                 required = emptyList()
@@ -130,16 +130,16 @@ class FeishuGetUserTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuSearchUserTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_search_user"
-    override val description = "搜索员工信息（通过关键词搜索姓名、手机号、邮箱）。返回匹配的员工列表，" +
-        "包含姓名、部门、open_id 等信息。"
+    override val description = "Search员工Info(通过关Key词Search姓名、手机号、邮箱). Returnmatch的员工List, " +
+        "Contains姓名、Department、open_id 等Info. "
 
-    override fun isEnabled() = config.enableCommonTools
+    override fun isEnabledd() = config.enableCommonTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             val query = args["query"] as? String
-                ?: return@withContext ToolResult.error("Missing required parameter: query")
+                ?: return@withContext Toolresult.error("Missing required parameter: query")
             val pageSize = (args["page_size"] as? Number)?.toInt() ?: 20
             val pageToken = args["page_token"] as? String
 
@@ -155,7 +155,7 @@ class FeishuSearchUserTool(config: FeishuConfig, client: FeishuClient) : FeishuT
             // GET /open-apis/search/v1/user
             val result = client.get("/open-apis/search/v1/user?$queryString")
             if (result.isFailure) {
-                return@withContext ToolResult.error(
+                return@withContext Toolresult.error(
                     result.exceptionOrNull()?.message ?: "Failed to search users"
                 )
             }
@@ -169,10 +169,10 @@ class FeishuSearchUserTool(config: FeishuConfig, client: FeishuClient) : FeishuT
                 addProperty("has_more", data?.get("has_more")?.asBoolean ?: false)
                 data?.get("page_token")?.let { add("page_token", it) }
             }
-            ToolResult.success(response)
+            Toolresult.success(response)
         } catch (e: Exception) {
             Log.e(TAG, "feishu_search_user failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -183,9 +183,9 @@ class FeishuSearchUserTool(config: FeishuConfig, client: FeishuClient) : FeishuT
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "query" to PropertySchema("string", "搜索关键词，用于匹配用户名（必填）"),
-                    "page_size" to PropertySchema("integer", "分页大小，控制每次返回的用户数量（默认20，最大200）"),
-                    "page_token" to PropertySchema("string", "分页标识。首次请求无需填写；当返回结果中包含 page_token 时，可传入该值继续请求下一页")
+                    "query" to PropertySchema("string", "Search关Key词, 用于matchUser名(Required)"),
+                    "page_size" to PropertySchema("integer", "Page size, 控制each timeReturn的User数量(Default20, Max200)"),
+                    "page_token" to PropertySchema("string", "Paginate标识. 首次RequestNone需填写；当Returnresult中Contains page_token 时, 可传入该ValueContinueRequestDown一页")
                 ),
                 required = listOf("query")
             )
@@ -202,6 +202,6 @@ class FeishuCommonTools(config: FeishuConfig, client: FeishuClient) {
     fun getAllTools(): List<FeishuToolBase> = listOf(getUserTool, searchUserTool)
 
     fun getToolDefinitions(): List<ToolDefinition> {
-        return getAllTools().filter { it.isEnabled() }.map { it.getToolDefinition() }
+        return getAllTools().filter { it.isEnabledd() }.map { it.getToolDefinition() }
     }
 }

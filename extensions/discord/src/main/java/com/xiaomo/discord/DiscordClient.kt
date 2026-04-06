@@ -18,7 +18,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 /**
- * Discord API 客户端
+ * Discord API Client
  * 基于 Discord REST API v10
  */
 class DiscordClient(
@@ -40,7 +40,7 @@ class DiscordClient(
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     /**
-     * 发送消息到 Discord 频道
+     * sendMessage到 Discord Channel
      */
     suspend fun sendMessage(
         channelId: String,
@@ -48,7 +48,7 @@ class DiscordClient(
         embeds: List<Map<String, Any>>? = null,
         components: List<Map<String, Any>>? = null,
         messageReference: Map<String, Any>? = null
-    ): Result<JsonObject> = withContext(Dispatchers.IO) {
+    ): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val payload = mutableMapOf<String, Any>(
                 "content" to content
@@ -73,41 +73,41 @@ class DiscordClient(
             if (response.isSuccessful && responseBody != null) {
                 val json = gson.fromJson(responseBody, JsonObject::class.java)
                 Log.d(TAG, "Message sent successfully to channel $channelId")
-                Result.success(json)
+                result.success(json)
             } else {
                 Log.e(TAG, "Failed to send message: ${response.code} - $responseBody")
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error sending message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送 DM (私聊消息)
+     * send DM (私聊Message)
      */
     suspend fun sendDirectMessage(
         userId: String,
         content: String
-    ): Result<JsonObject> = withContext(Dispatchers.IO) {
+    ): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
-            // 1. 创建 DM Channel
+            // 1. Create DM Channel
             val dmChannel = createDMChannel(userId).getOrThrow()
             val channelId = dmChannel.get("id").asString
 
-            // 2. 发送消息
+            // 2. sendMessage
             sendMessage(channelId, content)
         } catch (e: Exception) {
             Log.e(TAG, "Error sending DM to user $userId", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 创建 DM Channel
+     * Create DM Channel
      */
-    private suspend fun createDMChannel(userId: String): Result<JsonObject> = withContext(Dispatchers.IO) {
+    private suspend fun createDMChannel(userId: String): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val payload = mapOf("recipient_id" to userId)
             val body = gson.toJson(payload).toRequestBody(jsonMediaType)
@@ -124,23 +124,23 @@ class DiscordClient(
 
             if (response.isSuccessful && responseBody != null) {
                 val json = gson.fromJson(responseBody, JsonObject::class.java)
-                Result.success(json)
+                result.success(json)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 添加反应 (Emoji)
+     * Add反应 (Emoji)
      */
     suspend fun addReaction(
         channelId: String,
         messageId: String,
         emoji: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val encodedEmoji = java.net.URLEncoder.encode(emoji, "UTF-8")
             val request = Request.Builder()
@@ -154,14 +154,14 @@ class DiscordClient(
 
             if (response.isSuccessful) {
                 Log.d(TAG, "Reaction added: $emoji")
-                Result.success(Unit)
+                result.success(Unit)
             } else {
                 Log.e(TAG, "Failed to add reaction: ${response.code}")
-                Result.failure(Exception("HTTP ${response.code}"))
+                result.failure(Exception("HTTP ${response.code}"))
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error adding reaction", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
@@ -172,7 +172,7 @@ class DiscordClient(
         channelId: String,
         messageId: String,
         emoji: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val encodedEmoji = java.net.URLEncoder.encode(emoji, "UTF-8")
             val request = Request.Builder()
@@ -186,21 +186,21 @@ class DiscordClient(
 
             if (response.isSuccessful) {
                 Log.d(TAG, "Reaction removed: $emoji")
-                Result.success(Unit)
+                result.success(Unit)
             } else {
                 Log.e(TAG, "Failed to remove reaction: ${response.code}")
-                Result.failure(Exception("HTTP ${response.code}"))
+                result.failure(Exception("HTTP ${response.code}"))
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error removing reaction", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 触发输入状态 (Typing Indicator)
+     * 触发InputStatus (Typing Indicator)
      */
-    suspend fun triggerTyping(channelId: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun triggerTyping(channelId: String): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$BASE_URL/channels/$channelId/typing")
@@ -212,19 +212,19 @@ class DiscordClient(
             val response = client.newCall(request).execute()
 
             if (response.isSuccessful) {
-                Result.success(Unit)
+                result.success(Unit)
             } else {
-                Result.failure(Exception("HTTP ${response.code}"))
+                result.failure(Exception("HTTP ${response.code}"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 获取当前 Bot 用户信息
+     * Get当Front Bot UserInfo
      */
-    suspend fun getCurrentUser(): Result<JsonObject> = withContext(Dispatchers.IO) {
+    suspend fun getCurrentUser(): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$BASE_URL/users/@me")
@@ -238,19 +238,19 @@ class DiscordClient(
 
             if (response.isSuccessful && responseBody != null) {
                 val json = gson.fromJson(responseBody, JsonObject::class.java)
-                Result.success(json)
+                result.success(json)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 获取 Guild (服务器) 信息
+     * Get Guild (Service器) Info
      */
-    suspend fun getGuild(guildId: String): Result<JsonObject> = withContext(Dispatchers.IO) {
+    suspend fun getGuild(guildId: String): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$BASE_URL/guilds/$guildId")
@@ -264,19 +264,19 @@ class DiscordClient(
 
             if (response.isSuccessful && responseBody != null) {
                 val json = gson.fromJson(responseBody, JsonObject::class.java)
-                Result.success(json)
+                result.success(json)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 获取 Channel 信息
+     * Get Channel Info
      */
-    suspend fun getChannel(channelId: String): Result<JsonObject> = withContext(Dispatchers.IO) {
+    suspend fun getChannel(channelId: String): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$BASE_URL/channels/$channelId")
@@ -290,16 +290,16 @@ class DiscordClient(
 
             if (response.isSuccessful && responseBody != null) {
                 val json = gson.fromJson(responseBody, JsonObject::class.java)
-                Result.success(json)
+                result.success(json)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
-    suspend fun getUserGuilds(): Result<com.google.gson.JsonArray> = withContext(Dispatchers.IO) {
+    suspend fun getUserGuilds(): result<com.google.gson.JsonArray> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$BASE_URL/users/@me/guilds")
@@ -313,16 +313,16 @@ class DiscordClient(
 
             if (response.isSuccessful && responseBody != null) {
                 val array = gson.fromJson(responseBody, com.google.gson.JsonArray::class.java)
-                Result.success(array)
+                result.success(array)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
-    suspend fun getGuildChannels(guildId: String): Result<com.google.gson.JsonArray> = withContext(Dispatchers.IO) {
+    suspend fun getGuildChannels(guildId: String): result<com.google.gson.JsonArray> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$BASE_URL/guilds/$guildId/channels")
@@ -336,16 +336,16 @@ class DiscordClient(
 
             if (response.isSuccessful && responseBody != null) {
                 val array = gson.fromJson(responseBody, com.google.gson.JsonArray::class.java)
-                Result.success(array)
+                result.success(array)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
-    suspend fun getApplication(): Result<JsonObject> = withContext(Dispatchers.IO) {
+    suspend fun getApplication(): result<JsonObject> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
                 .url("$BASE_URL/oauth2/applications/@me")
@@ -359,12 +359,12 @@ class DiscordClient(
 
             if (response.isSuccessful && responseBody != null) {
                 val json = gson.fromJson(responseBody, JsonObject::class.java)
-                Result.success(json)
+                result.success(json)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: $responseBody"))
+                result.failure(Exception("HTTP ${response.code}: $responseBody"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            result.failure(e)
         }
     }
 }

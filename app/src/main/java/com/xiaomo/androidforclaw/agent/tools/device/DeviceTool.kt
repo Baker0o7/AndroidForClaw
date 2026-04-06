@@ -19,7 +19,7 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.agent.tools.Tool
-import com.xiaomo.androidforclaw.agent.tools.ToolResult
+import com.xiaomo.androidforclaw.agent.tools.Toolresult
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
@@ -110,8 +110,8 @@ class DeviceTool(private val context: Context) : Tool {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        val action = args["action"] as? String ?: return ToolResult.error("Missing action")
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+        val action = args["action"] as? String ?: return Toolresult.error("Missing action")
 
         return when (action) {
             "snapshot" -> executeSnapshot(args)
@@ -119,13 +119,13 @@ class DeviceTool(private val context: Context) : Tool {
             "act" -> executeAct(args)
             "open" -> executeOpen(args)
             "status" -> executeStatus()
-            else -> ToolResult.error("Unknown action: $action")
+            else -> Toolresult.error("Unknown action: $action")
         }
     }
 
     // ==================== snapshot ====================
 
-    private suspend fun executeSnapshot(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeSnapshot(args: Map<String, Any?>): Toolresult {
         val format = (args["format"] as? String) ?: "compact"
 
         val proxy = AccessibilityProxy
@@ -134,17 +134,17 @@ class DeviceTool(private val context: Context) : Tool {
             proxy.dumpViewTree(useCache = false)
         } catch (e: IllegalStateException) {
             Log.e(TAG, "Accessibility service not available", e)
-            return ToolResult.error("无障碍服务未开启。请到 设置 → 无障碍 → AndroidForClaw 开启无障碍权限，才能获取屏幕元素。")
+            return Toolresult.error("AccessibilityService未开启. 请到 Settings → Accessibility → AndroidForClaw 开启AccessibilityPermission, 才能GetScreenElement. ")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to dump view tree", e)
-            return ToolResult.error("获取 UI 树失败: ${e.message}。请检查无障碍服务是否正常运行。")
+            return Toolresult.error("Get UI TreeFailed: ${e.message}. 请CheckAccessibilityServiceYesNo正常Run. ")
         }
 
         if (viewNodes.isEmpty()) {
             val accessibilityOn = try { proxy.isConnected.value == true && proxy.isServiceReady() } catch (_: Exception) { false }
-            val status = if (accessibilityOn) "无障碍服务: ✅ 已开启（但当前页面无可识别元素，可能页面正在加载，建议等 1-2 秒重试）" 
-                         else "无障碍服务: ❌ 未开启。请到 设置 → 无障碍 → AndroidForClaw 开启无障碍权限。"
-            return ToolResult.error(status)
+            val status = if (accessibilityOn) "AccessibilityService: ✅ 已开启(但当Front页面NoneIdentifiable elements, possibly页面正在Load, suggest等 1-2 秒Retry)" 
+                         else "AccessibilityService: ❌ 未开启. 请到 Settings → Accessibility → AndroidForClaw 开启AccessibilityPermission. "
+            return Toolresult.error(status)
         }
 
         val nodes = SnapshotBuilder.buildFromViewNodes(viewNodes)
@@ -170,21 +170,21 @@ class DeviceTool(private val context: Context) : Tool {
             else -> SnapshotFormatter.compact(nodes, width, height, appName)
         }
 
-        return ToolResult.success(output)
+        return Toolresult.success(output)
     }
 
     // ==================== screenshot ====================
 
-    private suspend fun executeScreenshot(): ToolResult {
+    private suspend fun executeScreenshot(): Toolresult {
         // Delegate to existing ScreenshotSkill logic
-        val screenshotResult = try {
+        val screenshotresult = try {
             val controller = com.xiaomo.androidforclaw.DeviceController
             controller.getScreenshot(context)
         } catch (e: Exception) {
             null
         }
 
-        if (screenshotResult == null) {
+        if (screenshotresult == null) {
             // Fallback: try shell screencap
             try {
                 val path = "${StoragePaths.workspaceScreenshots.absolutePath}/device_${System.currentTimeMillis()}.png"
@@ -192,20 +192,20 @@ class DeviceTool(private val context: Context) : Tool {
                 process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
                 val file = java.io.File(path)
                 if (file.exists() && file.length() > 0) {
-                    return ToolResult.success("Screenshot saved: $path (${file.length()} bytes)")
+                    return Toolresult.success("Screenshot saved: $path (${file.length()} bytes)")
                 }
             } catch (_: Exception) {}
-            return ToolResult.error("Screenshot failed. Please grant screen capture permission.")
+            return Toolresult.error("Screenshot failed. Please grant screen capture permission.")
         }
 
-        val (bitmap, path) = screenshotResult
-        return ToolResult.success("Screenshot: ${bitmap.width}x${bitmap.height}, path: $path")
+        val (bitmap, path) = screenshotresult
+        return Toolresult.success("Screenshot: ${bitmap.width}x${bitmap.height}, path: $path")
     }
 
     // ==================== act ====================
 
-    private suspend fun executeAct(args: Map<String, Any?>): ToolResult {
-        val kind = args["kind"] as? String ?: return ToolResult.error("Missing 'kind' for action=act")
+    private suspend fun executeAct(args: Map<String, Any?>): Toolresult {
+        val kind = args["kind"] as? String ?: return Toolresult.error("Missing 'kind' for action=act")
 
         return when (kind) {
             "tap" -> executeTap(args)
@@ -217,32 +217,32 @@ class DeviceTool(private val context: Context) : Tool {
             "wait" -> executeWait(args)
             "home" -> executeKey("HOME")
             "back" -> executeKey("BACK")
-            else -> ToolResult.error("Unknown kind: $kind")
+            else -> Toolresult.error("Unknown kind: $kind")
         }
     }
 
-    private suspend fun executeTap(args: Map<String, Any?>): ToolResult {
-        val (x, y, label) = resolveCoordinate(args) ?: return ToolResult.error("Cannot resolve target. Provide ref or coordinate.")
+    private suspend fun executeTap(args: Map<String, Any?>): Toolresult {
+        val (x, y, label) = resolveCoordinate(args) ?: return Toolresult.error("Cannot resolve target. Provide ref or coordinate.")
 
         return try {
             val ok = AccessibilityProxy.tap(x, y)
             if (!ok) {
-                ToolResult.error("Tap failed via accessibility service at ($x, $y)")
+                Toolresult.error("Tap failed via accessibility service at ($x, $y)")
             } else {
                 delay(POST_ACTION_DELAY_MS)
-                ToolResult.success("Tapped${label?.let { " '$it'" } ?: ""} at ($x, $y)")
+                Toolresult.success("Tapped${label?.let { " '$it'" } ?: ""} at ($x, $y)")
             }
         } catch (e: Exception) {
-            ToolResult.error("Tap failed: ${e.message}")
+            Toolresult.error("Tap failed: ${e.message}")
         }
     }
 
-    private suspend fun executeType(args: Map<String, Any?>): ToolResult {
-        val text = args["text"] as? String ?: return ToolResult.error("Missing 'text' for kind=type")
+    private suspend fun executeType(args: Map<String, Any?>): Toolresult {
+        val text = args["text"] as? String ?: return Toolresult.error("Missing 'text' for kind=type")
 
         val clipboardHelper = com.xiaomo.androidforclaw.service.ClipboardInputHelper
         val clawIme = com.xiaomo.androidforclaw.service.ClawIMEManager
-        val clawImeActive = clawIme.isClawImeEnabled(context) && clawIme.isConnected()
+        val clawImeActive = clawIme.isClawImeEnableddd(context) && clawIme.isConnected()
         val accessibilityAvailable = AccessibilityProxy.isServiceReady()
         val clipboardAvailable = accessibilityAvailable && clipboardHelper.isClipboardAvailable(context)
 
@@ -257,27 +257,27 @@ class DeviceTool(private val context: Context) : Tool {
                 Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
                 delay(POST_ACTION_DELAY_MS)
             } else {
-                return ToolResult.error("输入失败：无障碍服务和 ClawIME 均未启用，无法聚焦输入框")
+                return Toolresult.error("InputFailed: AccessibilityService和 ClawIME 均未Enabledd, Cannot聚焦Input field")
             }
         }
 
-        // Type text: 优先剪切板 → 兜底 ClawIME → 兜底 shell input
+        // Type text: 优先cut板 → 兜底 ClawIME → 兜底 shell input
         try {
             val typed: Boolean
             val method: String
 
             if (clipboardAvailable) {
-                // 优先走剪切板粘贴（最可靠，支持所有字符）
+                // 优先走cut板paste(Most reliable, SupportAll字符)
                 typed = clipboardHelper.inputTextViaClipboard(context, text)
                 method = "clipboard"
                 Log.d(TAG, "Clipboard.inputText('${text.take(30)}'): $typed")
             } else if (clawImeActive) {
-                // 兜底到 ClawIME 键盘输入
+                // 兜底到 ClawIME Key盘Input
                 typed = clawIme.inputText(text)
                 method = "clawime"
                 Log.d(TAG, "ClawIME.inputText('${text.take(30)}'): $typed")
             } else {
-                // 最终兜底：shell input text（仅支持 ASCII）
+                // most终兜底: shell input text(仅Support ASCII)
                 val escaped = text.replace("'", "'\\''")
                 val proc = Runtime.getRuntime().exec(arrayOf("sh", "-c", "input text '$escaped'"))
                 val exitCode = proc.waitFor()
@@ -288,28 +288,28 @@ class DeviceTool(private val context: Context) : Tool {
 
             if (!typed) {
                 val hint = if (!accessibilityAvailable && !clawImeActive) {
-                    "请开启无障碍服务（推荐，支持剪切板粘贴），或切换到 ClawIME 输入法"
+                    "请开启AccessibilityService(recommend, Supportcut板paste), 或switch到 ClawIME Input method"
                 } else if (!accessibilityAvailable) {
-                    "剪切板粘贴需要无障碍服务。请在设置中开启无障碍权限以获得更好的输入体验"
+                    "cut板pasteNeedAccessibilityService. 请在Settings中开启AccessibilityPermission以obtainmoreokInput体验"
                 } else {
-                    "输入失败，请重试"
+                    "InputFailed, 请Retry"
                 }
-                return ToolResult.error("Type failed: $hint")
+                return Toolresult.error("Type failed: $hint")
             }
             val refLabel = (args["ref"] as? String)?.let { refManager.getRefNode(it)?.name }
-            return ToolResult.success("Typed '${text.take(100)}'${refLabel?.let { " into '$it'" } ?: ""} (via $method)")
+            return Toolresult.success("Typed '${text.take(100)}'${refLabel?.let { " into '$it'" } ?: ""} (via $method)")
         } catch (e: Exception) {
-            return ToolResult.error("Type failed: ${e.message}")
+            return Toolresult.error("Type failed: ${e.message}")
         }
     }
 
-    private suspend fun executePress(args: Map<String, Any?>): ToolResult {
+    private suspend fun executePress(args: Map<String, Any?>): Toolresult {
         val key = (args["key"] as? String) ?: (args["text"] as? String)
-            ?: return ToolResult.error("Missing 'key' for kind=press")
+            ?: return Toolresult.error("Missing 'key' for kind=press")
         return executeKey(key)
     }
 
-    private fun executeKey(key: String): ToolResult {
+    private fun executeKey(key: String): Toolresult {
         return try {
             val ok = when (key.uppercase()) {
                 "BACK" -> AccessibilityProxy.pressBack()
@@ -320,30 +320,30 @@ class DeviceTool(private val context: Context) : Tool {
                     true
                 }
             }
-            if (ok) ToolResult.success("Pressed $key")
-            else ToolResult.error("Key press failed for $key")
+            if (ok) Toolresult.success("Pressed $key")
+            else Toolresult.error("Key press failed for $key")
         } catch (e: Exception) {
-            ToolResult.error("Key press failed: ${e.message}")
+            Toolresult.error("Key press failed: ${e.message}")
         }
     }
 
-    private suspend fun executeLongPress(args: Map<String, Any?>): ToolResult {
-        val (x, y, label) = resolveCoordinate(args) ?: return ToolResult.error("Cannot resolve target.")
+    private suspend fun executeLongPress(args: Map<String, Any?>): Toolresult {
+        val (x, y, label) = resolveCoordinate(args) ?: return Toolresult.error("Cannot resolve target.")
 
         return try {
             val ok = AccessibilityProxy.longPress(x, y)
             if (!ok) {
-                ToolResult.error("Long press failed via accessibility service at ($x, $y)")
+                Toolresult.error("Long press failed via accessibility service at ($x, $y)")
             } else {
                 delay(POST_ACTION_DELAY_MS)
-                ToolResult.success("Long pressed${label?.let { " '$it'" } ?: ""} at ($x, $y)")
+                Toolresult.success("Long pressed${label?.let { " '$it'" } ?: ""} at ($x, $y)")
             }
         } catch (e: Exception) {
-            ToolResult.error("Long press failed: ${e.message}")
+            Toolresult.error("Long press failed: ${e.message}")
         }
     }
 
-    private suspend fun executeScroll(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeScroll(args: Map<String, Any?>): Toolresult {
         val direction = (args["direction"] as? String) ?: "down"
         val amount = ((args["amount"] as? Number)?.toInt()) ?: 3
         val dm = context.resources.displayMetrics
@@ -356,30 +356,30 @@ class DeviceTool(private val context: Context) : Tool {
             "up" -> listOf(cx, cy - distance / 2, cx, cy + distance / 2)
             "left" -> listOf(cx - distance / 2, cy, cx + distance / 2, cy)
             "right" -> listOf(cx + distance / 2, cy, cx - distance / 2, cy)
-            else -> return ToolResult.error("Invalid direction: $direction")
+            else -> return Toolresult.error("Invalid direction: $direction")
         }
 
         return try {
             val ok = AccessibilityProxy.swipe(sx, sy, ex, ey, 300)
             if (!ok) {
-                ToolResult.error("Scroll failed via accessibility service")
+                Toolresult.error("Scroll failed via accessibility service")
             } else {
                 delay(POST_SCROLL_DELAY_MS)
-                ToolResult.success("Scrolled $direction (amount=$amount)")
+                Toolresult.success("Scrolled $direction (amount=$amount)")
             }
         } catch (e: Exception) {
-            ToolResult.error("Scroll failed: ${e.message}")
+            Toolresult.error("Scroll failed: ${e.message}")
         }
     }
 
-    private suspend fun executeSwipe(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeSwipe(args: Map<String, Any?>): Toolresult {
         @Suppress("UNCHECKED_CAST")
         val startCoord = args["start_coordinate"] as? List<Number>
         @Suppress("UNCHECKED_CAST")
         val endCoord = args["coordinate"] as? List<Number>
 
         if (startCoord == null || endCoord == null || startCoord.size < 2 || endCoord.size < 2) {
-            return ToolResult.error("Swipe requires start_coordinate and coordinate (both [x, y])")
+            return Toolresult.error("Swipe requires start_coordinate and coordinate (both [x, y])")
         }
 
         return try {
@@ -391,26 +391,26 @@ class DeviceTool(private val context: Context) : Tool {
                 300
             )
             if (ok) {
-                ToolResult.success("Swiped from (${startCoord[0]}, ${startCoord[1]}) to (${endCoord[0]}, ${endCoord[1]})")
+                Toolresult.success("Swiped from (${startCoord[0]}, ${startCoord[1]}) to (${endCoord[0]}, ${endCoord[1]})")
             } else {
-                ToolResult.error("Swipe failed via accessibility service")
+                Toolresult.error("Swipe failed via accessibility service")
             }
         } catch (e: Exception) {
-            ToolResult.error("Swipe failed: ${e.message}")
+            Toolresult.error("Swipe failed: ${e.message}")
         }
     }
 
-    private suspend fun executeWait(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeWait(args: Map<String, Any?>): Toolresult {
         val ms = ((args["timeMs"] as? Number)?.toLong()) ?: 1000
         delay(ms.coerceIn(100, 10_000))
-        return ToolResult.success("Waited ${ms}ms")
+        return Toolresult.success("Waited ${ms}ms")
     }
 
     // ==================== open ====================
 
-    private suspend fun executeOpen(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeOpen(args: Map<String, Any?>): Toolresult {
         val packageName = args["package_name"] as? String
-            ?: return ToolResult.error("Missing package_name")
+            ?: return Toolresult.error("Missing package_name")
 
         return try {
             val intent = context.packageManager.getLaunchIntentForPackage(packageName)
@@ -423,24 +423,24 @@ class DeviceTool(private val context: Context) : Tool {
                     ).toString()
                 } catch (_: Exception) { packageName }
                 kotlinx.coroutines.delay(POST_OPEN_DELAY_MS)
-                ToolResult.success("Opened $appName ($packageName)")
+                Toolresult.success("Opened $appName ($packageName)")
             } else {
-                ToolResult.error("App not found: $packageName")
+                Toolresult.error("App not found: $packageName")
             }
         } catch (e: Exception) {
-            ToolResult.error("Failed to open app: ${e.message}")
+            Toolresult.error("Failed to open app: ${e.message}")
         }
     }
 
     // ==================== status ====================
 
-    private fun executeStatus(): ToolResult {
+    private fun executeStatus(): Toolresult {
         val proxy = AccessibilityProxy
         val connected = proxy.isConnected.value == true
         val refCount = refManager.getRefCount()
         val stale = refManager.isStale()
 
-        return ToolResult.success(buildString {
+        return Toolresult.success(buildString {
             appendLine("Device status:")
             appendLine("  Accessibility: ${if (connected) "✅ connected" else "❌ not connected"}")
             appendLine("  Cached refs: $refCount${if (stale) " (stale)" else ""}")

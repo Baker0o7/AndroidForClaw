@@ -11,7 +11,7 @@ import com.google.gson.JsonObject
 import com.xiaomo.discord.DiscordClient
 
 /**
- * Discord 消息发送封装
+ * Discord Messagesend封装
  * 参考 Feishu FeishuSender.kt
  */
 class DiscordSender(private val client: DiscordClient) {
@@ -20,14 +20,14 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * 发送文本消息
+     * sendTextMessage
      */
     suspend fun sendText(
         channelId: String,
         text: String,
         replyTo: String? = null,
         silent: Boolean = false
-    ): Result<String> {
+    ): result<String> {
         return try {
             val messageReference = replyTo?.let {
                 mapOf("message_id" to it)
@@ -37,27 +37,27 @@ class DiscordSender(private val client: DiscordClient) {
             if (result.isSuccess) {
                 val response = result.getOrNull()
                 val messageId = response?.get("id")?.asString
-                    ?: return Result.failure(Exception("Missing message_id"))
+                    ?: return result.failure(Exception("Missing message_id"))
 
                 Log.d(TAG, "Text message sent: $messageId")
-                Result.success(messageId)
+                result.success(messageId)
             } else {
                 result.map { "" }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send text message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送嵌入消息 (Embed)
+     * send嵌入Message (Embed)
      */
     suspend fun sendEmbed(
         channelId: String,
         embed: Map<String, Any>,
         replyTo: String? = null
-    ): Result<String> {
+    ): result<String> {
         return try {
             val embeds = listOf(embed)
             val messageReference = replyTo?.let {
@@ -74,28 +74,28 @@ class DiscordSender(private val client: DiscordClient) {
             if (result.isSuccess) {
                 val response = result.getOrNull()
                 val messageId = response?.get("id")?.asString
-                    ?: return Result.failure(Exception("Missing message_id"))
+                    ?: return result.failure(Exception("Missing message_id"))
 
                 Log.d(TAG, "Embed message sent: $messageId")
-                Result.success(messageId)
+                result.success(messageId)
             } else {
                 result.map { "" }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send embed message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送组件消息 (Buttons, Selects, etc.)
+     * sendGroup件Message (Buttons, Selects, etc.)
      */
     suspend fun sendWithComponents(
         channelId: String,
         text: String,
         components: List<Map<String, Any>>,
         replyTo: String? = null
-    ): Result<String> {
+    ): result<String> {
         return try {
             val messageReference = replyTo?.let {
                 mapOf("message_id" to it)
@@ -111,44 +111,44 @@ class DiscordSender(private val client: DiscordClient) {
             if (result.isSuccess) {
                 val response = result.getOrNull()
                 val messageId = response?.get("id")?.asString
-                    ?: return Result.failure(Exception("Missing message_id"))
+                    ?: return result.failure(Exception("Missing message_id"))
 
                 Log.d(TAG, "Component message sent: $messageId")
-                Result.success(messageId)
+                result.success(messageId)
             } else {
                 result.map { "" }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send component message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送 DM (私聊消息)
+     * send DM (私聊Message)
      */
-    suspend fun sendDirectMessage(userId: String, text: String): Result<String> {
+    suspend fun sendDirectMessage(userId: String, text: String): result<String> {
         return try {
             val result = client.sendDirectMessage(userId, text)
             if (result.isSuccess) {
                 val response = result.getOrNull()
                 val messageId = response?.get("id")?.asString
-                    ?: return Result.failure(Exception("Missing message_id"))
+                    ?: return result.failure(Exception("Missing message_id"))
 
                 Log.d(TAG, "DM sent: $messageId")
-                Result.success(messageId)
+                result.success(messageId)
             } else {
                 result.map { "" }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send DM", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 格式化消息内容
-     * 支持 Discord Markdown
+     * FormatMessageInside容
+     * Support Discord Markdown
      */
     fun formatMessage(
         text: String,
@@ -179,7 +179,7 @@ class DiscordSender(private val client: DiscordClient) {
     }
 
     /**
-     * 创建 Embed 构建器
+     * Create Embed Build器
      */
     fun buildEmbed(
         title: String? = null,

@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-runner/tool-result-truncation.ts (truncateOversizedToolResultsInSession)
+ * - ../openclaw/src/agents/pi-embedded-runner/tool-result-truncation.ts (truncateOversizedToolresultsInSession)
  * - ../openclaw/src/agents/pi-embedded-runner/tool-result-char-estimator.ts (char estimation)
  *
  * AndroidForClaw adaptation: truncate tool outputs before prompt injection.
@@ -13,11 +13,11 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 
 /**
- * Tool Result Truncator
+ * Tool result Truncator
  * Aligned with OpenClaw's tool-result-truncation.ts implementation
  */
-object ToolResultTruncator {
-    private const val TAG = "ToolResultTruncator"
+object ToolresultTruncator {
+    private const val TAG = "ToolresultTruncator"
 
     // Configuration parameters
     private const val MAX_TOOL_RESULT_CHARS = 8000  // Aligned with OpenClaw TOOL_RESULT_MAX_CHARS  // Max characters for a single tool result
@@ -28,7 +28,7 @@ object ToolResultTruncator {
     /**
      * Truncate oversized tool results in message list
      */
-    fun truncateToolResults(messages: List<LegacyMessage>): List<LegacyMessage> {
+    fun truncateToolresults(messages: List<LegacyMessage>): List<LegacyMessage> {
         var truncatedCount = 0
 
         val result = messages.map { msg ->
@@ -47,7 +47,7 @@ object ToolResultTruncator {
         }
 
         if (truncatedCount > 0) {
-            Log.d(TAG, "截断了 $truncatedCount 个超大工具结果")
+            Log.d(TAG, "Truncated $truncatedCount  oversized toolresult")
         }
 
         return result
@@ -80,7 +80,7 @@ object ToolResultTruncator {
     /**
      * Detect if there are oversized tool results in session
      */
-    fun hasOversizedToolResults(messages: List<LegacyMessage>): Boolean {
+    fun hasOversizedToolresults(messages: List<LegacyMessage>): Boolean {
         return messages.any { msg ->
             msg.role == "tool" &&
             msg.content != null &&
@@ -91,7 +91,7 @@ object ToolResultTruncator {
     /**
      * Calculate total size of tool results
      */
-    fun calculateToolResultSize(messages: List<LegacyMessage>): Int {
+    fun calculateToolresultSize(messages: List<LegacyMessage>): Int {
         return messages
             .filter { it.role == "tool" }
             .sumOf { it.content?.toString()?.length ?: 0 }

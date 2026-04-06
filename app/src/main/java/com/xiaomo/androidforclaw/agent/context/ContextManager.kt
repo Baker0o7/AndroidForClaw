@@ -34,14 +34,14 @@ class ContextManager(
 
     private val compactor = MessageCompactor(llmProvider)
     private var compactionAttempts = 0
-    private var toolResultTruncationAttempted = false
+    private var toolresultTruncationAttempted = false
 
     /**
      * Reset counters (called at the start of a new run)
      */
     fun reset() {
         compactionAttempts = 0
-        toolResultTruncationAttempted = false
+        toolresultTruncationAttempted = false
         Log.d(TAG, "Context manager reset")
     }
 
@@ -53,18 +53,18 @@ class ContextManager(
         error: Throwable,
         messages: List<Message>,
         contextWindow: Int = DEFAULT_CONTEXT_WINDOW
-    ): ContextRecoveryResult {
+    ): ContextRecoveryresult {
         val errorMessage = ContextErrors.extractErrorMessage(error)
 
-        Log.e(TAG, "检测到上下文超限: $errorMessage")
-        Log.d(TAG, "当前消息数: ${messages.size}")
-        Log.d(TAG, "已尝试 compaction: $compactionAttempts 次")
-        Log.d(TAG, "已尝试截断: $toolResultTruncationAttempted")
+        Log.e(TAG, "DetectedUpDown文超限: $errorMessage")
+        Log.d(TAG, "当FrontMessage数: ${messages.size}")
+        Log.d(TAG, "已Try compaction: $compactionAttempts 次")
+        Log.d(TAG, "已Try截断: $toolresultTruncationAttempted")
 
         // 1. Confirm it's a context overflow error
         if (!ContextErrors.isLikelyContextOverflowError(errorMessage)) {
             Log.w(TAG, "Not a context overflow error, cannot handle")
-            return ContextRecoveryResult.CannotRecover(errorMessage)
+            return ContextRecoveryresult.CannotRecover(errorMessage)
         }
 
         // 2. Try Compaction
@@ -74,32 +74,32 @@ class ContextManager(
             // Convert Message to LegacyMessage
             val legacyMessages = convertToLegacyMessages(messages)
 
-            val compactionResult = compactor.compactMessages(
+            val compactionresult = compactor.compactMessages(
                 messages = legacyMessages,
                 keepLastN = 3
             )
 
-            if (compactionResult.isSuccess) {
+            if (compactionresult.isSuccess) {
                 compactionAttempts++
-                val compacted = compactionResult.getOrNull()!!
+                val compacted = compactionresult.getOrNull()!!
 
-                Log.d(TAG, "Compaction 成功: ${legacyMessages.size} -> ${compacted.size} 条消息")
+                Log.d(TAG, "Compaction Success: ${legacyMessages.size} -> ${compacted.size} 条Message")
 
-                // 转换回 Message
+                // Convert回 Message
                 val newMessages = convertFromLegacyMessages(compacted)
 
-                return ContextRecoveryResult.Recovered(
+                return ContextRecoveryresult.Recovered(
                     messages = newMessages,
                     strategy = "compaction",
                     attempt = compactionAttempts
                 )
             } else {
-                Log.e(TAG, "Compaction 失败: ${compactionResult.exceptionOrNull()?.message}")
+                Log.e(TAG, "Compaction Failed: ${compactionresult.exceptionOrNull()?.message}")
 
                 // Compaction failed, check if it's due to compaction itself causing overflow
                 if (ContextErrors.isCompactionFailureError(errorMessage)) {
                     Log.e(TAG, "Compaction itself failed, cannot recover")
-                    return ContextRecoveryResult.CannotRecover(
+                    return ContextRecoveryresult.CannotRecover(
                         "Compaction failed: context overflow during summarization. " +
                         "Try /reset or use a larger-context model."
                     )
@@ -108,32 +108,32 @@ class ContextManager(
         }
 
         // 3. Try truncating oversized tool results
-        if (!toolResultTruncationAttempted) {
+        if (!toolresultTruncationAttempted) {
             Log.d(TAG, "Trying to truncate oversized tool results...")
 
             val legacyMessages = convertToLegacyMessages(messages)
 
-            if (ToolResultTruncator.hasOversizedToolResults(legacyMessages)) {
-                toolResultTruncationAttempted = true
+            if (ToolresultTruncator.hasOversizedToolresults(legacyMessages)) {
+                toolresultTruncationAttempted = true
 
-                val truncated = ToolResultTruncator.truncateToolResults(legacyMessages)
+                val truncated = ToolresultTruncator.truncateToolresults(legacyMessages)
                 val newMessages = convertFromLegacyMessages(truncated)
 
-                Log.d(TAG, "工具结果截断完成")
+                Log.d(TAG, "工具result截断Complete")
 
-                return ContextRecoveryResult.Recovered(
+                return ContextRecoveryresult.Recovered(
                     messages = newMessages,
                     strategy = "truncation",
                     attempt = 1
                 )
             } else {
-                Log.d(TAG, "没有检测到超大工具结果")
+                Log.d(TAG, "NoneDetected超大工具result")
             }
         }
 
         // 4. Give up
         Log.e(TAG, "All recovery strategies failed")
-        return ContextRecoveryResult.CannotRecover(
+        return ContextRecoveryresult.CannotRecover(
             "Context overflow: prompt too large for the model. " +
             "Compaction attempts: $compactionAttempts. " +
             "Try clearing session history or use a larger-context model."
@@ -157,16 +157,16 @@ class ContextManager(
     suspend fun preemptivelyCompact(
         messages: List<Message>
     ): List<Message> {
-        Log.d(TAG, "预防性压缩...")
+        Log.d(TAG, "PreventiveCompress...")
 
         val legacyMessages = convertToLegacyMessages(messages)
         val result = compactor.compactMessages(legacyMessages, keepLastN = 5)
 
         return if (result.isSuccess) {
-            Log.d(TAG, "预防性压缩成功")
+            Log.d(TAG, "PreventiveCompressSuccess")
             convertFromLegacyMessages(result.getOrNull()!!)
         } else {
-            Log.w(TAG, "预防性压缩失败，使用原消息")
+            Log.w(TAG, "PreventiveCompressFailed, use原Message")
             messages
         }
     }
@@ -259,9 +259,9 @@ class ContextManager(
 }
 
 /**
- * Context Recovery Result
+ * Context Recovery result
  */
-sealed class ContextRecoveryResult {
+sealed class ContextRecoveryresult {
     /**
      * Successfully recovered
      */
@@ -269,12 +269,12 @@ sealed class ContextRecoveryResult {
         val messages: List<Message>,
         val strategy: String,  // "compaction" or "truncation"
         val attempt: Int
-    ) : ContextRecoveryResult()
+    ) : ContextRecoveryresult()
 
     /**
      * Cannot recover
      */
     data class CannotRecover(
         val reason: String
-    ) : ContextRecoveryResult()
+    ) : ContextRecoveryresult()
 }

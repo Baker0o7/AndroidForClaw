@@ -12,19 +12,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * Discord 连接探测
+ * Discord ConnectProbe
  * 参考 Feishu FeishuProbe.kt
  *
- * 用于健康检查和状态监控
+ * 用于HealthCheck和StatusMonitor
  */
 object DiscordProbe {
     private const val TAG = "DiscordProbe"
     private const val DEFAULT_TIMEOUT_MS = 5000L
 
     /**
-     * 探测结果
+     * Proberesult
      */
-    data class ProbeResult(
+    data class Proberesult(
         val ok: Boolean,
         val latencyMs: Long? = null,
         val error: String? = null,
@@ -51,33 +51,33 @@ object DiscordProbe {
     )
 
     /**
-     * 探测 Discord 连接
+     * Probe Discord Connect
      */
     suspend fun probe(
         token: String,
         timeoutMs: Long = DEFAULT_TIMEOUT_MS,
         includeApplication: Boolean = false
-    ): ProbeResult = withContext(Dispatchers.IO) {
+    ): Proberesult = withContext(Dispatchers.IO) {
         try {
             val startTime = System.currentTimeMillis()
 
-            // 创建临时客户端
+            // CreateTemporaryClient
             val client = DiscordClient(token)
 
-            // 获取当前 Bot 信息
+            // Get当Front Bot Info
             val result = withTimeoutOrNull(timeoutMs) {
                 client.getCurrentUser()
             }
 
             if (result == null) {
-                return@withContext ProbeResult(
+                return@withContext Proberesult(
                     ok = false,
                     error = "Timeout after ${timeoutMs}ms"
                 )
             }
 
             if (result.isFailure) {
-                return@withContext ProbeResult(
+                return@withContext Proberesult(
                     ok = false,
                     error = result.exceptionOrNull()?.message ?: "Unknown error"
                 )
@@ -87,7 +87,7 @@ object DiscordProbe {
             val userData = result.getOrNull()
 
             if (userData == null) {
-                return@withContext ProbeResult(
+                return@withContext Proberesult(
                     ok = false,
                     error = "No user data returned"
                 )
@@ -104,8 +104,8 @@ object DiscordProbe {
 
             val appInfo = if (includeApplication) {
                 try {
-                    val appResult = client.getApplication()
-                    appResult.getOrNull()?.let { appData ->
+                    val appresult = client.getApplication()
+                    appresult.getOrNull()?.let { appData ->
                         ApplicationInfo(
                             id = appData.get("id")?.asString ?: "",
                             name = appData.get("name")?.asString ?: "",
@@ -119,7 +119,7 @@ object DiscordProbe {
                 }
             } else null
 
-            ProbeResult(
+            Proberesult(
                 ok = true,
                 latencyMs = latency,
                 bot = botInfo,
@@ -128,7 +128,7 @@ object DiscordProbe {
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Discord probe failed", e)
-            ProbeResult(
+            Proberesult(
                 ok = false,
                 error = e.message ?: "Unknown error"
             )
@@ -136,7 +136,7 @@ object DiscordProbe {
     }
 
     /**
-     * 快速健康检查
+     * FastHealthCheck
      */
     suspend fun healthCheck(token: String): Boolean {
         val result = probe(token, timeoutMs = 3000L, includeApplication = false)

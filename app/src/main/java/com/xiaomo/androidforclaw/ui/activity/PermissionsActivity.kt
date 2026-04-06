@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -10,7 +10,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * 权限页代理：直接跳转到合并进主 app 的 observer 权限页，避免用户看到两层权限页。
+ * Permission页Proxy: 直接跳转到MergeInto主 app 的 observer Permission页, 避免User看到两层Permission页. 
  */
 class PermissionsActivity : AppCompatActivity() {
 

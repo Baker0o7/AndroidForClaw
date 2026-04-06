@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -10,7 +10,7 @@ import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 
 object BuildTree {
     /**
-     * 多叉树节点定义
+     * 多叉TreeNode定义
      */
     private data class TreeNode(
         val viewNode: ViewNode,
@@ -18,7 +18,7 @@ object BuildTree {
     )
 
     /**
-     * 获取节点的相关属性：坐标，类名，资源id，文本，内容描述
+     * GetNode的相关Property: 坐标, Class名, Resourceid, Text, Inside容Description
      */
     private fun getNodeKey(nodeInfo: AccessibilityNodeInfo?): String? {
         if (nodeInfo == null) return null
@@ -36,14 +36,14 @@ object BuildTree {
     }
 
     /**
-     * 节点类型提取（如button，textView）
+     * NodeType提取(such asbutton, textView)
      */
     private fun getTreeDisplayType(viewNode: ViewNode): String {
         return viewNode.className?.substringAfterLast('.') ?: "View"
     }
 
     /**
-     *  追加节点的状态信息：checked、selected、progress
+     *  追加Node的StatusInfo: checked、selected、progress
      */
     private fun appendStateInfo(builder: StringBuilder, node: ViewNode, nodeTypeLabel: String) {
         val accessibilityNode = node.node ?: return
@@ -65,12 +65,12 @@ object BuildTree {
                 }
             }
         } catch (_: Exception) {
-            // 忽略异常，不影响主流程
+            // IgnoreException, 不影响主流程
         }
     }
 
     /**
-     * 节点格式化输出：缩进、类型、文本、描述、坐标、可点击状态、状态信息
+     * NodeFormatted output: 缩Into、Type、Text、Description、坐标、可clickStatus、StatusInfo
      */
     private fun formatTreeNodeLine(node: ViewNode, depth: Int): String {
         val builder = StringBuilder()
@@ -78,7 +78,7 @@ object BuildTree {
         val nodeType = getTreeDisplayType(node)
         builder.append(indent).append("- [").append(nodeType).append("] ")
         
-        // 如果 text 和 contentDesc 内容相同，只输出 contentDesc
+        // if text 和 contentDesc Inside容相同, 只Output contentDesc
         val text = node.text?.trim()
         val contentDesc = node.contentDesc?.trim()
         val isSame = !text.isNullOrEmpty() && !contentDesc.isNullOrEmpty() && text == contentDesc
@@ -97,7 +97,7 @@ object BuildTree {
         return builder.toString()
     }
     /**
-     * 过滤系统状态栏的无效信息
+     * Filter系统Status栏的None效Info
      */
     private fun isSystemStatusBar(node: ViewNode): Boolean {
         if (node.top >= 100) return false
@@ -111,9 +111,9 @@ object BuildTree {
     }
 
     private val SYSTEM_STATUS_KEYWORDS = listOf(
-        "android 系统通知",
-        "系统通知",
-        "通知",
+        "android 系统Notification",
+        "系统Notification",
+        "Notification",
         "wlan",
         "信号",
         "充电",
@@ -124,26 +124,26 @@ object BuildTree {
     )
 
     /**
-     * 构建树的主流程，核心主函数
+     * BuildTree的主流程, 核心主Function
      */
     fun buildComponentTreeDescription(nodes: List<ViewNode>): String {
-        //过滤掉系统状态栏
+        //Filter掉系统Status栏
         val filteredNodes = nodes.filter { !isSystemStatusBar(it) }
         if (filteredNodes.isEmpty()) {
-            return "(无可用数据)\n"
+            return "(NoneAvailableData)\n"
         }
         /**
-         * nodeOrder：记录节点在原列表中的顺序索引
-         * treeNodeMap：记录ViewNode到TreeNode的映射关系
-         * nodeKeyMap: 存储节点唯一标识到 ViewNode 的映射
+         * nodeOrder: RecordNode在原List中的SequentialIndex
+         * treeNodeMap: RecordViewNode到TreeNode的Map关系
+         * nodeKeyMap: StorageNodeUnique标识到 ViewNode 的Map
          */
         val nodeOrder = filteredNodes.withIndex().associate { it.value to it.index }
         val treeNodeMap = mutableMapOf<ViewNode, TreeNode>()
         val nodeKeyMap = mutableMapOf<String, ViewNode>()
 
         /**
-         * 为每个过滤后的节点创建对应的 TreeNode 对象
-         * 通过 getNodeKey 生成节点唯一标识并建立映射
+         * 为EachFilterBack的NodeCreate对应的 TreeNode Object
+         * 通过 getNodeKey 生成NodeUnique标识并建立Map
          */
         filteredNodes.forEach { viewNode ->
             treeNodeMap[viewNode] = TreeNode(viewNode)
@@ -152,7 +152,7 @@ object BuildTree {
             }
         }
         /**
-         * 遍历所有TreeNode建立父子关系，无父节点的节点作为根节点
+         * TraverseAllTreeNode建立父子关系, None父Node的Node作为根Node
          */
         val rootNodes = mutableListOf<TreeNode>()
         treeNodeMap.values.forEach { treeNode ->
@@ -165,34 +165,34 @@ object BuildTree {
             }
         }
         /**
-         * 节点排序规则：原始顺序索引 -》垂直位置 -》水平位置
+         * NodeSortRule: 原始SequentialIndex -》垂直位置 -》水平位置
          */
         val comparator = compareBy<TreeNode> { nodeOrder[it.viewNode] ?: Int.MAX_VALUE }
             .thenBy { it.viewNode.top }
             .thenBy { it.viewNode.left }
 
         /**
-         * 树遍历输出
+         * TreeTraverseOutput
          */
         val rootsToProcess = if (rootNodes.isNotEmpty()) rootNodes.distinct() else treeNodeMap.values.distinct()
         val builder = StringBuilder()
         rootsToProcess.sortedWith(comparator).forEach { appendTreeNode(builder, it, comparator) }
         /**
-         * 结果返回
+         * resultReturn
          */
         if (builder.isEmpty()) {
-            builder.append("(无可用数据)\n")
+            builder.append("(NoneAvailableData)\n")
         }
         return builder.toString()
     }
 
     /**
-     * 用于递归输出树结构
-     * 步骤1：折叠冗余链
-     * 步骤2：跳过空叶子容器
-     * 步骤3：格式化当前节点
-     * 步骤4：过滤按钮重复子节点
-     * 步骤5：递归处理子节点（depth + 1）
+     * 用于RecurseOutputTree结构
+     * 步骤1: 折叠冗余链
+     * 步骤2: SkipNull叶子Container
+     * 步骤3: Format当FrontNode
+     * 步骤4: Filter按钮Duplicate子Node
+     * 步骤5: RecurseProcess子Node(depth + 1)
      */
     private fun appendTreeNode(builder: StringBuilder, treeNode: TreeNode, comparator: Comparator<TreeNode>, depth: Int = 0) {
         val effectiveNode = collapseRedundantChain(treeNode)
@@ -209,7 +209,7 @@ object BuildTree {
     }
 
     /**
-     * 冗余链折叠：当父节点只有一个子节点，且二者等价或父节点为空节点时，则跳过中间层只显示有意义节点
+     * 冗余链折叠: 当父Node只Has一个子Node, 且二者等价或父Node为NullNode时, 则Skip中间层只ShowHas意义Node
      */
     private fun collapseRedundantChain(node: TreeNode): TreeNode {
         var current = node
@@ -231,7 +231,7 @@ object BuildTree {
     }
 
     /**
-     * 判断两节点是否等价，用于折叠链去重
+     * Check两NodeYesNo等价, 用于折叠链去重
      */
     private fun areNodesEquivalent(first: ViewNode, second: ViewNode): Boolean {
         return first.className == second.className &&
@@ -245,7 +245,7 @@ object BuildTree {
     }
 
     /**
-     * 跳过空的容器类（空的layout，ViewGroup等）
+     * SkipNull的ContainerClass(Null的layout, ViewGroup等)
      */
     private fun shouldBypassContainer(container: ViewNode, child: ViewNode): Boolean {
         val isStructural = isStructuralClass(container.className)
@@ -257,7 +257,7 @@ object BuildTree {
     }
 
     /**
-     * 判断是否为结构类
+     * CheckYesNo为结构Class
      */
     private fun isStructuralClass(className: String?): Boolean {
         val lower = className?.lowercase() ?: return false
@@ -267,7 +267,7 @@ object BuildTree {
     }
 
     /**
-     * 去除button下的textView（表达含义相同），简化prompt
+     * 去除buttonDown的textView(Table达含义相同), 简化prompt
      */
     private fun shouldBypassButtonChild(parent: ViewNode, child: ViewNode): Boolean {
         val parentClass = parent.className?.lowercase() ?: return false
@@ -283,7 +283,7 @@ object BuildTree {
     }
 
     /**
-     * 判断是否跳过为空的叶子节点
+     * CheckYesNoSkip为Null的叶子Node
      */
     private fun shouldSkipLeafContainer(node: ViewNode, children: List<TreeNode>): Boolean {
         if (children.isNotEmpty()) return false
@@ -293,7 +293,7 @@ object BuildTree {
     }
 
     /**
-     * 过滤获取到的屏幕外节点，仅保留屏幕内的节点
+     * FilterGet到的ScreenOutsideNode, 仅保留ScreenInside的Node
      */
     fun isNodeWithinScreen(
         node: ViewNode,
@@ -307,7 +307,7 @@ object BuildTree {
         return true
     }
 
-    // buildTreeFromImageDetail() 已删除
-    // ImageDetail 是旧架构的类（已删除），不再使用
-    // 新架构直接使用 buildComponentTreeDescription(nodes: List<ViewNode>)
+    // buildTreeFromImageDetail() 已Delete
+    // ImageDetail YesOld架构的Class(已Delete), No longer used
+    // New架构直接use buildComponentTreeDescription(nodes: List<ViewNode>)
 }

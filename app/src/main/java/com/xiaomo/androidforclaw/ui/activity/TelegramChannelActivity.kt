@@ -66,7 +66,7 @@ fun TelegramChannelScreen(
                 title = { Text(stringResource(R.string.telegram_channel_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Return")
                     }
                 },
                 actions = {
@@ -91,7 +91,7 @@ fun TelegramChannelScreen(
                                 showSaveSuccess = true
                             }
                         }
-                    ) { Text("保存") }
+                    ) { Text("Save") }
                 }
             )
         }
@@ -104,13 +104,13 @@ fun TelegramChannelScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ── 启用 ──
+            // ── Enabledd ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("启用 Telegram", style = MaterialTheme.typography.titleMedium)
+                Text("Enabledd Telegram", style = MaterialTheme.typography.titleMedium)
                 Switch(checked = enabled, onCheckedChange = { enabled = it })
             }
 
@@ -121,7 +121,7 @@ fun TelegramChannelScreen(
                 value = botToken,
                 onValueChange = { botToken = it },
                 label = { Text("Bot Token") },
-                placeholder = { Text("从 @BotFather 获取，格式：123456:ABC-...") },
+                placeholder = { Text("从 @BotFather Get, 格式: 123456:ABC-...") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -158,7 +158,7 @@ fun TelegramChannelScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("群聊需要 @提及")
+                Text("群聊Need @提及")
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
@@ -168,15 +168,15 @@ fun TelegramChannelScreen(
             OutlinedTextField(
                 value = historyLimitText,
                 onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
-                label = { Text("历史消息条数限制（可选）") },
-                placeholder = { Text("留空 = 不限制，如 50") },
+                label = { Text("历史Message条数Limit(Optional)") },
+                placeholder = { Text("留Null = 不Limit, such as 50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             // ── Streaming ──
-            Text("流式回复模式", style = MaterialTheme.typography.titleSmall)
+            Text("流式回复Schema", style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("off", "partial", "block", "progress").forEach { value ->
                     FilterChip(
@@ -187,12 +187,12 @@ fun TelegramChannelScreen(
                 }
             }
 
-            // ── Webhook URL（可选） ──
+            // ── Webhook URL(Optional) ──
             OutlinedTextField(
                 value = webhookUrl,
                 onValueChange = { webhookUrl = it },
-                label = { Text("Webhook URL（可选）") },
-                placeholder = { Text("留空 = 使用长轮询（推荐）") },
+                label = { Text("Webhook URL(Optional)") },
+                placeholder = { Text("留Null = use长轮询(recommend)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -209,12 +209,12 @@ fun TelegramChannelScreen(
 
             if (showSaveSuccess) {
                 Spacer(Modifier.height(4.dp))
-                Text("✅ 配置已保存", color = MaterialTheme.colorScheme.primary)
+                Text("✅ Config已Save", color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "配置保存后需要重启应用生效。\n获取 Bot Token：向 @BotFather 发送 /newbot。",
+                text = "ConfigSaveBackNeedRestartapply生效. \nGet Bot Token: 向 @BotFather send /newbot. ",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

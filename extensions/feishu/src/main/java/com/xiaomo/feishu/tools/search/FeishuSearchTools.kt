@@ -133,13 +133,13 @@ private fun convertTimeRange(timeRange: Map<*, *>?, unit: String = "s"): Map<Str
  * Any key ending with _time that is a numeric string gets converted to ISO 8601.
  * @aligned openclaw-lark v2026.3.30 — line-by-line
  */
-private fun normalizeSearchResultTimeFields(value: JsonElement?, counter: IntArray): JsonElement? {
+private fun normalizeSearchresultTimeFields(value: JsonElement?, counter: IntArray): JsonElement? {
     if (value == null || value.isJsonNull) return value
 
     if (value.isJsonArray) {
         val arr = JsonArray()
         for (item in value.asJsonArray) {
-            arr.add(normalizeSearchResultTimeFields(item, counter))
+            arr.add(normalizeSearchresultTimeFields(item, counter))
         }
         return arr
     }
@@ -157,7 +157,7 @@ private fun normalizeSearchResultTimeFields(value: JsonElement?, counter: IntArr
                 continue
             }
         }
-        normalized.add(key, normalizeSearchResultTimeFields(item, counter))
+        normalized.add(key, normalizeSearchresultTimeFields(item, counter))
     }
     return normalized
 }
@@ -167,20 +167,20 @@ private fun normalizeSearchResultTimeFields(value: JsonElement?, counter: IntArr
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_search_doc_wiki"
-    override val description = "【以用户身份】飞书文档与 Wiki 统一搜索工具。同时搜索云空间文档和知识库 Wiki。Actions: search。" +
-        "【重要】query 参数是搜索关键词（可选），filter 参数可选。" +
-        "【重要】filter 不传时，搜索所有文档和 Wiki；传了则同时对文档和 Wiki 应用相同的过滤条件。" +
-        "【重要】支持按文档类型、创建者、创建时间、打开时间等多维度筛选。" +
-        "【重要】返回结果包含标题和摘要高亮（<h>标签包裹匹配关键词）。"
+    override val description = "【As user】飞书Document与 Wiki 统一Search工具. at the same timeSearch云SpaceDocument和Knowledge Base Wiki. Actions: search. " +
+        "[Important]query ParametersYesSearch关Key词(Optional), filter ParametersOptional. " +
+        "[Important]filter 不传时, SearchAllDocument和 Wiki；传了则at the same time对Document和 Wiki apply相同的FilterCondition. " +
+        "[Important]Support按DocumentType、Create者、CreateTime、Open time and other dimensionsFilter. " +
+        "[Important]ReturnresultContainsTitle和摘要高亮(<h>标签Package裹match关Key词). "
 
-    override fun isEnabled() = config.enableSearchTools
+    override fun isEnabledd() = config.enableSearchTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             val action = args["action"] as? String ?: "search"
             if (action != "search") {
-                return@withContext ToolResult.error("Unknown action: $action. Only 'search' is supported.")
+                return@withContext Toolresult.error("Unknown action: $action. Only 'search' is supported.")
             }
 
             // query is optional, default to empty string
@@ -230,7 +230,7 @@ class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : Feis
             // POST /open-apis/search/v2/doc_wiki/search
             val result = client.post("/open-apis/search/v2/doc_wiki/search", requestData)
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to search documents")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed to search documents")
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data") ?: JsonObject()
@@ -239,19 +239,19 @@ class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : Feis
 
             // Normalize time fields in results
             val counter = intArrayOf(0)
-            val normalizedResults = normalizeSearchResultTimeFields(resUnits, counter)
+            val normalizedresults = normalizeSearchresultTimeFields(resUnits, counter)
             Log.i(TAG, "search: normalized ${counter[0]} timestamp fields to ISO8601")
 
             val response = JsonObject().apply {
                 data.get("total")?.let { add("total", it) }
                 addProperty("has_more", data.get("has_more")?.asBoolean ?: false)
-                add("results", normalizedResults)
+                add("results", normalizedresults)
                 data.get("page_token")?.let { add("page_token", it) }
             }
-            ToolResult.success(response)
+            Toolresult.success(response)
         } catch (e: Exception) {
             Log.e(TAG, "feishu_search_doc_wiki failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -262,22 +262,22 @@ class FeishuSearchDocWikiTool(config: FeishuConfig, client: FeishuClient) : Feis
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "action" to PropertySchema("string", "操作类型（目前仅支持 search）", enum = listOf("search")),
-                    "query" to PropertySchema("string", "搜索关键词（可选，最多 50 字符）。不传或传空字符串表示空搜，也可以支持排序规则与筛选，默认根据最近浏览时间返回结果"),
-                    "filter" to PropertySchema("object", "搜索过滤条件（可选）。不传则搜索所有文档和 Wiki；传了则同时对文档和 Wiki 应用相同的过滤条件。", properties = mapOf(
-                        "creator_ids" to PropertySchema("array", "创建者 OpenID 列表（最多 20 个）",
-                            items = PropertySchema("string", "创建者 open_id")),
-                        "doc_types" to PropertySchema("array", "文档类型列表：DOC（文档）、SHEET（表格）、BITABLE（多维表格）、MINDNOTE（思维导图）、FILE（文件）、WIKI（维基）、DOCX（新版文档）、FOLDER（space文件夹）、CATALOG（wiki2.0文件夹）、SLIDES（新版幻灯片）、SHORTCUT（快捷方式）",
-                            items = PropertySchema("string", "文档类型",
+                    "action" to PropertySchema("string", "Action type(目Front仅Support search)", enum = listOf("search")),
+                    "query" to PropertySchema("string", "Search关Key词(Optional, most多 50 字符). 不传或传NullStringTable示Null搜, AlsoCanSupportSortRule与Filter, Defaultaccording tomost近浏览TimeReturnresult"),
+                    "filter" to PropertySchema("object", "SearchFilterCondition(Optional). 不传则SearchAllDocument和 Wiki；传了则at the same time对Document和 Wiki apply相同的FilterCondition. ", properties = mapOf(
+                        "creator_ids" to PropertySchema("array", "Create者 OpenID List(most多 20 个)",
+                            items = PropertySchema("string", "Create者 open_id")),
+                        "doc_types" to PropertySchema("array", "DocumentTypeList: DOC(Document)、SHEET(Table)、BITABLE(Multi-dimensional table格)、MINDNOTE(思维导Graph)、FILE(文件)、WIKI(维基)、DOCX(New版Document)、FOLDER(space文件夹)、CATALOG(wiki2.0文件夹)、SLIDES(New版幻灯片)、SHORTCUT(快捷方式)",
+                            items = PropertySchema("string", "DocumentType",
                                 enum = listOf("DOC", "SHEET", "BITABLE", "MINDNOTE", "FILE", "WIKI", "DOCX", "FOLDER", "CATALOG", "SLIDES", "SHORTCUT"))),
-                        "only_title" to PropertySchema("boolean", "仅搜索标题（默认 false，搜索标题和正文）"),
-                        "sort_type" to PropertySchema("string", "排序方式。EDIT_TIME=编辑时间降序（最新文档在前，推荐），EDIT_TIME_ASC=编辑时间升序，CREATE_TIME=按文档创建时间排序，OPEN_TIME=打开时间，DEFAULT_TYPE=默认排序",
+                        "only_title" to PropertySchema("boolean", "仅SearchTitle(Default false, SearchTitle和正文)"),
+                        "sort_type" to PropertySchema("string", "Sort方式. EDIT_TIME=EditTimeDescending(mostNewDocument在Front, recommend), EDIT_TIME_ASC=EditTimeAscending, CREATE_TIME=按DocumentCreateTimeSort, OPEN_TIME=OpenTime, DEFAULT_TYPE=DefaultSort",
                             enum = listOf("DEFAULT_TYPE", "OPEN_TIME", "EDIT_TIME", "EDIT_TIME_ASC", "CREATE_TIME")),
-                        "open_time" to PropertySchema("object", "打开时间范围 {start, end}（ISO 8601 格式）"),
-                        "create_time" to PropertySchema("object", "创建时间范围 {start, end}（ISO 8601 格式）")
+                        "open_time" to PropertySchema("object", "OpenTimeRange {start, end}(ISO 8601 格式)"),
+                        "create_time" to PropertySchema("object", "CreateTimeRange {start, end}(ISO 8601 格式)")
                     )),
-                    "page_token" to PropertySchema("string", "分页标记。首次请求不填；当返回结果中 has_more 为 true 时，可传入返回的 page_token 继续请求下一页"),
-                    "page_size" to PropertySchema("integer", "分页大小（默认 15，最大 20）")
+                    "page_token" to PropertySchema("string", "Page token. 首次Request不填；当Returnresult中 has_more 为 true 时, 可传入Return的 page_token ContinueRequestDown一页"),
+                    "page_size" to PropertySchema("integer", "Page size(Default 15, Max 20)")
                 ),
                 required = emptyList()
             )
@@ -293,6 +293,6 @@ class FeishuSearchTools(config: FeishuConfig, client: FeishuClient) {
     fun getAllTools(): List<FeishuToolBase> = listOf(searchDocWikiTool)
 
     fun getToolDefinitions(): List<ToolDefinition> {
-        return getAllTools().filter { it.isEnabled() }.map { it.getToolDefinition() }
+        return getAllTools().filter { it.isEnabledd() }.map { it.getToolDefinition() }
     }
 }

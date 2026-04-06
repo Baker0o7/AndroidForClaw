@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.service
 
@@ -12,22 +12,22 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 
 /**
- * ClawIME 管理器
- * 提供对 ClawIME 的直接调用接口,避免使用广播
+ * ClawIME Manage器
+ * 提供对 ClawIME 的直接callInterface,避免useBroadcast
  *
  * 工作原理:
- * - ClawIME 是同进程的 InputMethodService
- * - 通过单例模式让 ClawIME 注册自己的实例
- * - 其他组件通过此 Manager 直接调用 ClawIME 的方法
+ * - ClawIME Yes同Process的 InputMethodService
+ * - 通过单例Schema让 ClawIME Register自己的Instance
+ * - Its他Group件通过此 Manager 直接call ClawIME 的Method
  */
 object ClawIMEManager {
     private const val TAG = "ClawIMEManager"
 
-    // ClawIME 实例引用
+    // ClawIME Instance引用
     private var clawImeInstance: ClawIME? = null
 
     /**
-     * 注册 ClawIME 实例 (由 ClawIME.onCreateInputView 调用)
+     * Register ClawIME Instance (by ClawIME.onCreateInputView call)
      */
     fun registerInstance(instance: ClawIME) {
         clawImeInstance = instance
@@ -35,7 +35,7 @@ object ClawIMEManager {
     }
 
     /**
-     * 注销 ClawIME 实例 (由 ClawIME.onDestroy 调用)
+     * Logout ClawIME Instance (by ClawIME.onDestroy call)
      */
     fun unregisterInstance() {
         clawImeInstance = null
@@ -43,18 +43,18 @@ object ClawIMEManager {
     }
 
     /**
-     * 检查 ClawIME 是否为当前启用的输入法
+     * Check ClawIME YesNo为当FrontEnabledd的Input method
      */
-    fun isClawImeEnabled(context: Context): Boolean {
+    fun isClawImeEnableddd(context: Context): Boolean {
         return try {
             val currentIme = Settings.Secure.getString(
                 context.contentResolver,
                 Settings.Secure.DEFAULT_INPUT_METHOD
             )
             val clawImeName = "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME"
-            val isEnabled = currentIme == clawImeName
-            Log.d(TAG, "Current IME: $currentIme, ClawIME enabled: $isEnabled")
-            isEnabled
+            val isEnableddd = currentIme == clawImeName
+            Log.d(TAG, "Current IME: $currentIme, ClawIME enabled: $isEnableddd")
+            isEnableddd
         } catch (e: Exception) {
             Log.e(TAG, "Failed to check IME status", e)
             false
@@ -62,9 +62,9 @@ object ClawIMEManager {
     }
 
     /**
-     * 检查 ClawIME 是否已连接
-     * 只要实例存在就认为已连接（currentInputConnection 只在编辑会话中才非 null，
-     * 但 IME 服务本身是活的，tap 输入框后 connection 会自动就绪）
+     * Check ClawIME YesNo已Connect
+     * as long asInstanceExists就think已Connect(currentInputConnection 只在EditSession中才非 null, 
+     * 但 IME Service本身Yes活的, tap Input fieldBack connection 会AutoReady)
      */
     fun isConnected(): Boolean {
         val hasInstance = clawImeInstance != null
@@ -74,14 +74,14 @@ object ClawIMEManager {
     }
 
     /**
-     * 检查当前是否有活跃的输入连接（输入框有焦点且键盘已弹出）
+     * Check当FrontYesNoHas活跃的InputConnect(Input fieldHasFocus且Key盘已弹出)
      */
     fun hasActiveInputConnection(): Boolean {
         return clawImeInstance?.currentInputConnection != null
     }
 
     /**
-     * 输入文本（带重试，等待 InputConnection 就绪）
+     * InputText(带Retry, Wait InputConnection Ready)
      */
     fun inputText(text: String): Boolean {
         val ime = clawImeInstance
@@ -90,7 +90,7 @@ object ClawIMEManager {
             return false
         }
 
-        // 等待 InputConnection 就绪（tap 后可能需要一点时间）
+        // Wait InputConnection Ready(tap BackpossiblyNeed一点Time)
         var ic = ime.currentInputConnection
         if (ic == null) {
             Log.d(TAG, "InputConnection not ready, waiting...")
@@ -122,7 +122,7 @@ object ClawIMEManager {
     }
 
     /**
-     * 清空输入框
+     * 清NullInput field
      */
     fun clearText(): Boolean {
         val ic = waitForInputConnection() ?: return false
@@ -144,23 +144,23 @@ object ClawIMEManager {
     }
 
     /**
-     * 发送消息 (执行编辑器动作或回车)
+     * sendMessage (执RowEdit器Action或回车)
      */
     fun sendMessage(): Boolean {
         val ic = waitForInputConnection() ?: return false
 
         return try {
-            // 先尝试 IME_ACTION_SEND
+            // 先Try IME_ACTION_SEND
             var sent = ic.performEditorAction(EditorInfo.IME_ACTION_SEND)
             Log.d(TAG, "performEditorAction IME_ACTION_SEND: $sent")
 
-            // 如果失败,再尝试 IME_ACTION_GO
+            // ifFailed,再Try IME_ACTION_GO
             if (!sent) {
                 sent = ic.performEditorAction(EditorInfo.IME_ACTION_GO)
                 Log.d(TAG, "performEditorAction IME_ACTION_GO: $sent")
             }
 
-            // 如果还是失败,尝试发送回车键
+            // if还YesFailed,Trysend回车Key
             if (!sent) {
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
@@ -176,7 +176,7 @@ object ClawIMEManager {
     }
 
     /**
-     * 等待 InputConnection 就绪（最多 1 秒）
+     * Wait InputConnection Ready(most多 1 秒)
      */
     private fun waitForInputConnection(): android.view.inputmethod.InputConnection? {
         val ime = clawImeInstance
@@ -203,7 +203,7 @@ object ClawIMEManager {
     }
 
     /**
-     * 发送按键事件
+     * send按KeyEvent
      */
     fun sendKey(keyCode: Int): Boolean {
         val ic = waitForInputConnection() ?: return false
@@ -220,7 +220,7 @@ object ClawIMEManager {
     }
 
     /**
-     * 获取当前输入框中的文本（调试用）
+     * Get当FrontInput field中的Text(Debug用)
      */
     fun getCurrentText(): String? {
         val ic = clawImeInstance?.currentInputConnection ?: return null

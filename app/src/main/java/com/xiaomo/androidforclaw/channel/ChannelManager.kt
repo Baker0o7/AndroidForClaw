@@ -12,13 +12,13 @@ import com.xiaomo.androidforclaw.accessibility.MediaProjectionHelper
 import java.util.UUID
 
 /**
- * Channel Manager - 管理 Android App Channel 的生命周期和状态
+ * Channel Manager - Manage Android App Channel 的生命周期和Status
  *
  * 职责:
- * - 账号管理（创建、更新、删除）
- * - 状态追踪（连接、运行、错误）
- * - 权限检查（无障碍、悬浮窗、录屏）
- * - 系统提示词集成（Channel Hints）
+ * - AccountManage(Create、Update、Delete)
+ * - StatusTrace(Connect、Run、Error)
+ * - PermissionCheck(Accessibility、悬浮窗、录屏)
+ * - 系统Hint词集成(Channel Hints)
  */
 class ChannelManager(private val context: Context) {
 
@@ -27,19 +27,19 @@ class ChannelManager(private val context: Context) {
         private const val DEFAULT_ACCOUNT_ID = "android-device-default"
     }
 
-    // 当前账号（单设备模式）
+    // 当FrontAccount(单DeviceSchema)
     private var currentAccount: ChannelAccount? = null
 
-    // 渠道配置
+    // 渠道Config
     private var channelConfig = ChannelConfig()
 
     init {
-        // 初始化默认账号
+        // InitializeDefaultAccount
         initializeDefaultAccount()
     }
 
     /**
-     * 初始化默认账号（单设备模式）
+     * InitializeDefaultAccount(单DeviceSchema)
      */
     private fun initializeDefaultAccount() {
         val deviceId = getDeviceId()
@@ -47,7 +47,7 @@ class ChannelManager(private val context: Context) {
             accountId = DEFAULT_ACCOUNT_ID,
             name = "${android.os.Build.MODEL} (${android.os.Build.DEVICE})",
             enabled = true,
-            configured = true,  // Android App 无需额外配置
+            configured = true,  // Android App None需额OutsideConfig
             deviceId = deviceId,
             deviceModel = android.os.Build.MODEL,
             androidVersion = android.os.Build.VERSION.RELEASE,
@@ -69,7 +69,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 获取设备 ID（唯一标识）
+     * GetDevice ID(Unique标识)
      */
     private fun getDeviceId(): String {
         return try {
@@ -82,21 +82,21 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 更新账号状态（权限、连接等）
+     * UpdateAccountStatus(Permission、Connect等)
      */
     fun updateAccountStatus(): ChannelAccount {
         val current = currentAccount ?: return currentAccount!!
 
-        val accessibilityEnabled = AccessibilityBinderService.serviceInstance != null
+        val accessibilityEnableddd = AccessibilityBinderService.serviceInstance != null
         val overlayPermission = Settings.canDrawOverlays(context)
         val mediaProjection = MediaProjectionHelper.isMediaProjectionGranted()
 
-        // 悬浮窗是可选功能，不影响核心连接状态
-        val connected = accessibilityEnabled && mediaProjection
-        val running = accessibilityEnabled  // 至少需要无障碍服务
+        // 悬浮窗YesOptionalFeature, 不影响核心ConnectStatus
+        val connected = accessibilityEnableddd && mediaProjection
+        val running = accessibilityEnableddd  // 至少NeedAccessibilityService
 
         val updatedAccount = current.copy(
-            accessibilityEnabled = accessibilityEnabled,
+            accessibilityEnableddd = accessibilityEnableddd,
             overlayPermission = overlayPermission,
             mediaProjection = mediaProjection,
             connected = connected,
@@ -111,7 +111,7 @@ class ChannelManager(private val context: Context) {
         )
 
         Log.d(TAG, "📊 Account status updated:")
-        Log.d(TAG, "  - Accessibility: $accessibilityEnabled")
+        Log.d(TAG, "  - Accessibility: $accessibilityEnableddd")
         Log.d(TAG, "  - Overlay: $overlayPermission")
         Log.d(TAG, "  - Media Projection: $mediaProjection")
         Log.d(TAG, "  - Connected: $connected")
@@ -121,7 +121,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 记录入站消息（用户发送）
+     * Record入站Message(Usersend)
      */
     fun recordInbound() {
         currentAccount = currentAccount?.copy(
@@ -130,7 +130,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 记录出站消息（Agent 响应）
+     * Record出站Message(Agent Response)
      */
     fun recordOutbound() {
         currentAccount = currentAccount?.copy(
@@ -139,7 +139,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 记录错误
+     * RecordError
      */
     fun recordError(error: String) {
         currentAccount = currentAccount?.copy(
@@ -149,7 +149,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 记录启动
+     * RecordStart
      */
     fun recordStart() {
         currentAccount = currentAccount?.copy(
@@ -159,7 +159,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 记录停止
+     * RecordStop
      */
     fun recordStop() {
         currentAccount = currentAccount?.copy(
@@ -169,10 +169,10 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 获取当前渠道状态
+     * Get当Front渠道Status
      */
     fun getChannelStatus(): ChannelStatus {
-        updateAccountStatus()  // 刷新状态
+        updateAccountStatus()  // RefreshStatus
 
         return ChannelStatus(
             timestamp = System.currentTimeMillis(),
@@ -185,30 +185,30 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 获取当前账号
+     * Get当FrontAccount
      */
     fun getCurrentAccount(): ChannelAccount {
         return currentAccount ?: throw IllegalStateException("No current account")
     }
 
     /**
-     * 检查渠道是否可用（所有权限已授予）
+     * Check渠道YesNoAvailable(AllPermission已grant)
      */
     fun isChannelReady(): Boolean {
         val account = currentAccount ?: return false
-        return account.accessibilityEnabled &&
+        return account.accessibilityEnableddd &&
                account.overlayPermission &&
                account.mediaProjection
     }
 
     /**
-     * 获取缺失的权限列表
+     * Get缺失的PermissionList
      */
     fun getMissingPermissions(): List<String> {
         val account = currentAccount ?: return emptyList()
         val missing = mutableListOf<String>()
 
-        if (!account.accessibilityEnabled) missing.add("Accessibility Service")
+        if (!account.accessibilityEnableddd) missing.add("Accessibility Service")
         if (!account.overlayPermission) missing.add("Display Over Apps")
         if (!account.mediaProjection) missing.add("Screen Capture")
 
@@ -216,7 +216,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 获取 Agent Prompt Hints（系统提示词集成）
+     * Get Agent Prompt Hints(系统Hint词集成)
      */
     fun getAgentPromptHints(): List<String> {
         val account = currentAccount
@@ -224,7 +224,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 获取 Runtime Channel 信息（Runtime Section 集成）
+     * Get Runtime Channel Info(Runtime Section 集成)
      */
     fun getRuntimeChannelInfo(): String {
         val account = currentAccount
@@ -232,7 +232,7 @@ class ChannelManager(private val context: Context) {
     }
 
     /**
-     * 获取渠道能力描述（用于日志）
+     * Get渠道CapabilityDescription(用于Log)
      */
     fun getCapabilitiesDescription(): String {
         return buildString {

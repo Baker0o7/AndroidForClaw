@@ -57,22 +57,22 @@ class LarkCliTool(private val context: Context) : Tool {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val command = args["command"] as? String
-            ?: return ToolResult.error("Missing required parameter: command")
+            ?: return Toolresult.error("Missing required parameter: command")
 
         val timeoutSec = ((args["timeout_seconds"] as? Number)?.toLong() ?: DEFAULT_TIMEOUT_SECONDS)
             .coerceIn(5, 120)
 
         // Locate the binary
         val binaryFile = resolveBinary()
-            ?: return ToolResult.error(
+            ?: return Toolresult.error(
                 "lark-cli binary not found. Current device ABI may not be supported (arm64/x86_64 only)."
             )
 
         // Prepare feishu auth config
         val configDir = prepareConfig()
-            ?: return ToolResult.error(
+            ?: return Toolresult.error(
                 "Feishu credentials not configured. Set channels.feishu.appId and appSecret in openclaw.json."
             )
 
@@ -94,7 +94,7 @@ class LarkCliTool(private val context: Context) : Tool {
                 val finished = process.waitFor(timeoutSec, TimeUnit.SECONDS)
                 if (!finished) {
                     process.destroyForcibly()
-                    return@withContext ToolResult.error("lark-cli timed out after ${timeoutSec}s")
+                    return@withContext Toolresult.error("lark-cli timed out after ${timeoutSec}s")
                 }
 
                 val stdout = process.inputStream.bufferedReader().readText()
@@ -121,10 +121,10 @@ class LarkCliTool(private val context: Context) : Tool {
                 }
 
                 if (exitCode == 0) {
-                    ToolResult.success(finalOutput)
+                    Toolresult.success(finalOutput)
                 } else {
                     // Still return as success so the LLM can see the error output
-                    ToolResult.success(finalOutput, metadata = mapOf("exitCode" to exitCode))
+                    Toolresult.success(finalOutput, metadata = mapOf("exitCode" to exitCode))
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "lark-cli execution failed", e)
@@ -136,7 +136,7 @@ class LarkCliTool(private val context: Context) : Tool {
                     return@withContext executeFallback(binaryFile, command, configDir, timeoutSec)
                 }
 
-                ToolResult.error("lark-cli execution failed: ${e.message}")
+                Toolresult.error("lark-cli execution failed: ${e.message}")
             }
         }
     }
@@ -193,7 +193,7 @@ class LarkCliTool(private val context: Context) : Tool {
         command: String,
         configDir: File,
         timeoutSec: Long
-    ): ToolResult {
+    ): Toolresult {
         return try {
             val fallbackBin = File(context.filesDir, BINARY_NAME)
             if (!fallbackBin.exists() || fallbackBin.length() != originalBinary.length()) {
@@ -214,7 +214,7 @@ class LarkCliTool(private val context: Context) : Tool {
             val finished = process.waitFor(timeoutSec, TimeUnit.SECONDS)
             if (!finished) {
                 process.destroyForcibly()
-                return ToolResult.error("lark-cli timed out after ${timeoutSec}s (fallback)")
+                return Toolresult.error("lark-cli timed out after ${timeoutSec}s (fallback)")
             }
 
             val stdout = process.inputStream.bufferedReader().readText()
@@ -240,10 +240,10 @@ class LarkCliTool(private val context: Context) : Tool {
                 rendered
             }
 
-            ToolResult.success(finalOutput, metadata = mapOf("exitCode" to exitCode, "fallback" to true))
+            Toolresult.success(finalOutput, metadata = mapOf("exitCode" to exitCode, "fallback" to true))
         } catch (e: Exception) {
             Log.e(TAG, "lark-cli fallback execution also failed", e)
-            ToolResult.error("lark-cli execution failed (both paths): ${e.message}")
+            Toolresult.error("lark-cli execution failed (both paths): ${e.message}")
         }
     }
 }

@@ -43,11 +43,11 @@ class LegacyProviderOpenAI(
 
     private val gson: Gson = GsonBuilder()
         .disableHtmlEscaping()  // 避免转义 HTML 字符
-        .serializeNulls()        // 序列化 null 值
+        .serializeNulls()        // Serialize null Value
         .create()
 
     /**
-     * 发送聊天请求 (OpenAI Chat Completions API 格式)
+     * sendChatRequest (OpenAI Chat Completions API 格式)
      */
     suspend fun chat(
         messages: List<LegacyMessage>,
@@ -122,7 +122,7 @@ class LegacyProviderOpenAI(
             val openAIResponse = gson.fromJson(responseBody, OpenAIChatResponse::class.java)
             Log.d(TAG, "Response received: ${openAIResponse.choices.firstOrNull()?.finishReason}")
 
-            // 转换回 LegacyResponse 格式
+            // Convert回 LegacyResponse 格式
             convertFromOpenAIResponse(openAIResponse)
 
         } catch (e: LLMException) {
@@ -144,7 +144,7 @@ class LegacyProviderOpenAI(
     }
 
     /**
-     * 转换消息到 OpenAI 格式
+     * ConvertMessage到 OpenAI 格式
      */
     private fun convertToOpenAIMessage(msg: LegacyMessage): OpenAIMessage {
         return when (msg.role) {
@@ -156,7 +156,7 @@ class LegacyProviderOpenAI(
             }
             "assistant" -> {
                 if (msg.toolCalls != null) {
-                    // Assistant 消息包含工具调用
+                    // Assistant MessageContains工具call
                     OpenAIMessage(
                         role = "assistant",
                         content = msg.content?.toString(),
@@ -196,7 +196,7 @@ class LegacyProviderOpenAI(
     }
 
     /**
-     * 转换工具定义到 OpenAI 格式
+     * ConvertTool definition到 OpenAI 格式
      */
     private fun convertToolToOpenAIFormat(tool: ToolDefinition): OpenAITool {
         return OpenAITool(
@@ -210,7 +210,7 @@ class LegacyProviderOpenAI(
     }
 
     /**
-     * 转换 OpenAI 响应到 LegacyResponse 格式
+     * Convert OpenAI Response到 LegacyResponse 格式
      */
     private fun convertFromOpenAIResponse(response: OpenAIChatResponse): LegacyResponse {
         val choices = response.choices.map { choice ->
@@ -253,7 +253,7 @@ class LegacyProviderOpenAI(
     }
 
     /**
-     * 简化的聊天方法
+     * 简化的ChatMethod
      */
     suspend fun simpleChat(
         userMessage: String,

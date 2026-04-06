@@ -25,17 +25,17 @@ import org.junit.runners.MethodSorters
 import java.io.File
 
 /**
- * Skill 功能端到端测试
+ * Skill Feature端到端Test
  *
- * 测试真实的Android Skills执行:
- * - screenshot: 截图
+ * TestReal的Android Skills执Row:
+ * - screenshot: Screenshot
  * - tap: 点击
  * - swipe: 滑动
- * - type: 输入
+ * - type: Input
  * - home/back: 导航
- * - open_app: 打开应用
+ * - open_app: Open应用
  *
- * 按照Agent实际使用场景测试
+ * 按照Agent实际使用场景Test
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -46,7 +46,7 @@ class SkillE2ETest {
         private const val TIMEOUT = 5000L
         private const val PACKAGE_NAME = "com.xiaomo.androidforclaw"
 
-        // 静态变量,在所有测试间共享
+        // StaticVariable,在AllTest间共享
         lateinit var device: UiDevice
         lateinit var context: Context
         lateinit var toolRegistry: AndroidToolRegistry
@@ -60,8 +60,8 @@ class SkillE2ETest {
             taskDataManager = TaskDataManager.getInstance()
             toolRegistry = AndroidToolRegistry(context, taskDataManager)
 
-            // 只启动一次应用,供所有测试使用
-            println("\n🚀 启动应用 - 开始Skill测试套件")
+            // 只Start一次应用,供AllTest使用
+            println("\n🚀 Start应用 - StartSkillTest套件")
             println("=" .repeat(60))
             launchApp()
             Thread.sleep(1500)
@@ -80,143 +80,143 @@ class SkillE2ETest {
     }
 
     /**
-     * 场景1: 截图功能
-     * Agent需要观察屏幕时使用
+     * 场景1: ScreenshotFeature
+     * AgentNeed观察Screen时使用
      */
     @Test
     fun test01_skill_screenshot() = runBlocking {
-        println("🎯 测试Skill: screenshot")
+        println("🎯 TestSkill: screenshot")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        // 执行截图
+        // 执RowScreenshot
         val result = toolRegistry.execute("device", mapOf("action" to "screenshot"))
 
-        assumeTrue("截图需要 MediaProjection 权限，跳过", result.success)
+        assumeTrue("ScreenshotNeed MediaProjection Permission, Skip", result.success)
         // Device screenshot may return base64 or file path
-        assertTrue("截图应该有内容", result.content.isNotEmpty())
-        println("✅ 截图执行完成: ${result.content.take(100)}")
+        assertTrue("ScreenshotShouldHasInside容", result.content.isNotEmpty())
+        println("✅ Screenshot执RowComplete: ${result.content.take(100)}")
         println()
     }
 
     /**
      * 场景2: Home导航
-     * Agent需要返回主屏幕时使用
+     * AgentNeedReturn主Screen时使用
      */
     @Test
     fun test02_skill_home() = runBlocking {
-        println("🎯 测试Skill: home")
+        println("🎯 TestSkill: home")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        // 执行Home
+        // 执RowHome
         val result = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "home"))
 
-        assumeTrue("Home需要无障碍服务，跳过", result.success)
+        assumeTrue("HomeNeedAccessibilityService, Skip", result.success)
         delay(500)
 
-        // 验证确实到了主屏幕
+        // Validate确实到了主Screen
         // Home press executed successfully
         device.wait(Until.hasObject(By.pkg("com.miui.home")), 2000)
 
-        println("✅ 返回主屏幕成功")
+        println("✅ Return主ScreenSuccess")
         println()
 
-        // 返回到应用继续测试
-        println("  → 返回应用继续测试...")
+        // Return到应用ContinueTest
+        println("  → Return应用ContinueTest...")
         launchApp()
         Thread.sleep(500)
     }
 
     /**
      * 场景3: Back导航
-     * Agent需要返回上一页时使用
+     * AgentNeedReturnUp一页时使用
      */
     @Test
     fun test03_skill_back() = runBlocking {
-        println("🎯 测试Skill: back")
+        println("🎯 TestSkill: back")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        // 执行Back
+        // 执RowBack
         val result = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "press", "key" to "BACK"))
 
-        assumeTrue("Back需要无障碍服务，跳过", result.success)
+        assumeTrue("BackNeedAccessibilityService, Skip", result.success)
         delay(500)
 
-        println("✅ 返回上一页成功")
+        println("✅ ReturnUp一页Success")
         println()
 
-        // 返回到应用继续测试
-        println("  → 返回应用继续测试...")
+        // Return到应用ContinueTest
+        println("  → Return应用ContinueTest...")
         launchApp()
         Thread.sleep(500)
     }
 
     /**
-     * 场景4: Wait等待
-     * Agent需要等待页面加载时使用
+     * 场景4: WaitWait
+     * AgentNeedWait页面Load时使用
      */
     @Test
     fun test04_skill_wait() = runBlocking {
-        println("🎯 测试Skill: wait")
+        println("🎯 TestSkill: wait")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         val startTime = System.currentTimeMillis()
 
-        // 等待0.2秒
+        // Wait0.2秒
         val result = toolRegistry.execute("wait", mapOf("seconds" to 0.2))
 
         val elapsed = System.currentTimeMillis() - startTime
 
-        assumeTrue("device wait 在测试环境可能不可用，跳过", result.success)
-        assertTrue("应该等待约200ms", elapsed >= 180 && elapsed < 300)
+        assumeTrue("device wait 在TestEnvironment可能不Available, Skip", result.success)
+        assertTrue("ShouldWait约200ms", elapsed >= 180 && elapsed < 300)
 
-        println("✅ 等待成功: ${elapsed}ms")
+        println("✅ WaitSuccess: ${elapsed}ms")
         println()
     }
 
     /**
-     * 场景6: Notification通知
-     * Agent需要发送通知时使用
+     * 场景6: NotificationNotification
+     * AgentNeed发送Notification时使用
      */
     @Test
     fun test06_skill_notification() = runBlocking {
-        println("🎯 测试Skill: notification")
+        println("🎯 TestSkill: notification")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        // 发送通知
+        // 发送Notification
         val result = toolRegistry.execute("notification", mapOf(
-            "title" to "Skill测试",
-            "message" to "这是一条测试通知"
+            "title" to "SkillTest",
+            "message" to "这Yes一条TestNotification"
         ))
 
-        assumeTrue("通知需要权限，跳过", result.success)
+        assumeTrue("NotificationNeedPermission, Skip", result.success)
 
-        println("✅ 通知发送成功")
+        println("✅ Notification发送Success")
         println()
     }
 
     /**
      * 场景8: 完整Agent工作流
-     * 模拟Agent完整执行流程
+     * MockAgent完整执Row流程
      */
     @Test
     fun test08_completeAgentWorkflow() = runBlocking {
-        println("🤖 完整Agent工作流测试")
+        println("🤖 完整Agent工作流Test")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         println()
-        println("📋 场景: Agent需要截图并分析屏幕内容")
+        println("📋 场景: AgentNeedScreenshot并分析ScreenInside容")
         println()
 
         val workflow = listOf(
-            "步骤1: 记录开始" to mapOf("tool" to "log", "args" to mapOf("message" to "开始截图任务")),
-            "步骤2: 等待UI稳定" to mapOf("tool" to "wait", "args" to mapOf("seconds" to 0.3)),
-            "步骤3: 执行截图" to mapOf("tool" to "screenshot", "args" to emptyMap<String, Any>()),
-            "步骤4: 等待保存" to mapOf("tool" to "wait", "args" to mapOf("seconds" to 0.2)),
-            "步骤5: 记录完成" to mapOf("tool" to "log", "args" to mapOf("message" to "截图完成")),
-            "步骤6: 发送通知" to mapOf("tool" to "notification", "args" to mapOf(
-                "title" to "任务完成",
-                "message" to "截图已保存"
+            "步骤1: RecordStart" to mapOf("tool" to "log", "args" to mapOf("message" to "StartScreenshotTask")),
+            "步骤2: WaitUIStable" to mapOf("tool" to "wait", "args" to mapOf("seconds" to 0.3)),
+            "步骤3: 执RowScreenshot" to mapOf("tool" to "screenshot", "args" to emptyMap<String, Any>()),
+            "步骤4: WaitSave" to mapOf("tool" to "wait", "args" to mapOf("seconds" to 0.2)),
+            "步骤5: RecordComplete" to mapOf("tool" to "log", "args" to mapOf("message" to "ScreenshotComplete")),
+            "步骤6: 发送Notification" to mapOf("tool" to "notification", "args" to mapOf(
+                "title" to "TaskComplete",
+                "message" to "Screenshot已Save"
             )),
-            "步骤7: 停止执行" to mapOf("tool" to "stop", "args" to mapOf("reason" to "任务完成"))
+            "步骤7: Stop执Row" to mapOf("tool" to "stop", "args" to mapOf("reason" to "TaskComplete"))
         )
 
         val results = mutableListOf<Triple<String, String, Boolean>>()
@@ -236,13 +236,13 @@ class SkillE2ETest {
                 println("✅")
                 if (toolName == "screenshot" && result.content.contains("/sdcard/")) {
                     val path = result.content.substringAfter("saved to ").trim()
-                    println("     → 截图保存: ${File(path).name}")
+                    println("     → ScreenshotSave: ${File(path).name}")
                 }
             } else {
                 println("❌ ${result.content}")
             }
 
-            delay(100) // 模拟Agent思考
+            delay(100) // MockAgent思考
         }
 
         val totalTime = System.currentTimeMillis() - startTime
@@ -252,20 +252,20 @@ class SkillE2ETest {
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         println("📊 工作流统计:")
         println("   - 总步骤: ${workflow.size}")
-        println("   - 成功: ${results.count { it.third }}")
-        println("   - 失败: ${results.count { !it.third }}")
+        println("   - Success: ${results.count { it.third }}")
+        println("   - Failed: ${results.count { !it.third }}")
         println("   - 总耗时: ${totalTime}ms")
         println("   - 平均耗时: ${totalTime / workflow.size}ms/步")
         println()
 
         // Some steps require accessibility service / MediaProjection — skip if unavailable
-        assumeTrue("工作流需要无障碍服务等系统权限，跳过", allSuccess)
+        assumeTrue("工作流NeedAccessibilityService等系统Permission, Skip", allSuccess)
 
-        println("✅ 完整Agent工作流测试通过")
+        println("✅ 完整Agent工作流Test通过")
         println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         println()
     }
 
-    // ========== 辅助方法 ==========
-    // launchApp 已移至 companion object 作为共享方法
+    // ========== 辅助Method ==========
+    // launchApp 已移至 companion object 作为共享Method
 }

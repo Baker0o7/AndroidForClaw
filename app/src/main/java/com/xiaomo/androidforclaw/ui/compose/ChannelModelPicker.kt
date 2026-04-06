@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.compose
 
@@ -16,13 +16,13 @@ import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.config.OpenClawConfig
 
 /**
- * 渠道模型选择器 — 从 OpenClaw 已配置的 providers 动态读取可用模型列表。
+ * 渠道模型choose器 — 从 OpenClaw 已Config的 providers DynamicReadAvailable模型List. 
  *
- * 该 Composable 不做任何持久化，状态由调用方管理。
+ * 该 Composable 不做任何Persistent化, Statusbycall方Manage. 
  *
- * @param config  当前 OpenClawConfig，用于读取 providers
- * @param selected 当前选中的模型 ID（格式 "providerId/modelId"），null 表示使用全局默认
- * @param onSelected 用户选择后的回调
+ * @param config  当Front OpenClawConfig, 用于Read providers
+ * @param selected 当Front选中的模型 ID(格式 "providerId/modelId"), null Table示useGlobalDefault
+ * @param onSelected UserchooseBack的Callback
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +32,7 @@ fun ChannelModelPicker(
     onSelected: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 构建可用模型列表：null → 全局默认；其他项来自已配置 providers
+    // BuildAvailable模型List: null → GlobalDefault；Its他项from已Config providers
     val globalDefaultLabel = stringResource(R.string.picker_use_global)
     val models: List<Pair<String?, String>> = remember(config, globalDefaultLabel) {
         val list = mutableListOf<Pair<String?, String>>()

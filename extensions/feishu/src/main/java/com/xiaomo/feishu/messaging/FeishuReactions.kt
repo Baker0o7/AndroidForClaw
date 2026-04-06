@@ -14,8 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书表情回复
- * 对齐 OpenClaw src/reactions.ts
+ * 飞书Table情回复
+ * Aligned with OpenClaw src/reactions.ts
  */
 class FeishuReactions(private val client: FeishuClient) {
     companion object {
@@ -23,9 +23,9 @@ class FeishuReactions(private val client: FeishuClient) {
     }
 
     /**
-     * 添加表情回复
+     * AddTable情回复
      */
-    suspend fun addReaction(messageId: String, emoji: FeishuEmoji): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun addReaction(messageId: String, emoji: FeishuEmoji): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val body = mapOf(
                 "reaction_type" to mapOf(
@@ -36,51 +36,51 @@ class FeishuReactions(private val client: FeishuClient) {
             val result = client.post("/open-apis/im/v1/messages/$messageId/reactions", body)
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             Log.d(TAG, "Reaction added: $messageId - ${emoji.code}")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to add reaction", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 移除表情回复
+     * 移除Table情回复
      */
-    suspend fun removeReaction(messageId: String, reactionId: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun removeReaction(messageId: String, reactionId: String): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val result = client.delete("/open-apis/im/v1/messages/$messageId/reactions/$reactionId")
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             Log.d(TAG, "Reaction removed: $messageId - $reactionId")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to remove reaction", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 列出消息的所有回复
+     * ListMessage的All回复
      */
-    suspend fun listReactions(messageId: String): Result<List<ReactionInfo>> = withContext(Dispatchers.IO) {
+    suspend fun listReactions(messageId: String): result<List<ReactionInfo>> = withContext(Dispatchers.IO) {
         try {
             val result = client.get("/open-apis/im/v1/messages/$messageId/reactions")
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
-            val items = data?.getAsJsonArray("items") ?: return@withContext Result.success(emptyList())
+            val items = data?.getAsJsonArray("items") ?: return@withContext result.success(emptyList())
 
             val reactions = items.map { item ->
                 val obj = item.asJsonObject
@@ -95,18 +95,18 @@ class FeishuReactions(private val client: FeishuClient) {
                 )
             }
 
-            Result.success(reactions)
+            result.success(reactions)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to list reactions", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 }
 
 /**
- * 飞书表情枚举
- * 对齐 OpenClaw FeishuEmoji
+ * 飞书Table情枚举
+ * Aligned with OpenClaw FeishuEmoji
  */
 enum class FeishuEmoji(val code: String) {
     THUMBSUP("THUMBSUP"),
@@ -117,7 +117,7 @@ enum class FeishuEmoji(val code: String) {
     OK("OK"),
     STAR("STAR"),
     EYES("EYES"),
-    THINKING("Typing"),  // 对齐 clawdbot-feishu: Typing 表情表示"正在输入"
+    THINKING("Typing"),  // 对齐 clawdbot-feishu: Typing Table情Table示"typing"
     CRY("CRY"),
     CELEBRATE("CELEBRATE"),
     ROCKET("ROCKET"),
@@ -126,7 +126,7 @@ enum class FeishuEmoji(val code: String) {
 }
 
 /**
- * 表情回复信息
+ * Table情回复Info
  */
 data class ReactionInfo(
     val reactionId: String,

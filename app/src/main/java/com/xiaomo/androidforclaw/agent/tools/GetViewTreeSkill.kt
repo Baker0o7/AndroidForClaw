@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -44,25 +44,25 @@ class GetViewTreeSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         Log.d(TAG, "Getting view tree (processed)...")
         return try {
             if (!AccessibilityProxy.isServiceReady()) {
-                return SkillResult.error("Accessibility service not ready")
+                return Skillresult.error("Accessibility service not ready")
             }
 
             // Get original UI tree and processed UI tree
-            val iconResult = DeviceController.detectIcons(context)
-            if (iconResult == null) {
-                return SkillResult.error("无法获取 UI 树。请检查：\n1. 无障碍服务是否已启用\n2. 当前应用是否允许访问")
+            val iconresult = DeviceController.detectIcons(context)
+            if (iconresult == null) {
+                return Skillresult.error("CannotGet UI Tree. 请Check: \n1. AccessibilityServiceYesNo已Enabledd\n2. 当FrontapplyYesNo允许访问")
             }
-            val (originalNodes, processedNodes) = iconResult
+            val (originalNodes, processedNodes) = iconresult
 
             Log.d(TAG, "Original nodes: ${originalNodes.size}, Processed nodes: ${processedNodes.size}")
 
             // Use processed nodes (deduplicated, empty removed)
             val uiInfo = buildString {
-                appendLine("【屏幕 UI 元素列表】（共 ${processedNodes.size} 个可用元素）")
+                appendLine("【Screen UI ElementList】(共 ${processedNodes.size} 个AvailableElement)")
                 appendLine()
 
                 processedNodes.forEachIndexed { index, node ->
@@ -70,10 +70,10 @@ class GetViewTreeSkill(private val context: Context) : Skill {
                 }
 
                 appendLine()
-                appendLine("提示：使用元素的坐标 (x,y) 进行 tap 操作")
+                appendLine("Hint: useElement的坐标 (x,y) IntoRow tap Action")
             }
 
-            SkillResult.success(
+            Skillresult.success(
                 uiInfo,
                 mapOf(
                     "view_count" to processedNodes.size,
@@ -82,7 +82,7 @@ class GetViewTreeSkill(private val context: Context) : Skill {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Get view tree failed", e)
-            SkillResult.error("Get view tree failed: ${e.message}")
+            Skillresult.error("Get view tree failed: ${e.message}")
         }
     }
 
@@ -116,7 +116,7 @@ class GetViewTreeSkill(private val context: Context) : Skill {
             append(" bounds=[${node.left},${node.top},${node.right},${node.bottom}]")
 
             // Clickable / scrollable state
-            if (node.clickable) append(" [可点击]")
+            if (node.clickable) append(" [可click]")
             if (node.scrollable) append(" [可滚动]")
         }
     }

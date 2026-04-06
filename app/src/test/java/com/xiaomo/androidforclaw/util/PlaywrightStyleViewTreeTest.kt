@@ -45,23 +45,23 @@ class PlaywrightStyleViewTreeTest {
     @Test
     fun buttonGetsRefAndRole() {
         val nodes = listOf(
-            makeNode(text = "登录", className = "android.widget.Button", clickable = true)
+            makeNode(text = "Login", className = "android.widget.Button", clickable = true)
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
         assertTrue("Should contain button role", result.snapshot.contains("- button"))
         assertTrue("Should contain ref", result.snapshot.contains("[ref=e1]"))
-        assertTrue("Should contain name", result.snapshot.contains("\"登录\""))
+        assertTrue("Should contain name", result.snapshot.contains("\"Login\""))
         assertTrue("Should contain center", result.snapshot.contains("center="))
         assertTrue("Should contain bounds", result.snapshot.contains("bounds="))
         assertEquals(1, result.refs.size)
         assertEquals("button", result.refs["e1"]?.role)
-        assertEquals("登录", result.refs["e1"]?.name)
+        assertEquals("Login", result.refs["e1"]?.name)
     }
 
     @Test
     fun textboxGetsRefAndRole() {
         val nodes = listOf(
-            makeNode(text = "用户名", className = "android.widget.EditText")
+            makeNode(text = "User名", className = "android.widget.EditText")
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
         assertTrue("Should map EditText to textbox", result.snapshot.contains("- textbox"))
@@ -82,7 +82,7 @@ class PlaywrightStyleViewTreeTest {
     @Test
     fun clickableViewGetButtonRole() {
         val nodes = listOf(
-            makeNode(text = "自定义控件", className = "com.custom.SomeView", clickable = true)
+            makeNode(text = "CustomControl", className = "com.custom.SomeView", clickable = true)
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
         assertTrue("Clickable view with text should become button", result.snapshot.contains("- button"))
@@ -92,7 +92,7 @@ class PlaywrightStyleViewTreeTest {
     fun statsAreCorrect() {
         val nodes = listOf(
             makeNode(index = 0, text = "按钮1", className = "android.widget.Button", clickable = true, top = 200),
-            makeNode(index = 1, text = "文本", className = "android.widget.TextView", top = 400),
+            makeNode(index = 1, text = "Text", className = "android.widget.TextView", top = 400),
             makeNode(index = 2, className = "android.widget.FrameLayout", top = 100)
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
@@ -104,11 +104,11 @@ class PlaywrightStyleViewTreeTest {
     fun systemStatusBarFiltered() {
         val nodes = listOf(
             makeNode(text = "12:00", top = 0, bottom = 50),  // status bar clock
-            makeNode(text = "登录", className = "android.widget.Button", clickable = true, top = 500, bottom = 600)
+            makeNode(text = "Login", className = "android.widget.Button", clickable = true, top = 500, bottom = 600)
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
         assertFalse("Should filter status bar", result.snapshot.contains("12:00"))
-        assertTrue("Should keep real button", result.snapshot.contains("登录"))
+        assertTrue("Should keep real button", result.snapshot.contains("Login"))
     }
 
     @Test
@@ -123,9 +123,9 @@ class PlaywrightStyleViewTreeTest {
     @Test
     fun contentDescUsedAsName() {
         val nodes = listOf(
-            makeNode(contentDesc = "返回按钮", className = "android.widget.ImageButton", clickable = true, top = 200)
+            makeNode(contentDesc = "Return按钮", className = "android.widget.ImageButton", clickable = true, top = 200)
         )
         val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
-        assertTrue("contentDesc should be used as name", result.snapshot.contains("\"返回按钮\""))
+        assertTrue("contentDesc should be used as name", result.snapshot.contains("\"Return按钮\""))
     }
 }

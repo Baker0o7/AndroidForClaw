@@ -4,8 +4,8 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * FeishuContentParser 单元测试
- * 验证各消息类型解析、富文本转 Markdown、媒体 key 提取
+ * FeishuContentParser 单元Test
+ * Validate各MessageTypeParse、富Text转 Markdown、媒体 key 提取
  */
 class FeishuContentParserTest {
 
@@ -35,7 +35,7 @@ class FeishuContentParserTest {
     @Test
     fun `image message extracts image_key`() {
         val result = FeishuContentParser.parseMessageContent("image", """{"image_key":"img_v2_abc123"}""")
-        assertEquals("[图片]", result.text)
+        assertEquals("[Graph片]", result.text)
         assertNotNull(result.mediaKeys)
         assertEquals("img_v2_abc123", result.mediaKeys!!.imageKey)
         assertEquals("image", result.mediaKeys!!.mediaType)
@@ -78,7 +78,7 @@ class FeishuContentParserTest {
     @Test
     fun `sticker message extracts file_key`() {
         val result = FeishuContentParser.parseMessageContent("sticker", """{"file_key":"sticker_abc"}""")
-        assertEquals("[表情]", result.text)
+        assertEquals("[Table情]", result.text)
         assertEquals("sticker_abc", result.mediaKeys!!.fileKey)
     }
 
@@ -119,16 +119,16 @@ class FeishuContentParserTest {
         val content = """{
             "post": {
                 "zh_cn": {
-                    "title": "中文标题",
+                    "title": "中文Title",
                     "content": [
-                        [{"tag":"text","text":"你好世界"}]
+                        [{"tag":"text","text":"hello世界"}]
                     ]
                 }
             }
         }"""
         val result = FeishuContentParser.parsePostContent(content)
-        assertTrue(result.contains("## 中文标题"))
-        assertTrue(result.contains("你好世界"))
+        assertTrue(result.contains("## 中文Title"))
+        assertTrue(result.contains("hello世界"))
     }
 
     @Test
@@ -147,12 +147,12 @@ class FeishuContentParserTest {
     fun `post with at mention`() {
         val content = """{
             "content": [
-                [{"tag":"at","user_name":"张三"},{"tag":"text","text":" 看一下这个"}]
+                [{"tag":"at","user_name":"张三"},{"tag":"text","text":" 看一Down这个"}]
             ]
         }"""
         val result = FeishuContentParser.parsePostContent(content)
         assertTrue(result.contains("@张三"))
-        assertTrue(result.contains("看一下这个"))
+        assertTrue(result.contains("看一Down这个"))
     }
 
     @Test
@@ -180,9 +180,9 @@ class FeishuContentParserTest {
             {"msg_type":"file","body":{"content":"{}"}}
         ]"""
         val result = FeishuContentParser.parseMergeForwardContent(content)
-        assertTrue(result.contains("[合并转发消息]"))
+        assertTrue(result.contains("[Merge转发Message]"))
         assertTrue(result.contains("hello"))
-        assertTrue(result.contains("[图片]"))
+        assertTrue(result.contains("[Graph片]"))
         assertTrue(result.contains("[文件]"))
     }
 

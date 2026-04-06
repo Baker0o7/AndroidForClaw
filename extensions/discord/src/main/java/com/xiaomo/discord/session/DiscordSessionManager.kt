@@ -10,7 +10,7 @@ import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Discord 会话管理
+ * Discord SessionManage
  * 参考 Feishu FeishuSessionManager.kt
  */
 class DiscordSessionManager {
@@ -18,11 +18,11 @@ class DiscordSessionManager {
         private const val TAG = "DiscordSessionManager"
     }
 
-    // 会话存储 (channelId -> Session)
+    // SessionStorage (channelId -> Session)
     private val sessions = ConcurrentHashMap<String, DiscordSession>()
 
     /**
-     * 获取或创建会话
+     * Get或CreateSession
      */
     fun getOrCreateSession(channelId: String, chatType: String): DiscordSession {
         return sessions.getOrPut(channelId) {
@@ -36,14 +36,14 @@ class DiscordSessionManager {
     }
 
     /**
-     * 获取会话
+     * GetSession
      */
     fun getSession(channelId: String): DiscordSession? {
         return sessions[channelId]
     }
 
     /**
-     * 移除会话
+     * 移除Session
      */
     fun removeSession(channelId: String): DiscordSession? {
         Log.d(TAG, "Removing session: $channelId")
@@ -51,7 +51,7 @@ class DiscordSessionManager {
     }
 
     /**
-     * 清除所有会话
+     * clearAllSession
      */
     fun clearAll() {
         Log.i(TAG, "Clearing all sessions (${sessions.size})")
@@ -59,21 +59,21 @@ class DiscordSessionManager {
     }
 
     /**
-     * 获取活跃会话数量
+     * Get活跃Session数量
      */
     fun getActiveSessionCount(): Int {
         return sessions.size
     }
 
     /**
-     * 列出所有会话
+     * ListAllSession
      */
     fun listSessions(): List<DiscordSession> {
         return sessions.values.toList()
     }
 
     /**
-     * 清理过期会话
+     * Clean expired sessions
      */
     fun cleanupExpiredSessions(maxIdleMs: Long = 24 * 60 * 60 * 1000L) {
         val now = System.currentTimeMillis()
@@ -93,7 +93,7 @@ class DiscordSessionManager {
 }
 
 /**
- * Discord 会话
+ * Discord Session
  */
 data class DiscordSession(
     val channelId: String,
@@ -104,7 +104,7 @@ data class DiscordSession(
     val context: MutableMap<String, Any> = mutableMapOf()
 ) {
     /**
-     * 更新活跃时间
+     * Update活跃Time
      */
     fun touch() {
         lastActivityAt = System.currentTimeMillis()
@@ -112,14 +112,14 @@ data class DiscordSession(
     }
 
     /**
-     * 设置上下文
+     * SettingsUpDown文
      */
     fun setContext(key: String, value: Any) {
         context[key] = value
     }
 
     /**
-     * 获取上下文
+     * GetUpDown文
      */
     fun <T> getContext(key: String): T? {
         @Suppress("UNCHECKED_CAST")
@@ -127,7 +127,7 @@ data class DiscordSession(
     }
 
     /**
-     * 清除上下文
+     * clearUpDown文
      */
     fun clearContext() {
         context.clear()

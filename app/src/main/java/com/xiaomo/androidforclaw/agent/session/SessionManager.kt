@@ -372,7 +372,7 @@ class SessionManager(
             updatedAt = timestamp
         )
 
-        // 写入 JSONL header
+        // Write JSONL header
         val jsonlFile = getSessionJSONLFile(sessionId)
         ensureSessionFileParentExists(jsonlFile)
         FileOutputStream(jsonlFile, false).use { out ->

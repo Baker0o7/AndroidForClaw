@@ -33,7 +33,7 @@ object ApiAdapter {
     }
 
     /**
-     * 构建请求体
+     * BuildRequest体
      */
     fun buildRequestBody(
         provider: ProviderConfig,
@@ -42,21 +42,21 @@ object ApiAdapter {
         tools: List<NewToolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean,
+        reasoningEnableddd: Boolean,
         stream: Boolean = false
     ): JSONObject {
         val api = model.api ?: provider.api
 
         return when (api) {
             ModelApi.ANTHROPIC_MESSAGES -> buildAnthropicRequest(
-                model, messages, tools, temperature, maxTokens, reasoningEnabled, stream
+                model, messages, tools, temperature, maxTokens, reasoningEnableddd, stream
             )
             ModelApi.OPENAI_COMPLETIONS -> buildOpenAIRequest(
-                model, messages, tools, temperature, maxTokens, reasoningEnabled, stream
+                model, messages, tools, temperature, maxTokens, reasoningEnableddd, stream
             )
             ModelApi.OPENAI_RESPONSES,
             ModelApi.OPENAI_CODEX_RESPONSES -> buildOpenAIResponsesRequest(
-                model, messages, tools, temperature, maxTokens, reasoningEnabled
+                model, messages, tools, temperature, maxTokens, reasoningEnableddd
             )
             ModelApi.GOOGLE_GENERATIVE_AI -> buildGeminiRequest(
                 model, messages, tools, temperature, maxTokens
@@ -68,8 +68,8 @@ object ApiAdapter {
                 model, messages, tools, temperature, maxTokens, stream
             )
             else -> {
-                // 默认使用 OpenAI 兼容格式
-                buildOpenAIRequest(model, messages, tools, temperature, maxTokens, reasoningEnabled, stream)
+                // Defaultuse OpenAI 兼容格式
+                buildOpenAIRequest(model, messages, tools, temperature, maxTokens, reasoningEnableddd, stream)
             }
         }
     }
@@ -87,7 +87,7 @@ object ApiAdapter {
     )
 
     /**
-     * 构建请求头
+     * BuildRequest头
      */
     fun buildHeaders(
         provider: ProviderConfig,
@@ -147,7 +147,7 @@ object ApiAdapter {
     }
 
     /**
-     * 解析响应
+     * ParseResponse
      */
     fun parseResponse(
         api: String,
@@ -173,7 +173,7 @@ object ApiAdapter {
         tools: List<NewToolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean,
+        reasoningEnableddd: Boolean,
         stream: Boolean = false
     ): JSONObject {
         val json = JSONObject()
@@ -223,8 +223,8 @@ object ApiAdapter {
                     anthropicMessages.put(msg)
                 }
                 "tool" -> {
-                    // Anthropic 使用 tool_result 格式，支持多模态（文本+图片）
-                    val toolResultContent = if (!message.images.isNullOrEmpty()) {
+                    // Anthropic use tool_result 格式, Support多模态(Text+Graph片)
+                    val toolresultContent = if (!message.images.isNullOrEmpty()) {
                         // Multimodal tool result: text block + image blocks
                         JSONArray().apply {
                             put(JSONObject().apply {
@@ -252,7 +252,7 @@ object ApiAdapter {
                         put(JSONObject().apply {
                             put("type", "tool_result")
                             put("tool_use_id", message.toolCallId ?: "")
-                            put("content", toolResultContent)
+                            put("content", toolresultContent)
                         })
                     })
                     anthropicMessages.put(msg)
@@ -281,7 +281,7 @@ object ApiAdapter {
         }
 
         // Extended Thinking support
-        if (reasoningEnabled && model.reasoning) {
+        if (reasoningEnableddd && model.reasoning) {
             json.put("thinking", JSONObject().apply {
                 put("type", "enabled")
                 put("budget_tokens", 10000)
@@ -348,7 +348,7 @@ object ApiAdapter {
         tools: List<NewToolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean,
+        reasoningEnableddd: Boolean,
         stream: Boolean = false
     ): JSONObject {
         val json = JSONObject()
@@ -459,7 +459,7 @@ object ApiAdapter {
         }
 
         // Reasoning support (OpenAI o1/o3 models)
-        if (reasoningEnabled && model.reasoning) {
+        if (reasoningEnableddd && model.reasoning) {
             if (model.compat?.supportsReasoningEffort == true) {
                 json.put("reasoning_effort", "medium")
             }
@@ -534,7 +534,7 @@ object ApiAdapter {
         tools: List<NewToolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean
+        reasoningEnableddd: Boolean
     ): JSONObject {
         val json = JSONObject()
         json.put("model", model.id)
@@ -592,7 +592,7 @@ object ApiAdapter {
             json.put("tools", responsesTools)
         }
 
-        if (reasoningEnabled && model.reasoning && model.compat?.supportsReasoningEffort == true) {
+        if (reasoningEnableddd && model.reasoning && model.compat?.supportsReasoningEffort == true) {
             json.put("reasoning", JSONObject().apply {
                 put("effort", "medium")
             })
@@ -977,7 +977,7 @@ object ApiAdapter {
     }
 
     /**
-     * 解析 Ollama /api/chat 响应
+     * Parse Ollama /api/chat Response
      * Ollama 格式: { "model": "...", "message": { "role": "assistant", "content": "...", "tool_calls": [...] }, "done": true }
      */
     private fun parseOllamaResponse(responseBody: String): ParsedResponse {
@@ -1307,7 +1307,7 @@ data class StreamChunk(
 )
 
 /**
- * 解析后的响应
+ * ParseBack的Response
  */
 data class ParsedResponse(
     val content: String?,
@@ -1327,7 +1327,7 @@ data class ToolCall(
 )
 
 /**
- * Token 使用统计
+ * Token usecount
  */
 data class Usage(
     val promptTokens: Int,

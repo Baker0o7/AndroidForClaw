@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有 — 对齐 ~/.openclaw/ 路径结构)
+ * - No OpenClaw counterpart (Android-only — 对齐 ~/.openclaw/ Path结构)
  */
 package com.xiaomo.androidforclaw.workspace
 

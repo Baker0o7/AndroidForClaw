@@ -8,79 +8,79 @@ package com.forclaw.browser.control.tools
 
 import android.webkit.CookieManager
 import com.forclaw.browser.control.manager.BrowserManager
-import com.forclaw.browser.control.model.ToolResult
+import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器 Cookie 获取工具
+ * 浏览器 Cookie Get工具
  *
- * 获取当前页面的 Cookies
+ * Get当Front页面的 Cookies
  *
- * 参数: 无
+ * Parameters: None
  *
- * 返回:
- * - cookies: String - Cookie 字符串
- * - url: String - 当前 URL
+ * Return:
+ * - cookies: String - Cookie String
+ * - url: String - 当Front URL
  */
 class BrowserGetCookiesTool : BrowserTool {
     override val name = "browser_get_cookies"
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        // 1. 检查浏览器实例
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+        // 1. Check浏览器Instance
         if (!BrowserManager.isActive()) {
-            return ToolResult.error("Browser is not active")
+            return Toolresult.error("Browser is not active")
         }
 
-        // 2. 获取当前 URL (通过 JavaScript 避免线程问题)
+        // 2. Get当Front URL (通过 JavaScript 避免ThreadIssue)
         val url = BrowserManager.evaluateJavascript("window.location.href")
-            ?.trim('"') ?: return ToolResult.error("No active page")
+            ?.trim('"') ?: return Toolresult.error("No active page")
 
-        // 3. 获取 Cookies
+        // 3. Get Cookies
         try {
             val cookieManager = CookieManager.getInstance()
             val cookies = cookieManager.getCookie(url) ?: ""
 
-            // 4. 返回结果
-            return ToolResult.success(
+            // 4. Returnresult
+            return Toolresult.success(
                 "cookies" to cookies
             )
         } catch (e: Exception) {
-            return ToolResult.error("Get cookies failed: ${e.message}")
+            return Toolresult.error("Get cookies failed: ${e.message}")
         }
     }
 }
 
 /**
- * 浏览器 Cookie 设置工具
+ * 浏览器 Cookie Settings工具
  *
- * 设置 Cookies
+ * Settings Cookies
  *
- * 参数:
- * - url: String (可选) - 目标 URL，默认使用当前 URL
- * - cookies: List<String> (必需) - Cookie 列表，格式: "name=value; path=/; domain=.example.com"
+ * Parameters:
+ * - url: String (Optional) - 目标 URL, Defaultuse当Front URL
+ * - cookies: List<String> (Required) - Cookie List, 格式: "name=value; path=/; domain=.example.com"
  *
- * 返回:
- * - url: String - 设置的 URL
- * - count: Int - 设置的 Cookie 数量
+ * Return:
+ * - url: String - Settings的 URL
+ * - count: Int - Settings的 Cookie 数量
  */
 class BrowserSetCookiesTool : BrowserTool {
     override val name = "browser_set_cookies"
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        // 1. 验证参数
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+        // 1. ValidateParameters
         @Suppress("UNCHECKED_CAST")
         val cookieList = (args["cookies"] as? List<*>)?.mapNotNull { it as? String }
-            ?: return ToolResult.error("Missing required parameter: cookies")
+            ?: return Toolresult.error("Missing required parameter: cookies")
 
         if (cookieList.isEmpty()) {
-            return ToolResult.error("Parameter 'cookies' cannot be empty")
+            return Toolresult.error("Parameter 'cookies' cannot be empty")
         }
 
-        // 2. 获取 URL
+        // 2. Get URL
         val url = (args["url"] as? String)
             ?: BrowserManager.evaluateJavascript("window.location.href")?.trim('"')
-            ?: return ToolResult.error("No URL specified and no active page")
+            ?: return Toolresult.error("No URL specified and no active page")
 
-        // 3. 设置 Cookies
+        // 3. Settings Cookies
         try {
             val cookieManager = CookieManager.getInstance()
             cookieManager.setAcceptCookie(true)
@@ -89,16 +89,16 @@ class BrowserSetCookiesTool : BrowserTool {
                 cookieManager.setCookie(url, cookie)
             }
 
-            // 确保持久化
+            // EnsurePersistent化
             cookieManager.flush()
 
-            // 4. 返回结果
-            return ToolResult.success(
+            // 4. Returnresult
+            return Toolresult.success(
                 "url" to url,
                 "count" to cookieList.size
             )
         } catch (e: Exception) {
-            return ToolResult.error("Set cookies failed: ${e.message}")
+            return Toolresult.error("Set cookies failed: ${e.message}")
         }
     }
 }

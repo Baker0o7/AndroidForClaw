@@ -15,8 +15,8 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 飞书历史记录管理器
- * 对齐 OpenClaw 历史记录管理
+ * 飞书历史RecordManage器
+ * Aligned with OpenClaw 历史RecordManage
  */
 class FeishuHistoryManager(private val config: FeishuConfig) {
     companion object {
@@ -27,7 +27,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     private val mutex = Mutex()
 
     /**
-     * 添加历史记录
+     * Add历史Record
      */
     suspend fun addHistory(
         chatId: String,
@@ -39,7 +39,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
 
         history.add(entry)
 
-        // 限制历史记录数量
+        // Limit历史Record数量
         val limit = if (chatType == "p2p") config.dmHistoryLimit else config.historyLimit
         while (history.size > limit) {
             history.removeAt(0)
@@ -49,7 +49,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * 获取历史记录
+     * Get历史Record
      */
     fun getHistory(chatId: String, chatType: String, limit: Int? = null): List<HistoryEntry> {
         val key = "$chatType:$chatId"
@@ -63,7 +63,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * 清除历史记录
+     * clear历史Record
      */
     suspend fun clearHistory(chatId: String, chatType: String) = mutex.withLock {
         val key = "$chatType:$chatId"
@@ -72,7 +72,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * 清除所有历史记录
+     * clearAll历史Record
      */
     suspend fun clearAllHistory() = mutex.withLock {
         histories.clear()
@@ -80,7 +80,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
     }
 
     /**
-     * 获取历史记录摘要
+     * Get历史Record摘要
      */
     fun getHistorySummary(): Map<String, Int> {
         return histories.mapValues { it.value.size }
@@ -88,7 +88,7 @@ class FeishuHistoryManager(private val config: FeishuConfig) {
 }
 
 /**
- * 历史记录条目
+ * 历史Record条目
  */
 data class HistoryEntry(
     val messageId: String,

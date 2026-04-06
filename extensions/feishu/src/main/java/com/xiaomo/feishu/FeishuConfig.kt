@@ -9,54 +9,54 @@ package com.xiaomo.feishu
 
 
 /**
- * 飞书配置
- * 对齐 OpenClaw feishu plugin 配置结构
+ * 飞书Config
+ * Aligned with OpenClaw feishu plugin Config结构
  */
 data class FeishuConfig(
-    // ===== 基础配置 =====
+    // ===== 基础Config =====
     val enabled: Boolean = false,
     val appId: String,
     val appSecret: String,
     val encryptKey: String? = null,
     val verificationToken: String? = null,
 
-    // ===== 域名配置 =====
+    // ===== 域名Config =====
     val domain: String = "feishu", // "feishu", "lark", or custom domain
 
-    // ===== 连接模式 =====
+    // ===== ConnectSchema =====
     val connectionMode: ConnectionMode = ConnectionMode.WEBSOCKET,
     val webhookPath: String = "/feishu/webhook",
     val webhookPort: Int = 8765,
 
-    // ===== DM 策略 =====
+    // ===== DM Policy =====
     val dmPolicy: DmPolicy = DmPolicy.PAIRING,
     val allowFrom: List<String> = emptyList(),
 
-    // ===== 群组策略 =====
+    // ===== GroupPolicy =====
     val groupPolicy: GroupPolicy = GroupPolicy.ALLOWLIST,
     val groupAllowFrom: List<String> = emptyList(),
     val requireMention: Boolean? = null, // null = use groupPolicy-based default (open→false, else→true)
     val groupCommandMentionBypass: MentionBypass = MentionBypass.NEVER,
     val allowMentionlessInMultiBotGroup: Boolean = false,
 
-    // ===== 会话模式 =====
+    // ===== SessionSchema =====
     val groupSessionScope: String? = null, // "per-user" = isolate per sender in groups
     val topicSessionMode: TopicSessionMode = TopicSessionMode.DISABLED,
 
-    // ===== 历史记录 =====
+    // ===== 历史Record =====
     val historyLimit: Int = 20,
     val dmHistoryLimit: Int = 10,
 
-    // ===== 消息分块 =====
+    // ===== Message分块 =====
     val textChunkLimit: Int = 4000,
     val chunkMode: ChunkMode = ChunkMode.LENGTH,
-    val maxTablesPerCard: Int = 3,  // 飞书卡片最多支持的表格数量 (根据 API 限制)
+    val maxTablesPerCard: Int = 3,  // Max tables supported by Feishu card (according to API Limit)
 
-    // ===== 媒体配置 =====
+    // ===== 媒体Config =====
     val mediaMaxMb: Double = 20.0,
     val audioMaxDurationSec: Int = 300,
 
-    // ===== 工具配置 =====
+    // ===== 工具Config =====
     val enableDocTools: Boolean = true,
     val enableWikiTools: Boolean = true,
     val enableDriveTools: Boolean = true,
@@ -71,7 +71,7 @@ data class FeishuConfig(
     val enableSearchTools: Boolean = true,
     val enableCommonTools: Boolean = true,
 
-    // ===== 其他配置 =====
+    // ===== Its他Config =====
     val typingIndicator: Boolean = true,
     val reactionDedup: Boolean = true,
     val debugMode: Boolean = false
@@ -101,14 +101,14 @@ data class FeishuConfig(
     }
 
     /**
-     * 获取 API 基础 URL
+     * Get API 基础 URL
      */
     fun getApiBaseUrl(): String {
         return when (domain.lowercase()) {
             "feishu" -> "https://open.feishu.cn"
             "lark" -> "https://open.larksuite.com"
             else -> {
-                // 自定义域名: 确保有 https:// 前缀
+                // Custom domain: EnsureHas https:// Front缀
                 if (domain.startsWith("http://") || domain.startsWith("https://")) {
                     domain
                 } else {
@@ -119,18 +119,18 @@ data class FeishuConfig(
     }
 
     /**
-     * 验证配置
+     * ValidateConfig
      */
-    fun validate(): Result<Unit> {
+    fun validate(): result<Unit> {
         if (appId.isBlank()) {
-            return Result.failure(IllegalArgumentException("appId is required"))
+            return result.failure(IllegalArgumentException("appId is required"))
         }
         if (appSecret.isBlank()) {
-            return Result.failure(IllegalArgumentException("appSecret is required"))
+            return result.failure(IllegalArgumentException("appSecret is required"))
         }
         if (connectionMode == ConnectionMode.WEBHOOK && verificationToken.isNullOrBlank()) {
-            return Result.failure(IllegalArgumentException("verificationToken is required for webhook mode"))
+            return result.failure(IllegalArgumentException("verificationToken is required for webhook mode"))
         }
-        return Result.success(Unit)
+        return result.success(Unit)
     }
 }

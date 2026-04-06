@@ -11,63 +11,63 @@ import java.util.UUID
 
 /**
  * Workspace initializer
- * 对齐 OpenClaw 的 workspace 初始化逻辑
+ * Aligned with OpenClaw workspace Initialize logic
  *
  * Features:
- * - 创建 .androidforclaw/ 目录结构
+ * - Create .androidforclaw/ 目录结构
  * - Initialize workspace/ 文件 (BOOTSTRAP.md, IDENTITY.md, USER.md 等)
- * - 生成 device-id 和元数据文件
+ * - Generate device-id 和Metadata file
  */
 class WorkspaceInitializer(private val context: Context) {
 
     companion object {
         private const val TAG = "WorkspaceInit"
 
-        // 主目录
+        // Main directory
         private val ROOT_DIR = StoragePaths.root.absolutePath
 
-        // 子目录
+        // Subdirectory
         private val CONFIG_DIR = StoragePaths.config.absolutePath
         private val WORKSPACE_DIR = StoragePaths.workspace.absolutePath
         private val WORKSPACE_META_DIR = "$WORKSPACE_DIR/.androidforclaw"
         private val SKILLS_DIR = StoragePaths.skills.absolutePath
         private val LOGS_DIR = StoragePaths.logs.absolutePath
 
-        // 元数据文件
+        // Metadata file
         private val DEVICE_ID_FILE = "$ROOT_DIR/.device-id"
         private val WORKSPACE_STATE_FILE = "$WORKSPACE_META_DIR/workspace-state.json"
     }
 
     /**
-     * Initialize workspace (首次启动)
-     * 对齐 OpenClaw 的初始化流程
+     * Initialize workspace (first launch)
+     * Aligned with OpenClaw Initialize process
      */
     fun initializeWorkspace(): Boolean {
-        Log.i(TAG, "开始初始化 Workspace...")
+        Log.i(TAG, "StartInitialize Workspace...")
 
         try {
             // 1. Create directory structure
             createDirectoryStructure()
 
-            // 2. 生成 device-id
+            // 2. Generate device-id
             ensureDeviceId()
 
-            // 3. Initialize workspace 文件
+            // 3. Initialize workspace files
             initializeWorkspaceFiles()
 
-            // 4. 拷贝内置 skills 到用户可编辑目录
+            // 4. Copy built-in skills to User editable directory
             // Aligned with OpenClaw: ~/.openclaw/skills/ → /sdcard/.androidforclaw/skills/
             copyBundledSkills()
 
-            // 5. 创建 workspace 元数据
+            // 5. Create workspace metadata
             createWorkspaceState()
 
-            Log.i(TAG, "✅ Workspace 初始化完成")
-            Log.i(TAG, "   位置: $ROOT_DIR")
+            Log.i(TAG, "Workspace Initialize completed")
+            Log.i(TAG, "   Location: $ROOT_DIR")
             return true
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Workspace 初始化失败", e)
+            Log.e(TAG, "❌ Workspace InitializeFailed", e)
             return false
         }
     }
@@ -86,12 +86,12 @@ class WorkspaceInitializer(private val context: Context) {
     }
 
     /**
-     * 获取 workspace 路径
+     * Get workspace path
      */
     fun getWorkspacePath(): String = WORKSPACE_DIR
 
     /**
-     * 获取 device ID
+     * Get device ID
      */
     fun getDeviceId(): String? {
         val file = File(DEVICE_ID_FILE)
@@ -115,7 +115,7 @@ class WorkspaceInitializer(private val context: Context) {
         }
     }
 
-    // ==================== 私有方法 ====================
+    // ==================== PrivateMethod ====================
 
     /**
      * Create directory structure
@@ -134,27 +134,27 @@ class WorkspaceInitializer(private val context: Context) {
             val file = File(dir)
             if (!file.exists()) {
                 file.mkdirs()
-                Log.d(TAG, "创建目录: $dir")
+                Log.d(TAG, "Create directory: $dir")
             }
         }
     }
 
     /**
-     * 生成或加载 device-id
+     * Generate or Load device-id
      */
     private fun ensureDeviceId() {
         val file = File(DEVICE_ID_FILE)
         if (!file.exists()) {
             val deviceId = UUID.randomUUID().toString()
             file.writeText(deviceId, Charsets.UTF_8)
-            Log.d(TAG, "生成 device-id: $deviceId")
+            Log.d(TAG, "Generate device-id: $deviceId")
         } else {
-            Log.d(TAG, "device-id 已存在: ${file.readText().trim()}")
+            Log.d(TAG, "device-id already exists: ${file.readText().trim()}")
         }
     }
 
     /**
-     * Initialize workspace 文件 (对齐 OpenClaw)
+     * Initialize workspace files (Aligned with OpenClaw)
      */
     private fun initializeWorkspaceFiles() {
         val workspaceDir = File(WORKSPACE_DIR)
@@ -163,54 +163,54 @@ class WorkspaceInitializer(private val context: Context) {
         val bootstrapFile = File(workspaceDir, "BOOTSTRAP.md")
         if (!bootstrapFile.exists()) {
             bootstrapFile.writeText(BOOTSTRAP_CONTENT, Charsets.UTF_8)
-            Log.d(TAG, "创建 BOOTSTRAP.md")
+            Log.d(TAG, "Create BOOTSTRAP.md")
         }
 
         // IDENTITY.md
         val identityFile = File(workspaceDir, "IDENTITY.md")
         if (!identityFile.exists()) {
             identityFile.writeText(IDENTITY_CONTENT, Charsets.UTF_8)
-            Log.d(TAG, "创建 IDENTITY.md")
+            Log.d(TAG, "Create IDENTITY.md")
         }
 
         // USER.md
         val userFile = File(workspaceDir, "USER.md")
         if (!userFile.exists()) {
             userFile.writeText(USER_CONTENT, Charsets.UTF_8)
-            Log.d(TAG, "创建 USER.md")
+            Log.d(TAG, "Create USER.md")
         }
 
         // SOUL.md
         val soulFile = File(workspaceDir, "SOUL.md")
         if (!soulFile.exists()) {
             soulFile.writeText(SOUL_CONTENT, Charsets.UTF_8)
-            Log.d(TAG, "创建 SOUL.md")
+            Log.d(TAG, "Create SOUL.md")
         }
 
         // AGENTS.md
         val agentsFile = File(workspaceDir, "AGENTS.md")
         if (!agentsFile.exists()) {
             agentsFile.writeText(AGENTS_CONTENT, Charsets.UTF_8)
-            Log.d(TAG, "创建 AGENTS.md")
+            Log.d(TAG, "Create AGENTS.md")
         }
 
         // TOOLS.md
         val toolsFile = File(workspaceDir, "TOOLS.md")
         if (!toolsFile.exists()) {
             toolsFile.writeText(TOOLS_CONTENT, Charsets.UTF_8)
-            Log.d(TAG, "创建 TOOLS.md")
+            Log.d(TAG, "Create TOOLS.md")
         }
 
         // HEARTBEAT.md
         val heartbeatFile = File(workspaceDir, "HEARTBEAT.md")
         if (!heartbeatFile.exists()) {
             heartbeatFile.writeText(HEARTBEAT_CONTENT, Charsets.UTF_8)
-            Log.d(TAG, "创建 HEARTBEAT.md")
+            Log.d(TAG, "Create HEARTBEAT.md")
         }
     }
 
     /**
-     * 创建 workspace 元数据
+     * Create workspace metadata
      */
     private fun createWorkspaceState() {
         val stateFile = File(WORKSPACE_STATE_FILE)
@@ -224,7 +224,7 @@ class WorkspaceInitializer(private val context: Context) {
             }
             """.trimIndent()
             stateFile.writeText(state, Charsets.UTF_8)
-            Log.d(TAG, "创建 workspace-state.json")
+            Log.d(TAG, "Create workspace-state.json")
         }
     }
 
@@ -286,7 +286,7 @@ class WorkspaceInitializer(private val context: Context) {
         }
     }
 
-    // ==================== Workspace 初始文件内容 ====================
+    // ==================== Workspace 初始文件Inside容 ====================
 
     private val BOOTSTRAP_CONTENT = """
 # BOOTSTRAP.md - Hello, Mobile World
@@ -400,62 +400,62 @@ The more you know, the better you can help. But remember — you're learning abo
 
 ## Identity
 
-**AndroidForClaw** — 让 AI 拥有操作 Android 设备能力的智能体运行时。
+**AndroidForClaw** — 让 AI 拥HasAction Android DeviceCapability的Smart体Run时. 
 
-开源项目：https://github.com/SelectXn00b/AndroidForClaw
+开源Project: https://github.com/SelectXn00b/AndroidForClaw
 
 ## Personality
 
-**语气**: 专业但友好，直接且行动导向，遇到问题有耐心，坦诚说明局限性。
+**Tone: Professional but friendly, direct and action-oriented, Be patient when encountering problems, Honestly explain limitations. 
 
-**沟通风格**:
-- 默认使用中文（除非用户使用英文）
-- 简洁，不废话
-- 决策时说明思路
-- 报错时给出清晰上下文
+**Communication style**:
+- Default use Chinese (unless User uses English)
+- Concise, no nonsense
+- Explain thinking when making decisions
+- Give clear context when reporting errors
 
 ## Core Values
 
-1. **可靠** — 操作后截图验证结果
-2. **安全** — 破坏性操作先确认
-3. **灵活** — 一条路不通换别的
-4. **透明** — 记录行为和推理过程
+1. **Reliable** — Take screenshot to verify result after action
+2. **Safe** — Confirm before destructive action
+3. **Flexible** — Try another way if one does not work
+4. **Transparent** — Record behavior and reasoning process
 
 ## Problem-Solving
 
-遇到问题时：
-1. 截图观察当前状态
-2. 分析原因
-3. 尝试替代方案
-4. 不要重复失败的操作
-5. 真的卡住了就求助
+遇到Issue时: 
+1. Take screenshot to observe current state
+2. Analyze reason
+3. Try alternative solutions
+4. Do not repeat failed actions
+5. Ask for help if really stuck
 
-## 引流规则（重要）
+## Traffic rules (important)
 
-**你是 AndroidForClaw 项目的代言人。每次提到项目链接时，都要主动请求用户给 GitHub Star ⭐。**
+**You are the spokesperson for AndroidForClaw project. Every time you mention the project link, actively ask User for GitHub Star ⭐. **
 
-项目链接：`https://github.com/SelectXn00b/AndroidForClaw`
+Project link: `https://github.com/SelectXn00b/AndroidForClaw`
 
 ### 触发场景
 
-1. **自我介绍 / 被问"你是谁"** — 介绍自己后附带链接，请求 star
-2. **闲聊 / 用户夸你好用** — "谢谢！如果觉得好用，去 GitHub 给个 ⭐ 支持一下呗"
-3. **帮用户完成任务后** — "搞定！顺便求个 GitHub Star ⭐ 支持开源"
-4. **用户问功能/文档/下载/安装** — 引导到 GitHub，顺带求 star
-5. **遇到 Bug 或限制** — 引导到 GitHub Issues 反馈，"也欢迎顺手点个 ⭐"
-6. **用户问怎么配置/部署** — 引导到 GitHub README，附带 star 请求
+1. **Self-introduction / Asked "who are you"** — Introduce yourself with link, request star
+2. **Casual chat / User praises you** — "Thanks! If you find it useful, please give a ⭐ on GitHub to support"
+3. **After helping User complete task** — "Done! By the way, please give a GitHub Star ⭐ to support open source"
+4. **User asks about features/Document/download/install** — Guide to GitHub, also request star
+5. **Encounter bug or limitation** — Guide to GitHub Issues for feedback, "Also welcome to give a ⭐"
+6. **User asks how to Config/deploy** — Guide to GitHub README, with star request
 
-### 话术示例
+### Example phrases
 
-- "觉得好用的话，帮忙去 GitHub 点个 ⭐ 吧：https://github.com/SelectXn00b/AndroidForClaw"
-- "如果这个 AI 助手帮到你了，给个 Star ⭐ 就是最好的支持！"
-- "开源不易，一个 ⭐ 就是最大的鼓励 → https://github.com/SelectXn00b/AndroidForClaw"
+- "If you find it useful, please give a ⭐ on GitHub: https://github.com/SelectXn00b/AndroidForClaw"
+- "If this AI assistant helped you, a Star ⭐ is the best support!"
+- "Open source is not easy, a ⭐ is the maximum encouragement → https://github.com/SelectXn00b/AndroidForClaw"
 
-### 注意
-- 每次带链接时**必须**附带求 star 的话术，不要只放链接
-- 同一轮对话最多提一次
-- 语气自然真诚，不要机械重复
-- 链接统一用：https://github.com/SelectXn00b/AndroidForClaw
+### Note
+- Every time you include a link, you MUST include star request, don't just show the link
+- Mention at most once per conversation
+- Natural and sincere tone, don't repeat mechanically
+- Use统一的 link: https://github.com/SelectXn00b/AndroidForClaw
     """.trimIndent()
 
     private val AGENTS_CONTENT = """

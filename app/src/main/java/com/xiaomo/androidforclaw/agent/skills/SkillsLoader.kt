@@ -58,7 +58,7 @@ class SkillsLoader(private val context: Context) {
 
     // File monitoring (hot reload with debounce)
     private val fileObservers = mutableListOf<FileObserver>()
-    private var hotReloadEnabled = false
+    private var hotReloadEnableddd = false
     private val handler = Handler(Looper.getMainLooper())
     private var pendingReload: Runnable? = null
 
@@ -71,11 +71,11 @@ class SkillsLoader(private val context: Context) {
     fun loadSkills(): Map<String, SkillDocument> {
         // Return cached if valid
         if (cacheValid && skillsCache.isNotEmpty()) {
-            Log.d(TAG, "返回缓存的 Skills (${skillsCache.size} 个)")
+            Log.d(TAG, "ReturnCache的 Skills (${skillsCache.size} 个)")
             return skillsCache.toMap()
         }
 
-        Log.d(TAG, "开始加载 Skills...")
+        Log.d(TAG, "StartLoad Skills...")
         skillsCache.clear()
 
         val config = configLoader.loadOpenClawConfig()
@@ -89,12 +89,12 @@ class SkillsLoader(private val context: Context) {
 
         cacheValid = true
 
-        Log.i(TAG, "Skills 加载完成: 总计 ${skillsCache.size} 个")
+        Log.i(TAG, "Skills Load complete: Total ${skillsCache.size} 个")
         Log.i(TAG, "  - extraDirs: $extraCount")
         Log.i(TAG, "  - Bundled: $bundledCount")
-        Log.i(TAG, "  - Managed: $managedCount (覆盖)")
-        Log.i(TAG, "  - Plugin: $pluginCount (覆盖)")
-        Log.i(TAG, "  - Workspace: $workspaceCount (覆盖)")
+        Log.i(TAG, "  - Managed: $managedCount (Override)")
+        Log.i(TAG, "  - Plugin: $pluginCount (Override)")
+        Log.i(TAG, "  - Workspace: $workspaceCount (Override)")
 
         return skillsCache.toMap()
     }
@@ -103,25 +103,25 @@ class SkillsLoader(private val context: Context) {
      * Reload Skills (clear cache)
      */
     fun reload() {
-        Log.i(TAG, "重新加载 Skills...")
+        Log.i(TAG, "重NewLoad Skills...")
         cacheValid = false
         loadSkills()
     }
 
     /**
-     * Enable hot reload with debounce.
+     * Enabledd hot reload with debounce.
      * Monitors Workspace + Managed directories.
      * Aligns with OpenClaw: skills.watch + skills.watchDebounceMs
      */
     fun enableHotReload() {
-        if (hotReloadEnabled) {
-            Log.d(TAG, "热重载已启用")
+        if (hotReloadEnableddd) {
+            Log.d(TAG, "热Overload已Enabledd")
             return
         }
 
         val config = configLoader.loadOpenClawConfig()
         if (!config.skills.watch) {
-            Log.d(TAG, "热重载已在配置中禁用 (skills.watch=false)")
+            Log.d(TAG, "热Overload已在Config中Disabled (skills.watch=false)")
             return
         }
 
@@ -138,7 +138,7 @@ class SkillsLoader(private val context: Context) {
         }
 
         if (dirsToWatch.isEmpty()) {
-            Log.w(TAG, "没有可监控的 Skills 目录")
+            Log.w(TAG, "None可Monitor的 Skills 目录")
             return
         }
 
@@ -147,21 +147,21 @@ class SkillsLoader(private val context: Context) {
                 val observer = object : FileObserver(dir, CREATE or MODIFY or DELETE) {
                     override fun onEvent(event: Int, path: String?) {
                         if (path != null && path.endsWith(SKILL_FILE_NAME)) {
-                            Log.i(TAG, "检测到 Skill 文件变化: ${dir.name}/$path")
+                            Log.i(TAG, "Detected Skill 文件变化: ${dir.name}/$path")
                             scheduleReload(debounceMs)
                         }
                     }
                 }
                 observer.startWatching()
                 fileObservers.add(observer)
-                Log.i(TAG, "✅ 监控: ${dir.absolutePath}")
+                Log.i(TAG, "✅ Monitor: ${dir.absolutePath}")
             } catch (e: Exception) {
-                Log.e(TAG, "启用热重载失败: ${dir.absolutePath}", e)
+                Log.e(TAG, "Enabledd热OverloadFailed: ${dir.absolutePath}", e)
             }
         }
 
-        hotReloadEnabled = true
-        Log.i(TAG, "✅ 热重载已启用 (debounce=${debounceMs}ms, 监控 ${dirsToWatch.size} 个目录)")
+        hotReloadEnableddd = true
+        Log.i(TAG, "✅ 热Overload已Enabledd (debounce=${debounceMs}ms, Monitor ${dirsToWatch.size} 个目录)")
     }
 
     /**
@@ -173,7 +173,7 @@ class SkillsLoader(private val context: Context) {
 
         // Schedule new reload
         val runnable = Runnable {
-            Log.i(TAG, "Debounce 完成，执行重新加载...")
+            Log.i(TAG, "Debounce Complete, 执Row重NewLoad...")
             reload()
         }
         pendingReload = runnable
@@ -181,21 +181,21 @@ class SkillsLoader(private val context: Context) {
     }
 
     /**
-     * Disable hot reload
+     * Disabled hot reload
      */
     fun disableHotReload() {
         pendingReload?.let { handler.removeCallbacks(it) }
         pendingReload = null
         fileObservers.forEach { it.stopWatching() }
         fileObservers.clear()
-        hotReloadEnabled = false
-        Log.i(TAG, "热重载已禁用")
+        hotReloadEnableddd = false
+        Log.i(TAG, "热Overload已Disabled")
     }
 
     /**
      * Check if hot reload is enabled
      */
-    fun isHotReloadEnabled(): Boolean = hotReloadEnabled
+    fun isHotReloadEnableddd(): Boolean = hotReloadEnableddd
 
     /**
      * Get all loaded skills
@@ -250,7 +250,7 @@ class SkillsLoader(private val context: Context) {
                     matchesKeywords(skill, keywords)
         }
 
-        Log.d(TAG, "选择相关 Skills: ${relevant.size} 个")
+        Log.d(TAG, "choose相关 Skills: ${relevant.size} 个")
         for (skill in relevant) {
             Log.d(TAG, "  - ${skill.name} (${skill.description})")
         }
@@ -321,12 +321,12 @@ class SkillsLoader(private val context: Context) {
     /**
      * Check if Skill's dependency requirements are met
      */
-    fun checkRequirements(skill: SkillDocument): RequirementsCheckResult {
+    fun checkRequirements(skill: SkillDocument): RequirementsCheckresult {
         val requires = skill.metadata.requires
-            ?: return RequirementsCheckResult.Satisfied
+            ?: return RequirementsCheckresult.Satisfied
 
         if (!requires.hasRequirements()) {
-            return RequirementsCheckResult.Satisfied
+            return RequirementsCheckresult.Satisfied
         }
 
         val missingBins = requires.bins.filter { !isBinaryAvailable(it) }
@@ -341,10 +341,10 @@ class SkillsLoader(private val context: Context) {
         }
 
         if (missingBins.isEmpty() && missingEnv.isEmpty() && missingConfig.isEmpty() && !anyBinsMissing) {
-            return RequirementsCheckResult.Satisfied
+            return RequirementsCheckresult.Satisfied
         }
 
-        return RequirementsCheckResult.Unsatisfied(
+        return RequirementsCheckresult.Unsatisfied(
             missingBins = missingBins,
             missingAnyBins = if (anyBinsMissing) requires.anyBins else emptyList(),
             missingEnv = missingEnv,
@@ -385,7 +385,7 @@ class SkillsLoader(private val context: Context) {
         for (dirPath in extraDirs) {
             val dir = File(dirPath)
             if (!dir.exists() || !dir.isDirectory) {
-                Log.w(TAG, "extraDirs 目录不存在: $dirPath")
+                Log.w(TAG, "extraDirs 目录不Exists: $dirPath")
                 continue
             }
             count += loadSkillsFromDirectory(dir, SkillSource.EXTRA, skills)
@@ -414,11 +414,11 @@ class SkillsLoader(private val context: Context) {
                     skills[skill.name] = skill
                     count++
                 } catch (e: Exception) {
-                    Log.w(TAG, "❌ 加载 Bundled Skill 失败: $dir - ${e.message}")
+                    Log.w(TAG, "❌ Load Bundled Skill Failed: $dir - ${e.message}")
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "扫描 Bundled Skills 失败", e)
+            Log.e(TAG, "扫描 Bundled Skills Failed", e)
         }
 
         return count
@@ -430,7 +430,7 @@ class SkillsLoader(private val context: Context) {
     private fun loadManagedSkills(skills: MutableMap<String, SkillDocument>): Int {
         val managedDir = File(MANAGED_SKILLS_DIR)
         if (!managedDir.exists()) {
-            Log.d(TAG, "Managed Skills 目录不存在: $MANAGED_SKILLS_DIR")
+            Log.d(TAG, "Managed Skills 目录不Exists: $MANAGED_SKILLS_DIR")
             return 0
         }
         return loadSkillsFromDirectory(managedDir, SkillSource.MANAGED, skills)
@@ -476,7 +476,7 @@ class SkillsLoader(private val context: Context) {
                                 skills[skill.name] = skill
                                 count++
 
-                                val action = if (isOverride) "覆盖" else "新增"
+                                val action = if (isOverride) "Override" else "New增"
                                 Log.d(TAG, "✅ Plugin/$pluginName ($action): ${skill.name}")
                             } catch (e: Exception) {
                                 // Not a valid skill dir, skip
@@ -497,7 +497,7 @@ class SkillsLoader(private val context: Context) {
         }
 
         if (count > 0) {
-            Log.i(TAG, "Plugin Skills: $count 个加载完成")
+            Log.i(TAG, "Plugin Skills: $count 个Load complete")
         }
 
         return count
@@ -509,7 +509,7 @@ class SkillsLoader(private val context: Context) {
     private fun loadWorkspaceSkills(skills: MutableMap<String, SkillDocument>): Int {
         val workspaceDir = File(WORKSPACE_SKILLS_DIR)
         if (!workspaceDir.exists()) {
-            Log.d(TAG, "Workspace Skills 目录不存在: $WORKSPACE_SKILLS_DIR")
+            Log.d(TAG, "Workspace Skills 目录不Exists: $WORKSPACE_SKILLS_DIR")
             return 0
         }
         return loadSkillsFromDirectory(workspaceDir, SkillSource.WORKSPACE, skills)
@@ -540,10 +540,10 @@ class SkillsLoader(private val context: Context) {
                 skills[skill.name] = skill
                 count++
 
-                val action = if (isOverride) "覆盖" else "新增"
+                val action = if (isOverride) "Override" else "New增"
                 Log.d(TAG, "✅ ${source.displayName} ($action): ${skill.name}")
             } catch (e: Exception) {
-                Log.w(TAG, "❌ 加载 ${source.displayName} Skill 失败: ${skillDir.name} - ${e.message}")
+                Log.w(TAG, "❌ Load ${source.displayName} Skill Failed: ${skillDir.name} - ${e.message}")
             }
         }
 
@@ -558,75 +558,75 @@ class SkillsLoader(private val context: Context) {
     private fun matchesKeywords(skill: SkillDocument, keywords: String): Boolean {
         val matched = when (skill.name) {
             "app-testing" -> {
-                keywords.contains("测试") || keywords.contains("test") ||
-                keywords.contains("检查") || keywords.contains("验证") ||
-                keywords.contains("功能") || keywords.contains("用例")
+                keywords.contains("Test") || keywords.contains("test") ||
+                keywords.contains("Check") || keywords.contains("Validate") ||
+                keywords.contains("Feature") || keywords.contains("用例")
             }
             "debugging" -> {
-                keywords.contains("调试") || keywords.contains("debug") ||
-                keywords.contains("bug") || keywords.contains("错误") ||
-                keywords.contains("问题") || keywords.contains("异常") ||
+                keywords.contains("Debug") || keywords.contains("debug") ||
+                keywords.contains("bug") || keywords.contains("Error") ||
+                keywords.contains("Issue") || keywords.contains("Exception") ||
                 keywords.contains("崩溃")
             }
             "accessibility" -> {
-                keywords.contains("无障碍") || keywords.contains("accessibility") ||
+                keywords.contains("Accessibility") || keywords.contains("accessibility") ||
                 keywords.contains("wcag") || keywords.contains("适配") ||
                 keywords.contains("可读性") || keywords.contains("对比度")
             }
             "performance" -> {
-                keywords.contains("性能") || keywords.contains("performance") ||
-                keywords.contains("优化") || keywords.contains("卡顿") ||
-                keywords.contains("流畅") || keywords.contains("启动") ||
-                keywords.contains("加载") || keywords.contains("慢")
+                keywords.contains("Performance") || keywords.contains("performance") ||
+                keywords.contains("Optimize") || keywords.contains("卡顿") ||
+                keywords.contains("流畅") || keywords.contains("Start") ||
+                keywords.contains("Load") || keywords.contains("慢")
             }
             "ui-validation" -> {
                 keywords.contains("ui") || keywords.contains("界面") ||
-                keywords.contains("布局") || keywords.contains("显示") ||
+                keywords.contains("布局") || keywords.contains("Show") ||
                 keywords.contains("页面") || keywords.contains("视觉")
             }
             "network-testing" -> {
-                keywords.contains("网络") || keywords.contains("network") ||
+                keywords.contains("Network") || keywords.contains("network") ||
                 keywords.contains("联网") || keywords.contains("在线") ||
                 keywords.contains("离线") || keywords.contains("断网") ||
-                keywords.contains("api") || keywords.contains("请求")
+                keywords.contains("api") || keywords.contains("Request")
             }
             "feishu", "feishu-doc" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("文档") || keywords.contains("doc")
+                keywords.contains("Document") || keywords.contains("doc")
             }
             "feishu-wiki" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("知识库") || keywords.contains("wiki")
+                keywords.contains("Knowledge Base") || keywords.contains("wiki")
             }
             "feishu-drive" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("云空间") || keywords.contains("drive") ||
-                keywords.contains("文件夹") || keywords.contains("云文档")
+                keywords.contains("云Space") || keywords.contains("drive") ||
+                keywords.contains("文件夹") || keywords.contains("云Document")
             }
             "feishu-bitable" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("多维表格") || keywords.contains("bitable") ||
-                keywords.contains("表格")
+                keywords.contains("Multi-dimensional table格") || keywords.contains("bitable") ||
+                keywords.contains("Table")
             }
             "feishu-task" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("任务") || keywords.contains("task") ||
+                keywords.contains("Task") || keywords.contains("task") ||
                 keywords.contains("待办")
             }
             "feishu-chat" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
                 keywords.contains("群聊") || keywords.contains("chat") ||
-                keywords.contains("群组")
+                keywords.contains("Group")
             }
             "feishu-perm" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("权限") || keywords.contains("perm") ||
-                keywords.contains("分享") || keywords.contains("协作")
+                keywords.contains("Permission") || keywords.contains("perm") ||
+                keywords.contains("分享") || keywords.contains("Collaborate")
             }
             "feishu-urgent" -> {
                 keywords.contains("飞书") || keywords.contains("feishu") ||
-                keywords.contains("加急") || keywords.contains("urgent") ||
-                keywords.contains("提醒")
+                keywords.contains("Urgent") || keywords.contains("urgent") ||
+                keywords.contains("Notify")
             }
             else -> false
         }
@@ -651,63 +651,63 @@ class SkillsLoader(private val context: Context) {
         val keywords = userGoal.lowercase()
         val recommendedSkills = mutableListOf<String>()
 
-        if (keywords.contains("测试") || keywords.contains("test") ||
-            keywords.contains("验证") || keywords.contains("检查")) {
+        if (keywords.contains("Test") || keywords.contains("test") ||
+            keywords.contains("Validate") || keywords.contains("Check")) {
             recommendedSkills.add("app-testing")
         }
 
-        if (keywords.contains("调试") || keywords.contains("debug") ||
-            keywords.contains("bug") || keywords.contains("问题") ||
-            keywords.contains("错误") || keywords.contains("崩溃")) {
+        if (keywords.contains("Debug") || keywords.contains("debug") ||
+            keywords.contains("bug") || keywords.contains("Issue") ||
+            keywords.contains("Error") || keywords.contains("崩溃")) {
             recommendedSkills.add("debugging")
         }
 
         if (keywords.contains("界面") || keywords.contains("ui") ||
-            keywords.contains("布局") || keywords.contains("显示") ||
+            keywords.contains("布局") || keywords.contains("Show") ||
             keywords.contains("页面")) {
             recommendedSkills.add("ui-validation")
         }
 
-        if (keywords.contains("性能") || keywords.contains("卡顿") ||
-            keywords.contains("慢") || keywords.contains("优化") ||
-            keywords.contains("启动") || keywords.contains("流畅")) {
+        if (keywords.contains("Performance") || keywords.contains("卡顿") ||
+            keywords.contains("慢") || keywords.contains("Optimize") ||
+            keywords.contains("Start") || keywords.contains("流畅")) {
             recommendedSkills.add("performance")
         }
 
-        if (keywords.contains("无障碍") || keywords.contains("accessibility") ||
+        if (keywords.contains("Accessibility") || keywords.contains("accessibility") ||
             keywords.contains("适配") || keywords.contains("可读性")) {
             recommendedSkills.add("accessibility")
         }
 
-        if (keywords.contains("网络") || keywords.contains("联网") ||
+        if (keywords.contains("Network") || keywords.contains("联网") ||
             keywords.contains("离线") || keywords.contains("断网") ||
             keywords.contains("api")) {
             recommendedSkills.add("network-testing")
         }
 
         if (keywords.contains("飞书") || keywords.contains("feishu")) {
-            if (keywords.contains("文档") || keywords.contains("doc") || keywords.contains("docx")) {
+            if (keywords.contains("Document") || keywords.contains("doc") || keywords.contains("docx")) {
                 recommendedSkills.add("feishu-doc")
             }
-            if (keywords.contains("知识库") || keywords.contains("wiki")) {
+            if (keywords.contains("Knowledge Base") || keywords.contains("wiki")) {
                 recommendedSkills.add("feishu-wiki")
             }
-            if (keywords.contains("表格") || keywords.contains("bitable") || keywords.contains("多维")) {
+            if (keywords.contains("Table") || keywords.contains("bitable") || keywords.contains("多维")) {
                 recommendedSkills.add("feishu-bitable")
             }
-            if (keywords.contains("任务") || keywords.contains("task") || keywords.contains("待办")) {
+            if (keywords.contains("Task") || keywords.contains("task") || keywords.contains("待办")) {
                 recommendedSkills.add("feishu-task")
             }
-            if (keywords.contains("云空间") || keywords.contains("drive") || keywords.contains("文件")) {
+            if (keywords.contains("云Space") || keywords.contains("drive") || keywords.contains("文件")) {
                 recommendedSkills.add("feishu-drive")
             }
-            if (keywords.contains("权限") || keywords.contains("perm") || keywords.contains("分享")) {
+            if (keywords.contains("Permission") || keywords.contains("perm") || keywords.contains("分享")) {
                 recommendedSkills.add("feishu-perm")
             }
             if (keywords.contains("群") || keywords.contains("chat")) {
                 recommendedSkills.add("feishu-chat")
             }
-            if (keywords.contains("加急") || keywords.contains("urgent") || keywords.contains("提醒")) {
+            if (keywords.contains("Urgent") || keywords.contains("urgent") || keywords.contains("Notify")) {
                 recommendedSkills.add("feishu-urgent")
             }
             if (recommendedSkills.none { it.startsWith("feishu-") }) {
@@ -762,28 +762,28 @@ class SkillsLoader(private val context: Context) {
 /**
  * Requirements check result
  */
-sealed class RequirementsCheckResult {
-    object Satisfied : RequirementsCheckResult()
+sealed class RequirementsCheckresult {
+    object Satisfied : RequirementsCheckresult()
 
     data class Unsatisfied(
         val missingBins: List<String>,
         val missingAnyBins: List<String> = emptyList(),
         val missingEnv: List<String>,
         val missingConfig: List<String>
-    ) : RequirementsCheckResult() {
+    ) : RequirementsCheckresult() {
         fun getErrorMessage(): String {
             val parts = mutableListOf<String>()
             if (missingBins.isNotEmpty()) {
-                parts.add("缺少二进制工具: ${missingBins.joinToString()}")
+                parts.add("缺少二Into制工具: ${missingBins.joinToString()}")
             }
             if (missingAnyBins.isNotEmpty()) {
-                parts.add("至少需要一个: ${missingAnyBins.joinToString()}")
+                parts.add("至少Need一个: ${missingAnyBins.joinToString()}")
             }
             if (missingEnv.isNotEmpty()) {
-                parts.add("缺少环境变量: ${missingEnv.joinToString()}")
+                parts.add("缺少EnvironmentVariable: ${missingEnv.joinToString()}")
             }
             if (missingConfig.isNotEmpty()) {
-                parts.add("缺少配置项: ${missingConfig.joinToString()}")
+                parts.add("缺少Config项: ${missingConfig.joinToString()}")
             }
             return parts.joinToString("; ")
         }
@@ -802,8 +802,8 @@ data class SkillsStatistics(
 ) {
     fun getReport(): String {
         return """
-Skills 统计:
-  - 总计: $totalSkills 个
+Skills count:
+  - Total: $totalSkills 个
   - Always: $alwaysSkills 个
   - On-Demand: $onDemandSkills 个
   - Token 总量: $totalTokens tokens

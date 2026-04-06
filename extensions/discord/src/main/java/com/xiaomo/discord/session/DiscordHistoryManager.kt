@@ -10,7 +10,7 @@ import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Discord 历史消息管理
+ * Discord 历史MessageManage
  * 参考 Feishu FeishuHistoryManager.kt
  */
 class DiscordHistoryManager(
@@ -20,11 +20,11 @@ class DiscordHistoryManager(
         private const val TAG = "DiscordHistoryManager"
     }
 
-    // 历史消息存储 (channelId -> List<Message>)
+    // 历史MessageStorage (channelId -> List<Message>)
     private val history = ConcurrentHashMap<String, MutableList<HistoryMessage>>()
 
     /**
-     * 添加消息到历史
+     * AddMessage到历史
      */
     fun addMessage(
         channelId: String,
@@ -36,7 +36,7 @@ class DiscordHistoryManager(
         val messages = history.getOrPut(channelId) { mutableListOf() }
 
         synchronized(messages) {
-            // 添加消息
+            // AddMessage
             messages.add(
                 HistoryMessage(
                     messageId = messageId,
@@ -46,7 +46,7 @@ class DiscordHistoryManager(
                 )
             )
 
-            // 保持历史大小限制
+            // 保持历史SizeLimit
             if (messages.size > maxHistoryPerChannel) {
                 val toRemove = messages.size - maxHistoryPerChannel
                 repeat(toRemove) {
@@ -59,7 +59,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * 获取频道历史
+     * GetChannel历史
      */
     fun getHistory(channelId: String, limit: Int = maxHistoryPerChannel): List<HistoryMessage> {
         val messages = history[channelId] ?: return emptyList()
@@ -70,7 +70,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * 清除频道历史
+     * clearChannel历史
      */
     fun clearHistory(channelId: String) {
         history.remove(channelId)
@@ -78,7 +78,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * 清除所有历史
+     * clearAll历史
      */
     fun clearAll() {
         val count = history.size
@@ -87,7 +87,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * 获取最近的消息
+     * Getmost近的Message
      */
     fun getRecentMessage(channelId: String): HistoryMessage? {
         val messages = history[channelId] ?: return null
@@ -98,7 +98,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * 查找消息
+     * FindMessage
      */
     fun findMessage(channelId: String, messageId: String): HistoryMessage? {
         val messages = history[channelId] ?: return null
@@ -109,7 +109,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * 获取频道消息数量
+     * GetChannelMessage数量
      */
     fun getMessageCount(channelId: String): Int {
         val messages = history[channelId] ?: return 0
@@ -120,7 +120,7 @@ class DiscordHistoryManager(
     }
 
     /**
-     * 列出所有频道
+     * ListAllChannel
      */
     fun listChannels(): List<String> {
         return history.keys.toList()
@@ -128,7 +128,7 @@ class DiscordHistoryManager(
 }
 
 /**
- * 历史消息
+ * 历史Message
  */
 data class HistoryMessage(
     val messageId: String,
@@ -138,14 +138,14 @@ data class HistoryMessage(
     val metadata: MutableMap<String, Any> = mutableMapOf()
 ) {
     /**
-     * 设置元数据
+     * Settings元Data
      */
     fun setMetadata(key: String, value: Any) {
         metadata[key] = value
     }
 
     /**
-     * 获取元数据
+     * Get元Data
      */
     fun <T> getMetadata(key: String): T? {
         @Suppress("UNCHECKED_CAST")

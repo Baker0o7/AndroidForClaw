@@ -79,7 +79,7 @@ class FeishuCommonToolsTest : FeishuToolTestBase() {
 
         val result = getUserTool.execute(emptyMap())
         assertFalse(result.success)
-        assertTrue(result.error!!.contains("无权限"))
+        assertTrue(result.error!!.contains("NonePermission"))
     }
 
     @Test
@@ -88,7 +88,7 @@ class FeishuCommonToolsTest : FeishuToolTestBase() {
 
         val result = getUserTool.execute(mapOf("user_id" to "ou_789"))
         assertFalse(result.success)
-        assertTrue(result.error!!.contains("无权限"))
+        assertTrue(result.error!!.contains("NonePermission"))
     }
 
     // ─── feishu_search_user ──────────────────────────────────

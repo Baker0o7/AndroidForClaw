@@ -7,42 +7,42 @@
 package com.forclaw.browser.control.model
 
 /**
- * 工具执行结果
+ * 工具执Rowresult
  *
- * @property success 是否成功
- * @property data 返回数据
- * @property error 错误信息 (仅当 success = false)
+ * @property success YesNoSuccess
+ * @property data ReturnData
+ * @property error ErrorInfo (仅当 success = false)
  */
-data class ToolResult(
+data class Toolresult(
     val success: Boolean,
     val data: Map<String, Any?> = emptyMap(),
     val error: String? = null
 ) {
     companion object {
         /**
-         * 创建成功结果
+         * CreateSuccessresult
          */
-        fun success(data: Map<String, Any?> = emptyMap()): ToolResult {
-            return ToolResult(success = true, data = data, error = null)
+        fun success(data: Map<String, Any?> = emptyMap()): Toolresult {
+            return Toolresult(success = true, data = data, error = null)
         }
 
         /**
-         * 创建成功结果 (便捷方法)
+         * CreateSuccessresult (便捷Method)
          */
-        fun success(vararg pairs: Pair<String, Any?>): ToolResult {
+        fun success(vararg pairs: Pair<String, Any?>): Toolresult {
             return success(mapOf(*pairs))
         }
 
         /**
-         * 创建错误结果
+         * CreateErrorresult
          */
-        fun error(message: String): ToolResult {
-            return ToolResult(success = false, data = emptyMap(), error = message)
+        fun error(message: String): Toolresult {
+            return Toolresult(success = false, data = emptyMap(), error = message)
         }
     }
 
     /**
-     * 转换为 JSON 字符串 (用于 Broadcast 传输)
+     * Convert为 JSON String (用于 Broadcast 传输)
      */
     fun toJson(): String {
         val dataJson = data.entries.joinToString(",") { (key, value) ->

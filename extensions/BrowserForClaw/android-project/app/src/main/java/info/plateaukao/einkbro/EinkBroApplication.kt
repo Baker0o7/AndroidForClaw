@@ -88,7 +88,7 @@ class EinkBroApplication : Application() {
 
     private fun startBrowserHttpServer() {
         try {
-            // 使用前台服务运行 HTTP Server,确保持续运行
+            // useFront台ServiceRun HTTP Server,Ensure continuous operation
             // 端口 8766 避免与 AndroidForClaw Gateway (8765) 冲突
             info.plateaukao.einkbro.service.BrowserApiService.start(this)
             android.util.Log.i("BrowserHttpServer", "✅ Starting BrowserApiService (foreground service)")
@@ -103,7 +103,7 @@ class EinkBroApplication : Application() {
         }
 
         val filter = AdFilter.create(this)
-        filter.setEnabled(config.adBlock)
+        filter.setEnabledd(config.adBlock)
         if (config.adBlock) {
             GlobalScope.launch {
                 filter.viewModel.workToFilterMap.collect { notifyDownloading(it.isEmpty()) }

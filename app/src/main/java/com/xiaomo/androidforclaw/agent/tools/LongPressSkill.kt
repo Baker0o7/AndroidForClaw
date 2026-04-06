@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -23,7 +23,7 @@ class LongPressSkill : Skill {
     }
 
     override val name = "long_press"
-    override val description = "长按屏幕上的坐标位置。用于触发长按菜单、删除项目等需要长按操作的场景。**注意**: 操作屏幕前使用 get_view_tree() 获取 UI 元素信息即可，不需要再调用 screenshot()。"
+    override val description = "long pressScreenUp的坐标位置. 用于触发long press菜单、DeleteProject等Needlong pressAction的场景. **Note**: ActionScreenFrontuse get_view_tree() Get UI ElementInfothat is可, 不Need再call screenshot(). "
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -36,7 +36,7 @@ class LongPressSkill : Skill {
                     properties = mapOf(
                         "x" to PropertySchema("integer", "X 坐标"),
                         "y" to PropertySchema("integer", "Y 坐标"),
-                        "duration" to PropertySchema("integer", "长按持续时间（毫秒），默认 1000")
+                        "duration" to PropertySchema("integer", "long press持续Time(毫秒), Default 1000")
                     ),
                     required = listOf("x", "y")
                 )
@@ -44,9 +44,9 @@ class LongPressSkill : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         if (!AccessibilityProxy.isConnected.value!!) {
-            return SkillResult.error("Accessibility service not connected")
+            return Skillresult.error("Accessibility service not connected")
         }
 
         val x = (args["x"] as? Number)?.toInt()
@@ -54,7 +54,7 @@ class LongPressSkill : Skill {
         val duration = (args["duration"] as? Number)?.toLong() ?: 1000L
 
         if (x == null || y == null) {
-            return SkillResult.error("Missing required parameters: x, y")
+            return Skillresult.error("Missing required parameters: x, y")
         }
 
         Log.d(TAG, "Long pressing at ($x, $y)")
@@ -66,17 +66,17 @@ class LongPressSkill : Skill {
 
             if (success == null) {
                 Log.e(TAG, "Long press timeout after 3s")
-                return SkillResult.error("Long press operation timeout after 3s. Accessibility service may be unresponsive.")
+                return Skillresult.error("Long press operation timeout after 3s. Accessibility service may be unresponsive.")
             }
 
             if (!success) {
-                return SkillResult.error("Long press operation failed")
+                return Skillresult.error("Long press operation failed")
             }
 
             // Wait for menu popup or response after long press
             kotlinx.coroutines.delay(1000)
 
-            SkillResult.success(
+            Skillresult.success(
                 "Long pressed at ($x, $y)",
                 mapOf(
                     "x" to x,
@@ -85,10 +85,10 @@ class LongPressSkill : Skill {
                 )
             )
         } catch (e: IllegalStateException) {
-            SkillResult.error("Service disconnected: ${e.message}")
+            Skillresult.error("Service disconnected: ${e.message}")
         } catch (e: Exception) {
             Log.e(TAG, "Long press failed", e)
-            SkillResult.error("Long press failed: ${e.message}")
+            Skillresult.error("Long press failed: ${e.message}")
         }
     }
 }

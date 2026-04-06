@@ -10,14 +10,14 @@ import android.util.Log
 import com.xiaomo.discord.DiscordConfig
 
 /**
- * Discord 权限策略管理
+ * Discord PermissionPolicyManage
  * 参考:
  * - OpenClaw Discord security.resolveDmPolicy
  * - Feishu FeishuPolicy.kt
  *
- * 支持:
- * - DM (私聊) 策略: open, pairing, allowlist, denylist
- * - Guild (服务器) 策略: open, allowlist, denylist
+ * Support:
+ * - DM (私聊) Policy: open, pairing, allowlist, denylist
+ * - Guild (Service器) Policy: open, allowlist, denylist
  * - Channel 白名单
  * - 提及要求 (requireMention)
  */
@@ -25,26 +25,26 @@ object DiscordPolicy {
     private const val TAG = "DiscordPolicy"
 
     /**
-     * DM 策略类型
+     * DM PolicyType
      */
     enum class DmPolicyType {
-        OPEN,       // 接受所有 DM
-        PAIRING,    // 需要配对/审批
+        OPEN,       // acceptAll DM
+        PAIRING,    // Need配对/审批
         ALLOWLIST,  // 仅允许白名单
-        DENYLIST    // 拒绝黑名单
+        DENYLIST    // deny黑名单
     }
 
     /**
-     * 群组策略类型
+     * GroupPolicyType
      */
     enum class GroupPolicyType {
-        OPEN,       // 接受所有群组消息 (需提及)
-        ALLOWLIST,  // 仅允许白名单群组/频道
-        DENYLIST    // 拒绝黑名单群组/频道
+        OPEN,       // acceptAllGroupMessage (需提及)
+        ALLOWLIST,  // 仅允许白名单Group/Channel
+        DENYLIST    // deny黑名单Group/Channel
     }
 
     /**
-     * 解析 DM 策略
+     * Parse DM Policy
      */
     fun resolveDmPolicy(config: DiscordConfig): DmPolicy {
         val policyStr = config.dm?.policy ?: "pairing"
@@ -66,7 +66,7 @@ object DiscordPolicy {
     }
 
     /**
-     * 解析群组策略
+     * ParseGroupPolicy
      */
     fun resolveGroupPolicy(config: DiscordConfig): GroupPolicy {
         val policyStr = config.groupPolicy ?: "open"
@@ -87,7 +87,7 @@ object DiscordPolicy {
     }
 
     /**
-     * 检查 DM 是否被允许
+     * Check DM YesNo被允许
      */
     fun isDmAllowed(policy: DmPolicy, userId: String): Boolean {
         return when (policy.type) {
@@ -99,7 +99,7 @@ object DiscordPolicy {
     }
 
     /**
-     * 检查 Guild 消息是否被允许
+     * Check Guild MessageYesNo被允许
      */
     fun isGuildMessageAllowed(
         policy: GroupPolicy,
@@ -111,12 +111,12 @@ object DiscordPolicy {
 
         return when (policy.type) {
             GroupPolicyType.OPEN -> {
-                // Open 模式：需要提及
+                // Open Schema: Need提及
                 if (!botMentioned && guildConfig?.requireMention != false) {
                     return false
                 }
 
-                // 检查频道白名单 (如果配置了)
+                // CheckChannel白名单 (ifConfig了)
                 val allowedChannels = guildConfig?.channels
                 if (allowedChannels != null && channelId !in allowedChannels) {
                     return false
@@ -126,18 +126,18 @@ object DiscordPolicy {
             }
 
             GroupPolicyType.ALLOWLIST -> {
-                // Allowlist 模式：必须在白名单中
+                // Allowlist Schema: Must在白名单中
                 if (guildConfig == null) {
                     return false
                 }
 
-                // 检查频道白名单
+                // CheckChannel白名单
                 val allowedChannels = guildConfig.channels
                 if (allowedChannels != null && channelId !in allowedChannels) {
                     return false
                 }
 
-                // 检查提及要求
+                // Check提及要求
                 if (!botMentioned && guildConfig.requireMention != false) {
                     return false
                 }
@@ -146,7 +146,7 @@ object DiscordPolicy {
             }
 
             GroupPolicyType.DENYLIST -> {
-                // Denylist 模式：不在黑名单中
+                // Denylist Schema: 不在黑名单中
                 if (guildConfig != null) {
                     val deniedChannels = guildConfig.channels
                     if (deniedChannels != null && channelId in deniedChannels) {
@@ -154,7 +154,7 @@ object DiscordPolicy {
                     }
                 }
 
-                // 检查提及要求
+                // Check提及要求
                 if (!botMentioned && guildConfig?.requireMention != false) {
                     return false
                 }
@@ -165,21 +165,21 @@ object DiscordPolicy {
     }
 
     /**
-     * 解析 Guild 的提及要求
+     * Parse Guild 的提及要求
      */
     fun resolveRequireMention(config: DiscordConfig, guildId: String): Boolean {
         return config.guilds?.get(guildId)?.requireMention ?: true
     }
 
     /**
-     * 解析 Guild 的工具策略
+     * Parse Guild 的工具Policy
      */
     fun resolveToolPolicy(config: DiscordConfig, guildId: String): String {
         return config.guilds?.get(guildId)?.toolPolicy ?: "default"
     }
 
     /**
-     * DM 策略
+     * DM Policy
      */
     data class DmPolicy(
         val type: DmPolicyType,
@@ -187,7 +187,7 @@ object DiscordPolicy {
     )
 
     /**
-     * 群组策略
+     * GroupPolicy
      */
     data class GroupPolicy(
         val type: GroupPolicyType,

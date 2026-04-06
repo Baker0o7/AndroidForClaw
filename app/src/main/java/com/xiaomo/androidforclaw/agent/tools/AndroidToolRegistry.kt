@@ -58,7 +58,7 @@ class AndroidToolRegistry(
         // Replaces: screenshot, get_view_tree, tap, swipe, type, long_press, home, back, open_app, wait
         register(DeviceToolSkillAdapter(context))
 
-        // === Android System API (直接调用系统 API，替代 UI 自动化) ===
+        // === Android System API (directly call system API, replace UI Automation) ===
         register(AndroidApiSkill(context))
 
         // === App management tools ===
@@ -73,7 +73,7 @@ class AndroidToolRegistry(
         // === Feishu image (kept as direct tool — media upload needs special handling) ===
         register(FeishuSendImageSkill(context))
 
-        // === Eye (对齐 OpenClaw camera — 手机摄像头作为 Agent 的眼睛) ===
+        // === Eye (Aligned with OpenClaw camera — Phone cameraLike头作为 Agent eyes) ===
         if (cameraCaptureManager != null) {
             register(EyeSkill(context, cameraCaptureManager))
         } else {
@@ -115,11 +115,11 @@ class AndroidToolRegistry(
     /**
      * Execute tool
      */
-    suspend fun execute(name: String, args: Map<String, Any?>): SkillResult {
+    suspend fun execute(name: String, args: Map<String, Any?>): Skillresult {
         val tool = tools[name]
         if (tool == null) {
             Log.e(TAG, "Unknown Android tool: $name")
-            return SkillResult.error("Unknown Android tool: $name")
+            return Skillresult.error("Unknown Android tool: $name")
         }
 
         Log.d(TAG, "Executing Android tool: $name with args: $args")
@@ -127,7 +127,7 @@ class AndroidToolRegistry(
             tool.execute(args)
         } catch (e: Exception) {
             Log.e(TAG, "Android tool execution failed: $name", e)
-            SkillResult.error("Execution failed: ${e.message}")
+            Skillresult.error("Execution failed: ${e.message}")
         }
     }
 
@@ -145,7 +145,7 @@ class AndroidToolRegistry(
         return buildString {
             appendLine("## Android Platform Tools")
             appendLine()
-            appendLine("Android 设备专属能力,通过 AccessibilityService 和系统 API 提供：")
+            appendLine("Android Device专属Capability,通过 AccessibilityService 和系统 API 提供: ")
             appendLine()
 
             // Organize by category
@@ -153,7 +153,7 @@ class AndroidToolRegistry(
                 "观察" to listOf("screenshot", "get_view_tree"),
                 "交互" to listOf("tap", "swipe", "type", "long_press"),
                 "导航" to listOf("home", "back", "open_app"),
-                "应用管理" to listOf("list_installed_apps", "install_app", "start_activity"),
+                "applyManage" to listOf("list_installed_apps", "install_app", "start_activity"),
                 "控制" to listOf("wait", "stop", "log"),
                 "浏览器" to listOf("browser")
             )

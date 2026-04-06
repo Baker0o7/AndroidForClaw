@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -34,7 +34,7 @@ class WaitSkill : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "seconds" to PropertySchema("number", "等待的秒数")
+                        "seconds" to PropertySchema("number", "Wait的秒数")
                     ),
                     required = listOf("seconds")
                 )
@@ -42,21 +42,21 @@ class WaitSkill : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val seconds = (args["seconds"] as? Number)?.toDouble()
 
         if (seconds == null) {
-            return SkillResult.error("Missing required parameter: seconds")
+            return Skillresult.error("Missing required parameter: seconds")
         }
 
         val milliseconds = (seconds * 1000).toLong()
         Log.d(TAG, "Waiting for $seconds seconds")
         return try {
             delay(milliseconds)
-            SkillResult.success("Waited for $seconds seconds")
+            Skillresult.success("Waited for $seconds seconds")
         } catch (e: Exception) {
             Log.e(TAG, "Wait failed", e)
-            SkillResult.error("Wait failed: ${e.message}")
+            Skillresult.error("Wait failed: ${e.message}")
         }
     }
 }

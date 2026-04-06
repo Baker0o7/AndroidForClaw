@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - src/agents/tools/browser-tool.ts (架构对齐：DeviceTool 对应 browser-tool)
+ * - src/agents/tools/browser-tool.ts (架构对齐: DeviceTool 对应 browser-tool)
  *
  * Adapter: wraps DeviceTool (Tool interface) as a Skill for AndroidToolRegistry.
  */
@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 import android.content.Context
 import com.xiaomo.androidforclaw.agent.tools.Skill
-import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import com.xiaomo.androidforclaw.agent.tools.Skillresult
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 class DeviceToolSkillAdapter(context: Context) : Skill {
@@ -19,12 +19,12 @@ class DeviceToolSkillAdapter(context: Context) : Skill {
 
     override fun getToolDefinition(): ToolDefinition = deviceTool.getToolDefinition()
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val result = deviceTool.execute(args)
         return if (result.success) {
-            SkillResult.success(result.content)
+            Skillresult.success(result.content)
         } else {
-            SkillResult.error(result.content)
+            Skillresult.error(result.content)
         }
     }
 }

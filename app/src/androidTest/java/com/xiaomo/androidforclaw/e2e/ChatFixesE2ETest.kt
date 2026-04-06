@@ -24,21 +24,21 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Chat 功能修复 E2E 测试
+ * Chat FeatureFix E2E Test
  *
- * 验证 6 个 Bug 修复:
- *   Bug 1+3 — 聊天历史持久化 (SessionManager 替代内存 ConcurrentHashMap)
- *   Bug 2   — sessions.list 返回 Long 类型 updatedAt + displayName 字段
- *   Bug 4   — chat.abort 真实取消协程
- *   Bug 5   — thinking 参数透传 (非 off → reasoningEnabled=true)
+ * Validate 6 个 Bug Fix:
+ *   Bug 1+3 — Chat历史Persistent化 (SessionManager 替代Memory ConcurrentHashMap)
+ *   Bug 2   — sessions.list Return Long Type updatedAt + displayName Field
+ *   Bug 4   — chat.abort RealCancel协程
+ *   Bug 5   — thinking Parameters透传 (非 off → reasoningEnabledd=true)
  *   Bug 6   — attachments 透传并存入 chat.history
  *
- * 测试方式: 直接通过 WebSocket 连接 Gateway (ws://localhost:8765)，
- * 调真实 RPC，验证服务端行为，不依赖 UI 点击。
+ * Test方式: 直接通过 WebSocket Connect Gateway (ws://localhost:8765), 
+ * 调Real RPC, ValidateService端Behavior, 不Dependency UI 点击. 
  *
- * 前提: 设备已配置有效 API Key (openclaw.json)
+ * Front提: Device已ConfigValid API Key (openclaw.json)
  *
- * 运行单个:
+ * RunSingle:
  *   ./gradlew :app:connectedDebugAndroidTest \
  *     -Pandroid.testInstrumentationRunnerArguments.class=com.xiaomo.androidforclaw.e2e.ChatFixesE2ETest
  */
@@ -226,8 +226,8 @@ class ChatFixesE2ETest {
     // ── Bug 2: sessions.list 格式 ─────────────────────────────────────────
 
     /**
-     * Bug 2: sessions.list 应返回数字类型的 updatedAt (Long, epoch ms)，
-     * 不应是 ISO-8601 字符串。客户端用 asLongOrNull() 解析，字符串会得到 null。
+     * Bug 2: sessions.list 应ReturnNumberType的 updatedAt (Long, epoch ms), 
+     * 不应Yes ISO-8601 String. Client用 asLongOrNull() Parse, String会得到 null. 
      */
     @Test
     fun test01_sessionsList_updatedAt_isNumeric() {
@@ -282,11 +282,11 @@ class ChatFixesE2ETest {
         }
     }
 
-    // ── Bug 1 + 3: 持久化 & 统一存储 ──────────────────────────────────────
+    // ── Bug 1 + 3: Persistent化 & 统一Storage ──────────────────────────────────────
 
     /**
-     * Bug 1+3: chat.send 应通过 SessionManager 保存消息；
-     * chat.history 应能取回完整的 user + assistant 消息。
+     * Bug 1+3: chat.send 应通过 SessionManager SaveMessage；
+     * chat.history 应能取回完整的 user + assistant Message. 
      */
     @Test
     fun test02_chatHistory_containsUserAndAssistant() {
@@ -339,8 +339,8 @@ class ChatFixesE2ETest {
     }
 
     /**
-     * Bug 1 (持久化验证): chat.send 后 sessions.list 应包含该 session
-     * 且 messageCount > 0，证明 SessionManager.save() 被调用。
+     * Bug 1 (Persistent化Validate): chat.send Back sessions.list 应Contains该 session
+     * 且 messageCount > 0, 证明 SessionManager.save() 被调用. 
      */
     @Test
     fun test03_chatSend_sessionAppearsInSessionsList() {
@@ -380,8 +380,8 @@ class ChatFixesE2ETest {
     // ── Bug 4: chat.abort ─────────────────────────────────────────────────
 
     /**
-     * Bug 4: chat.abort 应返回 aborted=true 并取消协程。
-     * 我们验证 abort RPC 本身成功，同时确认对应的 Job 被从 activeJobs 移除。
+     * Bug 4: chat.abort 应Return aborted=true 并Cancel协程. 
+     * 我们Validate abort RPC 本身Success, 同时Confirm对应的 Job 被从 activeJobs 移除. 
      */
     @Test
     fun test04_chatAbort_returnsAbortedTrue() {
@@ -438,7 +438,7 @@ class ChatFixesE2ETest {
     // ── Bug 5: thinking 透传 ──────────────────────────────────────────────
 
     /**
-     * Bug 5: thinking="high" 应设置 reasoningEnabled=true，不崩溃，能正常返回响应。
+     * Bug 5: thinking="high" 应Settings reasoningEnabledd=true, 不崩溃, 能正常ReturnResponse. 
      */
     @Test
     fun test05_thinkingHigh_doesNotCrash() {
@@ -477,8 +477,8 @@ class ChatFixesE2ETest {
     // ── Bug 6: attachments 透传 ───────────────────────────────────────────
 
     /**
-     * Bug 6: 带附件的 chat.send 应把附件包含在 chat.history 的 user message content 中。
-     * content 应有 ≥ 2 个 block：一个 text + 一个 image/attachment block。
+     * Bug 6: 带附件的 chat.send 应把附件Contains在 chat.history 的 user message content 中. 
+     * content 应Has ≥ 2 个 block: 一个 text + 一个 image/attachment block. 
      */
     @Test
     fun test06_attachments_storedInChatHistory() {

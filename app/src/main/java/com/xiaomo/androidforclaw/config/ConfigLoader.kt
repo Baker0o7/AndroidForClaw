@@ -17,10 +17,10 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * 配置加载器 - 对齐 OpenClaw 的配置加载逻辑（全局单例）
+ * ConfigLoad器 - Aligned with OpenClaw 的ConfigLoad逻辑(Global单例)
  *
- * 使用 org.json.JSONObject 解析，缺失字段自动用 data class 默认值。
- * 用户 config 只需写想覆盖的字段，其他全用默认值。
+ * use org.json.JSONObject Parse, 缺失FieldAuto用 data class DefaultValue. 
+ * User config 只需写thinkOverride的Field, Its他全用DefaultValue. 
  */
 class ConfigLoader private constructor() {
 
@@ -64,15 +64,15 @@ class ConfigLoader private constructor() {
 
     // Hot reload support
     private var fileObserver: FileObserver? = null
-    private var hotReloadEnabled = false
+    private var hotReloadEnableddd = false
     private var reloadCallback: ((OpenClawConfig) -> Unit)? = null
 
     init {
-        Log.d(TAG, "配置目录: ${configDir.absolutePath}")
+        Log.d(TAG, "Config目录: ${configDir.absolutePath}")
     }
 
     /**
-     * 加载 OpenClaw 主配置（带自动备份和恢复）
+     * Load OpenClaw 主Config(带AutoBackup和Resume)
      */
     fun loadOpenClawConfig(): OpenClawConfig {
         if (openclawConfigCacheValid && cachedOpenClawConfig != null) {
@@ -89,7 +89,7 @@ class ConfigLoader private constructor() {
             openclawConfigCacheValid = true
             return config
         } else {
-            Log.w(TAG, "使用默认配置")
+            Log.w(TAG, "useDefaultConfig")
             val defaultConfig = OpenClawConfig()
             cachedOpenClawConfig = defaultConfig
             openclawConfigCacheValid = true
@@ -101,7 +101,7 @@ class ConfigLoader private constructor() {
         ensureConfigDir()
 
         if (!openclawConfigFile.exists()) {
-            Log.i(TAG, "配置文件不存在，创建默认配置: ${openclawConfigFile.absolutePath}")
+            Log.i(TAG, "Config文件不Exists, CreateDefaultConfig: ${openclawConfigFile.absolutePath}")
             createDefaultConfig()
         }
 
@@ -125,7 +125,7 @@ class ConfigLoader private constructor() {
         val migrated = migrateProviderIds(config)
         validateConfig(migrated)
 
-        Log.i(TAG, "✅ 配置加载成功")
+        Log.i(TAG, "✅ Config loaded successfully")
         return migrated
     }
 
@@ -140,14 +140,14 @@ class ConfigLoader private constructor() {
     }
 
     /**
-     * 迁移旧的 provider ID 到新 ID（对齐 OpenClaw 官方命名）
+     * MigrateOld的 provider ID 到New ID(Aligned with OpenClaw 官方命名)
      * "mimo" → "xiaomi"
      */
     private fun migrateProviderIds(config: OpenClawConfig): OpenClawConfig {
         val providers = config.models?.providers ?: return config
         if (!providers.containsKey("mimo")) return config
 
-        Log.i(TAG, "🔄 迁移 provider ID: mimo → xiaomi")
+        Log.i(TAG, "🔄 Migrate provider ID: mimo → xiaomi")
         val migrated = providers.toMutableMap()
         val mimoProvider = migrated.remove("mimo")!!
         migrated["xiaomi"] = mimoProvider
@@ -188,18 +188,18 @@ class ConfigLoader private constructor() {
                 }
 
                 writeJsonToFile(openclawConfigFile, root)
-                Log.i(TAG, "✅ provider ID 迁移已持久化")
+                Log.i(TAG, "✅ provider ID Migrate已Persistent化")
             }
         } catch (e: Exception) {
-            Log.w(TAG, "⚠️ provider ID 迁移持久化失败: ${e.message}")
+            Log.w(TAG, "⚠️ provider ID MigratePersistent化Failed: ${e.message}")
         }
 
         return migratedConfig
     }
 
     /**
-     * 从 JSON 字符串解析完整配置
-     * 所有缺失字段都用 data class 的默认值
+     * 从 JSON StringParse完整Config
+     * All缺失Field都用 data class 的DefaultValue
      */
     private fun parseConfig(json: String): OpenClawConfig {
         val root = JSONObject(json)
@@ -216,13 +216,13 @@ class ConfigLoader private constructor() {
         val agentJson = root.optJSONObject("agent")
         val agent = agentJson?.let { parseAgentConfig(it) } ?: AgentConfig()
 
-        // Channels（对齐 OpenClaw: channels.feishu / channels.discord）
+        // Channels(Aligned with OpenClaw: channels.feishu / channels.discord)
         val channelsJson = root.optJSONObject("channels")
-        // 兼容旧格式：如果 channels 没有 feishu，fallback 到 gateway.feishu
+        // 兼容Old格式: if channels None feishu, fallback 到 gateway.feishu
         val gatewayJson = root.optJSONObject("gateway")
         val channels = parseChannelsConfig(channelsJson, gatewayJson)
 
-        // Gateway（对齐 OpenClaw: 只有 port/mode/bind/auth）
+        // Gateway(Aligned with OpenClaw: 只Has port/mode/bind/auth)
         val gateway = gatewayJson?.let { parseGatewayConfig(it) } ?: GatewayConfig()
 
         // Skills
@@ -371,8 +371,8 @@ class ConfigLoader private constructor() {
                 supportsReasoningEffort = if (c.has("supportsReasoningEffort")) c.optBoolean("supportsReasoningEffort") else null,
                 maxTokensField = if (c.has("maxTokensField")) c.optString("maxTokensField") else null,
                 thinkingFormat = if (c.has("thinkingFormat")) c.optString("thinkingFormat") else null,
-                requiresToolResultName = if (c.has("requiresToolResultName")) c.optBoolean("requiresToolResultName") else null,
-                requiresAssistantAfterToolResult = if (c.has("requiresAssistantAfterToolResult")) c.optBoolean("requiresAssistantAfterToolResult") else null,
+                requiresToolresultName = if (c.has("requiresToolresultName")) c.optBoolean("requiresToolresultName") else null,
+                requiresAssistantAfterToolresult = if (c.has("requiresAssistantAfterToolresult")) c.optBoolean("requiresAssistantAfterToolresult") else null,
                 toolSchemaProfile = if (c.has("toolSchemaProfile")) c.optString("toolSchemaProfile") else null,
                 nativeWebSearchTool = if (c.has("nativeWebSearchTool")) c.optBoolean("nativeWebSearchTool") else null,
                 toolCallArgumentsEncoding = if (c.has("toolCallArgumentsEncoding")) c.optString("toolCallArgumentsEncoding") else null,
@@ -460,8 +460,8 @@ class ConfigLoader private constructor() {
     }
 
     /**
-     * 解析 channels 配置（对齐 OpenClaw: channels.feishu）
-     * 兼容旧格式：如果 channels.feishu 不存在，fallback 到 gateway.feishu
+     * Parse channels Config(Aligned with OpenClaw: channels.feishu)
+     * 兼容Old格式: if channels.feishu 不Exists, fallback 到 gateway.feishu
      */
     private fun parseChannelsConfig(channelsJson: JSONObject?, gatewayJson: JSONObject?): ChannelsConfig {
         val feishuJson = channelsJson?.optJSONObject("feishu")
@@ -492,7 +492,7 @@ class ConfigLoader private constructor() {
     }
 
     /**
-     * 解析 gateway（对齐 OpenClaw: 只有 port/mode/bind/auth）
+     * Parse gateway(Aligned with OpenClaw: 只Has port/mode/bind/auth)
      */
     private fun parseGatewayConfig(json: JSONObject): GatewayConfig {
         val authJson = json.optJSONObject("auth")
@@ -512,7 +512,7 @@ class ConfigLoader private constructor() {
     }
 
     private fun parseFeishuConfig(json: JSONObject): FeishuChannelConfig {
-        // tools 子配置（对齐 OpenClaw FeishuToolsConfigSchema）
+        // tools 子Config(Aligned with OpenClaw FeishuToolsConfigSchema)
         val toolsJson = json.optJSONObject("tools")
         val tools = toolsJson?.let {
             FeishuToolsConfig(
@@ -528,7 +528,7 @@ class ConfigLoader private constructor() {
             )
         } ?: FeishuToolsConfig()
 
-        // 多账号
+        // 多Account
         val accountsJson = json.optJSONObject("accounts")
         val accounts = accountsJson?.let { a ->
             val map = mutableMapOf<String, FeishuAccountConfig>()
@@ -669,7 +669,7 @@ class ConfigLoader private constructor() {
     }
 
     private fun parseSlackConfig(json: JSONObject): SlackChannelConfig {
-        // 兼容旧字段 token → botToken
+        // 兼容OldField token → botToken
         val botToken = json.optString("botToken", "").ifEmpty { json.optString("token", "") }
         return SlackChannelConfig(
             enabled = json.optBoolean("enabled", false),
@@ -687,7 +687,7 @@ class ConfigLoader private constructor() {
     }
 
     private fun parseTelegramConfig(json: JSONObject): TelegramChannelConfig {
-        // 兼容旧字段 token → botToken
+        // 兼容OldField token → botToken
         val botToken = json.optString("botToken", "").ifEmpty { json.optString("token", "") }
         return TelegramChannelConfig(
             enabled = json.optBoolean("enabled", false),
@@ -715,7 +715,7 @@ class ConfigLoader private constructor() {
     }
 
     private fun parseSignalConfig(json: JSONObject): SignalChannelConfig {
-        // 兼容 OpenClaw account 字段 → phoneNumber
+        // 兼容 OpenClaw account Field → phoneNumber
         val phoneNumber = json.optString("phoneNumber", "").ifEmpty { json.optString("account", "") }
         return SignalChannelConfig(
             enabled = json.optBoolean("enabled", false),
@@ -867,8 +867,8 @@ class ConfigLoader private constructor() {
     }
 
     /**
-     * 强制从磁盘读取配置，忽略缓存。
-     * 用于 LLM 请求路径，确保获取最新配置（避免跨 ConfigLoader 实例的缓存不一致）。
+     * 强制从DiskReadConfig, IgnoreCache. 
+     * 用于 LLM RequestPath, EnsureGetmostNewConfig(避免跨 ConfigLoader Instance的Cache不一致). 
      */
     fun loadOpenClawConfigFresh(): OpenClawConfig {
         openclawConfigCacheValid = false
@@ -876,7 +876,7 @@ class ConfigLoader private constructor() {
     }
 
     /**
-     * 保存配置 - 用 JSONObject 序列化（不依赖 Gson）
+     * SaveConfig - 用 JSONObject Serialize(不Dependency Gson)
      */
     fun saveOpenClawConfig(config: OpenClawConfig): Boolean {
         return try {
@@ -890,17 +890,17 @@ class ConfigLoader private constructor() {
             mergeConfigToJson(existingJson, config)
 
             writeJsonToFile(openclawConfigFile, existingJson)
-            Log.i(TAG, "✅ 配置保存成功")
+            Log.i(TAG, "✅ ConfigSaveSuccess")
             openclawConfigCacheValid = false
             true
         } catch (e: Exception) {
-            Log.e(TAG, "❌ 配置保存失败: ${e.message}", e)
+            Log.e(TAG, "❌ ConfigSaveFailed: ${e.message}", e)
             false
         }
     }
 
     /**
-     * 将 config 对象的关键字段写入 JSONObject（保留文件中其他字段）
+     * 将 config Object的关KeyFieldWrite JSONObject(保留文件中Its他Field)
      */
     private fun mergeConfigToJson(root: JSONObject, config: OpenClawConfig) {
         // Models + providers
@@ -951,7 +951,7 @@ class ConfigLoader private constructor() {
         agentObj.put("maxIterations", config.agent.maxIterations)
         root.put("agent", agentObj)
 
-        // Channels (对齐 OpenClaw: channels.feishu)
+        // Channels (Aligned with OpenClaw: channels.feishu)
         val channelsObj = root.optJSONObject("channels") ?: JSONObject()
         val feishu = config.channels.feishu
         val feishuObj = JSONObject()
@@ -1031,7 +1031,7 @@ class ConfigLoader private constructor() {
         config.channels.signal?.let { signal ->
             val obj = channelsObj.optJSONObject("signal") ?: JSONObject()
             obj.put("enabled", signal.enabled)
-            // OpenClaw 使用 account 字段存手机号
+            // OpenClaw use account Field存手机号
             obj.put("account", signal.phoneNumber)
             obj.put("phoneNumber", signal.phoneNumber)
             signal.httpUrl?.let { obj.put("httpUrl", it) }
@@ -1056,37 +1056,37 @@ class ConfigLoader private constructor() {
 
         root.put("channels", channelsObj)
 
-        // Gateway (对齐 OpenClaw: 只有 port/mode/bind/auth)
+        // Gateway (Aligned with OpenClaw: 只Has port/mode/bind/auth)
         val gwObj = root.optJSONObject("gateway") ?: JSONObject()
         gwObj.put("port", config.gateway.port)
         root.put("gateway", gwObj)
     }
 
     fun reloadOpenClawConfig(): OpenClawConfig {
-        Log.i(TAG, "重新加载配置...")
+        Log.i(TAG, "重NewLoadConfig...")
         openclawConfigCacheValid = false
         return loadOpenClawConfig()
     }
 
     fun enableHotReload(callback: ((OpenClawConfig) -> Unit)? = null) {
-        if (hotReloadEnabled) return
+        if (hotReloadEnableddd) return
         this.reloadCallback = callback
         try {
             ensureConfigDir()
             fileObserver = object : FileObserver(configDir, MODIFY or CREATE or DELETE) {
                 override fun onEvent(event: Int, path: String?) {
                     if (path == OPENCLAW_CONFIG_FILE) {
-                        Log.i(TAG, "检测到配置文件变化")
+                        Log.i(TAG, "DetectedConfig文件变化")
                         val newConfig = reloadOpenClawConfig()
                         reloadCallback?.invoke(newConfig)
                     }
                 }
             }
             fileObserver?.startWatching()
-            hotReloadEnabled = true
-            Log.i(TAG, "✅ 配置热重载已启用")
+            hotReloadEnableddd = true
+            Log.i(TAG, "✅ Config热Overload已Enabledd")
         } catch (e: Exception) {
-            Log.e(TAG, "启用热重载失败", e)
+            Log.e(TAG, "Enabledd热OverloadFailed", e)
         }
     }
 
@@ -1094,10 +1094,10 @@ class ConfigLoader private constructor() {
         fileObserver?.stopWatching()
         fileObserver = null
         reloadCallback = null
-        hotReloadEnabled = false
+        hotReloadEnableddd = false
     }
 
-    fun isHotReloadEnabled(): Boolean = hotReloadEnabled
+    fun isHotReloadEnableddd(): Boolean = hotReloadEnableddd
 
     fun getFeishuConfig(): com.xiaomo.feishu.FeishuConfig {
         return FeishuConfigAdapter.toFeishuConfig(loadOpenClawConfig().channels.feishu)
@@ -1106,7 +1106,7 @@ class ConfigLoader private constructor() {
     // ============ Private Helpers ============
 
     /**
-     * 写 JSON 到文件，统一 UTF-8 编码并去掉多余的 \/ 转义
+     * 写 JSON 到文件, 统一 UTF-8 Encode并去掉多余的 \/ 转义
      */
     private fun writeJsonToFile(file: File, json: JSONObject, indent: Int = 4) {
         val text = json.toString(indent).replace("\\/", "/")
@@ -1122,15 +1122,15 @@ class ConfigLoader private constructor() {
             val defaultConfig = context.assets.open("openclaw.json.default.txt")
                 .bufferedReader().use { it.readText() }
             openclawConfigFile.writeText(defaultConfig, Charsets.UTF_8)
-            Log.i(TAG, "✅ 创建默认配置: ${openclawConfigFile.absolutePath}")
+            Log.i(TAG, "✅ CreateDefaultConfig: ${openclawConfigFile.absolutePath}")
         } catch (e: Exception) {
-            Log.e(TAG, "创建默认配置失败", e)
+            Log.e(TAG, "CreateDefaultConfigFailed", e)
             throw e
         }
     }
 
     /**
-     * 已知环境变量名 → Provider ID 映射
+     * 已知EnvironmentVariable名 → Provider ID Map
      * 来源: OpenClaw PROVIDER_ENV_API_KEY_CANDIDATES
      */
     private val ENV_VAR_TO_PROVIDER = mapOf(
@@ -1171,15 +1171,15 @@ class ConfigLoader private constructor() {
                 }
                 if (builtInValue != null) {
                     result = result.replace("\${$varName}", builtInValue)
-                    Log.i(TAG, "🔑 使用内置 Key 替换: \${$varName}")
+                    Log.i(TAG, "🔑 useInside置 Key Replace: \${$varName}")
                 } else {
                     val providerId = ENV_VAR_TO_PROVIDER[varName]
                     if (providerId != null) {
                         unresolvedKnown.add(varName)
-                        Log.w(TAG, "⚠️ 环境变量 \${$varName} (provider: $providerId) 未设置。" +
-                            "请在配置中直接填入 API Key。")
+                        Log.w(TAG, "⚠️ EnvironmentVariable \${$varName} (provider: $providerId) 未Settings. " +
+                            "请在Config中直接填入 API Key. ")
                     } else {
-                        Log.w(TAG, "⚠️ 未知环境变量: \${$varName}")
+                        Log.w(TAG, "⚠️ UnknownEnvironmentVariable: \${$varName}")
                     }
                 }
             }
@@ -1206,17 +1206,17 @@ class ConfigLoader private constructor() {
     }
 
     /**
-     * 精简验证 — 只检查关键字段
+     * 精简Validate — 只Check关KeyField
      */
     private fun validateConfig(config: OpenClawConfig) {
         // Validate feishu if enabled
         val feishu = config.channels.feishu
         if (feishu.enabled) {
             require(feishu.appId.isNotBlank() && !feishu.appId.startsWith("\${")) {
-                "Feishu 已启用但 appId 未配置"
+                "Feishu 已Enabledd但 appId Not configured"
             }
             require(feishu.appSecret.isNotBlank() && !feishu.appSecret.startsWith("\${")) {
-                "Feishu 已启用但 appSecret 未配置"
+                "Feishu 已Enabledd但 appSecret Not configured"
             }
         }
 
@@ -1227,11 +1227,11 @@ class ConfigLoader private constructor() {
             }
             val def = ProviderRegistry.findById(name)
             if (def?.keyRequired == true && provider.apiKey.isNullOrBlank()) {
-                Log.w(TAG, "⚠️ Provider '${def.name}' 需要 API Key 但未配置。" +
-                    "请在设置中填入 API Key，否则请求会返回 401。")
+                Log.w(TAG, "⚠️ Provider '${def.name}' Need API Key 但Not configured. " +
+                    "请在Settings中填入 API Key, No则Request会Return 401. ")
             }
         }
 
-        Log.i(TAG, "✅ 配置验证通过")
+        Log.i(TAG, "✅ ConfigValidate通过")
     }
 }

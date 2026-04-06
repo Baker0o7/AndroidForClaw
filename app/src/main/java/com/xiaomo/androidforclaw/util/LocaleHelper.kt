@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -11,19 +11,19 @@ import android.os.LocaleList
 import java.util.Locale
 
 /**
- * 语言管理工具类
+ * 语言Manage工具Class
  *
- * 支持动态切换应用语言（中文/英文）
+ * SupportDynamicswitchapply语言(中文/英文)
  *
- * 使用示例：
+ * use示例: 
  * ```kotlin
- * // 切换到中文
+ * // switch到中文
  * LocaleHelper.setLocale(context, LocaleHelper.LANGUAGE_CHINESE)
  *
- * // 切换到英文
+ * // switch到英文
  * LocaleHelper.setLocale(context, LocaleHelper.LANGUAGE_ENGLISH)
  *
- * // 获取当前语言
+ * // Get当Front语言
  * val currentLang = LocaleHelper.getLanguage(context)
  * ```
  */
@@ -36,10 +36,10 @@ object LocaleHelper {
     const val LANGUAGE_SYSTEM = "system"
 
     /**
-     * 设置应用语言
+     * Settingsapply语言
      * @param context Context
-     * @param language 语言代码（zh/en/system）
-     * @return 更新后的 Context
+     * @param language 语言代码(zh/en/system)
+     * @return UpdateBack的 Context
      */
     fun setLocale(context: Context, language: String): Context {
         saveLanguage(context, language)
@@ -47,7 +47,7 @@ object LocaleHelper {
     }
 
     /**
-     * 获取保存的语言设置
+     * GetSave的语言Settings
      */
     fun getLanguage(context: Context): String {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -55,7 +55,7 @@ object LocaleHelper {
     }
 
     /**
-     * 保存语言设置
+     * Save语言Settings
      */
     private fun saveLanguage(context: Context, language: String) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -63,7 +63,7 @@ object LocaleHelper {
     }
 
     /**
-     * 更新资源配置
+     * UpdateResourceConfig
      */
     private fun updateResources(context: Context, language: String): Context {
         val locale = when (language) {
@@ -97,7 +97,7 @@ object LocaleHelper {
     }
 
     /**
-     * 应用已保存的语言设置
+     * apply已Save的语言Settings
      */
     fun applyLanguage(context: Context): Context {
         val language = getLanguage(context)
@@ -105,7 +105,7 @@ object LocaleHelper {
     }
 
     /**
-     * 获取当前语言的显示名称
+     * Get当Front语言的ShowName
      */
     fun getLanguageDisplayName(context: Context): String {
         return when (getLanguage(context)) {
@@ -117,7 +117,7 @@ object LocaleHelper {
     }
 
     /**
-     * 获取所有可用语言
+     * GetAllAvailable语言
      */
     fun getAvailableLanguages(): List<LanguageOption> {
         return listOf(

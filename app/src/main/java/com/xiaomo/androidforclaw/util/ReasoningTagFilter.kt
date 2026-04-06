@@ -5,37 +5,37 @@
 package com.xiaomo.androidforclaw.util
 
 /**
- * 推理标签过滤器 - 对齐 OpenClaw
+ * Reasoning tag filter - Aligned with OpenClaw
  *
- * 从 AI 回复中移除内部推理标签，如 <think>, <thinking>, <final> 等
+ * Remove internal reasoning tags from AI response, such as <think>, <thinking>, <final> 等
  *
  * 参考: OpenClaw src/shared/text/reasoning-tags.ts
  */
 object ReasoningTagFilter {
 
     /**
-     * 从文本中移除推理标签
+     * 从Text中移除推理标签
      *
-     * - 移除 <final></final> 标签但保留内容
-     * - 移除 <think>, <thinking>, <thought> 标签及其内容
-     * - 保护代码块内的标签不被移除
+     * - 移除 <final></final> 标签但保留Inside容
+     * - 移除 <think>, <thinking>, <thought> 标签及ItsInside容
+     * - Protect code blocks from tag removal
      *
-     * @param text 原始文本
-     * @return 过滤后的文本
+     * @param text Original text
+     * @return Filtered text
      */
     fun stripReasoningTags(text: String): String {
         if (text.isEmpty()) return text
 
-        // Quick check: 如果没有推理标签，直接返回
+        // Quick check: return if no reasoning tags
         val quickCheckPattern = """<\s*/?\s*(?:think(?:ing)?|thought|antthinking|final)\b""".toRegex(RegexOption.IGNORE_CASE)
         if (!quickCheckPattern.containsMatchIn(text)) {
             return text
         }
 
-        // 1. 找出所有代码区域（需要保护）
+        // 1. Find all code regions (need protection)
         val codeRegions = findCodeRegions(text)
 
-        // 2. 移除 <final> 标签（保留内容）
+        // 2. Remove <final> tag (keep content)
         var cleaned = text
         val finalTagPattern = """<\s*/?\s*final\b[^<>]*>""".toRegex(RegexOption.IGNORE_CASE)
         val finalMatches = finalTagPattern.findAll(cleaned).toList().reversed()
@@ -46,7 +46,7 @@ object ReasoningTagFilter {
             }
         }
 
-        // 3. 移除推理标签及其内容
+        // 3. Remove reasoning tags and content
         val thinkingTagPattern = """<\s*(/?)\s*(?:think(?:ing)?|thought|antthinking)\b[^<>]*>""".toRegex(RegexOption.IGNORE_CASE)
         val updatedCodeRegions = findCodeRegions(cleaned)
 
@@ -64,12 +64,12 @@ object ReasoningTagFilter {
             val isClosing = match.groupValues[1] == "/"
 
             if (!inThinking && !isClosing) {
-                // 开始推理块
+                // Start reasoning block
                 result.append(cleaned.substring(lastIndex, start))
                 inThinking = true
                 thinkingStart = match.range.last + 1
             } else if (inThinking && isClosing) {
-                // 结束推理块
+                // End reasoning block
                 inThinking = false
                 lastIndex = match.range.last + 1
             }
@@ -83,7 +83,7 @@ object ReasoningTagFilter {
     }
 
     /**
-     * 查找代码区域（fenced code blocks 和 inline code）
+     * Find code regions(fenced code blocks 和 inline code)
      */
     private fun findCodeRegions(text: String): List<IntRange> {
         val regions = mutableListOf<IntRange>()
@@ -97,7 +97,7 @@ object ReasoningTagFilter {
         // Inline code (backticks)
         val inlinePattern = """`[^`\n]+`""".toRegex()
         inlinePattern.findAll(text).forEach {
-            // 只添加不在 fenced block 内的 inline code
+            // Only add inline code not in fenced block
             if (!regions.any { range -> it.range.first in range }) {
                 regions.add(it.range)
             }
@@ -107,7 +107,7 @@ object ReasoningTagFilter {
     }
 
     /**
-     * 检查位置是否在代码区域内
+     * Check if position is in code region
      */
     private fun isInsideCodeRegion(position: Int, codeRegions: List<IntRange>): Boolean {
         return codeRegions.any { position in it }

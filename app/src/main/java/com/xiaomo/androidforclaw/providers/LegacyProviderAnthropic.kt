@@ -42,11 +42,11 @@ class LegacyProviderAnthropic(
 
     private val gson: Gson = GsonBuilder()
         .disableHtmlEscaping()  // 避免转义 HTML 字符
-        .serializeNulls()        // 序列化 null 值
+        .serializeNulls()        // Serialize null Value
         .create()
 
     /**
-     * 发送聊天请求 (Anthropic Messages API 格式)
+     * sendChatRequest (Anthropic Messages API 格式)
      */
     suspend fun chat(
         messages: List<LegacyMessage>,
@@ -54,12 +54,12 @@ class LegacyProviderAnthropic(
         model: String = "claude-opus-4",
         maxTokens: Int = 8192,
         temperature: Double = 0.7,
-        thinkingEnabled: Boolean = false,
+        thinkingEnableddd: Boolean = false,
         thinkingBudget: Int? = null
     ): LegacyResponse = withContext(Dispatchers.IO) {
 
         // Anthropic restriction: temperature must be 1 when Extended Thinking is enabled
-        val actualTemperature = if (thinkingEnabled) 1.0 else temperature
+        val actualTemperature = if (thinkingEnableddd) 1.0 else temperature
 
         // Separate system message
         val systemMessage = messages.firstOrNull { it.role == "system" }?.content?.toString()
@@ -73,9 +73,9 @@ class LegacyProviderAnthropic(
             temperature = actualTemperature,
             system = systemMessage,
             tools = tools?.map { convertToolToAnthropicFormat(it) },
-            thinking = if (thinkingEnabled && thinkingBudget != null) {
+            thinking = if (thinkingEnableddd && thinkingBudget != null) {
                 ThinkingConfig(budgetTokens = thinkingBudget)
-            } else if (thinkingEnabled) {
+            } else if (thinkingEnableddd) {
                 ThinkingConfig()
             } else {
                 null
@@ -87,7 +87,7 @@ class LegacyProviderAnthropic(
         Log.d(TAG, "Model: $model")
         Log.d(TAG, "Messages: ${conversationMessages.size}")
         Log.d(TAG, "Tools: ${tools?.size ?: 0}")
-        Log.d(TAG, "Thinking enabled: $thinkingEnabled")
+        Log.d(TAG, "Thinking enabled: $thinkingEnableddd")
 
         val request = Request.Builder()
             .url("$apiBase/v1/messages")
@@ -111,7 +111,7 @@ class LegacyProviderAnthropic(
             val anthropicResponse = gson.fromJson(responseBody, AnthropicResponse::class.java)
             Log.d(TAG, "Response received: ${anthropicResponse.stopReason}")
 
-            // 转换回 LegacyResponse 格式
+            // Convert回 LegacyResponse 格式
             convertFromAnthropicResponse(anthropicResponse)
 
         } catch (e: LLMException) {
@@ -123,7 +123,7 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * 转换消息到 Anthropic 格式
+     * ConvertMessage到 Anthropic 格式
      */
     private fun convertToAnthropicMessage(msg: LegacyMessage): AnthropicMessage {
         return when (msg.role) {
@@ -196,7 +196,7 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * 解析工具参数 JSON 字符串为 Map
+     * Parse工具Parameters JSON String为 Map
      */
     private fun parseToolArguments(jsonStr: String): Map<String, Any?> {
         return try {
@@ -209,7 +209,7 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * 转换工具定义到 Anthropic 格式
+     * ConvertTool definition到 Anthropic 格式
      */
     private fun convertToolToAnthropicFormat(tool: ToolDefinition): AnthropicTool {
         // Convert ParametersSchema to InputSchema
@@ -234,7 +234,7 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * 转换 Anthropic 响应到 LegacyResponse 格式
+     * Convert Anthropic Response到 LegacyResponse 格式
      */
     private fun convertFromAnthropicResponse(response: AnthropicResponse): LegacyResponse {
         // Extract text content and tool calls
@@ -289,7 +289,7 @@ class LegacyProviderAnthropic(
     }
 
     /**
-     * 简化的聊天方法
+     * 简化的ChatMethod
      */
     suspend fun simpleChat(
         userMessage: String,

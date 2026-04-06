@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -34,7 +34,7 @@ class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "reason" to PropertySchema("string", "停止的原因")
+                        "reason" to PropertySchema("string", "Stop的Reason")
                     ),
                     required = emptyList()
                 )
@@ -42,7 +42,7 @@ class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val reason = args["reason"] as? String ?: "Task completed"
 
         Log.d(TAG, "Stopping task: $reason")
@@ -50,13 +50,13 @@ class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
             // Set task status to stopped
             val taskData = taskDataManager.getCurrentTaskData()
             taskData?.stopRunning(reason)
-            SkillResult.success(
+            Skillresult.success(
                 "Task stopped: $reason",
                 mapOf("stopped" to true)
             )
         } catch (e: Exception) {
             Log.e(TAG, "Stop failed", e)
-            SkillResult.error("Stop failed: ${e.message}")
+            Skillresult.error("Stop failed: ${e.message}")
         }
     }
 }

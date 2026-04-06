@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -10,24 +10,24 @@ object AppConstants {
     // ============= HTTP Logging =============
     val HTTP_LOG_LEVEL: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.NONE
 
-    // ============= API 配置说明 =============
-    // 所有 API 配置现在从以下配置文件读取：
-    // - /sdcard/.androidforclaw/config/models.json (模型提供商配置)
-    // - /sdcard/.androidforclaw/openclaw.json (OpenClaw 主配置)
+    // ============= API Configillustrate =============
+    // All API Confignow从以DownConfig文件Read: 
+    // - /sdcard/.androidforclaw/config/models.json (模型提供商Config)
+    // - /sdcard/.androidforclaw/openclaw.json (OpenClaw 主Config)
     //
-    // 请勿在此文件中硬编码 API Key 和 Base URL
-    // 使用 ConfigLoader.loadModelsConfig() 和 ConfigLoader.loadOpenClawConfig() 读取配置
+    // 请勿在此文件中硬Encode API Key 和 Base URL
+    // use ConfigLoader.loadModelsConfig() 和 ConfigLoader.loadOpenClawConfig() ReadConfig
     //
-    // 参考文档：
+    // 参考Document: 
     // - CLAUDE.md: Configuration System
-    // - doc/OpenClaw架构深度分析.md: 配置系统说明
+    // - doc/OpenClaw架构Depthanalyze.md: Config系统illustrate
 
-    // ============= 环境变量常量（用于配置文件的 ${VAR_NAME} 替换） =============
-    // 这些常量会被 ConfigLoader 通过反射读取，用于替换配置文件中的环境变量占位符
-    // 优先级：系统环境变量 > AppConstants 常量 > MMKV 存储
+    // ============= EnvironmentVariableConstant(用于Config文件的 ${VAR_NAME} Replace) =============
+    // 这些Constant会被 ConfigLoader 通过反射Read, 用于ReplaceConfig文件中的EnvironmentVariable占位符
+    // Priority: 系统EnvironmentVariable > AppConstants Constant > MMKV Storage
     //
-    // ⚠️ 开源版本：请在配置文件中设置 API Key，不要在此处硬编码
-    // 配置文件位置：/sdcard/.androidforclaw/config/models.json
-    const val OPENROUTER_API_KEY = ""  // 请在 /sdcard/.androidforclaw/config/models.json 中配置
+    // ⚠️ 开源Version: 请在Config文件中Settings API Key, 不要在此处硬Encode
+    // Config文件Location: /sdcard/.androidforclaw/config/models.json
+    const val OPENROUTER_API_KEY = ""  // 请在 /sdcard/.androidforclaw/config/models.json 中Config
 
 }

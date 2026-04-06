@@ -11,11 +11,11 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * Talk RPC methods — Android TTS 实现
+ * Talk RPC methods — Android TTS Implementation
  *
- * 提供 talk.speak（文字转语音）和 talk.config（语音配置）。
- * 使用 Android 内置 TextToSpeech 引擎合成 WAV，base64 编码返回，
- * 与 OpenClaw gateway talk.speak 协议完全对齐。
+ * 提供 talk.speak(文字转语音)和 talk.config(语音Config). 
+ * use Android Inside置 TextToSpeech 引擎合成 WAV, base64 EncodeReturn, 
+ * 与 OpenClaw gateway talk.speak Protocolcompletely对齐. 
  */
 class TalkMethods private constructor(private val context: Context) {
 
@@ -64,7 +64,7 @@ class TalkMethods private constructor(private val context: Context) {
     }
 
     /**
-     * talk.config — 返回语音配置（固定默认值）
+     * talk.config — Return语音Config(固定DefaultValue)
      */
     fun talkConfig(@Suppress("UNUSED_PARAMETER") params: Any?): Map<String, Any?> {
         return mapOf(
@@ -83,8 +83,8 @@ class TalkMethods private constructor(private val context: Context) {
     /**
      * talk.speak — 文字转语音
      *
-     * 请求: { text, voiceId?, speed?, language?, ... }
-     * 响应: { audioBase64, provider, mimeType, fileExtension }
+     * Request: { text, voiceId?, speed?, language?, ... }
+     * Response: { audioBase64, provider, mimeType, fileExtension }
      */
     fun talkSpeak(params: Any?): Map<String, Any?> {
         @Suppress("UNCHECKED_CAST")

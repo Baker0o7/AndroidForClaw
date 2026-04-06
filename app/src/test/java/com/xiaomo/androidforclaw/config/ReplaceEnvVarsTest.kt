@@ -4,20 +4,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * 验证 replaceEnvVars 对未解析环境变量的处理。
+ * Validate replaceEnvVars 对未ParseEnvironmentVariable的Process. 
  *
- * Bug 修复前: 如果 openclaw.json 中有 "apiKey": "${MOONSHOT_API_KEY}"
- * 而 Android 上没有这个环境变量，replaceEnvVars 会保留字面量
- * → apiKey 变成 "${MOONSHOT_API_KEY}" → Bearer token 发送失败 → 401。
+ * Bug FixFront: 如果 openclaw.json 中Has "apiKey": "${MOONSHOT_API_KEY}"
+ * 而 Android UpNone这个EnvironmentVariable, replaceEnvVars 会保留字面量
+ * → apiKey 变成 "${MOONSHOT_API_KEY}" → Bearer token 发送Failed → 401. 
  *
- * 修复后: 未解析的已知 provider 环境变量会被替换为 null，
- * 触发清晰的 "API Key 未配置" 提示。
+ * FixBack: 未Parse的已知 provider EnvironmentVariable会被Replace为 null, 
+ * 触发清晰的 "API Key Not configured" Hint. 
  */
 class ReplaceEnvVarsTest {
 
     /**
-     * 模拟 ConfigLoader.replaceEnvVars 的剥离逻辑，
-     * 验证已知 provider 环境变量未解析时被正确替换为 null。
+     * Mock ConfigLoader.replaceEnvVars 的剥离逻辑, 
+     * Validate已知 provider EnvironmentVariable未Parse时被正确Replace为 null. 
      */
     private fun simulateStripUnresolvedEnvVars(json: String, unresolvedVars: List<String>): String {
         var result = json

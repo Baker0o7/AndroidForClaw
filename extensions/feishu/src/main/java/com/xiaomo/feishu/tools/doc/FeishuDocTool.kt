@@ -34,16 +34,16 @@ fun extractDocId(input: String): String {
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_fetch_doc"
-    override val description = "获取飞书云文档内容，返回文档标题和 Markdown 格式内容。支持分页获取大文档。"
+    override val description = "Get飞书云DocumentInside容, ReturnDocumentTitle和 Markdown 格式Inside容. SupportPaginateGet大Document. "
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             // Validate: doc_id is required (matching official FetchDocSchema)
             val rawDocId = args["doc_id"] as? String
-                ?: return@withContext ToolResult.error("Missing required parameter: doc_id")
+                ?: return@withContext Toolresult.error("Missing required parameter: doc_id")
             val docId = extractDocId(rawDocId)
 
             // Optional pagination parameters (matching official schema)
@@ -54,15 +54,15 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             // On Android we call raw_content API directly (returns plain text, not markdown).
             val result = client.get("/open-apis/docx/v1/documents/$docId/raw_content")
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to fetch document")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed to fetch document")
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val fullContent = data?.get("content")?.asString ?: ""
 
             // Get document title (matching official behavior)
-            val metaResult = client.get("/open-apis/docx/v1/documents/$docId")
-            val title = metaResult.getOrNull()?.getAsJsonObject("data")
+            val metaresult = client.get("/open-apis/docx/v1/documents/$docId")
+            val title = metaresult.getOrNull()?.getAsJsonObject("data")
                 ?.getAsJsonObject("document")?.get("title")?.asString
 
             // Apply pagination (matching official offset/limit logic)
@@ -84,10 +84,10 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
                 resultMap["next_offset"] = end
             }
 
-            ToolResult.success(resultMap)
+            Toolresult.success(resultMap)
         } catch (e: Exception) {
             Log.e(TAG, "feishu_fetch_doc failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -98,9 +98,9 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "doc_id" to PropertySchema("string", "文档 ID 或 URL（支持自动解析）"),
-                    "offset" to PropertySchema("integer", "字符偏移量（可选，默认0）。用于大文档分页获取。"),
-                    "limit" to PropertySchema("integer", "返回的最大字符数（可选）。仅在用户明确要求分页时使用。")
+                    "doc_id" to PropertySchema("string", "Document ID 或 URL(SupportAutoParse)"),
+                    "offset" to PropertySchema("integer", "字符Offset量(Optional, Default0). 用于大DocumentPaginateGet. "),
+                    "limit" to PropertySchema("integer", "Return的Maxcharacters(Optional). 仅在User明确要求Paginate时use. ")
                 ),
                 required = listOf("doc_id")
             )
@@ -113,18 +113,18 @@ class FeishuFetchDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_create_doc"
-    override val description = "从 Markdown 创建云文档（支持异步 task_id 查询）"
+    override val description = "从 Markdown Create云Document(SupportAsync task_id Query)"
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official validateCreateDocParams)
     private fun validateParams(args: Map<String, Any?>): String? {
         val taskId = args["task_id"] as? String
         if (taskId != null) return null // task_id provided, skip other validation
 
-        // Matching official: "未提供 task_id 时，至少需要提供 markdown 和 title"
+        // Matching official: "未提供 task_id 时, 至少Need提供 markdown 和 title"
         if (args["markdown"] == null || args["title"] == null) {
-            return "create-doc：未提供 task_id 时，至少需要提供 markdown 和 title"
+            return "create-doc: 未提供 task_id 时, 至少Need提供 markdown 和 title"
         }
 
         // Matching official: folder_token / wiki_node / wiki_space are mutually exclusive
@@ -134,19 +134,19 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             args["wiki_space"]
         )
         if (flags.size > 1) {
-            return "create-doc：folder_token / wiki_node / wiki_space 三者互斥，请只提供一个"
+            return "create-doc: folder_token / wiki_node / wiki_space 三者Mutex, 请只提供一个"
         }
 
         return null
     }
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             // Validate parameters (matching official validate function)
             val validationError = validateParams(args)
             if (validationError != null) {
-                return@withContext ToolResult.error(validationError)
+                return@withContext Toolresult.error(validationError)
             }
 
             val taskId = args["task_id"] as? String
@@ -167,14 +167,14 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             // We implement equivalent logic using Feishu Open API directly.
             val docId = createDocumentFromMarkdown(markdown, title, folderToken, wikiNode, wikiSpace)
 
-            ToolResult.success(mapOf(
+            Toolresult.success(mapOf(
                 "doc_id" to docId,
                 "title" to title,
                 "url" to "https://${config.getApiBaseUrl().substringAfter("//")}/docx/$docId"
             ))
         } catch (e: Exception) {
             Log.e(TAG, "feishu_create_doc failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -185,12 +185,12 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "markdown" to PropertySchema("string", "Markdown 内容"),
-                    "title" to PropertySchema("string", "文档标题"),
-                    "folder_token" to PropertySchema("string", "父文件夹 token（可选）"),
-                    "wiki_node" to PropertySchema("string", "知识库节点 token 或 URL（可选，传入则在该节点下创建文档）"),
-                    "wiki_space" to PropertySchema("string", "知识空间 ID（可选，特殊值 my_library）"),
-                    "task_id" to PropertySchema("string", "异步任务 ID。提供此参数将查询任务状态而非创建新文档")
+                    "markdown" to PropertySchema("string", "Markdown Inside容"),
+                    "title" to PropertySchema("string", "DocumentTitle"),
+                    "folder_token" to PropertySchema("string", "父文件夹 token(Optional)"),
+                    "wiki_node" to PropertySchema("string", "Knowledge BaseNode token 或 URL(Optional, 传入则在该NodeDownCreateDocument)"),
+                    "wiki_space" to PropertySchema("string", "Knowledge Space ID(Optional, Special value my_library)"),
+                    "task_id" to PropertySchema("string", "AsyncTask ID. 提供此Parameters将QueryTaskStatus而非CreateNewDocument")
                 ),
                 required = listOf()
             )
@@ -208,12 +208,12 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
         val createBody = mutableMapOf<String, Any?>("title" to title)
         folderToken?.let { createBody["folder_token"] = it }
 
-        val createResult = client.post("/open-apis/docx/v1/documents", createBody)
-        if (createResult.isFailure) {
-            throw Exception("Failed to create document: ${createResult.exceptionOrNull()?.message}")
+        val createresult = client.post("/open-apis/docx/v1/documents", createBody)
+        if (createresult.isFailure) {
+            throw Exception("Failed to create document: ${createresult.exceptionOrNull()?.message}")
         }
 
-        val docId = createResult.getOrNull()?.getAsJsonObject("data")
+        val docId = createresult.getOrNull()?.getAsJsonObject("data")
             ?.getAsJsonObject("document")?.get("document_id")?.asString
             ?: throw Exception("No document_id in response")
 
@@ -223,11 +223,11 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
         return docId
     }
 
-    private suspend fun queryTaskStatus(taskId: String): ToolResult {
+    private suspend fun queryTaskStatus(taskId: String): Toolresult {
         // Matching official task polling logic
         val result = client.get("/open-apis/drive/v1/import_tasks/$taskId")
         if (result.isFailure) {
-            return ToolResult.error("Failed to query task: ${result.exceptionOrNull()?.message}")
+            return Toolresult.error("Failed to query task: ${result.exceptionOrNull()?.message}")
         }
 
         val task = result.getOrNull()?.getAsJsonObject("data")?.getAsJsonObject("task")
@@ -237,9 +237,9 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             task.get("url")?.asString?.let { resultMap["url"] = it }
             task.get("doc_id")?.asString?.let { resultMap["doc_id"] = it }
             task.get("type")?.asString?.let { resultMap["type"] = it }
-            return ToolResult.success(resultMap)
+            return Toolresult.success(resultMap)
         }
-        return ToolResult.error("No task data returned")
+        return Toolresult.error("No task data returned")
     }
 }
 
@@ -248,18 +248,18 @@ class FeishuCreateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
 // @aligned openclaw-lark v2026.3.30 — line-by-line
 class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_update_doc"
-    override val description = "更新云文档（overwrite/append/replace_range/replace_all/insert_before/insert_after/delete_range，支持异步 task_id 查询）"
+    override val description = "Update云Document(overwrite/append/replace_range/replace_all/insert_before/insert_after/delete_range, SupportAsync task_id Query)"
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official validateUpdateDocParams)
     private fun validateParams(args: Map<String, Any?>): String? {
         val taskId = args["task_id"] as? String
         if (taskId != null) return null // task_id provided, skip other validation
 
-        // Matching official: "未提供 task_id 时必须提供 doc_id"
+        // Matching official: "未提供 task_id 时Must提供 doc_id"
         if (args["doc_id"] == null) {
-            return "update-doc：未提供 task_id 时必须提供 doc_id"
+            return "update-doc: 未提供 task_id 时Must提供 doc_id"
         }
 
         val mode = args["mode"] as? String
@@ -270,28 +270,28 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             val hasEllipsis = args["selection_with_ellipsis"] != null
             val hasTitle = args["selection_by_title"] != null
 
-            // Matching official: "selection_with_ellipsis 与 selection_by_title 必须二选一"
+            // Matching official: "selection_with_ellipsis 与 selection_by_title MustChoose one"
             if ((hasEllipsis && hasTitle) || (!hasEllipsis && !hasTitle)) {
-                return "update-doc：mode 为 replace_range/insert_before/insert_after/delete_range 时，selection_with_ellipsis 与 selection_by_title 必须二选一"
+                return "update-doc: mode 为 replace_range/insert_before/insert_after/delete_range 时, selection_with_ellipsis 与 selection_by_title MustChoose one"
             }
         }
 
         // Matching official: modes that need markdown
         val needMarkdown = mode != "delete_range"
         if (needMarkdown && args["markdown"] == null) {
-            return "update-doc：mode=$mode 时必须提供 markdown"
+            return "update-doc: mode=$mode 时Must提供 markdown"
         }
 
         return null
     }
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             // Validate parameters (matching official validate function)
             val validationError = validateParams(args)
             if (validationError != null) {
-                return@withContext ToolResult.error(validationError)
+                return@withContext Toolresult.error(validationError)
             }
 
             val taskId = args["task_id"] as? String
@@ -314,14 +314,14 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             // We implement equivalent logic using Feishu Open API directly.
             updateDocumentWithMode(docId, markdown, mode, selectionWithEllipsis, selectionByTitle, newTitle)
 
-            ToolResult.success(mapOf(
+            Toolresult.success(mapOf(
                 "success" to true,
                 "doc_id" to docId,
                 "mode" to mode
             ))
         } catch (e: Exception) {
             Log.e(TAG, "feishu_update_doc failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -332,14 +332,14 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "doc_id" to PropertySchema("string", "文档 ID 或 URL"),
-                    "markdown" to PropertySchema("string", "Markdown 内容"),
-                    "mode" to PropertySchema("string", "更新模式（必填）",
+                    "doc_id" to PropertySchema("string", "Document ID 或 URL"),
+                    "markdown" to PropertySchema("string", "Markdown Inside容"),
+                    "mode" to PropertySchema("string", "UpdateSchema(Required)",
                         enum = listOf("overwrite", "append", "replace_range", "replace_all", "insert_before", "insert_after", "delete_range")),
-                    "selection_with_ellipsis" to PropertySchema("string", "定位表达式：开头内容...结尾内容（与 selection_by_title 二选一）"),
-                    "selection_by_title" to PropertySchema("string", "标题定位：例如 ## 章节标题（与 selection_with_ellipsis 二选一）"),
-                    "new_title" to PropertySchema("string", "新的文档标题（可选）"),
-                    "task_id" to PropertySchema("string", "异步任务 ID，用于查询任务状态")
+                    "selection_with_ellipsis" to PropertySchema("string", "定位Table达式: 开头Inside容...结尾Inside容(与 selection_by_title Choose one)"),
+                    "selection_by_title" to PropertySchema("string", "Title定位: e.g. ## 章节Title(与 selection_with_ellipsis Choose one)"),
+                    "new_title" to PropertySchema("string", "New的DocumentTitle(Optional)"),
+                    "task_id" to PropertySchema("string", "AsyncTask ID, 用于QueryTaskStatus")
                 ),
                 required = listOf("mode")
             )
@@ -391,11 +391,11 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
         }
     }
 
-    private suspend fun queryTaskStatus(taskId: String): ToolResult {
+    private suspend fun queryTaskStatus(taskId: String): Toolresult {
         // Matching official task polling logic
         val result = client.get("/open-apis/drive/v1/import_tasks/$taskId")
         if (result.isFailure) {
-            return ToolResult.error("Failed to query task: ${result.exceptionOrNull()?.message}")
+            return Toolresult.error("Failed to query task: ${result.exceptionOrNull()?.message}")
         }
 
         val task = result.getOrNull()?.getAsJsonObject("data")?.getAsJsonObject("task")
@@ -405,9 +405,9 @@ class FeishuUpdateDocTool(config: FeishuConfig, client: FeishuClient) : FeishuTo
             task.get("url")?.asString?.let { resultMap["url"] = it }
             task.get("doc_id")?.asString?.let { resultMap["doc_id"] = it }
             task.get("type")?.asString?.let { resultMap["type"] = it }
-            return ToolResult.success(resultMap)
+            return Toolresult.success(resultMap)
         }
-        return ToolResult.error("No task data returned")
+        return Toolresult.error("No task data returned")
     }
 }
 

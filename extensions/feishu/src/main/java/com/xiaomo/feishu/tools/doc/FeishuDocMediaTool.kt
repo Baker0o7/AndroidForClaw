@@ -60,39 +60,39 @@ private const val MAX_FILE_SIZE = 20L * 1024 * 1024 // 20MB
 class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_media"
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official description)
-    override val description = "【以用户身份】文档媒体管理工具。" +
-        "支持两种操作：" +
-        "(1) insert - 在飞书文档末尾插入本地图片或文件（需要文档 ID + 本地文件路径）；" +
-        "(2) download - 下载文档素材或画板缩略图到本地（需要资源 token + 输出路径）。" +
-        "\n\n【重要】insert 仅支持本地文件路径。URL 图片请使用 create-doc/update-doc 的 <image url=\"...\"/> 语法。"
+    override val description = "【As user】Document媒体Manage工具. " +
+        "Support两种Action: " +
+        "(1) insert - 在飞书Document末尾Insert本地Graph片或文件(NeedDocument ID + 本地File path)；" +
+        "(2) download - DownloadDocument素材或画板缩略Graph到本地(NeedResource token + OutputPath). " +
+        "\n\n[Important]insert 仅Support本地File path. URL Graph片请use create-doc/update-doc 的 <image url=\"...\"/> 语法. "
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             val action = args["action"] as? String
-                ?: return@withContext ToolResult.error("Missing required parameter: action")
+                ?: return@withContext Toolresult.error("Missing required parameter: action")
 
             // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official action dispatch)
             when (action) {
                 "insert" -> handleInsert(args)
                 "download" -> handleDownload(args)
-                else -> ToolResult.error("unknown action: $action")
+                else -> Toolresult.error("unknown action: $action")
             }
         } catch (e: Exception) {
             Log.e(TAG, "feishu_doc_media failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official handleInsert)
-    private suspend fun handleInsert(args: Map<String, Any?>): ToolResult {
+    private suspend fun handleInsert(args: Map<String, Any?>): Toolresult {
         val rawDocId = args["doc_id"] as? String
-            ?: return ToolResult.error("Missing doc_id for insert action")
+            ?: return Toolresult.error("Missing doc_id for insert action")
         val documentId = extractDocumentId(rawDocId)
         val filePath = args["file_path"] as? String
-            ?: return ToolResult.error("Missing file_path for insert action")
+            ?: return Toolresult.error("Missing file_path for insert action")
         val mediaType = args["type"] as? String ?: "image"
         val align = args["align"] as? String ?: "center"
         val caption = args["caption"] as? String
@@ -100,12 +100,12 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official file validation)
         val file = File(filePath)
         if (!file.exists()) {
-            return ToolResult.error("failed to read file: File not found")
+            return Toolresult.error("failed to read file: File not found")
         }
 
         val fileSize = file.length()
         if (fileSize > MAX_FILE_SIZE) {
-            return ToolResult.error("file ${(fileSize.toDouble() / 1024 / 1024).let { "%.1f".format(it) }}MB exceeds 20MB limit")
+            return Toolresult.error("file ${(fileSize.toDouble() / 1024 / 1024).let { "%.1f".format(it) }}MB exceeds 20MB limit")
         }
 
         val fileName = file.name
@@ -121,7 +121,7 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             blockType = 27
             blockData = mapOf("image" to emptyMap<String, Any?>())
             parentType = "docx_image"
-            label = "图片"
+            label = "Graph片"
         } else {
             blockType = 23
             blockData = mapOf("file" to mapOf("token" to ""))
@@ -140,7 +140,7 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             createBody
         )
         if (createRes.isFailure) {
-            return ToolResult.error("failed to create $label block: ${createRes.exceptionOrNull()?.message}")
+            return Toolresult.error("failed to create $label block: ${createRes.exceptionOrNull()?.message}")
         }
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official block_id extraction)
@@ -155,7 +155,7 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
         }
 
         if (blockId == null) {
-            return ToolResult.error("failed to create $label block: no block_id returned")
+            return Toolresult.error("failed to create $label block: no block_id returned")
         }
 
         Log.i(TAG, "insert: created $mediaType block $blockId")
@@ -163,7 +163,7 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
         // @aligned openclaw-lark v2026.3.30 — line-by-line (Step 3: upload media)
         val fileBytes = file.readBytes()
         val extra = mapOf("drive_route_token" to documentId)
-        val uploadResult = client.uploadMedia(
+        val uploadresult = client.uploadMedia(
             fileName = fileName,
             fileBytes = fileBytes,
             parentType = parentType,
@@ -171,13 +171,13 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             extra = extra
         )
 
-        if (uploadResult.isFailure) {
-            return ToolResult.error("failed to upload $label media: ${uploadResult.exceptionOrNull()?.message}")
+        if (uploadresult.isFailure) {
+            return Toolresult.error("failed to upload $label media: ${uploadresult.exceptionOrNull()?.message}")
         }
 
-        val fileToken = uploadResult.getOrNull()?.get("file_token")?.asString
+        val fileToken = uploadresult.getOrNull()?.get("file_token")?.asString
         if (fileToken == null) {
-            return ToolResult.error("failed to upload $label media: no file_token returned")
+            return Toolresult.error("failed to upload $label media: no file_token returned")
         }
 
         Log.i(TAG, "insert: uploaded media, file_token=$fileToken")
@@ -227,13 +227,13 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
         )
 
         if (patchRes.isFailure) {
-            return ToolResult.error("failed to patch $label block: ${patchRes.exceptionOrNull()?.message}")
+            return Toolresult.error("failed to patch $label block: ${patchRes.exceptionOrNull()?.message}")
         }
 
         Log.i(TAG, "insert: patched $mediaType block with file_token")
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official return format)
-        return ToolResult.success(mapOf(
+        return Toolresult.success(mapOf(
             "success" to true,
             "type" to mediaType,
             "document_id" to documentId,
@@ -244,13 +244,13 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
     }
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official handleDownload)
-    private suspend fun handleDownload(args: Map<String, Any?>): ToolResult {
+    private suspend fun handleDownload(args: Map<String, Any?>): Toolresult {
         val resourceToken = args["resource_token"] as? String
-            ?: return ToolResult.error("Missing resource_token for download action")
+            ?: return Toolresult.error("Missing resource_token for download action")
         val resourceType = args["resource_type"] as? String
-            ?: return ToolResult.error("Missing resource_type for download action")
+            ?: return Toolresult.error("Missing resource_type for download action")
         val outputPath = args["output_path"] as? String
-            ?: return ToolResult.error("Missing output_path for download action")
+            ?: return Toolresult.error("Missing output_path for download action")
 
         Log.i(TAG, "download: resource_type=$resourceType, token=\"$resourceToken\"")
 
@@ -262,10 +262,10 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
         }
 
         if (result.isFailure) {
-            return ToolResult.error("failed to download: ${result.exceptionOrNull()?.message}")
+            return Toolresult.error("failed to download: ${result.exceptionOrNull()?.message}")
         }
 
-        val (buffer, headers) = result.getOrNull() ?: return ToolResult.error("No data returned")
+        val (buffer, headers) = result.getOrNull() ?: return Toolresult.error("No data returned")
 
         Log.i(TAG, "download: received ${buffer.size} bytes")
 
@@ -292,11 +292,11 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
             outputFile.writeBytes(buffer)
             Log.i(TAG, "download: saved to $finalPath")
         } catch (err: Exception) {
-            return ToolResult.error("failed to save file: ${err.message}")
+            return Toolresult.error("failed to save file: ${err.message}")
         }
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official return format)
-        return ToolResult.success(mapOf(
+        return Toolresult.success(mapOf(
             "resource_type" to resourceType,
             "resource_token" to resourceToken,
             "size_bytes" to buffer.size,
@@ -321,17 +321,17 @@ class FeishuDocMediaTool(config: FeishuConfig, client: FeishuClient) : FeishuToo
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action: insert or download",
                         enum = listOf("insert", "download")),
-                    "doc_id" to PropertySchema("string", "文档 ID 或文档 URL（insert 时必填）。支持从 URL 自动提取 document_id"),
-                    "file_path" to PropertySchema("string", "本地文件的绝对路径（insert 时必填）。图片支持 jpg/png/gif/webp 等，文件支持任意格式，最大 20MB"),
-                    "type" to PropertySchema("string", "媒体类型：\"image\"（图片，默认）或 \"file\"（文件附件）",
+                    "doc_id" to PropertySchema("string", "Document ID 或Document URL(insert 时Required). Support从 URL Auto提取 document_id"),
+                    "file_path" to PropertySchema("string", "本地文件的absolutelyPath(insert 时Required). Graph片Support jpg/png/gif/webp 等, 文件SupportAny格式, Max 20MB"),
+                    "type" to PropertySchema("string", "媒体Type: \"image\"(Graph片, Default)或 \"file\"(文件附件)",
                         enum = listOf("image", "file")),
-                    "align" to PropertySchema("string", "对齐方式（仅图片生效）：\"center\"（默认居中）、\"left\"（居左）、\"right\"（居右）",
+                    "align" to PropertySchema("string", "对齐方式(仅Graph片生效): \"center\"(Default居中)、\"left\"(居Left)、\"right\"(居Right)",
                         enum = listOf("left", "center", "right")),
-                    "caption" to PropertySchema("string", "图片描述/标题（可选，仅图片生效）"),
-                    "resource_token" to PropertySchema("string", "资源的唯一标识（file_token 用于文档素材，whiteboard_id 用于画板）"),
-                    "resource_type" to PropertySchema("string", "资源类型：media（文档素材：图片、视频、文件等）或 whiteboard（画板缩略图）",
+                    "caption" to PropertySchema("string", "Graph片Description/Title(Optional, 仅Graph片生效)"),
+                    "resource_token" to PropertySchema("string", "Resource的Unique标识(file_token 用于Document素材, whiteboard_id 用于画板)"),
+                    "resource_type" to PropertySchema("string", "ResourceType: media(Document素材: Graph片、视频、Files, etc)或 whiteboard(画板缩略Graph)",
                         enum = listOf("media", "whiteboard")),
-                    "output_path" to PropertySchema("string", "保存文件的完整本地路径。可以包含扩展名（如 /tmp/image.png），也可以不带扩展名，系统会根据 Content-Type 自动添加")
+                    "output_path" to PropertySchema("string", "Save文件的完整本地Path. CanContains扩展名(such as /tmp/image.png), AlsoCan不带扩展名, 系统会according to Content-Type AutoAdd")
                 ),
                 required = listOf("action")
             )

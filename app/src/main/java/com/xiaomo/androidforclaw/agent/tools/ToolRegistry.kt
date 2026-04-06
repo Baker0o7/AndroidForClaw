@@ -94,9 +94,9 @@ class ToolRegistry(
         register(TtsTool(context))
 
         // === Body tool (agent's virtual body) — only when enabled ===
-        val bodyEnabled = context.getSharedPreferences("forclaw_avatar", android.content.Context.MODE_PRIVATE)
+        val bodyEnableddd = context.getSharedPreferences("forclaw_avatar", android.content.Context.MODE_PRIVATE)
             .getBoolean("enabled", false)
-        if (bodyEnabled) {
+        if (bodyEnableddd) {
             AvatarTool.appContext = context.applicationContext
             register(AvatarTool())
         }
@@ -129,11 +129,11 @@ class ToolRegistry(
     /**
      * Execute tool
      */
-    suspend fun execute(name: String, args: Map<String, Any?>): ToolResult {
+    suspend fun execute(name: String, args: Map<String, Any?>): Toolresult {
         val tool = tools[name]
         if (tool == null) {
             Log.e(TAG, "Unknown tool: $name")
-            return ToolResult.error("Unknown tool: $name")
+            return Toolresult.error("Unknown tool: $name")
         }
 
         Log.d(TAG, "Executing tool: $name with args: $args")
@@ -141,7 +141,7 @@ class ToolRegistry(
             tool.execute(args)
         } catch (e: Exception) {
             Log.e(TAG, "Tool execution failed: $name", e)
-            ToolResult.error("Execution failed: ${e.message}")
+            Toolresult.error("Execution failed: ${e.message}")
         }
     }
 
@@ -159,7 +159,7 @@ class ToolRegistry(
         return buildString {
             appendLine("## Universal Tools")
             appendLine()
-            appendLine("跨平台通用工具，来自 Pi Coding Agent 和 OpenClaw：")
+            appendLine("跨平台通用工具, from Pi Coding Agent 和 OpenClaw: ")
             appendLine()
             tools.values
                 .filter { it.name !in excludeTools }

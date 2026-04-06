@@ -12,11 +12,11 @@ import org.json.JSONObject
 /**
  * OpenClaw Provider Registry
  *
- * 从 assets/providers.json 加载 provider 定义。
- * providers.json 由 scripts/sync-providers.py 从 OpenClaw 源码生成。
- * 保持与 OpenClaw 一致只需重新运行脚本并替换 JSON。
+ * 从 assets/providers.json Load provider 定义. 
+ * providers.json by scripts/sync-providers.py 从 OpenClaw 源码生成. 
+ * 保持与 OpenClaw 一致只需重NewRun脚本并Replace JSON. 
  *
- * 同时保留硬编码 fallback，在 JSON 加载失败时使用。
+ * at the same time保留硬Encode fallback, 在 JSON LoadFailed时use. 
  */
 object ProviderRegistry {
 
@@ -24,7 +24,7 @@ object ProviderRegistry {
     private var _providers: List<ProviderDefinition>? = null
 
     /**
-     * 从 assets/providers.json 初始化（应在 Application.onCreate 中调用）
+     * 从 assets/providers.json Initialize(应在 Application.onCreate 中call)
      */
     fun init(context: Context) {
         if (_providers != null) return
@@ -38,7 +38,7 @@ object ProviderRegistry {
     }
 
     /**
-     * 从 JSON 字符串初始化（用于单元测试，无需 Android Context）
+     * 从 JSON StringInitialize(用于单元Test, None需 Android Context)
      */
     @JvmStatic
     fun initFromJson(json: String) {
@@ -46,18 +46,18 @@ object ProviderRegistry {
     }
 
     /**
-     * 重置为未初始化状态（测试用）
+     * Reset为未InitializeStatus(Test用)
      */
     @JvmStatic
     fun reset() {
         _providers = null
     }
 
-    /** 所有已注册 Provider，按 order 排序 */
+    /** All已Register Provider, 按 order Sort */
     val ALL: List<ProviderDefinition>
         get() = _providers ?: FALLBACK_PROVIDERS
 
-    /** 按 group 分组 */
+    /** 按 group 分Group */
     val PRIMARY_PROVIDERS: List<ProviderDefinition>
         get() = ALL.filter { it.group == ProviderGroup.PRIMARY }
     val MORE_PROVIDERS: List<ProviderDefinition>
@@ -65,14 +65,14 @@ object ProviderRegistry {
     val CUSTOM_PROVIDERS: List<ProviderDefinition>
         get() = ALL.filter { it.group == ProviderGroup.CUSTOM }
 
-    /** 按 ID 查找 Provider */
+    /** 按 ID Find Provider */
     fun findById(id: String): ProviderDefinition? {
         val normalized = normalizeProviderId(id)
         return ALL.firstOrNull { it.id == normalized }
     }
 
     /**
-     * 对齐 OpenClaw normalizeProviderId()
+     * Aligned with OpenClaw normalizeProviderId()
      */
     fun normalizeProviderId(provider: String): String {
         val normalized = provider.trim().lowercase()
@@ -90,7 +90,7 @@ object ProviderRegistry {
     }
 
     /**
-     * 根据 ProviderDefinition 生成 ProviderConfig（用于写入 openclaw.json）
+     * according to ProviderDefinition 生成 ProviderConfig(用于Write openclaw.json)
      */
     fun buildProviderConfig(
         definition: ProviderDefinition,
@@ -126,14 +126,14 @@ object ProviderRegistry {
     /** 生成 provider/modelId 格式引用 */
     fun buildModelRef(providerId: String, modelId: String): String = "$providerId/$modelId"
 
-    /** 自定义 API 类型列表（Spinner 用） */
+    /** Custom API TypeList(Spinner 用) */
     val CUSTOM_API_TYPES = listOf(
         ModelApi.OPENAI_COMPLETIONS to "OpenAI Compatible",
         ModelApi.ANTHROPIC_MESSAGES to "Anthropic Compatible",
         ModelApi.OLLAMA to "Ollama"
     )
 
-    // ========== JSON 解析 ==========
+    // ========== JSON Parse ==========
 
     private fun parseProviders(json: String): List<ProviderDefinition> {
         val root = JSONObject(json)
@@ -211,29 +211,29 @@ object ProviderRegistry {
         )
     }
 
-    // ========== Fallback（JSON 加载失败时使用） ==========
+    // ========== Fallback(JSON LoadFailed时use) ==========
 
     private val FALLBACK_PROVIDERS = listOf(
         ProviderDefinition(
-            id = "openrouter", name = "OpenRouter", description = "聚合平台",
+            id = "openrouter", name = "OpenRouter", description = "Aggregate平台",
             baseUrl = "https://openrouter.ai/api/v1", api = ModelApi.OPENAI_COMPLETIONS,
             keyRequired = false, keyHint = "OpenRouter API Key", envVarName = "OPENROUTER_API_KEY",
             group = ProviderGroup.PRIMARY, order = 10, supportsDiscovery = true
         ),
         ProviderDefinition(
-            id = "anthropic", name = "Anthropic", description = "Claude 系列",
+            id = "anthropic", name = "Anthropic", description = "Claude 系Column",
             baseUrl = "https://api.anthropic.com", api = ModelApi.ANTHROPIC_MESSAGES,
             keyRequired = true, keyHint = "Anthropic API Key", envVarName = "ANTHROPIC_API_KEY",
             authHeader = false, group = ProviderGroup.PRIMARY, order = 20
         ),
         ProviderDefinition(
-            id = "openai", name = "OpenAI", description = "GPT 系列",
+            id = "openai", name = "OpenAI", description = "GPT 系Column",
             baseUrl = "https://api.openai.com/v1", api = ModelApi.OPENAI_COMPLETIONS,
             keyRequired = true, keyHint = "OpenAI API Key", envVarName = "OPENAI_API_KEY",
             group = ProviderGroup.PRIMARY, order = 30, supportsDiscovery = true
         ),
         ProviderDefinition(
-            id = "google", name = "Google (Gemini)", description = "Gemini 系列",
+            id = "google", name = "Google (Gemini)", description = "Gemini 系Column",
             baseUrl = "https://generativelanguage.googleapis.com/v1beta",
             api = ModelApi.GOOGLE_GENERATIVE_AI,
             keyRequired = true, keyHint = "Gemini API Key", envVarName = "GEMINI_API_KEY",
@@ -242,7 +242,7 @@ object ProviderRegistry {
         ProviderDefinition(
             id = "ollama", name = "Ollama (本地)", description = "本地模型",
             baseUrl = "http://127.0.0.1:11434", api = ModelApi.OLLAMA,
-            keyRequired = false, keyHint = "可选", envVarName = "OLLAMA_API_KEY",
+            keyRequired = false, keyHint = "Optional", envVarName = "OLLAMA_API_KEY",
             group = ProviderGroup.PRIMARY, order = 70, supportsDiscovery = true,
             discoveryEndpoint = "/api/tags"
         ),
@@ -253,13 +253,13 @@ object ProviderRegistry {
             group = ProviderGroup.PRIMARY, order = 60
         ),
         ProviderDefinition(
-            id = "minimax", name = "MiniMax", description = "MiniMax M2.7 系列",
+            id = "minimax", name = "MiniMax", description = "MiniMax M2.7 系Column",
             baseUrl = "https://api.minimax.io/anthropic", api = ModelApi.ANTHROPIC_MESSAGES,
             keyRequired = true, keyHint = "MiniMax API Key", envVarName = "MINIMAX_API_KEY",
             group = ProviderGroup.PRIMARY, order = 55
         ),
         ProviderDefinition(
-            id = "custom", name = "自定义 (OpenAI 兼容)", description = "自定义 API",
+            id = "custom", name = "Custom (OpenAI 兼容)", description = "Custom API",
             baseUrl = "", api = ModelApi.OPENAI_COMPLETIONS,
             keyRequired = false, keyHint = "API Key", envVarName = "",
             group = ProviderGroup.CUSTOM, order = 999, supportsDiscovery = true
@@ -268,7 +268,7 @@ object ProviderRegistry {
 }
 
 /**
- * Provider 定义 — 从 providers.json 加载
+ * Provider 定义 — 从 providers.json Load
  */
 data class ProviderDefinition(
     val id: String,

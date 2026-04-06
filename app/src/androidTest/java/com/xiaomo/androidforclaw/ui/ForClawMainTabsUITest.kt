@@ -16,11 +16,11 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * ForClaw 主界面 UI 主线测试
+ * ForClaw 主界面 UI 主线Test
  *
- * 关键路径:
- * 1. Settings tab 显示 ForClaw 卡片（LLM API / Gateway / Channels / Skills / Permissions）
- * 2. Settings tab 显示模型配置等设置项；模型配置可跳转
+ * 关KeyPath:
+ * 1. Settings tab Show ForClaw 卡片(LLM API / Gateway / Channels / Skills / Permissions)
+ * 2. Settings tab Show模型Config等Settings项；模型Config可跳转
  *
  * 底部导航: Chat | Voice | Screen | Settings
  */
@@ -102,7 +102,7 @@ class ForClawMainTabsUITest {
 
     // ── Tests ────────────────────────────────────────────────────────────
 
-    /** Settings tab 显示 ForClaw 连接卡片 (LLM API / Local Gateway / Channels / Skills) */
+    /** Settings tab Show ForClaw Connect卡片 (LLM API / Local Gateway / Channels / Skills) */
     @Test
     fun test01_settingsTab_connectionCards() {
         val settingsLabel = res.getString(OpenClawR.string.tab_settings)
@@ -131,7 +131,7 @@ class ForClawMainTabsUITest {
         }
     }
 
-    /** Settings tab 显示配置项（Termux / openclaw.json / 检查更新）并可正常滚动 */
+    /** Settings tab ShowConfig项(Termux / openclaw.json / CheckUpdate)并可正常滚动 */
     @Test
     fun test02_settingsTab_configItems() {
         val settingsLabel = res.getString(OpenClawR.string.tab_settings)

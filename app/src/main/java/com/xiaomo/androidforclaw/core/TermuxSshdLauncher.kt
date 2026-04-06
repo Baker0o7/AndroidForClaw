@@ -11,13 +11,13 @@ import android.widget.Toast
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
- * 通过 Termux RUN_COMMAND intent 自动启动 sshd。
+ * 通过 Termux RUN_COMMAND intent AutoStart sshd. 
  *
- * 需要在 AndroidManifest.xml 中声明:
+ * Need在 AndroidManifest.xml 中声明:
  *   <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
  *
- * 需要 Termux v0.119.0+ 且用户在 Termux 设置中启用
- * "Allow External Apps" (~/.termux/termux.properties → allow-external-apps = true)。
+ * Need Termux v0.119.0+ 且User在 Termux Settings中Enabledd
+ * "Allow External Apps" (~/.termux/termux.properties → allow-external-apps = true). 
  *
  * Reference: https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent
  */
@@ -34,23 +34,23 @@ object TermuxSshdLauncher {
     private const val EXTRA_ARGUMENTS = "$TERMUX_PACKAGE.RUN_COMMAND_ARGUMENTS"
     private const val EXTRA_BACKGROUND = "$TERMUX_PACKAGE.RUN_COMMAND_BACKGROUND"
 
-    /** sshd 的完整路径 */
+    /** sshd 的完整Path */
     const val SSHD_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/sshd"
 
-    /** 确保 Termux 拉起后再发 RUN_COMMAND 的初始等待时间 */
+    /** Ensure Termux 拉起Back再发 RUN_COMMAND 的初始WaitTime */
     private const val TERMUX_LAUNCH_WAIT_MS = 3000L
 
-    /** RUN_COMMAND 最大重试次数 */
+    /** RUN_COMMAND MaxRetry次数 */
     private const val MAX_LAUNCH_RETRIES = 3
 
-    /** 重试间隔 */
+    /** RetryInterval */
     private const val RETRY_INTERVAL_MS = 2000L
 
-    /** 用于构建通用 RUN_COMMAND intent 的 bash 路径 */
+    /** 用于Build通用 RUN_COMMAND intent 的 bash Path */
     private const val BASH_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/bash"
 
     /**
-     * 构建 RUN_COMMAND intent（可用于测试）。
+     * Build RUN_COMMAND intent(Available于Test). 
      */
     fun buildIntent(): Intent = Intent(ACTION_RUN_COMMAND).apply {
         setClassName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
@@ -59,7 +59,7 @@ object TermuxSshdLauncher {
     }
 
     /**
-     * 构建一个通过 bash -c 执行任意命令的 RUN_COMMAND intent。
+     * Build一个通过 bash -c 执RowAny命令的 RUN_COMMAND intent. 
      */
     private fun buildBashIntent(command: String): Intent = Intent(ACTION_RUN_COMMAND).apply {
         setClassName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
@@ -69,7 +69,7 @@ object TermuxSshdLauncher {
     }
 
     /**
-     * 检测是否为 MIUI/HyperOS 等小米系统（会拦截跨应用 startService）。
+     * 检测YesNo为 MIUI/HyperOS 等小米系统(会拦截跨apply startService). 
      */
     fun isMiui(): Boolean {
         return try {
@@ -85,52 +85,52 @@ object TermuxSshdLauncher {
     }
 
     /**
-     * 确保 Termux 进程已启动。
-     * RUN_COMMAND 需要 Termux 的 RunCommandService 在运行才能响应，
-     * 所以先用 launch intent 把 Termux 拉起来。
+     * Ensure Termux Process已Start. 
+     * RUN_COMMAND Need Termux 的 RunCommandService 在Run才能Response, 
+     * so先用 launch intent 把 Termux 拉起来. 
      *
-     * @return true 如果成功发送了启动 intent
+     * @return true ifSuccesssend了Start intent
      */
     fun ensureTermuxRunning(context: Context): Boolean {
         val pm = context.packageManager
         val launchIntent = pm.getLaunchIntentForPackage(TERMUX_PACKAGE)
         if (launchIntent == null) {
-            Log.w(TAG, "Termux 未安装，无法拉起")
+            Log.w(TAG, "Termux 未Install, Cannot拉起")
             return false
         }
-        // FLAG_ACTIVITY_NO_HISTORY: Termux 不留在返回栈，用户按返回直接回 ForClaw
+        // FLAG_ACTIVITY_NO_HISTORY: Termux 不留在ReturnStack, User按Return直接回 ForClaw
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
         try {
             context.startActivity(launchIntent)
-            Log.i(TAG, "✅ 已发送 Termux 启动 intent")
+            Log.i(TAG, "✅ 已send Termux Start intent")
             return true
         } catch (e: Exception) {
-            Log.w(TAG, "启动 Termux 失败: ${e.message}")
+            Log.w(TAG, "Start Termux Failed: ${e.message}")
             return false
         }
     }
 
     /**
-     * 发送 RUN_COMMAND intent 让 Termux 执行 sshd。
-     * 先尝试 startService，失败则尝试 PendingIntent 绕过 OEM 限制。
+     * send RUN_COMMAND intent 让 Termux 执Row sshd. 
+     * 先Try startService, Failed则Try PendingIntent 绕过 OEM Limit. 
      */
     fun launch(context: Context) {
         val intent = buildIntent()
         try {
             context.startService(intent)
-            Log.i(TAG, "✅ 已发送 RUN_COMMAND 启动 sshd (startService)")
+            Log.i(TAG, "✅ 已send RUN_COMMAND Start sshd (startService)")
         } catch (e: SecurityException) {
-            Log.w(TAG, "startService 被拒绝，尝试 PendingIntent 方式: ${e.message}")
+            Log.w(TAG, "startService 被deny, Try PendingIntent 方式: ${e.message}")
             launchViaPendingIntent(context)
         } catch (e: Exception) {
-            Log.w(TAG, "startService 失败，尝试 PendingIntent 方式: ${e.message}")
+            Log.w(TAG, "startService Failed, Try PendingIntent 方式: ${e.message}")
             launchViaPendingIntent(context)
         }
     }
 
     /**
-     * 通过 PendingIntent 发送 RUN_COMMAND。
-     * PendingIntent 走不同的 framework 路径，部分 OEM 限制不会拦截。
+     * 通过 PendingIntent send RUN_COMMAND. 
+     * PendingIntent 走不同的 framework Path, partially OEM Limit不会拦截. 
      */
     fun launchViaPendingIntent(context: Context) {
         try {
@@ -138,19 +138,19 @@ object TermuxSshdLauncher {
             val flags = PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
             val pi = PendingIntent.getService(context, 0, intent, flags)
             pi.send()
-            Log.i(TAG, "✅ 已发送 RUN_COMMAND 启动 sshd (PendingIntent)")
+            Log.i(TAG, "✅ 已send RUN_COMMAND Start sshd (PendingIntent)")
         } catch (e: Exception) {
-            Log.w(TAG, "PendingIntent 方式也失败: ${e.message}")
+            Log.w(TAG, "PendingIntent 方式AlsoFailed: ${e.message}")
             throw e
         }
     }
 
     /**
-     * 通过 RUN_COMMAND 将公钥注入到 Termux 的 ~/.ssh/authorized_keys。
-     * 用于 sshd 可达但认证失败（authorized_keys 丢失）的场景。
+     * 通过 RUN_COMMAND 将公钥注入到 Termux 的 ~/.ssh/authorized_keys. 
+     * 用于 sshd 可达但AuthenticateFailed(authorized_keys lose)的场景. 
      */
     fun injectPublicKey(context: Context, publicKey: String) {
-        // 转义公钥中的单引号（虽然 SSH 公钥通常不含单引号）
+        // 转义公钥中的单引号(although SSH 公钥usually不含单引号)
         val escaped = publicKey.replace("'", "'\\''")
         val cmd = "mkdir -p ~/.ssh && echo '$escaped' >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
         val intent = buildBashIntent(cmd)
@@ -158,20 +158,20 @@ object TermuxSshdLauncher {
             context.startService(intent)
             Log.i(TAG, "✅ 已通过 RUN_COMMAND 注入公钥到 authorized_keys")
         } catch (e: Exception) {
-            Log.w(TAG, "startService 注入公钥失败，尝试 PendingIntent: ${e.message}")
+            Log.w(TAG, "startService 注入公钥Failed, Try PendingIntent: ${e.message}")
             try {
                 val flags = PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
                 val pi = PendingIntent.getService(context, 1, intent, flags)
                 pi.send()
                 Log.i(TAG, "✅ 已通过 PendingIntent 注入公钥到 authorized_keys")
             } catch (e2: Exception) {
-                Log.w(TAG, "PendingIntent 注入公钥也失败: ${e2.message}")
+                Log.w(TAG, "PendingIntent 注入公钥AlsoFailed: ${e2.message}")
             }
         }
     }
 
     /**
-     * sshd 就绪后把前台切回 ForClaw。
+     * sshd ReadyBack把Front台切回 ForClaw. 
      */
     fun bringBackForClaw(context: Context) {
         try {
@@ -182,21 +182,21 @@ object TermuxSshdLauncher {
                 Log.i(TAG, "✅ 已切回 ForClaw")
             }
         } catch (e: Exception) {
-            Log.w(TAG, "切回 ForClaw 失败: ${e.message}")
+            Log.w(TAG, "切回 ForClaw Failed: ${e.message}")
         }
     }
 
     /**
-     * 打开 MIUI 自启动管理页面，引导用户给 Termux 开启自启动权限。
+     * Open MIUI 自StartManage页面, 引导User给 Termux 开启自StartPermission. 
      *
-     * @return true 如果成功打开了设置页面
+     * @return true ifSuccessOpen了Settings页面
      */
     fun openAutoStartSettings(context: Context): Boolean {
-        // MIUI / HyperOS 自启动管理页面的已知 ComponentName 列表
+        // MIUI / HyperOS 自StartManage页面的已知 ComponentName List
         val autoStartActivities = listOf(
-            // MIUI 经典路径
+            // MIUI 经典Path
             ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"),
-            // HyperOS / 新版 MIUI
+            // HyperOS / New版 MIUI
             ComponentName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity"),
         )
 
@@ -207,50 +207,50 @@ object TermuxSshdLauncher {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
-                Log.i(TAG, "✅ 已打开自启动设置: ${component.className}")
+                Log.i(TAG, "✅ 已Open自StartSettings: ${component.className}")
                 return true
             } catch (_: Exception) {
-                // 该路径不存在，尝试下一个
+                // 该Path不Exists, TryDown一个
             }
         }
-        Log.w(TAG, "未找到 MIUI 自启动设置页面")
+        Log.w(TAG, "未找到 MIUI 自StartSettings页面")
         return false
     }
 
     /**
-     * 在主线程显示 Toast 提示用户。
+     * 在主ThreadShow Toast HintUser. 
      */
     fun showAutoStartGuide(context: Context) {
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(
                 context,
-                "⚠️ 小米系统拦截了 Termux 自启动，请在弹出的设置页中找到 Termux 并开启自启动权限",
+                "⚠️ 小米系统拦截了 Termux 自Start, 请在弹出的Settings页中找到 Termux 并开启自StartPermission",
                 Toast.LENGTH_LONG
             ).show()
         }
-        // 尝试打开设置页
+        // TryOpenSettings页
         openAutoStartSettings(context)
     }
 
     /**
-     * 先确保 Termux 已启动，等待其初始化完成，再发送 RUN_COMMAND 执行 sshd。
-     * 如果 RUN_COMMAND 失败（Termux 尚未就绪），会重试最多 [MAX_LAUNCH_RETRIES] 次。
-     * 适合在 IO 协程中调用（包含 delay）。
+     * 先Ensure Termux 已Start, WaitItsInitializeComplete, 再send RUN_COMMAND 执Row sshd. 
+     * if RUN_COMMAND Failed(Termux 尚未Ready), 会Retrymost多 [MAX_LAUNCH_RETRIES] 次. 
+     * 适合在 IO 协程中call(Contains delay). 
      */
     suspend fun ensureAndLaunch(context: Context) {
         // 先拉起 Termux
         ensureTermuxRunning(context)
-        // 等 Termux 初始化（RunCommandService 注册）
+        // 等 Termux Initialize(RunCommandService Register)
         kotlinx.coroutines.delay(TERMUX_LAUNCH_WAIT_MS)
 
-        // 发送 RUN_COMMAND，失败则重试
+        // send RUN_COMMAND, Failed则Retry
         for (attempt in 1..MAX_LAUNCH_RETRIES) {
             try {
                 launch(context)
-                Log.i(TAG, "RUN_COMMAND 发送成功（第 ${attempt} 次）")
+                Log.i(TAG, "RUN_COMMAND sendSuccess(第 ${attempt} 次)")
                 return
             } catch (e: Exception) {
-                Log.w(TAG, "RUN_COMMAND 第 ${attempt} 次失败: ${e.message}")
+                Log.w(TAG, "RUN_COMMAND 第 ${attempt} 次Failed: ${e.message}")
                 if (attempt < MAX_LAUNCH_RETRIES) {
                     kotlinx.coroutines.delay(RETRY_INTERVAL_MS)
                 } else {

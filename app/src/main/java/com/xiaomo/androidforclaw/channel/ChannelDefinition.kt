@@ -8,15 +8,15 @@ package com.xiaomo.androidforclaw.channel
  * Channel Definition - Define Android App Channel according to OpenClaw architecture
  *
  * OpenClaw Channel core concepts:
- * - Channel: Communication channel（WhatsApp, Telegram, Discord, etc.）
+ * - Channel: Communication channel(WhatsApp, Telegram, Discord, etc.)
  * - Account: Account within channel (multi-account support)
  * - Session: Session instance (conversation with user/device)
- * - Capabilities: Channel capabilities（polls, threads, media, etc.）
+ * - Capabilities: Channel capabilities(polls, threads, media, etc.)
  *
  * Android App Channel characteristics:
  * - Device control channel (non-social messaging channel)
  * - Single device direct execution mode (no groups, no threads)
- * - Tool-intensive（tap, swipe, screenshot, etc.）
+ * - Tool-intensive(tap, swipe, screenshot, etc.)
  * - Authentication: ADB/Accessibility pairing (not token)
  */
 
@@ -90,14 +90,14 @@ val ANDROID_CHANNEL_CAPABILITIES = ChannelCapabilities(
     threads = false,
     media = true,                    // ✓ Screenshot/screen recording
     nativeCommands = true,           // ✓ Device operation commands
-    blockStreaming = true            // ✓ Block streaming response（等待完整结果）
+    blockStreaming = true            // ✓ Block streaming response(Wait for complete result)
 )
 
 /**
  * Channel Account - Account configuration (corresponds to OpenClaw's ChannelAccountSnapshot)
  */
 data class ChannelAccount(
-    val accountId: String,                     // Account ID（Android: device-{uuid}）
+    val accountId: String,                     // Account ID(Android: device-{uuid})
     val name: String? = null,                  // Account name (device name)
     val enabled: Boolean = true,               // Is enabled
     val configured: Boolean = false,           // Is configured

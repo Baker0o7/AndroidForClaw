@@ -21,10 +21,10 @@ import info.plateaukao.einkbro.R
 import info.plateaukao.einkbro.browser.control.server.SimpleBrowserHttpServer
 
 /**
- * BrowserForClaw HTTP API 前台服务
+ * BrowserForClaw HTTP API Front台Service
  *
- * 确保 HTTP Server (端口 58765) 持续运行在后台
- * 即使应用在后台或被系统回收,API 仍可响应
+ * Ensure HTTP Server (端口 58765) 持续Run在Back台
+ * even ifapply在Back台或被系统Recycle,API 仍可Response
  */
 class BrowserApiService : Service() {
 
@@ -57,19 +57,19 @@ class BrowserApiService : Service() {
         super.onCreate()
         Log.d(TAG, "onCreate")
 
-        // 创建通知渠道
+        // CreateNotification渠道
         createNotificationChannel()
 
-        // 启动前台服务通知
+        // StartFront台ServiceNotification
         startForeground(NOTIFICATION_ID, createNotification())
 
-        // 启动 HTTP Server
+        // Start HTTP Server
         startHttpServer()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
-        return START_STICKY // 服务被杀后自动重启
+        return START_STICKY // Service被杀BackAutoRestart
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -99,7 +99,7 @@ class BrowserApiService : Service() {
     }
 
     private fun createNotification(): Notification {
-        // 点击通知打开主 Activity
+        // clickNotificationOpenMain Activity
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -111,8 +111,8 @@ class BrowserApiService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("BrowserForClaw API")
             .setContentText("HTTP API running on port $PORT")
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // 使用系统图标
-            .setOngoing(true) // 不可滑动删除
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // use系统Icon
+            .setOngoing(true) // 不可swipeDelete
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

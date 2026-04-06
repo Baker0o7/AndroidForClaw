@@ -7,33 +7,33 @@
 package com.forclaw.browser.control.tools
 
 import com.forclaw.browser.control.manager.BrowserManager
-import com.forclaw.browser.control.model.ToolResult
+import com.forclaw.browser.control.model.Toolresult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 
 /**
- * 浏览器等待工具
+ * 浏览器Wait工具
  *
- * 等待页面满足特定条件
+ * Wait页面satisfy特定Condition
  *
- * 参数:
- * - timeMs: Int (可选) - 简单等待指定毫秒数
- * - selector: String (可选) - 等待元素出现
- * - text: String (可选) - 等待文本出现
- * - textGone: String (可选) - 等待文本消失
- * - url: String (可选) - 等待 URL 变化
- * - jsCondition: String (可选) - 自定义 JavaScript 条件
- * - timeout: Int (可选) - 超时时间（毫秒），默认 30000ms
+ * Parameters:
+ * - timeMs: Int (Optional) - SimpleWait指定毫秒数
+ * - selector: String (Optional) - WaitElement出现
+ * - text: String (Optional) - WaitText出现
+ * - textGone: String (Optional) - WaitText消失
+ * - url: String (Optional) - Wait URL 变化
+ * - jsCondition: String (Optional) - Custom JavaScript Condition
+ * - timeout: Int (Optional) - TimeoutTime(毫秒), Default 30000ms
  *
- * 返回:
- * - waitType: String - 等待类型
- * - success: Boolean - 是否成功
+ * Return:
+ * - waitType: String - WaitType
+ * - success: Boolean - YesNoSuccess
  */
 class BrowserWaitTool : BrowserTool {
     override val name = "browser_wait"
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        // 1. 获取参数
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+        // 1. GetParameters
         val timeMs = (args["timeMs"] as? Number)?.toLong()
         val selector = args["selector"] as? String
         val text = args["text"] as? String
@@ -42,83 +42,83 @@ class BrowserWaitTool : BrowserTool {
         val jsCondition = args["jsCondition"] as? String
         val timeout = (args["timeout"] as? Number)?.toLong() ?: 30000L
 
-        // 2. 检查浏览器实例
+        // 2. Check浏览器Instance
         if (!BrowserManager.isActive()) {
-            return ToolResult.error("Browser is not active")
+            return Toolresult.error("Browser is not active")
         }
 
-        // 3. 根据参数类型执行不同的等待
+        // 3. according toParametersType执Row不同的Wait
         try {
             return withTimeout(timeout) {
                 when {
-                    // 简单等待
+                    // SimpleWait
                     timeMs != null -> {
                         delay(timeMs)
-                        ToolResult.success(
+                        Toolresult.success(
                             "waitType" to "time",
                             "timeMs" to timeMs
                         )
                     }
 
-                    // 等待元素出现
+                    // WaitElement出现
                     selector != null -> {
                         waitForSelector(selector)
-                        ToolResult.success(
+                        Toolresult.success(
                             "waitType" to "selector",
                             "selector" to selector
                         )
                     }
 
-                    // 等待文本出现
+                    // WaitText出现
                     text != null -> {
                         waitForText(text)
-                        ToolResult.success(
+                        Toolresult.success(
                             "waitType" to "text",
                             "text" to text
                         )
                     }
 
-                    // 等待文本消失
+                    // WaitText消失
                     textGone != null -> {
                         waitForTextGone(textGone)
-                        ToolResult.success(
+                        Toolresult.success(
                             "waitType" to "textGone",
                             "text" to textGone
                         )
                     }
 
-                    // 等待 URL 变化
+                    // Wait URL 变化
                     url != null -> {
                         waitForUrl(url)
-                        ToolResult.success(
+                        Toolresult.success(
                             "waitType" to "url",
                             "url" to url
                         )
                     }
 
-                    // 自定义 JavaScript 条件
+                    // Custom JavaScript Condition
                     jsCondition != null -> {
                         waitForJsCondition(jsCondition)
-                        ToolResult.success(
+                        Toolresult.success(
                             "waitType" to "jsCondition",
                             "condition" to jsCondition
                         )
                     }
 
                     else -> {
-                        ToolResult.error("No wait condition specified")
+                        Toolresult.error("No wait condition specified")
                     }
                 }
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            return ToolResult.error("Wait timeout after ${timeout}ms")
+            return Toolresult.error("Wait timeout after ${timeout}ms")
         } catch (e: Exception) {
-            return ToolResult.error("Wait failed: ${e.message}")
+            return Toolresult.error("Wait failed: ${e.message}")
         }
     }
 
     /**
-     * 等待元素出现
+     * WaitElement出现
      */
     private suspend fun waitForSelector(selector: String) {
         val escapedSelector = selector.replace("'", "\\'")
@@ -133,7 +133,7 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * 等待文本出现
+     * WaitText出现
      */
     private suspend fun waitForText(text: String) {
         val escapedText = text.replace("'", "\\'")
@@ -148,7 +148,7 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * 等待文本消失
+     * WaitText消失
      */
     private suspend fun waitForTextGone(text: String) {
         val escapedText = text.replace("'", "\\'")
@@ -163,11 +163,11 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * 等待 URL 变化
+     * Wait URL 变化
      */
     private suspend fun waitForUrl(targetUrl: String) {
         while (true) {
-            // 使用 JavaScript 获取 URL，避免跨线程问题
+            // use JavaScript Get URL, 避免跨ThreadIssue
             val currentUrl = BrowserManager.evaluateJavascript("window.location.href")
                 ?.trim('"') ?: ""
             if (currentUrl.contains(targetUrl)) {
@@ -178,7 +178,7 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * 等待自定义 JavaScript 条件
+     * WaitCustom JavaScript Condition
      */
     private suspend fun waitForJsCondition(jsCondition: String) {
         val script = """
@@ -191,7 +191,7 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * 等待 JavaScript 表达式返回 true
+     * Wait JavaScript Table达式Return true
      */
     private suspend fun waitUntilTrue(script: String, checkInterval: Long) {
         while (true) {

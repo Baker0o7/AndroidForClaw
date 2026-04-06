@@ -9,14 +9,14 @@ package com.xiaomo.androidforclaw.selfcontrol
 
 
 /**
- * Skill 接口 (Self-Control Module 内部副本)
+ * Skill Interface (Self-Control Module InternalReplica)
  *
- * 为了避免循环依赖，这里复制了 app module 中的 Skill 接口。
- * 在 app module 集成时，这些类会被替换为 app module 的实际类型。
+ * 为了避免LoopDependency, 这里Copy了 app module 中的 Skill Interface. 
+ * 在 app module 集成时, 这些Class会被Replace为 app module 的实际Type. 
  */
 
 /**
- * Tool Definition (简化版本，兼容 OpenAI function calling)
+ * Tool Definition (简化Version, 兼容 OpenAI function calling)
  */
 data class ToolDefinition(
     val type: String = "function",
@@ -42,7 +42,7 @@ data class PropertySchema(
 )
 
 /**
- * Skill 接口
+ * Skill Interface
  */
 interface Skill {
     val name: String
@@ -53,7 +53,7 @@ interface Skill {
 }
 
 /**
- * Skill 执行结果
+ * Skill 执RowResult
  */
 data class SkillResult(
     val success: Boolean,

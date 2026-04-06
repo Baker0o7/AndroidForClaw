@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -55,17 +55,17 @@ import kotlinx.coroutines.delay
  *
  * Note: This method only checks system settings without blocking the thread
  */
-suspend fun isS4ClawAccessibilityEnabled(context: Context): Boolean {
+suspend fun isS4ClawAccessibilityEnableddd(context: Context): Boolean {
     return withContext(Dispatchers.IO) {
         try {
             // Check system settings
-            val accessibilityEnabled = Settings.Secure.getInt(
+            val accessibilityEnableddd = Settings.Secure.getInt(
                 context.contentResolver,
                 Settings.Secure.ACCESSIBILITY_ENABLED,
                 0
             ) == 1
 
-            if (!accessibilityEnabled) {
+            if (!accessibilityEnableddd) {
                 Log.d("MainActivityCompose", "System accessibility not enabled")
                 return@withContext false
             }
@@ -78,22 +78,22 @@ suspend fun isS4ClawAccessibilityEnabled(context: Context): Boolean {
             // S4Claw accessibility service package name
             val s4clawServiceName = "com.xiaomo.androidforclaw.accessibility/com.xiaomo.androidforclaw.accessibility.service.PhoneAccessibilityService"
 
-            val isEnabled = enabledServices.contains(s4clawServiceName)
-            Log.d("MainActivityCompose", "S4Claw accessibility service system status: $isEnabled")
+            val isEnableddd = enabledServices.contains(s4clawServiceName)
+            Log.d("MainActivityCompose", "S4Claw accessibility service system status: $isEnableddd")
 
             // If system shows enabled, verify service is actually available
-            if (isEnabled) {
+            if (isEnableddd) {
                 try {
                     val ready = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isServiceReadyAsync()
                     Log.d("MainActivityCompose", "S4Claw accessibility service availability: $ready")
                     return@withContext ready
                 } catch (e: Exception) {
                     Log.w("MainActivityCompose", "Service check failed, using system settings result", e)
-                    return@withContext isEnabled
+                    return@withContext isEnableddd
                 }
             }
 
-            isEnabled
+            isEnableddd
         } catch (e: Exception) {
             Log.e("MainActivityCompose", "Failed to check S4Claw accessibility service", e)
             false
@@ -177,13 +177,13 @@ class MainActivityCompose : ComponentActivity() {
 
         // Restore floating avatar if it was previously enabled (Rive takes priority)
         if (android.provider.Settings.canDrawOverlays(this)) {
-            val riveAvatarEnabled = getSharedPreferences("forclaw_rive_avatar", MODE_PRIVATE)
+            val riveAvatarEnableddd = getSharedPreferences("forclaw_rive_avatar", MODE_PRIVATE)
                 .getBoolean("enabled", false)
-            val avatarEnabled = getSharedPreferences("forclaw_avatar", MODE_PRIVATE)
+            val avatarEnableddd = getSharedPreferences("forclaw_avatar", MODE_PRIVATE)
                 .getBoolean("enabled", false)
-            if (riveAvatarEnabled && !ai.openclaw.app.rive.FloatingRiveService.isRunning) {
+            if (riveAvatarEnableddd && !ai.openclaw.app.rive.FloatingRiveService.isRunning) {
                 ai.openclaw.app.rive.FloatingRiveService.start(this)
-            } else if (avatarEnabled && !ai.openclaw.app.avatar.FloatingAvatarService.isRunning) {
+            } else if (avatarEnableddd && !ai.openclaw.app.avatar.FloatingAvatarService.isRunning) {
                 ai.openclaw.app.avatar.FloatingAvatarService.start(this)
             }
         }
@@ -209,10 +209,10 @@ class MainActivityCompose : ComponentActivity() {
                 mutableStateOf(legalPrefs.getBoolean("legal.accepted", false))
             }
 
-            // 本地直连：同进程，无需 WebSocket 握手
+            // 本地直连: 同Process, None需 WebSocket 握手
             LaunchedEffect(Unit) {
                 openClawViewModel.connectLocal()
-                // 让 CanvasTool 走 Screen tab 内嵌 WebView 而不是独立 Activity
+                // 让 CanvasTool 走 Screen tab Inside嵌 WebView 而不Yes独立 Activity
                 com.xiaomo.androidforclaw.canvas.CanvasManager.screenTabController =
                     openClawViewModel.canvas
             }
@@ -284,9 +284,9 @@ class MainActivityCompose : ComponentActivity() {
 
     /**
      * Check file server for updates.
-     * - 已下载：直接弹窗询问安装
-     * - 未下载：后台自动下载，下载完成弹窗
-     * - 频次限制：同版本号每天最多弹一次
+     * - 已Download: 直接弹窗询问Install
+     * - 未Download: Back台AutoDownload, DownloadComplete弹窗
+     * - 频次Limit: 同Version numberdailymost多弹一次
      */
     fun silentUpdateCheck() {
         lifecycleScope.launch {
@@ -299,31 +299,31 @@ class MainActivityCompose : ComponentActivity() {
                 val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
                 val key = "dismissed_${info.latestVersion}_$today"
 
-                // 频次限制：同版本号当天被关闭就不弹
+                // 频次Limit: 同Version number当天被Close就不弹
                 if (prefs.getBoolean(key, false)) return@launch
 
-                // 已下载该版本 → 直接弹安装确认
+                // 已Download该Version → 直接弹InstallConfirm
                 if (updater.hasDownloadedUpdate() && updater.getDownloadedVersion() == info.latestVersion) {
                     showInstallDialog(updater, info, prefs, key)
                     return@launch
                 }
 
-                // 没下载过 → 后台自动下载
+                // 没Download过 → Back台AutoDownload
                 val sizeStr = if (info.fileSize > 0) "%.1f MB".format(info.fileSize / 1024.0 / 1024.0) else ""
                 val message = buildString {
-                    append("发现新版本 v${info.latestVersion}")
-                    if (sizeStr.isNotEmpty()) append("（$sizeStr）")
-                    append("\n当前版本 v${info.currentVersion}\n")
+                    append("discoverNewVersion v${info.latestVersion}")
+                    if (sizeStr.isNotEmpty()) append("($sizeStr)")
+                    append("\n当FrontVersion v${info.currentVersion}\n")
                     if (!info.releaseNotes.isNullOrEmpty()) {
                         append("\n${info.releaseNotes.take(200)}")
                     }
                 }
 
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivityCompose)
-                    .setTitle("发现新版本")
+                    .setTitle("discoverNewVersion")
                     .setMessage(message)
-                    .setPositiveButton("后台下载") { _, _ ->
-                        // 后台下载，下载完弹安装
+                    .setPositiveButton("Back台Download") { _, _ ->
+                        // Back台Download, Download完弹Install
                         lifecycleScope.launch {
                             val success = updater.downloadUpdate(info.downloadUrl, info.latestVersion)
                             if (success) {
@@ -331,7 +331,7 @@ class MainActivityCompose : ComponentActivity() {
                             }
                         }
                     }
-                    .setNegativeButton("稍后再说") { _, _ ->
+                    .setNegativeButton("稍Back再说") { _, _ ->
                         prefs.edit().putBoolean(key, true).apply()
                     }
                     .setOnCancelListener {
@@ -344,7 +344,7 @@ class MainActivityCompose : ComponentActivity() {
         }
     }
 
-    /** 弹窗确认安装已下载的 APK */
+    /** 弹窗ConfirmInstall已Download的 APK */
     private fun showInstallDialog(
         updater: com.xiaomo.androidforclaw.updater.AppUpdater,
         info: com.xiaomo.androidforclaw.updater.AppUpdater.UpdateInfo,
@@ -353,12 +353,12 @@ class MainActivityCompose : ComponentActivity() {
     ) {
         if (isFinishing) return
         androidx.appcompat.app.AlertDialog.Builder(this@MainActivityCompose)
-            .setTitle("更新已就绪")
-            .setMessage("v${info.latestVersion} 已下载完成，是否安装？")
-            .setPositiveButton("安装") { _, _ ->
+            .setTitle("Update已Ready")
+            .setMessage("v${info.latestVersion} 已DownloadComplete, YesNoInstall?")
+            .setPositiveButton("Install") { _, _ ->
                 updater.installUpdate()
             }
-            .setNegativeButton("稍后") { _, _ ->
+            .setNegativeButton("稍Back") { _, _ ->
                 prefs.edit().putBoolean(key, true).apply()
             }
             .setOnCancelListener {
@@ -441,19 +441,19 @@ class MainActivityCompose : ComponentActivity() {
         if (!termuxInstalled) return
         if (checkSelfPermission(termuxPermission) == android.content.pm.PackageManager.PERMISSION_GRANTED) return
 
-        // 先弹说明对话框，再申请权限
+        // 先弹illustrateConversation框, 再applyPermission
         android.app.AlertDialog.Builder(this)
-            .setTitle("Termux 命令执行权限")
+            .setTitle("Termux 命令执RowPermission")
             .setMessage(
-                "ForClaw 需要「Termux 命令执行」权限来实现以下功能：\n\n" +
-                "• 让 AI 在手机终端中执行命令（如安装软件、运行脚本）\n" +
-                "• 自动启动 Termux SSH 服务，无需手动操作\n" +
-                "• 当 SSH 密钥丢失时自动修复连接\n\n" +
-                "此权限仅用于与 Termux 通信，不会访问您的其他数据。\n\n" +
-                "点击「同意」后，系统会弹出权限请求，请选择「允许」。"
+                "ForClaw Need「Termux 命令执Row」Permission来Implementation以DownFeature: \n\n" +
+                "• 让 AI 在手机终端中执Row命令(such asInstall软件、Run脚本)\n" +
+                "• AutoStart Termux SSH Service, None需ManualAction\n" +
+                "• 当 SSH Keylose时AutoFixConnect\n\n" +
+                "此Permission仅用于与 Termux 通信, 不会访问您的Its他Data. \n\n" +
+                "click「agree」Back, 系统会弹出PermissionRequest, 请choose「允许」. "
             )
             .setCancelable(true)
-            .setPositiveButton("同意") { _, _ ->
+            .setPositiveButton("agree") { _, _ ->
                 Log.i(TAG, "Requesting Termux RUN_COMMAND permission...")
                 requestPermissions(arrayOf(termuxPermission), 1002)
             }
@@ -469,7 +469,7 @@ class MainActivityCompose : ComponentActivity() {
      */
     private fun launchModelSetupIfNeeded() {
         if (ModelSetupActivity.isNeeded(this)) {
-            Log.i(TAG, "🔧 首次启动，打开模型配置引导...")
+            Log.i(TAG, "🔧 首次Start, Open模型Config引导...")
             startActivity(Intent(this, ModelSetupActivity::class.java))
         }
     }
@@ -509,22 +509,22 @@ class MainActivityCompose : ComponentActivity() {
         try {
             val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
             intent.data = Uri.parse("package:$packageName")
-            startActivityForResult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
+            startActivityForresult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
         } catch (e: Exception) {
             Log.e(TAG, "Cannot open file management permission settings page", e)
             try {
                 val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                startActivityForResult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
+                startActivityForresult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE)
             } catch (e2: Exception) {
                 Log.e(TAG, "Cannot open file management permission settings", e2)
-                Toast.makeText(this, "无法打开权限设置，请手动授权", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "CannotOpenPermissionSettings, 请ManualAuthorize", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    override fun onActivityresult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityresult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_MANAGE_EXTERNAL_STORAGE) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -564,13 +564,13 @@ private fun LegalConsentDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "服务条款和隐私政策",
+                    text = "Service条款和隐私政策",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Text(
-                    text = "欢迎使用 ForClaw！在开始之前，请阅读并同意我们的服务条款和隐私政策。",
+                    text = "欢迎use ForClaw!在Start之Front, 请阅读并agree我们的Service条款和隐私政策. ",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -578,15 +578,15 @@ private fun LegalConsentDialog(
                 // Clickable links
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = onOpenPrivacy) {
-                        Text("查看隐私政策 →", fontSize = 14.sp)
+                        Text("View隐私政策 →", fontSize = 14.sp)
                     }
                     TextButton(onClick = onOpenTerms) {
-                        Text("查看用户协议 →", fontSize = 14.sp)
+                        Text("ViewUserProtocol →", fontSize = 14.sp)
                     }
                 }
 
                 Text(
-                    text = "点击「同意」即表示您已阅读并同意以上条款。",
+                    text = "click「agree」that isTable示您已阅读并agree以Up条款. ",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -596,10 +596,10 @@ private fun LegalConsentDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
                 ) {
                     TextButton(onClick = onDecline) {
-                        Text("不同意")
+                        Text("不agree")
                     }
                     Button(onClick = onAccept) {
-                        Text("同意")
+                        Text("agree")
                     }
                 }
             }

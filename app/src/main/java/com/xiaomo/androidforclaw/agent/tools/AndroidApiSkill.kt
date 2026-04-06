@@ -3,20 +3,20 @@ package com.xiaomo.androidforclaw.agent.tools
 /**
  * Android API Skill — 暴露 Android 系统 API 给 Agent
  *
- * 让 Agent 通过 API 直接操作系统功能，而不是靠 UI 自动化硬刚。
- * 对齐 OpenClaw 的 tool 模式：单一工具 + action 参数路由。
+ * 让 Agent 通过 API 直接Action系统Feature, 而不Yes靠 UI Auto化硬刚. 
+ * Aligned with OpenClaw 的 tool Schema: 单一工具 + action ParametersRoute. 
  *
- * 支持的操作：
- * - 闹钟/定时器：set_alarm, set_timer
- * - 剪贴板：get_clipboard, set_clipboard
- * - 电池/存储：get_battery, get_storage
- * - 手电筒：flashlight
- * - 音量：get_volume, set_volume
- * - 亮度：set_brightness
- * - 启动 App/Activity：start_app, start_activity
- * - 发广播：send_broadcast
- * - 屏幕超时：set_screen_timeout
- * - 设置页跳转：open_settings
+ * Support的Action: 
+ * - 闹钟/定时器: set_alarm, set_timer
+ * - 剪贴板: get_clipboard, set_clipboard
+ * - 电池/Storage: get_battery, get_storage
+ * - 手电筒: flashlight
+ * - 音量: get_volume, set_volume
+ * - 亮度: set_brightness
+ * - Start App/Activity: start_app, start_activity
+ * - 发Broadcast: send_broadcast
+ * - ScreenTimeout: set_screen_timeout
+ * - Settings页跳转: open_settings
  */
 
 
@@ -46,23 +46,23 @@ class AndroidApiSkill(private val context: Context) : Skill {
     }
 
     override val name = "android_api"
-    override val description = """Android 系统 API 工具。直接调用系统 API 操作设备功能，无需 UI 自动化。
-支持操作：
-- set_alarm: 设置闹钟 (参数: hour, minute, message)
-- set_timer: 设置倒计时 (参数: seconds, message)
-- get_clipboard: 读取剪贴板
-- set_clipboard: 写入剪贴板 (参数: text)
-- get_battery: 获取电池状态
-- get_storage: 获取存储空间
-- flashlight: 开关手电筒 (参数: on=true/false)
-- get_volume: 获取音量信息
-- set_volume: 设置音量 (参数: stream, level 0-100)
-- set_brightness: 设置屏幕亮度 (参数: level 0-255, auto=true/false)
-- start_app: 启动 App (参数: package)
-- start_activity: 启动 Activity (参数: action, data?, package?)
-- send_broadcast: 发送广播 (参数: action, package?)
-- set_screen_timeout: 设置屏幕超时 (参数: seconds)
-- open_settings: 打开系统设置页 (参数: page)"""
+    override val description = """Android 系统 API 工具. directly call system API ActionDeviceFeature, None需 UI Auto化. 
+SupportAction: 
+- set_alarm: Settings闹钟 (Parameters: hour, minute, message)
+- set_timer: Settings倒计时 (Parameters: seconds, message)
+- get_clipboard: Read剪贴板
+- set_clipboard: Write剪贴板 (Parameters: text)
+- get_battery: Get电池Status
+- get_storage: GetStorageSpace
+- flashlight: 开关手电筒 (Parameters: on=true/false)
+- get_volume: Get音量Info
+- set_volume: Settings音量 (Parameters: stream, level 0-100)
+- set_brightness: SettingsScreen亮度 (Parameters: level 0-255, auto=true/false)
+- start_app: Start App (Parameters: package)
+- start_activity: Start Activity (Parameters: action, data?, package?)
+- send_broadcast: sendBroadcast (Parameters: action, package?)
+- set_screen_timeout: SettingsScreenTimeout (Parameters: seconds)
+- open_settings: Open系统Settings页 (Parameters: page)"""
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -75,7 +75,7 @@ class AndroidApiSkill(private val context: Context) : Skill {
                     properties = mapOf(
                         "action" to PropertySchema(
                             type = "string",
-                            description = "操作类型",
+                            description = "Action type",
                             enum = listOf(
                                 "set_alarm", "set_timer",
                                 "get_clipboard", "set_clipboard",
@@ -93,15 +93,15 @@ class AndroidApiSkill(private val context: Context) : Skill {
                         "minute" to PropertySchema(type = "number", description = "分钟 (0-59) for set_alarm"),
                         "seconds" to PropertySchema(type = "number", description = "秒数 for set_timer / set_screen_timeout"),
                         "message" to PropertySchema(type = "string", description = "闹钟/定时器标签"),
-                        "text" to PropertySchema(type = "string", description = "剪贴板文本 for set_clipboard"),
+                        "text" to PropertySchema(type = "string", description = "剪贴板Text for set_clipboard"),
                         "on" to PropertySchema(type = "boolean", description = "开关 for flashlight"),
-                        "stream" to PropertySchema(type = "string", description = "音量类型: music/call/ring/notification/alarm/system", enum = listOf("music", "call", "ring", "notification", "alarm", "system")),
+                        "stream" to PropertySchema(type = "string", description = "音量Type: music/call/ring/notification/alarm/system", enum = listOf("music", "call", "ring", "notification", "alarm", "system")),
                         "level" to PropertySchema(type = "number", description = "音量级别 for set_volume (0-100) 或亮度级别 for set_brightness (0-255)"),
-                        "auto" to PropertySchema(type = "boolean", description = "亮度自动调节 for set_brightness"),
-                        "package" to PropertySchema(type = "string", description = "包名 for start_app / start_activity / send_broadcast"),
+                        "auto" to PropertySchema(type = "boolean", description = "亮度Auto调节 for set_brightness"),
+                        "package" to PropertySchema(type = "string", description = "Package name for start_app / start_activity / send_broadcast"),
                         "action" to PropertySchema(type = "string", description = "Intent action for start_activity / send_broadcast"),
                         "data" to PropertySchema(type = "string", description = "Intent data URI for start_activity"),
-                        "page" to PropertySchema(type = "string", description = "设置页面: wifi/bluetooth/battery/display/sound/storage/app/all", enum = listOf("wifi", "bluetooth", "battery", "display", "sound", "storage", "app", "all"))
+                        "page" to PropertySchema(type = "string", description = "Settings页面: wifi/bluetooth/battery/display/sound/storage/app/all", enum = listOf("wifi", "bluetooth", "battery", "display", "sound", "storage", "app", "all"))
                     ),
                     required = listOf("action")
                 )
@@ -109,8 +109,8 @@ class AndroidApiSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
-        val action = args["action"] as? String ?: return SkillResult.error("Missing 'action' parameter")
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
+        val action = args["action"] as? String ?: return Skillresult.error("Missing 'action' parameter")
 
         return try {
             when (action) {
@@ -129,19 +129,19 @@ class AndroidApiSkill(private val context: Context) : Skill {
                 "send_broadcast" -> sendBroadcast(args)
                 "set_screen_timeout" -> setScreenTimeout(args)
                 "open_settings" -> openSettings(args)
-                else -> SkillResult.error("Unknown action: $action")
+                else -> Skillresult.error("Unknown action: $action")
             }
         } catch (e: Exception) {
             Log.e(TAG, "android_api.$action failed", e)
-            SkillResult.error("操作失败: ${e.message}")
+            Skillresult.error("ActionFailed: ${e.message}")
         }
     }
 
     // ========== 闹钟/定时器 ==========
 
-    private fun setAlarm(args: Map<String, Any?>): SkillResult {
-        val hour = (args["hour"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'hour'")
-        val minute = (args["minute"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'minute'")
+    private fun setAlarm(args: Map<String, Any?>): Skillresult {
+        val hour = (args["hour"] as? Number)?.toInt() ?: return Skillresult.error("Missing 'hour'")
+        val minute = (args["minute"] as? Number)?.toInt() ?: return Skillresult.error("Missing 'minute'")
         val message = args["message"] as? String ?: "AndroidClaw 闹钟"
 
         val intent = Intent("android.intent.action.SET_ALARM").apply {
@@ -152,14 +152,14 @@ class AndroidApiSkill(private val context: Context) : Skill {
         }
         return try {
             context.startActivity(intent)
-            SkillResult.success("已设置闹钟: ${hour}时${minute}分 - $message")
+            Skillresult.success("已Settings闹钟: ${hour}时${minute}分 - $message")
         } catch (e: ActivityNotFoundException) {
-            SkillResult.error("未找到时钟应用")
+            Skillresult.error("未找到时钟apply")
         }
     }
 
-    private fun setTimer(args: Map<String, Any?>): SkillResult {
-        val seconds = (args["seconds"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'seconds'")
+    private fun setTimer(args: Map<String, Any?>): Skillresult {
+        val seconds = (args["seconds"] as? Number)?.toInt() ?: return Skillresult.error("Missing 'seconds'")
         val message = args["message"] as? String ?: "AndroidClaw 定时器"
 
         val intent = Intent("android.intent.action.SET_TIMER").apply {
@@ -170,34 +170,34 @@ class AndroidApiSkill(private val context: Context) : Skill {
         }
         return try {
             context.startActivity(intent)
-            SkillResult.success("已设置定时器: ${seconds}秒 - $message")
+            Skillresult.success("已Settings定时器: ${seconds}秒 - $message")
         } catch (e: ActivityNotFoundException) {
-            SkillResult.error("未找到时钟应用")
+            Skillresult.error("未找到时钟apply")
         }
     }
 
     // ========== 剪贴板 ==========
 
-    private fun getClipboard(): SkillResult {
+    private fun getClipboard(): Skillresult {
         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = cm.primaryClip
         if (clip == null || clip.itemCount == 0) {
-            return SkillResult.success("剪贴板为空")
+            return Skillresult.success("剪贴板为Null")
         }
         val text = clip.getItemAt(0).text?.toString() ?: ""
-        return SkillResult.success("剪贴板内容: $text")
+        return Skillresult.success("剪贴板Inside容: $text")
     }
 
-    private fun setClipboard(args: Map<String, Any?>): SkillResult {
-        val text = args["text"] as? String ?: return SkillResult.error("Missing 'text'")
+    private fun setClipboard(args: Map<String, Any?>): Skillresult {
+        val text = args["text"] as? String ?: return Skillresult.error("Missing 'text'")
         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         cm.setPrimaryClip(ClipData.newPlainText("AndroidClaw", text))
-        return SkillResult.success("已复制到剪贴板: ${text.take(50)}${if (text.length > 50) "..." else ""}")
+        return Skillresult.success("已Copy到剪贴板: ${text.take(50)}${if (text.length > 50) "..." else ""}")
     }
 
     // ========== 电池 ==========
 
-    private fun getBattery(): SkillResult {
+    private fun getBattery(): Skillresult {
         val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
         val level = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         val status = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS)
@@ -207,40 +207,40 @@ class AndroidApiSkill(private val context: Context) : Skill {
             BatteryManager.BATTERY_STATUS_DISCHARGING -> "放电中"
             BatteryManager.BATTERY_STATUS_FULL -> "已充满"
             BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "未充电"
-            else -> "未知"
+            else -> "Unknown"
         }
 
         val chargingInfo = if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
             val currentNow = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
             val currentAvg = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
-            " (电流: ${currentNow / 1000}mA, 平均: ${currentAvg / 1000}mA)"
+            " (Current: ${currentNow / 1000}mA, 平均: ${currentAvg / 1000}mA)"
         } else ""
 
-        return SkillResult.success("电池: ${level}% | 状态: $statusStr$chargingInfo")
+        return Skillresult.success("电池: ${level}% | Status: $statusStr$chargingInfo")
     }
 
-    // ========== 存储 ==========
+    // ========== Storage ==========
 
-    private fun getStorage(): SkillResult {
+    private fun getStorage(): Skillresult {
         val internal = StatFs(Environment.getDataDirectory().path)
         val internalTotal = internal.totalBytes
         val internalFree = internal.availableBytes
 
         val result = StringBuilder()
-        result.appendLine("内部存储:")
-        result.appendLine("  总计: ${formatBytes(internalTotal)}")
-        result.appendLine("  可用: ${formatBytes(internalFree)}")
+        result.appendLine("InternalStorage:")
+        result.appendLine("  Total: ${formatBytes(internalTotal)}")
+        result.appendLine("  Available: ${formatBytes(internalFree)}")
         result.appendLine("  已用: ${formatBytes(internalTotal - internalFree)} (${(internalTotal - internalFree) * 100 / internalTotal}%)")
 
         // External storage if available
         if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
             val external = StatFs(Environment.getExternalStorageDirectory().path)
-            result.appendLine("外部存储:")
-            result.appendLine("  总计: ${formatBytes(external.totalBytes)}")
-            result.appendLine("  可用: ${formatBytes(external.availableBytes)}")
+            result.appendLine("ExternalStorage:")
+            result.appendLine("  Total: ${formatBytes(external.totalBytes)}")
+            result.appendLine("  Available: ${formatBytes(external.availableBytes)}")
         }
 
-        return SkillResult.success(result.toString().trim())
+        return Skillresult.success(result.toString().trim())
     }
 
     private fun formatBytes(bytes: Long): String = when {
@@ -252,21 +252,21 @@ class AndroidApiSkill(private val context: Context) : Skill {
 
     // ========== 手电筒 ==========
 
-    private fun toggleFlashlight(args: Map<String, Any?>): SkillResult {
-        val on = args["on"] as? Boolean ?: return SkillResult.error("Missing 'on' parameter (true/false)")
+    private fun toggleFlashlight(args: Map<String, Any?>): Skillresult {
+        val on = args["on"] as? Boolean ?: return Skillresult.error("Missing 'on' parameter (true/false)")
         val cm = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
-            val cameraId = cm.cameraIdList.firstOrNull() ?: return SkillResult.error("无可用摄像头")
+            val cameraId = cm.cameraIdList.firstOrNull() ?: return Skillresult.error("NoneAvailable camera")
             cm.setTorchMode(cameraId, on)
-            return SkillResult.success(if (on) "手电筒已开启" else "手电筒已关闭")
+            return Skillresult.success(if (on) "手电筒已开启" else "手电筒已Close")
         } catch (e: Exception) {
-            return SkillResult.error("手电筒操作失败: ${e.message}")
+            return Skillresult.error("手电筒ActionFailed: ${e.message}")
         }
     }
 
     // ========== 音量 ==========
 
-    private fun getVolume(): SkillResult {
+    private fun getVolume(): Skillresult {
         val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val streams = listOf(
             "music" to AudioManager.STREAM_MUSIC,
@@ -276,7 +276,7 @@ class AndroidApiSkill(private val context: Context) : Skill {
             "alarm" to AudioManager.STREAM_ALARM,
             "system" to AudioManager.STREAM_SYSTEM
         )
-        val result = StringBuilder("音量信息:\n")
+        val result = StringBuilder("音量Info:\n")
         for ((name, stream) in streams) {
             val current = am.getStreamVolume(stream)
             val max = am.getStreamMaxVolume(stream)
@@ -284,12 +284,12 @@ class AndroidApiSkill(private val context: Context) : Skill {
             val mute = if (am.isStreamMute(stream)) " [静音]" else ""
             result.appendLine("  $name: $current/$max (${percent}%)$mute")
         }
-        return SkillResult.success(result.toString().trim())
+        return Skillresult.success(result.toString().trim())
     }
 
-    private fun setVolume(args: Map<String, Any?>): SkillResult {
+    private fun setVolume(args: Map<String, Any?>): Skillresult {
         val streamName = args["stream"] as? String ?: "music"
-        val level = (args["level"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'level'")
+        val level = (args["level"] as? Number)?.toInt() ?: return Skillresult.error("Missing 'level'")
 
         val stream = when (streamName) {
             "music" -> AudioManager.STREAM_MUSIC
@@ -298,7 +298,7 @@ class AndroidApiSkill(private val context: Context) : Skill {
             "notification" -> AudioManager.STREAM_NOTIFICATION
             "alarm" -> AudioManager.STREAM_ALARM
             "system" -> AudioManager.STREAM_SYSTEM
-            else -> return SkillResult.error("Unknown stream: $streamName")
+            else -> return Skillresult.error("Unknown stream: $streamName")
         }
 
         val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -306,41 +306,41 @@ class AndroidApiSkill(private val context: Context) : Skill {
         val vol = (level * max / 100).coerceIn(0, max)
         am.setStreamVolume(stream, vol, 0)
 
-        return SkillResult.success("已设置 $streamName 音量: $vol/$max (${level}%)")
+        return Skillresult.success("已Settings $streamName 音量: $vol/$max (${level}%)")
     }
 
     // ========== 亮度 ==========
 
-    private fun setBrightness(args: Map<String, Any?>): SkillResult {
+    private fun setBrightness(args: Map<String, Any?>): Skillresult {
         val auto = args["auto"] as? Boolean
         if (auto == true) {
             Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC)
-            return SkillResult.success("已切换为自动亮度")
+            return Skillresult.success("已switch为Auto亮度")
         }
 
         val level = (args["level"] as? Number)?.toInt()
-            ?: return SkillResult.error("Missing 'level' (0-255) or 'auto' (true)")
+            ?: return Skillresult.error("Missing 'level' (0-255) or 'auto' (true)")
 
         // Need to disable auto brightness first
         Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL)
         Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, level.coerceIn(0, 255))
 
-        return SkillResult.success("已设置亮度: $level/255")
+        return Skillresult.success("已Settings亮度: $level/255")
     }
 
-    // ========== 启动 App ==========
+    // ========== Start App ==========
 
-    private fun startApp(args: Map<String, Any?>): SkillResult {
-        val packageName = args["package"] as? String ?: return SkillResult.error("Missing 'package'")
+    private fun startApp(args: Map<String, Any?>): Skillresult {
+        val packageName = args["package"] as? String ?: return Skillresult.error("Missing 'package'")
         val intent = context.packageManager.getLaunchIntentForPackage(packageName)
-            ?: return SkillResult.error("未找到应用: $packageName")
+            ?: return Skillresult.error("未找到apply: $packageName")
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
-        return SkillResult.success("已启动: $packageName")
+        return Skillresult.success("已Start: $packageName")
     }
 
-    private fun startActivity(args: Map<String, Any?>): SkillResult {
-        val action = args["action"] as? String ?: return SkillResult.error("Missing 'action' (Intent action)")
+    private fun startActivity(args: Map<String, Any?>): Skillresult {
+        val action = args["action"] as? String ?: return Skillresult.error("Missing 'action' (Intent action)")
         val data = args["data"] as? String
         val pkg = args["package"] as? String
 
@@ -351,29 +351,29 @@ class AndroidApiSkill(private val context: Context) : Skill {
         }
         return try {
             context.startActivity(intent)
-            SkillResult.success("已启动 Activity: $action")
+            Skillresult.success("已Start Activity: $action")
         } catch (e: ActivityNotFoundException) {
-            SkillResult.error("未找到目标 Activity: $action")
+            Skillresult.error("未找到目标 Activity: $action")
         }
     }
 
-    // ========== 发广播 ==========
+    // ========== 发Broadcast ==========
 
-    private fun sendBroadcast(args: Map<String, Any?>): SkillResult {
-        val action = args["action"] as? String ?: return SkillResult.error("Missing 'action'")
+    private fun sendBroadcast(args: Map<String, Any?>): Skillresult {
+        val action = args["action"] as? String ?: return Skillresult.error("Missing 'action'")
         val pkg = args["package"] as? String
 
         val intent = Intent(action).apply {
             if (pkg != null) setPackage(pkg)
         }
         context.sendBroadcast(intent)
-        return SkillResult.success("已发送广播: $action")
+        return Skillresult.success("已sendBroadcast: $action")
     }
 
-    // ========== 屏幕超时 ==========
+    // ========== ScreenTimeout ==========
 
-    private fun setScreenTimeout(args: Map<String, Any?>): SkillResult {
-        val seconds = (args["seconds"] as? Number)?.toInt() ?: return SkillResult.error("Missing 'seconds'")
+    private fun setScreenTimeout(args: Map<String, Any?>): Skillresult {
+        val seconds = (args["seconds"] as? Number)?.toInt() ?: return Skillresult.error("Missing 'seconds'")
 
         // Use Intent to open screen timeout settings (direct write needs WRITE_SETTINGS which we may not have)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(context)) {
@@ -382,16 +382,16 @@ class AndroidApiSkill(private val context: Context) : Skill {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-            return SkillResult.error("需要 WRITE_SETTINGS 权限，已打开授权页面")
+            return Skillresult.error("Need WRITE_SETTINGS Permission, 已OpenAuthorize页面")
         }
 
         Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT, seconds * 1000)
-        return SkillResult.success("已设置屏幕超时: ${seconds}秒")
+        return Skillresult.success("已SettingsScreenTimeout: ${seconds}秒")
     }
 
-    // ========== 设置页跳转 ==========
+    // ========== Settings页跳转 ==========
 
-    private fun openSettings(args: Map<String, Any?>): SkillResult {
+    private fun openSettings(args: Map<String, Any?>): Skillresult {
         val page = args["page"] as? String ?: "all"
         val intentAction = when (page) {
             "wifi" -> Settings.ACTION_WIFI_SETTINGS
@@ -402,15 +402,15 @@ class AndroidApiSkill(private val context: Context) : Skill {
             "storage" -> Settings.ACTION_INTERNAL_STORAGE_SETTINGS
             "app" -> Settings.ACTION_APPLICATION_SETTINGS
             "all" -> Settings.ACTION_SETTINGS
-            else -> return SkillResult.error("Unknown settings page: $page")
+            else -> return Skillresult.error("Unknown settings page: $page")
         }
 
         val intent = Intent(intentAction).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
         return try {
             context.startActivity(intent)
-            SkillResult.success("已打开设置页面: $page")
+            Skillresult.success("已OpenSettings页面: $page")
         } catch (e: ActivityNotFoundException) {
-            SkillResult.error("未找到设置页面: $page")
+            Skillresult.error("未找到Settings页面: $page")
         }
     }
 }

@@ -9,7 +9,7 @@ package com.forclaw.browser.control.tools
 import android.graphics.Bitmap
 import android.util.Base64
 import com.forclaw.browser.control.manager.BrowserManager
-import com.forclaw.browser.control.model.ToolResult
+import com.forclaw.browser.control.model.Toolresult
 import info.plateaukao.einkbro.view.EBWebView
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.resume
@@ -18,63 +18,63 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 浏览器截图工具
+ * 浏览器Screenshot工具
  *
- * 截取当前页面的图片
+ * 截取当Front页面的Graph片
  *
- * 参数:
- * - fullPage: Boolean (可选) - 是否全页截图，默认 false
- * - format: String (可选) - 图片格式 "png" 或 "jpeg"，默认 "png"
- * - quality: Int (可选) - JPEG 质量 0-100，默认 80
- * - waitForStable: Boolean (可选) - 是否等待页面稳定，默认 true
- * - stabilityTimeout: Int (可选) - 等待稳定超时时间（毫秒），默认 3000
+ * Parameters:
+ * - fullPage: Boolean (Optional) - YesNo全页Screenshot, Default false
+ * - format: String (Optional) - Graph片格式 "png" 或 "jpeg", Default "png"
+ * - quality: Int (Optional) - JPEG 质量 0-100, Default 80
+ * - waitForStable: Boolean (Optional) - YesNoWait页面Stable, Default true
+ * - stabilityTimeout: Int (Optional) - WaitStableTimeoutTime(毫秒), Default 3000
  *
- * 返回:
- * - screenshot: String - Base64 编码的图片数据
- * - width: Int - 图片宽度
- * - height: Int - 图片高度
- * - format: String - 图片格式
+ * Return:
+ * - screenshot: String - Base64 Encode的Graph片Data
+ * - width: Int - Graph片Breadth
+ * - height: Int - Graph片高度
+ * - format: String - Graph片格式
  */
 class BrowserScreenshotTool : BrowserTool {
     override val name = "browser_screenshot"
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        // 1. 获取参数
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+        // 1. GetParameters
         val fullPage = (args["fullPage"] as? Boolean) ?: false
         val format = (args["format"] as? String)?.lowercase() ?: "png"
         val quality = (args["quality"] as? Number)?.toInt() ?: 80
         val waitForStable = (args["waitForStable"] as? Boolean) ?: true
         val stabilityTimeout = (args["stabilityTimeout"] as? Number)?.toLong() ?: 3000L
 
-        // 验证 format
+        // Validate format
         if (format !in listOf("png", "jpeg", "jpg")) {
-            return ToolResult.error("Invalid format: $format (must be 'png' or 'jpeg')")
+            return Toolresult.error("Invalid format: $format (must be 'png' or 'jpeg')")
         }
 
-        // 验证 quality
+        // Validate quality
         if (quality !in 0..100) {
-            return ToolResult.error("Invalid quality: $quality (must be 0-100)")
+            return Toolresult.error("Invalid quality: $quality (must be 0-100)")
         }
 
-        // 2. 检查浏览器实例
+        // 2. Check浏览器Instance
         if (!BrowserManager.isActive()) {
-            return ToolResult.error("Browser is not active")
+            return Toolresult.error("Browser is not active")
         }
 
-        // 3. 等待页面稳定
+        // 3. Wait页面Stable
         if (waitForStable) {
             try {
                 waitForPageStable(stabilityTimeout)
             } catch (e: Exception) {
-                // 等待超时也继续截图
+                // WaitTimeoutAlsoContinueScreenshot
             }
         }
 
-        // 4. 截图
+        // 4. Screenshot
         try {
             val bitmap = captureScreenshot(fullPage)
 
-            // 4. 转换为 Base64
+            // 4. Convert为 Base64
             val outputStream = ByteArrayOutputStream()
             val compressFormat = if (format == "png") {
                 Bitmap.CompressFormat.PNG
@@ -86,8 +86,8 @@ class BrowserScreenshotTool : BrowserTool {
             val imageBytes = outputStream.toByteArray()
             val base64Image = Base64.encodeToString(imageBytes, Base64.NO_WRAP)
 
-            // 5. 返回结果
-            return ToolResult.success(
+            // 5. Returnresult
+            return Toolresult.success(
                 "screenshot" to base64Image,
                 "width" to bitmap.width,
                 "height" to bitmap.height,
@@ -95,12 +95,12 @@ class BrowserScreenshotTool : BrowserTool {
                 "size" to imageBytes.size
             )
         } catch (e: Exception) {
-            return ToolResult.error("Screenshot failed: ${e.message}")
+            return Toolresult.error("Screenshot failed: ${e.message}")
         }
     }
 
     /**
-     * 截取屏幕图片
+     * 截取ScreenGraph片
      */
     private suspend fun captureScreenshot(fullPage: Boolean): Bitmap {
         return suspendCoroutine { continuation ->
@@ -114,10 +114,10 @@ class BrowserScreenshotTool : BrowserTool {
             activity.runOnUiThread {
                 try {
                     val bitmap = if (fullPage) {
-                        // 全页截图
+                        // 全页Screenshot
                         captureFullPage(webView)
                     } else {
-                        // 当前可见区域截图
+                        // 当Front可见区域Screenshot
                         captureVisibleArea(webView)
                     }
                     continuation.resume(bitmap)
@@ -146,14 +146,14 @@ class BrowserScreenshotTool : BrowserTool {
      * 截取全页
      */
     private fun captureFullPage(webView: EBWebView): Bitmap {
-        // 获取完整内容的高度
+        // Get完整Inside容的高度
         val contentHeight = webView.contentHeight
         val scale = webView.scale
 
         val height = (contentHeight * scale).toInt()
         val width = webView.width
 
-        // 创建大位图
+        // Create大位Graph
         val bitmap = Bitmap.createBitmap(
             width,
             height,
@@ -162,27 +162,27 @@ class BrowserScreenshotTool : BrowserTool {
 
         val canvas = android.graphics.Canvas(bitmap)
 
-        // 保存当前滚动位置
+        // Save当Front滚动位置
         val originalScrollY = webView.scrollY
 
         // 绘制整个页面
         webView.scrollTo(0, 0)
         webView.draw(canvas)
 
-        // 恢复滚动位置
+        // Resume滚动位置
         webView.scrollTo(0, originalScrollY)
 
         return bitmap
     }
 
     /**
-     * 等待页面稳定
-     * 通过检查页面加载状态和内容是否变化来判断
+     * Wait页面Stable
+     * 通过Check页面LoadStatus和Inside容YesNo变化来Determine
      */
     private suspend fun waitForPageStable(timeout: Long) {
         val startTime = System.currentTimeMillis()
 
-        // 检查页面加载状态
+        // Check页面LoadStatus
         val loadCheckScript = """
             (function() {
                 return document.readyState === 'complete';
@@ -191,17 +191,17 @@ class BrowserScreenshotTool : BrowserTool {
 
         while (System.currentTimeMillis() - startTime < timeout) {
             try {
-                // 必须在主线程执行 evaluateJavascript
+                // Must在主Thread执Row evaluateJavascript
                 val result = withContext(Dispatchers.Main) {
                     BrowserManager.evaluateJavascript(loadCheckScript)
                 }
                 if (result?.trim() == "true") {
-                    // 页面加载完成，额外等待 500ms 让动态内容渲染
+                    // 页面Load complete, 额OutsideWait 500ms 让DynamicInside容渲染
                     kotlinx.coroutines.delay(500)
                     return
                 }
             } catch (e: Exception) {
-                // 继续等待
+                // ContinueWait
             }
             kotlinx.coroutines.delay(200)
         }

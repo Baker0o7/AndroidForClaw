@@ -37,7 +37,7 @@ class ListDirTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要列出的目录路径")
+                        "path" to PropertySchema("string", "要List的目录Path")
                     ),
                     required = listOf("path")
                 )
@@ -45,11 +45,11 @@ class ListDirTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val path = args["path"] as? String
 
         if (path == null) {
-            return ToolResult.error("Missing required parameter: path")
+            return Toolresult.error("Missing required parameter: path")
         }
 
         Log.d(TAG, "Listing directory: $path")
@@ -61,22 +61,22 @@ class ListDirTool(
                 val canonicalDir = dir.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
                 if (!canonicalDir.path.startsWith(canonicalAllowed.path)) {
-                    return ToolResult.error("Path is outside allowed directory: $path")
+                    return Toolresult.error("Path is outside allowed directory: $path")
                 }
             }
 
             if (!dir.exists()) {
-                return ToolResult.error("Directory not found: $path")
+                return Toolresult.error("Directory not found: $path")
             }
 
             if (!dir.isDirectory) {
-                return ToolResult.error("Not a directory: $path")
+                return Toolresult.error("Not a directory: $path")
             }
 
             val items = dir.listFiles()?.sortedBy { it.name } ?: emptyList()
 
             if (items.isEmpty()) {
-                return ToolResult.success("Directory $path is empty")
+                return Toolresult.success("Directory $path is empty")
             }
 
             val listing = items.joinToString("\n") { item ->
@@ -84,10 +84,10 @@ class ListDirTool(
                 "$prefix${item.name}"
             }
 
-            ToolResult.success(listing, mapOf("count" to items.size))
+            Toolresult.success(listing, mapOf("count" to items.size))
         } catch (e: Exception) {
             Log.e(TAG, "List directory failed", e)
-            ToolResult.error("List directory failed: ${e.message}")
+            Toolresult.error("List directory failed: ${e.message}")
         }
     }
 

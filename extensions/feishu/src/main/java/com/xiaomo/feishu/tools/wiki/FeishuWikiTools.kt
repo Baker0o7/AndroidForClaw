@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书知识库工具集
- * 对齐 @larksuite/openclaw-lark wiki-tools
+ * Feishu Wiki Tools
+ * Aligned with @larksuite/openclaw-lark wiki-tools
  */
 class FeishuWikiTools(config: FeishuConfig, client: FeishuClient) {
     private val spaceTool = FeishuWikiSpaceTool(config, client)
@@ -40,10 +40,10 @@ class FeishuWikiSpaceTool(
     override val name = "feishu_wiki_space"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "飞书知识空间管理工具。当用户要求查看知识库列表、获取知识库信息、创建知识库时使用。" +
-            "Actions: list（列出知识空间）, get（获取知识空间信息）, create（创建知识空间）。" +
-            "【重要】space_id 可以从浏览器 URL 中获取，或通过 list 接口获取。" +
-            "【重要】知识空间（Space）是知识库的基本组成单位，包含多个具有层级关系的文档节点。"
+    override val description = "Feishu Knowledge Space management tool. Use when user requests to view knowledge base list, get knowledge base info, or create knowledge base." +
+            "Actions: list (list knowledge spaces), get (get knowledge space info), create (create knowledge space)." +
+            "[Important] space_id can be obtained from browser URL or via list API." +
+            "[Important] Knowledge Space is the basic unit of knowledge base, containing multiple hierarchical document nodes."
 
     override fun isEnabled() = config.enableWikiTools
 
@@ -155,28 +155,28 @@ class FeishuWikiSpaceTool(
                 properties = mapOf(
                     "action" to PropertySchema(
                         type = "string",
-                        description = "操作类型",
+                        description = "Action type",
                         enum = listOf("list", "get", "create")
                     ),
                     "space_id" to PropertySchema(
                         type = "string",
-                        description = "知识空间 ID（get 操作必填）"
+                        description = "Knowledge space ID (required for get action)",
                     ),
                     "name" to PropertySchema(
                         type = "string",
-                        description = "知识空间名称（create 操作可选）"
+                        description = "Knowledge space name (optional for create action)",
                     ),
                     "description" to PropertySchema(
                         type = "string",
-                        description = "知识空间描述（create 操作可选）"
+                        description = "Knowledge space description (optional for create action)",
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "分页大小（默认 10，最大 50）"
+                        description = "Page size (default 10, max 50)",
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "分页标记。首次请求无需填写"
+                        description = "Page token (not required for first request)",
                     )
                 ),
                 required = listOf("action")
@@ -203,9 +203,9 @@ class FeishuWikiSpaceNodeTool(
     override val name = "feishu_wiki_space_node"
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override val description = "飞书知识库节点管理工具。操作：list（列表）、get（获取）、create（创建）、move（移动）、copy（复制）。" +
-            "节点是知识库中的文档，包括 doc、bitable(多维表表格)、sheet(电子表格) 等类型。" +
-            "node_token 是节点的唯一标识符，obj_token 是实际文档的 token。可通过 get 操作将 wiki 类型的 node_token 转换为实际文档的 obj_token。"
+    override val description = "Feishu Knowledge Base Node management tool. Actions: list (list), get (get), create (create), move (move), copy (copy)." +
+            "Nodes are documents in the knowledge base, including doc, bitable (multi-dimensional table), sheet (spreadsheet), etc." +
+            "node_token is the unique identifier for the node, obj_token is the token of the actual document. You can use the get action to convert wiki type node_token to actual document obj_token."
 
     override fun isEnabled() = config.enableWikiTools
 
@@ -401,58 +401,58 @@ class FeishuWikiSpaceNodeTool(
                 properties = mapOf(
                     "action" to PropertySchema(
                         type = "string",
-                        description = "操作类型",
+                        description = "Action type",
                         enum = listOf("list", "get", "create", "move", "copy")
                     ),
                     "space_id" to PropertySchema(
                         type = "string",
-                        description = "知识空间 ID（list/create/move/copy 操作必填）"
+                        description = "Knowledge space ID (required for list/create/move/copy actions)",
                     ),
                     "token" to PropertySchema(
                         type = "string",
-                        description = "节点 token（get 操作必填，可以是 node_token 或 obj_token）"
+                        description = "Node token (required for get action, can be node_token or obj_token)",
                     ),
                     "obj_type" to PropertySchema(
                         type = "string",
-                        description = "文档类型（get 操作可选，默认 wiki；create 操作必填）",
+                        description = "Document type (optional for get action, default wiki; required for create action)",
                         enum = listOf("doc", "sheet", "mindnote", "bitable", "file", "docx", "slides", "wiki")
                     ),
                     "node_token" to PropertySchema(
                         type = "string",
-                        description = "节点 token（move/copy 操作必填）"
+                        description = "Node token (required for move/copy actions)",
                     ),
                     "parent_node_token" to PropertySchema(
                         type = "string",
-                        description = "父节点 token（list 操作可选，不传则列出根节点；create 操作可选）"
+                        description = "Parent node token (optional for list action, if not provided lists root nodes; optional for create action)",
                     ),
                     "node_type" to PropertySchema(
                         type = "string",
-                        description = "节点类型（create 操作必填）",
+                        description = "Node type (required for create action)",
                         enum = listOf("origin", "shortcut")
                     ),
                     "origin_node_token" to PropertySchema(
                         type = "string",
-                        description = "源节点 token（create 操作可选，node_type 为 shortcut 时使用）"
+                        description = "Origin node token (optional for create action, used when node_type is shortcut)",
                     ),
                     "title" to PropertySchema(
                         type = "string",
-                        description = "节点标题（create/copy 操作可选）"
+                        description = "Node title (optional for create/copy actions)",
                     ),
                     "target_parent_token" to PropertySchema(
                         type = "string",
-                        description = "目标父节点 token（move/copy 操作可选）"
+                        description = "Target parent node token (optional for move/copy actions)",
                     ),
                     "target_space_id" to PropertySchema(
                         type = "string",
-                        description = "目标知识空间 ID（copy 操作可选）"
+                        description = "Target knowledge space ID (optional for copy action)",
                     ),
                     "page_size" to PropertySchema(
                         type = "integer",
-                        description = "分页大小（list 操作可选）"
+                        description = "Page size (optional for list action)",
                     ),
                     "page_token" to PropertySchema(
                         type = "string",
-                        description = "分页标记（list 操作可选）"
+                        description = "Page token (optional for list action)",
                     )
                 ),
                 required = listOf("action")

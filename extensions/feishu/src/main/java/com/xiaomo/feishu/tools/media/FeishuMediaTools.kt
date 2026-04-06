@@ -22,7 +22,7 @@ class FeishuMediaTools(
     private val imageUploadTool = FeishuImageUploadTool(config, client)
 
     /**
-     * 获取所有媒体工具
+     * GetAll媒体工具
      */
     fun getAllTools(): List<FeishuToolBase> {
         return listOf(

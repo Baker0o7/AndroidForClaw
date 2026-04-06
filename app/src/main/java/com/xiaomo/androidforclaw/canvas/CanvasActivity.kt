@@ -28,10 +28,10 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 
 /**
- * Canvas Activity — 用 WebView 显示 Canvas 内容。
+ * Canvas Activity — 用 WebView Show Canvas Inside容. 
  *
- * 对应 OpenClaw macOS/iOS 上的 Canvas 窗口（WKWebView）。
- * Agent 通过 CanvasManager 控制本 Activity 的 WebView。
+ * 对应 OpenClaw macOS/iOS Up的 Canvas Window(WKWebView). 
+ * Agent 通过 CanvasManager 控制本 Activity 的 WebView. 
  */
 class CanvasActivity : AppCompatActivity() {
     companion object {
@@ -41,14 +41,14 @@ class CanvasActivity : AppCompatActivity() {
 
     internal lateinit var webView: WebView
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint("SetJavaScriptEnableddd")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // 全屏沉浸式
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // 创建 WebView
+        // Create WebView
         webView = WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -66,10 +66,10 @@ class CanvasActivity : AppCompatActivity() {
         }
         setContentView(container)
 
-        // 配置 WebView
+        // Config WebView
         webView.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
+            javaScriptEnableddd = true
+            domStorageEnableddd = true
             allowFileAccess = true
             @Suppress("DEPRECATION")
             allowFileAccessFromFileURLs = true
@@ -80,18 +80,18 @@ class CanvasActivity : AppCompatActivity() {
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             useWideViewPort = true
             loadWithOverviewMode = true
-            // 支持缩放
+            // Support缩放
             setSupportZoom(true)
             builtInZoomControls = true
             displayZoomControls = false
         }
 
-        // 注入 JS Bridge（对应 OpenClaw 的 window.openclawCanvasA2UIAction）
+        // 注入 JS Bridge(对应 OpenClaw 的 window.openclawCanvasA2UIAction)
         webView.addJavascriptInterface(CanvasJsBridge(), "openclawCanvasA2UIAction")
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                // Canvas 内的导航都在 WebView 内处理
+                // Canvas Inside的导航都在 WebView InsideProcess
                 return false
             }
 
@@ -110,20 +110,20 @@ class CanvasActivity : AppCompatActivity() {
             }
         }
 
-        // 注册到 CanvasManager
+        // Register到 CanvasManager
         CanvasManager.currentActivity = this
 
-        // 加载 URL
+        // Load URL
         val url = intent.getStringExtra(EXTRA_URL)
         if (url != null) {
             loadUrl(url)
         } else {
-            // 加载默认 canvas index.html
+            // LoadDefault canvas index.html
             val indexFile = File(CanvasManager.getCanvasRoot(), "index.html")
             if (indexFile.exists()) {
                 loadUrl("file://${indexFile.absolutePath}")
             } else {
-                // 加载内置默认页面
+                // LoadInside置Default页面
                 webView.loadData(defaultCanvasHtml(), "text/html", "utf-8")
             }
         }
@@ -141,7 +141,7 @@ class CanvasActivity : AppCompatActivity() {
     }
 
     /**
-     * 加载 URL
+     * Load URL
      */
     fun loadUrl(url: String) {
         webView.loadUrl(url)
@@ -149,33 +149,33 @@ class CanvasActivity : AppCompatActivity() {
     }
 
     /**
-     * 执行 JavaScript 并返回结果
+     * 执Row JavaScript 并Returnresult
      */
     fun evaluateJavaScript(id: String, script: String) {
         webView.evaluateJavascript(script) { result ->
-            CanvasManager.onEvalResult(id, result)
+            CanvasManager.onEvalresult(id, result)
         }
     }
 
     /**
-     * 截取 WebView 截图
+     * 截取 WebView Screenshot
      */
     fun takeSnapshot(id: String, format: String, maxWidth: Int?, quality: Int) {
         try {
-            // 获取 WebView 的实际内容尺寸
+            // Get WebView 的实际Inside容尺寸
             var w = webView.width
             var h = webView.height
             if (w <= 0 || h <= 0) {
-                CanvasManager.onSnapshotResult(id, CanvasManager.SnapshotResult("", format, 0, 0))
+                CanvasManager.onSnapshotresult(id, CanvasManager.Snapshotresult("", format, 0, 0))
                 return
             }
 
-            // 创建 Bitmap 并绘制 WebView
+            // Create Bitmap 并绘制 WebView
             val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
             webView.draw(canvas)
 
-            // 如果需要缩放
+            // ifNeed缩放
             val finalBitmap = if (maxWidth != null && maxWidth > 0 && w > maxWidth) {
                 val scale = maxWidth.toFloat() / w.toFloat()
                 val newH = (h * scale).toInt()
@@ -196,7 +196,7 @@ class CanvasActivity : AppCompatActivity() {
             finalBitmap.compress(compressFormat, quality, stream)
             val base64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
 
-            val result = CanvasManager.SnapshotResult(
+            val result = CanvasManager.Snapshotresult(
                 base64 = base64,
                 format = if (compressFormat == Bitmap.CompressFormat.JPEG) "jpeg" else "png",
                 width = finalBitmap.width,
@@ -204,29 +204,29 @@ class CanvasActivity : AppCompatActivity() {
             )
             finalBitmap.recycle()
 
-            CanvasManager.onSnapshotResult(id, result)
+            CanvasManager.onSnapshotresult(id, result)
         } catch (e: Exception) {
             Log.e(TAG, "Snapshot failed", e)
-            CanvasManager.onSnapshotResult(id, CanvasManager.SnapshotResult("", format, 0, 0))
+            CanvasManager.onSnapshotresult(id, CanvasManager.Snapshotresult("", format, 0, 0))
         }
     }
 
     /**
      * JS Bridge — 对应 OpenClaw 的 window.openclawCanvasA2UIAction
      *
-     * 在 a2ui.ts 中定义：
+     * 在 a2ui.ts 中定义: 
      *   window.openclawCanvasA2UIAction.postMessage(raw)
      */
     inner class CanvasJsBridge {
         @JavascriptInterface
         fun postMessage(raw: String) {
             Log.d(TAG, "JS Bridge received: ${raw.take(200)}")
-            // A2UI action — 目前记录日志，后续可扩展处理
+            // A2UI action — 目FrontRecordLog, Back续可扩展Process
         }
     }
 
     /**
-     * 默认 Canvas HTML 页面
+     * Default Canvas HTML 页面
      */
     private fun defaultCanvasHtml(): String = """
 <!doctype html>
@@ -250,7 +250,7 @@ h1 { margin: 0 0 8px; font-size: 22px; }
 <div class="wrap">
   <div class="card">
     <h1>🦞 Claw Canvas</h1>
-    <div class="sub">等待 Agent 加载内容...</div>
+    <div class="sub">Wait Agent LoadInside容...</div>
   </div>
 </div>
 </body>

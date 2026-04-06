@@ -6,7 +6,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
- * JpegSizeLimiter 单元测试
+ * JpegSizeLimiter 单元Test
  */
 class JpegSizeLimiterTest {
 
@@ -18,7 +18,7 @@ class JpegSizeLimiterTest {
             startQuality = 90,
             maxBytes = 1000,
             encode = { w, h, q ->
-                // 返回一个小于限制的 byte array
+                // Return一个Less thanLimit的 byte array
                 ByteArray(500)
             }
         )
@@ -38,7 +38,7 @@ class JpegSizeLimiterTest {
             maxBytes = 500,
             encode = { w, h, q ->
                 callCount++
-                // 高质量时超限，低质量时正常
+                // 高质量时超限, 低质量时正常
                 if (q > 40) ByteArray(1000) else ByteArray(400)
             }
         )
@@ -57,7 +57,7 @@ class JpegSizeLimiterTest {
             minQuality = 50,
             encode = { w, h, q ->
                 if (w < minWidth) minWidth = w
-                // 大尺寸始终超限，只有缩小才行
+                // 大尺寸始终超限, 只Has缩小才Row
                 if (w > 600) ByteArray(1000) else ByteArray(400)
             }
         )

@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.service
 
@@ -13,40 +13,40 @@ import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
- * 剪切板输入助手
+ * cut板Input助手
  *
- * 通过剪切板实现文本输入，避免 ClawIME 键盘的各种问题。
- * 流程：写入剪切板 → 找到焦点输入框 → 执行粘贴操作
+ * 通过cut板ImplementationTextInput, 避免 ClawIME Key盘的各种Issue. 
+ * 流程: Writecut板 → 找到FocusInput field → 执RowpasteAction
  *
- * 优势：
- * - 不需要切换输入法
- * - 支持所有字符（中文、emoji 等）
- * - 比 ClawIME 更稳定
+ * 优势: 
+ * - 不NeedswitchInput method
+ * - SupportAll字符(中文、emoji 等)
+ * - 比 ClawIME moreStable
  *
- * 限制：
- * - Android 10+ 后台应用访问剪切板受限
- * - 需要无障碍服务来执行粘贴操作
+ * Limit: 
+ * - Android 10+ Back台apply访问cut板受限
+ * - NeedAccessibilityServiceto executeRowpasteAction
  */
 object ClipboardInputHelper {
     private const val TAG = "ClipboardInputHelper"
 
     /**
-     * 通过剪切板 + 无障碍粘贴输入文本
+     * 通过cut板 + AccessibilitypasteInputText
      *
-     * @param context 应用 Context
-     * @param text 要输入的文本
-     * @return 是否成功
+     * @param context apply Context
+     * @param text 要Input的Text
+     * @return YesNoSuccess
      */
     fun inputTextViaClipboard(context: Context, text: String): Boolean {
         try {
-            // 1. 获取 ClipboardManager
+            // 1. Get ClipboardManager
             val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
             if (clipboardManager == null) {
                 Log.e(TAG, "ClipboardManager not available")
                 return false
             }
 
-            // 保存旧剪切板内容，操作完后恢复
+            // SaveOldcut板Inside容, Action完BackResume
             val oldClip = try {
                 clipboardManager.primaryClip
             } catch (e: Exception) {
@@ -54,21 +54,21 @@ object ClipboardInputHelper {
                 null
             }
 
-            // 2. 写入新文本到剪切板
+            // 2. WriteNewTextto clipboard
             val clip = ClipData.newPlainText("claw_input", text)
             clipboardManager.setPrimaryClip(clip)
             Log.d(TAG, "✓ Clipboard set: ${text.take(50)}${if (text.length > 50) "..." else ""}")
 
-            // 3. 通过无障碍服务找焦点节点执行粘贴
+            // 3. 通过AccessibilityService找FocusNode执Rowpaste
             val pasted = performPasteViaAccessibility()
             if (!pasted) {
                 Log.e(TAG, "Paste via accessibility failed")
-                // 尝试恢复旧剪切板
+                // TryResumeOldcut板
                 restoreClipboard(clipboardManager, oldClip)
                 return false
             }
 
-            // 4. 短暂延迟后恢复旧剪切板内容
+            // 4. 短暂DelayBackResumeOldcut板Inside容
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                 restoreClipboard(clipboardManager, oldClip)
             }, 500)
@@ -82,7 +82,7 @@ object ClipboardInputHelper {
     }
 
     /**
-     * 通过无障碍服务执行粘贴操作
+     * 通过AccessibilityService执RowpasteAction
      */
     private fun performPasteViaAccessibility(): Boolean {
         val service = com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService.serviceInstance
@@ -97,7 +97,7 @@ object ClipboardInputHelper {
             return false
         }
 
-        // 找到当前焦点的可编辑节点
+        // 找到当FrontFocus的可EditNode
         val focusedNode = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
         if (focusedNode == null) {
             Log.e(TAG, "No focused input node found")
@@ -109,14 +109,14 @@ object ClipboardInputHelper {
             return false
         }
 
-        // 执行粘贴操作
+        // 执RowpasteAction
         val success = focusedNode.performAction(AccessibilityNodeInfo.ACTION_PASTE)
         Log.d(TAG, "ACTION_PASTE result: $success")
         return success
     }
 
     /**
-     * 恢复旧的剪切板内容
+     * ResumeOld的cut板Inside容
      */
     private fun restoreClipboard(clipboardManager: ClipboardManager, oldClip: ClipData?) {
         try {
@@ -124,7 +124,7 @@ object ClipboardInputHelper {
                 clipboardManager.setPrimaryClip(oldClip)
                 Log.d(TAG, "Old clipboard restored")
             } else {
-                // 清空剪切板，避免泄露输入内容
+                // 清Nullcut板, 避免泄露InputInside容
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     clipboardManager.clearPrimaryClip()
                 } else {
@@ -138,8 +138,8 @@ object ClipboardInputHelper {
     }
 
     /**
-     * 检查剪切板是否可用
-     * Android 10+ 限制后台应用访问剪切板，但我们的 App 通常在前台或有无障碍服务
+     * Checkcut板YesNoAvailable
+     * Android 10+ LimitBack台apply访问cut板, 但我们的 App usually在Front台或HasAccessibilityService
      */
     fun isClipboardAvailable(context: Context): Boolean {
         return try {
@@ -147,7 +147,7 @@ object ClipboardInputHelper {
             if (clipboardManager == null) {
                 false
             } else {
-                // 尝试写入测试内容
+                // TryWriteTestInside容
                 val testClip = ClipData.newPlainText("claw_test", "test")
                 clipboardManager.setPrimaryClip(testClip)
                 // 清理
@@ -165,7 +165,7 @@ object ClipboardInputHelper {
     }
 
     /**
-     * 检查无障碍粘贴是否可用（需要无障碍服务）
+     * CheckAccessibilitypasteYesNoAvailable(NeedAccessibilityService)
      */
     fun isPasteAvailable(): Boolean {
         val service = com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService.serviceInstance

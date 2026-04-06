@@ -10,15 +10,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * Tap E2E 测试
+ * Tap E2E Test
  *
- * 注意：由于 AIDL 跨进程限制，测试进程无法直接调用主 app 进程的无障碍服务。
- * 这些测试验证的是：
- * 1. 无障碍服务系统设置是否正确
- * 2. TapSkill 参数验证逻辑
- * 3. 主 app 进程的服务连接状态（通过文件标记验证）
+ * 注意: 由于 AIDL 跨ProcessLimit, TestProcessCannot直接调用主 app Process的AccessibilityService. 
+ * 这些TestValidate的Yes: 
+ * 1. AccessibilityService系统SettingsYesNo正确
+ * 2. TapSkill ParametersValidate逻辑
+ * 3. 主 app Process的ServiceConnectStatus(通过文件标记Validate)
  *
- * 真正的 tap 功能需要在主 app 进程内验证（通过飞书/ADB broadcast 触发）
+ * True正的 tap FeatureNeed在主 app ProcessInsideValidate(通过飞书/ADB broadcast 触发)
  */
 @RunWith(AndroidJUnit4::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

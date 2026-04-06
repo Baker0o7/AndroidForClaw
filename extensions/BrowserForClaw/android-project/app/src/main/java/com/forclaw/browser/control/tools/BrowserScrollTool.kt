@@ -7,32 +7,32 @@
 package com.forclaw.browser.control.tools
 
 import com.forclaw.browser.control.manager.BrowserManager
-import com.forclaw.browser.control.model.ToolResult
+import com.forclaw.browser.control.model.Toolresult
 
 /**
  * 浏览器滚动工具
  *
  * 滚动页面
  *
- * 参数:
- * - direction: String (可选) - 滚动方向: "down", "up", "top", "bottom"，默认 "down"
- * - amount: Int (可选) - 滚动像素数 (仅对 "down" 和 "up" 有效)
+ * Parameters:
+ * - direction: String (Optional) - 滚动方向: "down", "up", "top", "bottom", Default "down"
+ * - amount: Int (Optional) - 滚动Like素数 (仅对 "down" 和 "up" Valid)
  *
- * 返回:
+ * Return:
  * - direction: String - 滚动方向
- * - scrolled: Boolean - 是否成功滚动
+ * - scrolled: Boolean - YesNoSuccess滚动
  */
 class BrowserScrollTool : BrowserTool {
     override val name = "browser_scroll"
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        // 1. 获取参数
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+        // 1. GetParameters
         val direction = (args["direction"] as? String)?.lowercase() ?: "down"
         val amount = (args["amount"] as? Number)?.toInt()
 
-        // 2. 检查浏览器实例
+        // 2. Check浏览器Instance
         if (!BrowserManager.isActive()) {
-            return ToolResult.error("Browser is not active")
+            return Toolresult.error("Browser is not active")
         }
 
         // 3. 构造 JavaScript 代码
@@ -87,25 +87,25 @@ class BrowserScrollTool : BrowserTool {
                     })()
                 """
             }
-            else -> return ToolResult.error("Invalid direction: $direction (must be 'down', 'up', 'top', or 'bottom')")
+            else -> return Toolresult.error("Invalid direction: $direction (must be 'down', 'up', 'top', or 'bottom')")
         }.trimIndent()
 
-        // 4. 执行 JavaScript
+        // 4. 执Row JavaScript
         try {
             val result = BrowserManager.evaluateJavascript(script)
             val scrolled = result?.trim() == "true"
 
-            // 5. 返回结果
+            // 5. Returnresult
             return if (scrolled) {
-                ToolResult.success(
+                Toolresult.success(
                     "direction" to direction,
                     "scrolled" to true
                 )
             } else {
-                ToolResult.error("Scroll failed")
+                Toolresult.error("Scroll failed")
             }
         } catch (e: Exception) {
-            return ToolResult.error("Scroll failed: ${e.message}")
+            return Toolresult.error("Scroll failed: ${e.message}")
         }
     }
 }

@@ -18,7 +18,7 @@ import com.xiaomo.androidforclaw.util.AppConstants
  * Provides higher-level API wrapper
  * Automatically selects OpenAI or Anthropic format based on config
  *
- * **配置来源**: 从 /sdcard/.androidforclaw/openclaw.json 和 models.json 读取配置
+ * **Config来源**: 从 /sdcard/.androidforclaw/openclaw.json 和 models.json ReadConfig
  */
 class LegacyRepository(
     context: Context,
@@ -95,26 +95,26 @@ class LegacyRepository(
     }
 
     /**
-     * 带工具调用的聊天
+     * 带工具call的Chat
      *
      * @param messages Message list
      * @param tools Tool definition list
      * @param model Model ID (optional, defaults to agent.defaultModel from openclaw.json)
-     * @param reasoningEnabled Whether Extended Thinking is enabled (optional, defaults to thinking.enabled from openclaw.json)
+     * @param reasoningEnableddd Whether Extended Thinking is enabled (optional, defaults to thinking.enabled from openclaw.json)
      */
     suspend fun chatWithTools(
         messages: List<LegacyMessage>,
         tools: List<ToolDefinition>,
         model: String? = null,
-        reasoningEnabled: Boolean? = null
+        reasoningEnableddd: Boolean? = null
     ): LegacyResponse {
         // Read default values from config
         val actualModel = model ?: openClawConfig.agent.defaultModel
-        val actualReasoningEnabled = reasoningEnabled ?: openClawConfig.thinking.enabled
+        val actualReasoningEnableddd = reasoningEnableddd ?: openClawConfig.thinking.enabled
 
         Log.d(TAG, "chatWithTools: ${messages.size} messages, ${tools.size} tools")
         Log.d(TAG, "Model: $actualModel, API Type: $actualApiType")
-        Log.d(TAG, "Reasoning enabled: $actualReasoningEnabled, Budget: ${openClawConfig.thinking.budgetTokens}")
+        Log.d(TAG, "Reasoning enabled: $actualReasoningEnableddd, Budget: ${openClawConfig.thinking.budgetTokens}")
 
         return when (actualApiType) {
             "anthropic-messages" -> {
@@ -122,7 +122,7 @@ class LegacyRepository(
                     messages = messages,
                     tools = tools,
                     model = actualModel,
-                    thinkingEnabled = actualReasoningEnabled,
+                    thinkingEnableddd = actualReasoningEnableddd,
                     thinkingBudget = openClawConfig.thinking.budgetTokens
                 )
             }
@@ -139,7 +139,7 @@ class LegacyRepository(
                     messages = messages,
                     tools = tools,
                     model = actualModel,
-                    thinkingEnabled = actualReasoningEnabled,
+                    thinkingEnableddd = actualReasoningEnableddd,
                     thinkingBudget = openClawConfig.thinking.budgetTokens
                 )
             }
@@ -147,21 +147,21 @@ class LegacyRepository(
     }
 
     /**
-     * 简单聊天（无工具）
+     * SimpleChat(None工具)
      *
      * @param userMessage User message
      * @param systemPrompt System prompt (optional)
-     * @param reasoningEnabled Extended Thinking 是否启用（可选，默认从 openclaw.json 读取）
+     * @param reasoningEnableddd Extended Thinking YesNoEnabledd(Optional, Default从 openclaw.json Read)
      */
     suspend fun simpleChat(
         userMessage: String,
         systemPrompt: String? = null,
-        reasoningEnabled: Boolean? = null
+        reasoningEnableddd: Boolean? = null
     ): String {
-        val actualReasoningEnabled = reasoningEnabled ?: openClawConfig.thinking.enabled
+        val actualReasoningEnableddd = reasoningEnableddd ?: openClawConfig.thinking.enabled
 
         Log.d(TAG, "simpleChat: $userMessage")
-        Log.d(TAG, "Reasoning enabled: $actualReasoningEnabled")
+        Log.d(TAG, "Reasoning enabled: $actualReasoningEnableddd")
 
         return when (actualApiType) {
             "anthropic-messages" -> {
@@ -186,11 +186,11 @@ class LegacyRepository(
     }
 
     /**
-     * 继续对话
+     * ContinueConversation
      *
      * @param messages Existing message list
      * @param newUserMessage New user message
-     * @param tools Tool definition list（可选）
+     * @param tools Tool definition list(Optional)
      */
     suspend fun continueChat(
         messages: List<LegacyMessage>,
@@ -223,7 +223,7 @@ class LegacyRepository(
     }
 
     /**
-     * 获取当前配置信息（用于调试）
+     * Get当FrontConfigInfo(用于Debug)
      */
     fun getConfigInfo(): String {
         return """
@@ -233,7 +233,7 @@ class LegacyRepository(
             |  API Type: $actualApiType
             |  Default Model: ${openClawConfig.agent.defaultModel}
             |  Max Iterations: ${openClawConfig.agent.maxIterations}
-            |  Thinking Enabled: ${openClawConfig.thinking.enabled}
+            |  Thinking Enableddd: ${openClawConfig.thinking.enabled}
             |  Thinking Budget: ${openClawConfig.thinking.budgetTokens}
         """.trimMargin()
     }

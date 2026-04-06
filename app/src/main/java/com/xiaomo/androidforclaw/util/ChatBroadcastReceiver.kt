@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -12,22 +12,22 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.core.MyApplication
 
 /**
- * Chat Broadcast Receiver - ADB 测试接口
+ * Chat Broadcast Receiver - ADB TestInterface
  *
- * 用途：方便通过 ADB 直接发送消息到聊天界面进行测试
+ * 用途: 方便通过 ADB 直接sendMessage到Chat界面IntoRowTest
  *
- * 使用方法:
- * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "你的消息内容"
+ * useMethod:
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "YourMessageInside容"
  *
  * 示例:
- * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "使用browser搜索openclaw"
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "usebrowserSearchopenclaw"
  */
 class ChatBroadcastReceiver() : BroadcastReceiver() {
 
-    // 可选的回调,用于动态注册时
+    // Optional的Callback,用于DynamicRegister时
     private var onMessageReceived: ((String) -> Unit)? = null
 
-    // 提供带回调的构造函数用于动态注册
+    // 提供带Callback的构造Function用于DynamicRegister
     constructor(onMessageReceived: (String) -> Unit) : this() {
         this.onMessageReceived = onMessageReceived
     }
@@ -38,7 +38,7 @@ class ChatBroadcastReceiver() : BroadcastReceiver() {
         const val EXTRA_MESSAGE = "message"
 
         /**
-         * 创建 IntentFilter
+         * Create IntentFilter
          */
         fun createIntentFilter(): IntentFilter {
             return IntentFilter(ACTION_SEND_MESSAGE)
@@ -46,26 +46,26 @@ class ChatBroadcastReceiver() : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(TAG, "📨 onReceive 被调用 - action: ${intent?.action}")
+        Log.d(TAG, "📨 onReceive 被call - action: ${intent?.action}")
         if (intent?.action == ACTION_SEND_MESSAGE) {
             val message = intent.getStringExtra(EXTRA_MESSAGE)
-            Log.d(TAG, "📨 消息内容: $message")
+            Log.d(TAG, "📨 MessageInside容: $message")
             if (message != null && message.isNotBlank()) {
-                Log.d(TAG, "✅ 收到 ADB 消息: $message")
+                Log.d(TAG, "✅ 收到 ADB Message: $message")
 
-                // 优先使用回调
+                // 优先useCallback
                 if (onMessageReceived != null) {
                     onMessageReceived?.invoke(message)
                 } else {
-                    // 通过全局方式发送消息
-                    Log.d(TAG, "⚙️ 通过 MyApplication 发送消息")
+                    // 通过Global方式sendMessage
+                    Log.d(TAG, "⚙️ 通过 MyApplication sendMessage")
                     MyApplication.handleChatBroadcast(message)
                 }
             } else {
-                Log.w(TAG, "⚠️ 收到空消息")
+                Log.w(TAG, "⚠️ 收到NullMessage")
             }
         } else {
-            Log.w(TAG, "⚠️ 未知 action: ${intent?.action}")
+            Log.w(TAG, "⚠️ Unknown action: ${intent?.action}")
         }
     }
 }

@@ -5,10 +5,10 @@
 package com.xiaomo.androidforclaw.logging
 
 /**
- * Log 包装器：同时输出到 android.util.Log 和 AppLog 文件。
+ * Log Package装器: at the same timeOutput到 android.util.Log 和 AppLog 文件. 
  *
- * 替换 import com.xiaomo.androidforclaw.logging.Log → import com.xiaomo.androidforclaw.logging.Log
- * 所有 Log.d/i/w/e/v 调用自动写入 app.log。
+ * Replace import com.xiaomo.androidforclaw.logging.Log → import com.xiaomo.androidforclaw.logging.Log
+ * All Log.d/i/w/e/v callAutoWrite app.log. 
  */
 object Log {
     fun v(tag: String, msg: String): Int {

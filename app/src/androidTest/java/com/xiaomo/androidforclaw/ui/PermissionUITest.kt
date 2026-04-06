@@ -11,8 +11,8 @@ import org.junit.runner.RunWith
 import org.junit.Assert.*
 
 /**
- * 权限测试
- * 测试 AndroidForClaw 的权限管理
+ * PermissionTest
+ * Test AndroidForClaw 的PermissionManage
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -28,7 +28,7 @@ class PermissionUITest {
     }
 
     /**
-     * 测试1: 应用有存储权限
+     * Test1: 应用HasStoragePermission
      * API 30+ uses MANAGE_EXTERNAL_STORAGE (granted via appops in @Before)
      * API 29- uses WRITE_EXTERNAL_STORAGE
      */
@@ -45,11 +45,11 @@ class PermissionUITest {
             ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         }
 
-        assertTrue("应该有存储权限", hasPermission)
+        assertTrue("ShouldHasStoragePermission", hasPermission)
     }
 
     /**
-     * 测试6: 可以读取 assets 中的 skills
+     * Test6: CanRead assets 中的 skills
      */
     @Test
     fun testAssetsSkills_accessible() {
@@ -58,31 +58,31 @@ class PermissionUITest {
         try {
             val skillsDir = context.assets.list("skills")
 
-            assertNotNull("Skills目录应该存在", skillsDir)
-            assertTrue("应该有bundled skills", skillsDir!!.isNotEmpty())
+            assertNotNull("Skills目录ShouldExists", skillsDir)
+            assertTrue("ShouldHasbundled skills", skillsDir!!.isNotEmpty())
 
         } catch (e: Exception) {
-            fail("无法访问assets中的skills: ${e.message}")
+            fail("Cannot访问assets中的skills: ${e.message}")
         }
     }
 
     /**
-     * 测试7: 应用包名正确
+     * Test7: 应用Package name正确
      */
     @Test
     fun testPackageName_correct() {
         val context = ApplicationProvider.getApplicationContext<MyApplication>()
 
-        // Debug 和 Release 统一使用相同包名
+        // Debug 和 Release 统一使用相同Package name
         assertEquals(
-            "包名应该正确",
+            "Package nameShould正确",
             "com.xiaomo.androidforclaw",
             context.packageName
         )
     }
 
     /**
-     * 测试8: 应用版本可获取
+     * Test8: 应用Version可Get
      */
     @Test
     fun testAppVersion_retrievable() {
@@ -90,12 +90,12 @@ class PermissionUITest {
 
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
 
-        assertNotNull("版本名不应为空", packageInfo.versionName)
-        assertTrue("版本号应该大于0", packageInfo.versionCode > 0)
+        assertNotNull("Version name不应为Null", packageInfo.versionName)
+        assertTrue("Version numberShouldGreater than0", packageInfo.versionCode > 0)
     }
 
     /**
-     * 测试9: MMKV 初始化
+     * Test9: MMKV Initialize
      */
     @Test
     fun testMMKV_initialized() {
@@ -104,35 +104,35 @@ class PermissionUITest {
         try {
             val mmkv = com.tencent.mmkv.MMKV.defaultMMKV()
 
-            assertNotNull("MMKV应该初始化", mmkv)
+            assertNotNull("MMKVShouldInitialize", mmkv)
 
-            // 测试写入读取
+            // TestWriteRead
             mmkv.putString("test_key", "test_value")
-            assertEquals("应该能读取", "test_value", mmkv.getString("test_key", ""))
+            assertEquals("Should能Read", "test_value", mmkv.getString("test_key", ""))
 
             // 清理
             mmkv.remove("test_key")
 
         } catch (e: Exception) {
-            fail("MMKV未正确初始化: ${e.message}")
+            fail("MMKV未正确Initialize: ${e.message}")
         }
     }
 
     /**
-     * 测试10: 外部存储可用
+     * Test10: ExternalStorageAvailable
      */
     @Test
     fun testExternalStorage_available() {
         val state = android.os.Environment.getExternalStorageState()
 
         assertEquals(
-            "外部存储应该可用",
+            "ExternalStorageShouldAvailable",
             android.os.Environment.MEDIA_MOUNTED,
             state
         )
 
         val externalDir = android.os.Environment.getExternalStorageDirectory()
-        assertTrue("外部存储目录应该存在", externalDir.exists())
-        assertTrue("应该可读", externalDir.canRead())
+        assertTrue("ExternalStorage目录ShouldExists", externalDir.exists())
+        assertTrue("Should可读", externalDir.canRead())
     }
 }

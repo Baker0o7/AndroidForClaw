@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ext
 
@@ -11,7 +11,7 @@ import io.noties.markwon.Markwon
 
 
 val markwon by lazy {
-    Markwon.create(MyApplication.application) // 确保你有 Application 的实例
+    Markwon.create(MyApplication.application) // Ensure你Has Application 的Instance
 }
 
 
@@ -20,27 +20,27 @@ fun TextView.setMarkdownText(content: String) {
 }
 
 fun String.removeMarkdownMark(): String {
-    // 检查是否以 "```markdown" 开头
+    // CheckYesNo以 "```markdown" 开头
     if (startsWith("```markdown")) {
         // 移除头部的 "```markdown" 和尾部的 "```"
-        // 注意：这里假设尾部只有一个 "```" 并且它位于字符串的末尾
+        // Note: 这里False设尾部只Has一个 "```" and它位于String的末尾
         val startIndex = "```markdown".length
         val endIndex = lastIndexOf("```")
 
-        // 检查 endIndex 是否有效，以避免 IndexOutOfBoundsException
+        // Check endIndex YesNoValid, 以避免 IndexOutOfBoundsException
         if (endIndex != -1 && endIndex > startIndex) {
-            // 返回移除头部和尾部标记后的字符串
+            // Return移除头部和尾部标记Back的String
             return substring(startIndex, endIndex)
         } else {
-            // 如果没有找到尾部标记或者尾部标记位置不正确，则可能说明字符串格式有误
-            // 这里可以返回原始字符串或者抛出一个异常，取决于你的需求
-            // 这里我们选择返回原始字符串并附带一个警告信息（实际开发中应该使用日志而不是打印）
+            // ifNone找到尾部标记or尾部标记位置不正确, 则possiblyillustrateString格式Has误
+            // 这里CanReturn原始Stringor抛出一个Exception, depend onYourRequirement
+            // 这里我们chooseReturn原始String并附带一个WarningInfo(实际开发中ShoulduseLog而不Yes打印)
             println("Warning: No valid closing '```' found in the instruction string.")
-            return this // 或者你可以选择抛出异常
+            return this // or你Canchoose抛出Exception
         }
     } else {
-        // 如果不以 "```markdown" 开头，则直接返回原始字符串（或者根据需求处理）
-        return this // 或者你可以选择抛出一个异常，表示输入格式不正确
+        // if不以 "```markdown" 开头, 则直接Return原始String(oraccording toRequirementProcess)
+        return this // or你Canchoose抛出一个Exception, Table示Input格式不正确
     }
 }
 

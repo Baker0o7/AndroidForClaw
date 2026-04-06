@@ -40,7 +40,7 @@ class WeixinMonitor(
     private var monitorJob: Job? = null
     @Volatile private var running = false
 
-    /** 消息 ID 去重：防止 getUpdates 重复返回同一条消息 */
+    /** Message ID 去重: Prevent getUpdates DuplicateReturn同一条Message */
     private val seenMessageIds = java.util.Collections.newSetFromMap(
         java.util.LinkedHashMap<Long, Boolean>()
     )

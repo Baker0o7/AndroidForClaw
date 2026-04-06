@@ -49,8 +49,8 @@ class WebFetchTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "url" to PropertySchema("string", "要获取的 URL"),
-                        "max_chars" to PropertySchema("integer", "最大返回字符数，默认 50000")
+                        "url" to PropertySchema("string", "要Get的 URL"),
+                        "max_chars" to PropertySchema("integer", "MaxReturncharacters, Default 50000")
                     ),
                     required = listOf("url")
                 )
@@ -58,17 +58,17 @@ class WebFetchTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val url = args["url"] as? String
         val maxCharsParam = (args["max_chars"] as? Number)?.toInt() ?: maxChars
 
         if (url == null) {
-            return ToolResult.error("Missing required parameter: url")
+            return Toolresult.error("Missing required parameter: url")
         }
 
         // URL validation
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            return ToolResult.error("URL must start with http:// or https://")
+            return Toolresult.error("URL must start with http:// or https://")
         }
 
         Log.d(TAG, "Fetching URL: $url")
@@ -82,7 +82,7 @@ class WebFetchTool(
                 val response = client.newCall(request).execute()
 
                 if (!response.isSuccessful) {
-                    return@withContext ToolResult.error("HTTP ${response.code}: ${response.message}")
+                    return@withContext Toolresult.error("HTTP ${response.code}: ${response.message}")
                 }
 
                 val contentType = response.header("Content-Type") ?: ""
@@ -111,10 +111,10 @@ class WebFetchTool(
                     content
                 }
 
-                ToolResult.success(finalContent, mapOf("url" to url, "length" to content.length))
+                Toolresult.success(finalContent, mapOf("url" to url, "length" to content.length))
             } catch (e: Exception) {
                 Log.e(TAG, "Web fetch failed", e)
-                ToolResult.error("Web fetch failed: ${e.message}")
+                Toolresult.error("Web fetch failed: ${e.message}")
             }
         }
     }

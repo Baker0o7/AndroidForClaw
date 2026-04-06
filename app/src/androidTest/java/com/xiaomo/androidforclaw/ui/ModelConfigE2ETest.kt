@@ -27,18 +27,18 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * ModelConfigActivity 端到端测试
+ * ModelConfigActivity 端到端Test
  *
- * 测试完整流程：
- * 1. 打开 ModelConfigActivity
+ * Test完整流程: 
+ * 1. Open ModelConfigActivity
  * 2. 选择 OpenRouter provider
- * 3. 确认已有 API key
+ * 3. Confirm已Has API key
  * 4. 选择模型
- * 5. 保存配置
- * 6. 用保存后的配置调用 LLM
- * 7. 验证 LLM 返回了有效回复
+ * 5. SaveConfig
+ * 6. 用SaveBack的Config调用 LLM
+ * 7. Validate LLM Return了Valid回复
  *
- * 运行:
+ * Run:
  * adb shell am instrument -w -e class com.xiaomo.androidforclaw.ui.ModelConfigE2ETest \
  *   com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
  */

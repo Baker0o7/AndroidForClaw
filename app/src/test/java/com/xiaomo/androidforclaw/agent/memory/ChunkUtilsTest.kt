@@ -4,11 +4,11 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * ChunkUtils 单元测试 — 对齐 OpenClaw chunkMarkdown 实现
+ * ChunkUtils 单元Test — Aligned with OpenClaw chunkMarkdown Implementation
  */
 class ChunkUtilsTest {
 
-    // ===== 常量对齐 =====
+    // ===== Constant对齐 =====
 
     @Test
     fun `default chunk tokens is 400`() {
@@ -145,7 +145,7 @@ class ChunkUtilsTest {
 
     @Test
     fun `extractKeywords handles Chinese text`() {
-        val keywords = ChunkUtils.extractKeywords("Android 开发 内存管理")
+        val keywords = ChunkUtils.extractKeywords("Android 开发 MemoryManage")
         assertTrue("Should have keywords", keywords.isNotEmpty())
     }
 

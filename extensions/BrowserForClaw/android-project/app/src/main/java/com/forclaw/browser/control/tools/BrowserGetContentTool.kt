@@ -7,41 +7,41 @@
 package com.forclaw.browser.control.tools
 
 import com.forclaw.browser.control.manager.BrowserManager
-import com.forclaw.browser.control.model.ToolResult
+import com.forclaw.browser.control.model.Toolresult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 浏览器获取内容工具
+ * 浏览器GetInside容工具
  *
- * 获取当前页面的文本内容
+ * Get当Front页面的TextInside容
  *
- * 参数:
- * - format: String (可选) - 内容格式: "text" (纯文本) 或 "html"，默认 "text"
- * - waitForContent: Boolean (可选) - 是否等待内容加载完成，默认 true
- * - timeout: Int (可选) - 等待超时时间（毫秒），默认 5000
+ * Parameters:
+ * - format: String (Optional) - Inside容格式: "text" (纯Text) 或 "html", Default "text"
+ * - waitForContent: Boolean (Optional) - YesNoWaitInside容Load complete, Default true
+ * - timeout: Int (Optional) - WaitTimeoutTime(毫秒), Default 5000
  *
- * 返回:
- * - content: String - 页面内容
- * - length: Int - 内容长度
- * - url: String - 当前页面 URL
- * - title: String - 当前页面标题
+ * Return:
+ * - content: String - 页面Inside容
+ * - length: Int - Inside容长度
+ * - url: String - 当Front页面 URL
+ * - title: String - 当Front页面Title
  */
 class BrowserGetContentTool : BrowserTool {
     override val name = "browser_get_content"
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        // 1. 获取参数
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
+        // 1. GetParameters
         val format = (args["format"] as? String)?.lowercase() ?: "text"
         val waitForContent = (args["waitForContent"] as? Boolean) ?: true
         val timeout = (args["timeout"] as? Number)?.toLong() ?: 5000L
 
-        // 2. 检查浏览器实例
+        // 2. Check浏览器Instance
         if (!BrowserManager.isActive()) {
-            return ToolResult.error("Browser is not active")
+            return Toolresult.error("Browser is not active")
         }
 
-        // 3. 如果需要等待内容，先检查页面是否加载完成
+        // 3. ifNeedWaitInside容, 先Check页面YesNoLoad complete
         if (waitForContent) {
             val loadCheckScript = """
                 (function() {
@@ -50,23 +50,23 @@ class BrowserGetContentTool : BrowserTool {
                 })()
             """.trimIndent()
 
-            // 等待内容加载，最多等待 timeout 毫秒
+            // WaitInside容Load, most多Wait timeout 毫秒
             val startTime = System.currentTimeMillis()
             var contentReady = false
 
             while (!contentReady && (System.currentTimeMillis() - startTime) < timeout) {
                 try {
-                    // 必须在主线程执行 evaluateJavascript
+                    // Must在主Thread执Row evaluateJavascript
                     val result = withContext(Dispatchers.Main) {
                         BrowserManager.evaluateJavascript(loadCheckScript)
                     }
                     contentReady = result?.trim() == "true"
 
                     if (!contentReady) {
-                        kotlinx.coroutines.delay(200) // 每 200ms 检查一次
+                        kotlinx.coroutines.delay(200) // 每 200ms Check一次
                     }
                 } catch (e: Exception) {
-                    // 继续等待
+                    // ContinueWait
                     kotlinx.coroutines.delay(200)
                 }
             }
@@ -96,17 +96,17 @@ class BrowserGetContentTool : BrowserTool {
                     })()
                 """
             }
-            else -> return ToolResult.error("Invalid format: $format (must be 'text' or 'html')")
+            else -> return Toolresult.error("Invalid format: $format (must be 'text' or 'html')")
         }.trimIndent()
 
-        // 5. 执行 JavaScript (必须在主线程)
+        // 5. 执Row JavaScript (Must在主Thread)
         try {
-            val rawResult = withContext(Dispatchers.Main) {
+            val rawresult = withContext(Dispatchers.Main) {
                 BrowserManager.evaluateJavascript(script)
             }
-            // evaluateJavascript 返回的字符串是 JSON 编码的，需要去掉首尾引号
-            val content = rawResult?.trim()?.removeSurrounding("\"")?.let {
-                // 解码 JSON 转义
+            // evaluateJavascript Return的StringYes JSON Encode的, Need去掉首尾引号
+            val content = rawresult?.trim()?.removeSurrounding("\"")?.let {
+                // Decode JSON 转义
                 it.replace("\\n", "\n")
                     .replace("\\r", "\r")
                     .replace("\\t", "\t")
@@ -114,8 +114,8 @@ class BrowserGetContentTool : BrowserTool {
                     .replace("\\\\", "\\")
             } ?: ""
 
-            // 6. 限制内容长度，避免 HTTP 响应过大
-            val maxLength = 10000 // 最大 10000 字符
+            // 6. LimitInside容长度, 避免 HTTP Response过大
+            val maxLength = 10000 // Max 10000 字符
             val truncated = content.length > maxLength
             val finalContent = if (truncated) {
                 content.substring(0, maxLength) + "\n...(truncated)"
@@ -123,8 +123,8 @@ class BrowserGetContentTool : BrowserTool {
                 content
             }
 
-            // 7. 返回结果
-            return ToolResult.success(
+            // 7. Returnresult
+            return Toolresult.success(
                 "content" to finalContent,
                 "length" to content.length,
                 "truncated" to truncated,
@@ -133,7 +133,7 @@ class BrowserGetContentTool : BrowserTool {
                 "title" to (BrowserManager.getCurrentTitle() ?: "")
             )
         } catch (e: Exception) {
-            return ToolResult.error("Get content failed: ${e.message}")
+            return Toolresult.error("Get content failed: ${e.message}")
         }
     }
 }

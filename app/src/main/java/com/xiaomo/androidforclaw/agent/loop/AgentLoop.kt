@@ -18,14 +18,14 @@ import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.context.ContextErrors
 import com.xiaomo.androidforclaw.agent.context.ContextManager
-import com.xiaomo.androidforclaw.agent.context.ContextRecoveryResult
+import com.xiaomo.androidforclaw.agent.context.ContextRecoveryresult
 import com.xiaomo.androidforclaw.agent.context.ContextWindowGuard
-import com.xiaomo.androidforclaw.agent.context.ToolResultContextGuard
+import com.xiaomo.androidforclaw.agent.context.ToolresultContextGuard
 import com.xiaomo.androidforclaw.agent.session.HistorySanitizer
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.workspace.StoragePaths
-import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import com.xiaomo.androidforclaw.agent.tools.Skillresult
 import com.xiaomo.androidforclaw.agent.tools.Tool
 import com.xiaomo.androidforclaw.agent.tools.ToolCallDispatcher
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
@@ -118,7 +118,7 @@ class AgentLoop(
          * Android: single profile → use MAX (160) for safety headroom since no auth failover.
          */
         private const val MAX_RUN_LOOP_ITERATIONS = 160
-        private const val MAX_THINKING_CHARS = 10_000 // Thinking 内容最大字符数，防止幻觉死循环
+        private const val MAX_THINKING_CHARS = 10_000 // Thinking Insidemaxcharacters, Preventhallucination infinite loop
 
         /**
          * Overload backoff: aligned with OpenClaw OVERLOAD_FAILOVER_BACKOFF_POLICY.
@@ -314,14 +314,14 @@ class AgentLoop(
             Log.i(TAG, "📝 Session log initialized: ${sessionLogFile?.absolutePath}")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to initialize session log (will continue without file logging): ${e.message}")
-            sessionLogFile = null  // Disable file logging, but continue execution
+            sessionLogFile = null  // Disabled file logging, but continue execution
         }
     }
 
     /**
      * Finalize session log
      */
-    private fun finalizeSessionLog(result: AgentResult) {
+    private fun finalizeSessionLog(result: Agentresult) {
         sessionLogFile?.let { file ->
             try {
                 file.appendText("\n========================================\n")
@@ -344,35 +344,35 @@ class AgentLoop(
      * @param systemPrompt System prompt
      * @param userMessage User message
      * @param contextHistory Historical conversation records
-     * @param reasoningEnabled Whether to enable reasoning
-     * @return AgentResult containing final content, tools used, and all messages
+     * @param reasoningEnableddd Whether to enable reasoning
+     * @return Agentresult containing final content, tools used, and all messages
      */
     suspend fun run(
         systemPrompt: String,
         userMessage: String,
         contextHistory: List<Message> = emptyList(),
-        reasoningEnabled: Boolean = true,
+        reasoningEnableddd: Boolean = true,
         images: List<ImageBlock>? = null
-    ): AgentResult {
-        // 🛡️ 全局错误兜底: 确保任何未捕获的错误都能返回给用户
+    ): Agentresult {
+        // 🛡️ Global error fallback: Ensure任何uncaught error都能return to user
         return try {
-            runInternal(systemPrompt, userMessage, contextHistory, reasoningEnabled, images)
+            runInternal(systemPrompt, userMessage, contextHistory, reasoningEnableddd, images)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ AgentLoop 未捕获的错误", e)
+            Log.e(TAG, "❌ AgentLoop uncaught error", e)
             LayoutExceptionLogger.log("AgentLoop#run", e)
 
-            // 返回友好的错误信息给用户
+            // Return友okErrorInfo给User
             val errorMessage = buildString {
-                append("❌ Agent 执行失败\n\n")
-                append("**错误信息**: ${e.message ?: "未知错误"}\n\n")
-                append("**错误类型**: ${e.javaClass.simpleName}\n\n")
-                append("**建议**: \n")
-                append("- 请检查网络连接\n")
-                append("- 如果问题持续,请使用 /new 重新开始对话\n")
-                append("- 查看日志获取更多详细信息")
+                append("❌ Agent 执RowFailed\n\n")
+                append("**ErrorInfo**: ${e.message ?: "UnknownError"}\n\n")
+                append("**ErrorType**: ${e.javaClass.simpleName}\n\n")
+                append("**suggest**: \n")
+                append("- 请CheckNetworkConnect\n")
+                append("- ifIssue持续,请use /new 重NewStartConversation\n")
+                append("- ViewLogGetmore多详细Info")
             }
 
-            AgentResult(
+            Agentresult(
                 finalContent = errorMessage,
                 toolsUsed = emptyList(),
                 messages = listOf(
@@ -386,15 +386,15 @@ class AgentLoop(
     }
 
     /**
-     * AgentLoop 主执行逻辑 (内部)
+     * AgentLoop 主执Row逻辑 (Internal)
      */
     private suspend fun runInternal(
         systemPrompt: String,
         userMessage: String,
         contextHistory: List<Message>,
-        reasoningEnabled: Boolean,
+        reasoningEnableddd: Boolean,
         images: List<ImageBlock>? = null
-    ): AgentResult {
+    ): Agentresult {
         shouldStop = false
         val messages = mutableListOf<Message>()
         conversationMessages = messages  // Expose for sessions_history
@@ -405,9 +405,9 @@ class AgentLoop(
         // Reset context manager
         contextManager?.reset()
 
-        writeLog("========== Agent Loop 开始 ==========")
+        writeLog("========== Agent Loop Start ==========")
         writeLog("Model: ${modelRef ?: "default"}")
-        writeLog("Reasoning: ${if (reasoningEnabled) "enabled" else "disabled"}")
+        writeLog("Reasoning: ${if (reasoningEnableddd) "enabled" else "disabled"}")
         writeLog("🔧 Universal tools: ${toolRegistry.getToolCount()}")
         writeLog("📱 Android tools: ${androidToolRegistry.getToolCount()}")
         writeLog("🔄 Context manager: ${if (contextManager != null) "enabled" else "disabled"}")
@@ -455,7 +455,7 @@ class AgentLoop(
             }
         }
 
-        writeLog("📤 准备发送第一次 LLM 请求...")
+        writeLog("📤 准备sendFirst次 LLM Request...")
 
         var iteration = 0
         var finalContent: String? = null
@@ -482,9 +482,9 @@ class AgentLoop(
 
             try {
                 // 4.1 Call LLM
-                writeLog("📢 发送迭代进度更新...")
+                writeLog("📢 sendIterateInto度Update...")
                 _progressFlow.emit(ProgressUpdate.Iteration(iteration))
-                writeLog("✅ 迭代进度已发送")
+                writeLog("✅ IterateInto度已send")
 
                 // ===== Context Management (aligned with OpenClaw) =====
                 val contextWindowTokens = resolveContextWindowTokens()
@@ -507,21 +507,21 @@ class AgentLoop(
 
                 // Step 2: Context pruning — soft trim old large tool results
                 // Aligned with OpenClaw context-pruning cache-ttl mode
-                pruneOldToolResults(messages, contextWindowTokens)
+                pruneOldToolresults(messages, contextWindowTokens)
 
                 // Step 3: Enforce tool result context budget (truncate + compact)
                 // Aligned with OpenClaw tool-result-context-guard.ts
-                ToolResultContextGuard.enforceContextBudget(messages, contextWindowTokens)
+                ToolresultContextGuard.enforceContextBudget(messages, contextWindowTokens)
 
                 // Step 4: Final budget check — if still over, aggressively trim
-                val totalChars = ToolResultContextGuard.estimateContextChars(messages)
+                val totalChars = ToolresultContextGuard.estimateContextChars(messages)
                 val budgetChars = (contextWindowTokens * 4 * 0.75).toInt()
                 if (totalChars > budgetChars) {
                     writeLog("⚠️ Context still over budget ($totalChars / $budgetChars chars), aggressive trim...")
                     aggressiveTrimMessages(messages, budgetChars)
                 }
 
-                writeLog("📤 调用 UnifiedLLMProvider.chatWithToolsStreaming...")
+                writeLog("📤 call UnifiedLLMProvider.chatWithToolsStreaming...")
                 writeLog("   Messages: ${messages.size}, Tools+Skills: ${allToolDefinitions.size}")
 
                 // 🔔 Send intermediate feedback: thinking step X
@@ -529,8 +529,8 @@ class AgentLoop(
 
                 val llmStartTime = System.currentTimeMillis()
 
-                // ⏱️ SSE 流式调用 + timeout 保护
-                // 对齐 OpenClaw streamSimple → thinking_delta/text_delta 实时推送
+                // ⏱️ SSE 流式call + timeout 保护
+                // Aligned with OpenClaw streamSimple → thinking_delta/text_delta Real-time push
                 val response: LLMResponse
                 try {
                     val thinkingAccumulated = StringBuilder()
@@ -547,7 +547,7 @@ class AgentLoop(
                     // Scrub Anthropic refusal magic string from system prompt (aligned with OpenClaw scrubAnthropicRefusalMagic)
                     val scrubbedMessages = scrubAnthropicRefusalMagic(messages)
 
-                    // Thinking 重复检测（防幻觉死循环）
+                    // Thinking Duplicate检测(防hallucination infinite loop)
                     var thinkingRepeatCount = 0
                     var lastThinkingSig = ""
 
@@ -556,18 +556,18 @@ class AgentLoop(
                             messages = scrubbedMessages,
                             tools = allToolDefinitions,
                             modelRef = modelRef,
-                            reasoningEnabled = reasoningEnabled
+                            reasoningEnableddd = reasoningEnableddd
                         ).collect { chunk ->
                             when (chunk.type) {
                                 ChunkType.THINKING_DELTA -> {
-                                    // 检测重复 thinking（模型卡在循环）
+                                    // 检测Duplicate thinking(模型卡在Loop)
                                     val sig = chunk.text.take(50).trim()
                                     if (sig.isNotEmpty() && sig == lastThinkingSig) {
                                         thinkingRepeatCount++
                                         if (thinkingRepeatCount > 20) {
-                                            writeLog("⚠️ Thinking 重复超过 20 次，跳过剩余 thinking")
+                                            writeLog("⚠️ Thinking Duplicate超过 20 次, Skip剩余 thinking")
                                             Log.w(TAG, "Thinking repetition detected ($thinkingRepeatCount times), skipping")
-                                            // 不再累积，也不再推送
+                                            // 不再累积, Also不再push
                                         }
                                     } else {
                                         thinkingRepeatCount = 0
@@ -605,7 +605,7 @@ class AgentLoop(
                         }
                     }
 
-                    // 组装完整 LLMResponse（与后续工具调用逻辑衔接）
+                    // Group装完整 LLMResponse(与Back续工具call逻辑衔接)
                     val rawToolCalls = if (toolCallsAccumulated.isEmpty()) null else {
                         toolCallsAccumulated.entries.sortedBy { it.key }.map { (_, tc) ->
                             LLMToolCall(
@@ -630,12 +630,12 @@ class AgentLoop(
                         cumulativeTotalTokens += u.totalTokens
                     }
                 } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                    val errorMsg = "LLM 调用超时 (${LLM_TIMEOUT_MS / 1000}s)"
+                    val errorMsg = "LLM callTimeout (${LLM_TIMEOUT_MS / 1000}s)"
                     writeLog("⏰ $errorMsg")
                     Log.w(TAG, errorMsg)
 
                     // ── Timeout compaction (aligned with OpenClaw) ──
-                    val totalCharsNow = ToolResultContextGuard.estimateContextChars(messages)
+                    val totalCharsNow = ToolresultContextGuard.estimateContextChars(messages)
                     val budgetCharsNow = (contextWindowTokens * 4 * 0.75).toInt()
                     val tokenUsedRatio = if (budgetCharsNow > 0) totalCharsNow.toFloat() / budgetCharsNow else 0f
 
@@ -653,12 +653,12 @@ class AgentLoop(
                             provider = "",
                             model = modelRef ?: ""
                         )
-                        val hookResult = hookRunner.runBeforeCompaction(
+                        val hookresult = hookRunner.runBeforeCompaction(
                             data = mapOf("reason" to "timeout", "tokenUsedRatio" to tokenUsedRatio),
                             context = hookCtx
                         )
 
-                        if (hookResult.shouldCancel) {
+                        if (hookresult.shouldCancel) {
                             writeLog("🪝 before_compaction hook cancelled compaction")
                             // Skip compaction, continue with current messages
                         } else {
@@ -670,14 +670,14 @@ class AgentLoop(
                                     contextWindowTokens = contextWindowTokens
                                 )) {
                                     writeLog("🧠 Running memory flush before compaction...")
-                                    val flushResult = memoryFlushManager.runFlush(
+                                    val flushresult = memoryFlushManager.runFlush(
                                         llmProvider = llmProvider,
                                         modelRef = modelRef ?: "",
                                         messages = messages
                                     )
-                                    if (flushResult.success && flushResult.memoriesExtracted) {
-                                        writeLog("✅ Memory flush: extracted ${flushResult.memoriesContent?.length ?: 0} chars")
-                                        _progressFlow.emit(ProgressUpdate.BlockReply(text = "🧠 记忆提取完成", iteration = iteration))
+                                    if (flushresult.success && flushresult.memoriesExtracted) {
+                                        writeLog("✅ Memory flush: extracted ${flushresult.memoriesContent?.length ?: 0} chars")
+                                        _progressFlow.emit(ProgressUpdate.BlockReply(text = "🧠 memory提取Complete", iteration = iteration))
                                     }
                                 }
                             } catch (e: Exception) {
@@ -686,32 +686,32 @@ class AgentLoop(
                         }
 
                         if (contextManager != null) {
-                            val recoveryResult = contextManager.handleContextOverflow(
+                            val recoveryresult = contextManager.handleContextOverflow(
                                 error = e,
                                 messages = messages
                             )
-                            if (recoveryResult is ContextRecoveryResult.Recovered) {
-                                writeLog("✅ Timeout compaction succeeded: ${recoveryResult.strategy}")
+                            if (recoveryresult is ContextRecoveryresult.Recovered) {
+                                writeLog("✅ Timeout compaction succeeded: ${recoveryresult.strategy}")
                                 messages.clear()
-                                messages.addAll(recoveryResult.messages)
+                                messages.addAll(recoveryresult.messages)
                                 continue
                             }
                         }
 
-                        pruneOldToolResults(messages, contextWindowTokens)
+                        pruneOldToolresults(messages, contextWindowTokens)
                         aggressiveTrimMessages(messages, budgetCharsNow)
                         writeLog("✅ Timeout compaction fallback: pruned context")
                         continue
                     }
 
                     writeLog("❌ LLM timeout after $timeoutCompactionAttempts compaction attempts, surfacing error")
-                    finalContent = "⏰ LLM 调用超时。请简化问题或使用 /new 开始新对话。"
+                    finalContent = "⏰ LLM callTimeout. 请简化Issue或use /new StartNewConversation. "
                     break
                 }
 
                 val llmDuration = System.currentTimeMillis() - llmStartTime
 
-                writeLog("✅ LLM 流式响应完成 [耗时: ${llmDuration}ms]")
+                writeLog("✅ LLM 流式ResponseComplete [耗时: ${llmDuration}ms]")
                 // Debug: log raw LLM response for diagnosing empty/unexpected responses
                 writeLog("   Raw content length: ${response.content?.length ?: 0}")
                 writeLog("   Raw content: [${response.content?.take(500) ?: "null"}]")
@@ -722,10 +722,10 @@ class AgentLoop(
                 }
 
                 if (llmDuration > 30_000) {
-                    writeLog("⚠️ LLM 响应耗时较长: ${llmDuration}ms")
+                    writeLog("⚠️ LLM Response耗时较长: ${llmDuration}ms")
                 }
 
-                // 4.2 Display reasoning thinking process (完整内容，流式增量已在 collect 中发出)
+                // 4.2 Display reasoning thinking process (完整Inside容, 流式增量已在 collect 中发出)
                 response.thinkingContent?.let { reasoning ->
                     writeLog("🧠 Reasoning (${reasoning.length} chars):")
                     writeLog("   ${reasoning.take(500)}${if (reasoning.length > 500) "..." else ""}")
@@ -785,13 +785,13 @@ class AgentLoop(
                         )
 
                         when (loopDetection) {
-                            is LoopDetectionResult.LoopDetected -> {
-                                val logLevel = if (loopDetection.level == LoopDetectionResult.Level.CRITICAL) "🚨" else "⚠️"
+                            is LoopDetectionresult.LoopDetected -> {
+                                val logLevel = if (loopDetection.level == LoopDetectionresult.Level.CRITICAL) "🚨" else "⚠️"
                                 writeLog("$logLevel Loop detected: ${loopDetection.detector} (count: ${loopDetection.count})")
                                 writeLog("   ${loopDetection.message}")
 
                                 // Critical level: abort execution
-                                if (loopDetection.level == LoopDetectionResult.Level.CRITICAL) {
+                                if (loopDetection.level == LoopDetectionresult.Level.CRITICAL) {
                                     writeLog("🛑 Critical loop detected, stopping execution")
                                     Log.e(TAG, "🛑 Critical loop detected: ${loopDetection.message}")
 
@@ -837,7 +837,7 @@ class AgentLoop(
                                 // Skip this tool call after warning
                                 continue
                             }
-                            LoopDetectionResult.NoLoop -> {
+                            LoopDetectionresult.NoLoop -> {
                                 // No loop, continue execution
                             }
                         }
@@ -895,14 +895,14 @@ class AgentLoop(
                         val execDuration = System.currentTimeMillis() - execStartTime
                         totalExecDuration += execDuration
 
-                        writeLog("   Result: ${result.success}, ${result.content.take(200)}")
-                        writeLog("   ⏱️ 执行耗时: ${execDuration}ms")
+                        writeLog("   result: ${result.success}, ${result.content.take(200)}")
+                        writeLog("   ⏱️ 执Row耗时: ${execDuration}ms")
 
                         // Log tool execution errors (aligned with OpenClaw: no consecutive error abort)
                         // OpenClaw lets the LLM see tool errors and decide how to proceed.
                         // ToolLoopDetection handles runaway loops separately.
                         if (!result.success) {
-                            writeLog("   ⚠️ 工具执行失败: ${result.content.take(200)}")
+                            writeLog("   ⚠️ 工具执RowFailed: ${result.content.take(200)}")
                         }
 
                         // Record tool call result (for loop detection)
@@ -935,7 +935,7 @@ class AgentLoop(
                         )
 
                         // Send result update
-                        _progressFlow.emit(ProgressUpdate.ToolResult(functionName, result.toString(), execDuration))
+                        _progressFlow.emit(ProgressUpdate.Toolresult(functionName, result.toString(), execDuration))
 
                         // Check if it's stop skill
                         if (functionName == "stop") {
@@ -980,9 +980,9 @@ class AgentLoop(
                     }
 
                     val iterationDuration = System.currentTimeMillis() - iterationStartTime
-                    writeLog("⏱️ 本轮迭代总耗时: ${iterationDuration}ms (LLM: ${llmDuration}ms, 执行: ${totalExecDuration}ms)")
+                    writeLog("⏱️ 本轮Iterate总耗时: ${iterationDuration}ms (LLM: ${llmDuration}ms, 执Row: ${totalExecDuration}ms)")
 
-                    // 单次 iteration 耗时告警（仅 warn，不中断）
+                    // 单次 iteration 耗时Alert(仅 warn, 不Interrupt)
                     if (iterationDuration > ITERATION_WARN_THRESHOLD_MS) {
                         writeLog("⚠️ Iteration $iteration 耗时较长 (${iterationDuration}ms > ${ITERATION_WARN_THRESHOLD_MS}ms)")
                         Log.w(TAG, "Iteration $iteration slow: ${iterationDuration}ms")
@@ -1013,76 +1013,76 @@ class AgentLoop(
                 if ((isTokenLoop || isRepetitiveContent) && emptyResponseRetryAttempts < MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS) {
                     emptyResponseRetryAttempts++
                     val reason = if (isTokenLoop) "finish_reason=length, no tools" else "repetitive content (${rawContent!!.length} chars)"
-                    writeLog("⚠️ LLM 陷入 token 循环: $reason (retry $emptyResponseRetryAttempts/$MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS)")
+                    writeLog("⚠️ LLM 陷入 token Loop: $reason (retry $emptyResponseRetryAttempts/$MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS)")
                     Log.w(TAG, "⚠️ Token loop detected: $reason, retry $emptyResponseRetryAttempts")
 
                     if (contextManager != null) {
-                        writeLog("🔄 压缩上下文后重试...")
-                        val recoveryResult = contextManager.handleContextOverflow(
+                        writeLog("🔄 CompressUpDown文BackRetry...")
+                        val recoveryresult = contextManager.handleContextOverflow(
                             error = Exception("Token loop: $reason"),
                             messages = messages
                         )
-                        when (recoveryResult) {
-                            is ContextRecoveryResult.Recovered -> {
+                        when (recoveryresult) {
+                            is ContextRecoveryresult.Recovered -> {
                                 messages.clear()
-                                messages.addAll(recoveryResult.messages)
+                                messages.addAll(recoveryresult.messages)
                                 _progressFlow.emit(ProgressUpdate.ContextRecovered(
-                                    strategy = recoveryResult.strategy,
-                                    attempt = recoveryResult.attempt
+                                    strategy = recoveryresult.strategy,
+                                    attempt = recoveryresult.attempt
                                 ))
                             }
-                            is ContextRecoveryResult.CannotRecover -> {
+                            is ContextRecoveryresult.CannotRecover -> {
                                 val ctxTokens = resolveContextWindowTokens()
-                                pruneOldToolResults(messages, ctxTokens)
-                                ToolResultContextGuard.enforceContextBudget(messages, ctxTokens)
+                                pruneOldToolresults(messages, ctxTokens)
+                                ToolresultContextGuard.enforceContextBudget(messages, ctxTokens)
                             }
                         }
                     } else {
-                        writeLog("🔄 无 contextManager，直接重试...")
+                        writeLog("🔄 None contextManager, 直接Retry...")
                     }
                     continue
                 }
 
-                // Detect suspicious default text from LLM (e.g. "无响应")
+                // Detect suspicious default text from LLM (e.g. "NoneResponse")
                 // Instead of silently accepting, try to compact context and retry
-                val isSuspiciousResponse = rawContent == "无响应" || rawContent == "无响应。" || rawContent == "没有响应"
+                val isSuspiciousResponse = rawContent == "NoneResponse" || rawContent == "NoneResponse. " || rawContent == "NoneResponse"
                 if (isSuspiciousResponse && emptyResponseRetryAttempts < MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS) {
                     emptyResponseRetryAttempts++
                     writeLog("⚠️ LLM returned suspicious default text: '$rawContent' (retry $emptyResponseRetryAttempts/$MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS)")
-                    writeLog("   Messages count: ${messages.size}, Total context chars: ${ToolResultContextGuard.estimateContextChars(messages)}")
+                    writeLog("   Messages count: ${messages.size}, Total context chars: ${ToolresultContextGuard.estimateContextChars(messages)}")
                     Log.w(TAG, "⚠️ Suspicious response '$rawContent', retry $emptyResponseRetryAttempts/$MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS")
 
                     if (contextManager != null) {
-                        writeLog("🔄 正在压缩上下文后重试...")
-                        val recoveryResult = contextManager.handleContextOverflow(
+                        writeLog("🔄 正在CompressUpDown文BackRetry...")
+                        val recoveryresult = contextManager.handleContextOverflow(
                             error = Exception("Suspicious default response: $rawContent"),
                             messages = messages
                         )
-                        when (recoveryResult) {
-                            is ContextRecoveryResult.Recovered -> {
-                                writeLog("✅ 上下文压缩成功: ${recoveryResult.strategy}")
+                        when (recoveryresult) {
+                            is ContextRecoveryresult.Recovered -> {
+                                writeLog("✅ UpDown文CompressSuccess: ${recoveryresult.strategy}")
                                 messages.clear()
-                                messages.addAll(recoveryResult.messages)
+                                messages.addAll(recoveryresult.messages)
                                 _progressFlow.emit(ProgressUpdate.ContextRecovered(
-                                    strategy = recoveryResult.strategy,
-                                    attempt = recoveryResult.attempt
+                                    strategy = recoveryresult.strategy,
+                                    attempt = recoveryresult.attempt
                                 ))
                             }
-                            is ContextRecoveryResult.CannotRecover -> {
-                                writeLog("⚠️ 上下文压缩失败，尝试工具结果截断...")
+                            is ContextRecoveryresult.CannotRecover -> {
+                                writeLog("⚠️ UpDown文CompressFailed, Try工具result截断...")
                                 val ctxTokens = resolveContextWindowTokens()
-                                pruneOldToolResults(messages, ctxTokens)
-                                ToolResultContextGuard.enforceContextBudget(messages, ctxTokens)
+                                pruneOldToolresults(messages, ctxTokens)
+                                ToolresultContextGuard.enforceContextBudget(messages, ctxTokens)
                             }
                         }
                     } else {
-                        writeLog("🔄 无 contextManager，直接重试...")
+                        writeLog("🔄 None contextManager, 直接Retry...")
                     }
                     continue
                 }
 
                 if (isSuspiciousResponse) {
-                    writeLog("❌ LLM 多次返回可疑默认文本 '$rawContent'，放弃重试")
+                    writeLog("❌ LLM 多次Return可疑DefaultText '$rawContent', 放弃Retry")
                     Log.e(TAG, "❌ LLM returned suspicious response after $emptyResponseRetryAttempts retries")
                 }
 
@@ -1103,43 +1103,43 @@ class AgentLoop(
                 val isContextOverflow = ContextErrors.isLikelyContextOverflowError(errorMessage)
 
                 if (isContextOverflow && contextManager != null) {
-                    writeLog("🔄 检测到上下文超限，尝试恢复...")
-                    Log.w(TAG, "🔄 检测到上下文超限，尝试恢复...")
+                    writeLog("🔄 DetectedUpDown文超限, TryResume...")
+                    Log.w(TAG, "🔄 DetectedUpDown文超限, TryResume...")
                     _progressFlow.emit(ProgressUpdate.ContextOverflow("Context overflow detected, attempting recovery..."))
 
                     // Attempt recovery
-                    val recoveryResult = contextManager.handleContextOverflow(
+                    val recoveryresult = contextManager.handleContextOverflow(
                         error = e,
                         messages = messages
                     )
 
-                    when (recoveryResult) {
-                        is ContextRecoveryResult.Recovered -> {
-                            writeLog("✅ 上下文恢复成功: ${recoveryResult.strategy} (attempt ${recoveryResult.attempt})")
-                            Log.d(TAG, "✅ 上下文恢复成功: ${recoveryResult.strategy} (attempt ${recoveryResult.attempt})")
+                    when (recoveryresult) {
+                        is ContextRecoveryresult.Recovered -> {
+                            writeLog("✅ UpDown文ResumeSuccess: ${recoveryresult.strategy} (attempt ${recoveryresult.attempt})")
+                            Log.d(TAG, "✅ UpDown文ResumeSuccess: ${recoveryresult.strategy} (attempt ${recoveryresult.attempt})")
                             _progressFlow.emit(ProgressUpdate.ContextRecovered(
-                                strategy = recoveryResult.strategy,
-                                attempt = recoveryResult.attempt
+                                strategy = recoveryresult.strategy,
+                                attempt = recoveryresult.attempt
                             ))
 
                             // Replace message list
                             messages.clear()
-                            messages.addAll(recoveryResult.messages)
+                            messages.addAll(recoveryresult.messages)
 
                             // Retry current iteration
                             continue
                         }
-                        is ContextRecoveryResult.CannotRecover -> {
-                            // Step 2: Aggressive tool result truncation (aligned with OpenClaw truncateOversizedToolResultsInSession)
+                        is ContextRecoveryresult.CannotRecover -> {
+                            // Step 2: Aggressive tool result truncation (aligned with OpenClaw truncateOversizedToolresultsInSession)
                             // OpenClaw: when contextEngine.compact fails, try truncating oversized tool results before giving up
                             writeLog("⚠️ Compaction failed, trying aggressive tool result truncation...")
                             val ctxTokens = resolveContextWindowTokens()
                             val budgetCharsNow = (ctxTokens * 4 * 0.75).toInt()
-                            pruneOldToolResults(messages, ctxTokens)
-                            ToolResultContextGuard.enforceContextBudget(messages, ctxTokens)
+                            pruneOldToolresults(messages, ctxTokens)
+                            ToolresultContextGuard.enforceContextBudget(messages, ctxTokens)
                             aggressiveTrimMessages(messages, budgetCharsNow)
 
-                            val totalAfterTruncation = ToolResultContextGuard.estimateContextChars(messages)
+                            val totalAfterTruncation = ToolresultContextGuard.estimateContextChars(messages)
                             if (totalAfterTruncation <= budgetCharsNow) {
                                 writeLog("✅ Tool result truncation succeeded, retrying iteration")
                                 _progressFlow.emit(ProgressUpdate.ContextRecovered(
@@ -1149,14 +1149,14 @@ class AgentLoop(
                                 continue
                             }
 
-                            writeLog("❌ 上下文恢复失败（含 truncation fallback）: ${recoveryResult.reason}")
-                            Log.e(TAG, "❌ 上下文恢复失败: ${recoveryResult.reason}")
-                            _progressFlow.emit(ProgressUpdate.Error("Context overflow: ${recoveryResult.reason}"))
+                            writeLog("❌ UpDown文ResumeFailed(含 truncation fallback): ${recoveryresult.reason}")
+                            Log.e(TAG, "❌ UpDown文ResumeFailed: ${recoveryresult.reason}")
+                            _progressFlow.emit(ProgressUpdate.Error("Context overflow: ${recoveryresult.reason}"))
 
                             finalContent = buildString {
-                                append("❌ 上下文溢出\n\n")
-                                append("**错误**: ${recoveryResult.reason}\n\n")
-                                append("**建议**: 对话历史过长，请使用 /new 或 /reset 开始新对话")
+                                append("❌ UpDown文溢出\n\n")
+                                append("**Error**: ${recoveryresult.reason}\n\n")
+                                append("**suggest**: Conversation历史过长, 请use /new 或 /reset StartNewConversation")
                             }
                             break
                         }
@@ -1220,7 +1220,7 @@ class AgentLoop(
                     // Android has no model fallback, so surface the error instead of infinite retry.
                     if (e.message?.contains("timeout", ignoreCase = true) == true) {
                         writeLog("⏰ Timeout error, surfacing to user (no infinite retry)")
-                        finalContent = "⏰ LLM 调用超时。请简化问题或使用 /new 开始新对话。"
+                        finalContent = "⏰ LLM callTimeout. 请简化Issue或use /new StartNewConversation. "
                         break
                     }
 
@@ -1233,21 +1233,21 @@ class AgentLoop(
                         if (isBilling) {
                             append("⚠️ Billing error — please check your account balance or API key quota.")
                         } else {
-                            append("❌ 执行出错\n\n")
+                            append("❌ 执Row出错\n\n")
 
                             when (e) {
                                 is com.xiaomo.androidforclaw.providers.LLMException -> {
-                                    append("**错误类型**: API 调用失败\n")
-                                    append("**错误信息**: ${e.message}\n\n")
-                                    append("**建议**: 请检查模型配置和 API Key 是否正确\n")
-                                    append("**配置文件**: ${StoragePaths.openclawConfig.absolutePath}\n")
+                                    append("**ErrorType**: API callFailed\n")
+                                    append("**ErrorInfo**: ${e.message}\n\n")
+                                    append("**suggest**: 请Check模型Config和 API Key YesNo正确\n")
+                                    append("**Config文件**: ${StoragePaths.openclawConfig.absolutePath}\n")
                                 }
                                 else -> {
-                                    append("**错误信息**: ${e.message}\n")
+                                    append("**ErrorInfo**: ${e.message}\n")
                                 }
                             }
 
-                            append("\n**调试信息**:\n```\n")
+                            append("\n**DebugInfo**:\n```\n")
                             append(e.stackTraceToString().take(800))
                             append("\n```")
                         }
@@ -1263,15 +1263,15 @@ class AgentLoop(
         // - shouldStop flag set (abort, critical loop, stop tool)
         // - Unrecoverable error
 
-        writeLog("========== Agent Loop 结束 ==========")
+        writeLog("========== Agent Loop End ==========")
         writeLog("Iterations: $iteration")
         writeLog("Tools used: ${toolsUsed.joinToString(", ")}")
 
         // Add final content as assistant message if not empty
         val effectiveFinalContent = when {
             finalContent != null -> finalContent
-            shouldStop -> "✅ 任务已停止"
-            else -> "无响应"
+            shouldStop -> "✅ Task已Stop"
+            else -> "NoneResponse"
         }
         if (effectiveFinalContent.isNotEmpty()) {
             messages.add(com.xiaomo.androidforclaw.providers.llm.Message(
@@ -1285,7 +1285,7 @@ class AgentLoop(
             writeLog("📊 Cumulative usage: $cumulativePromptTokens prompt + $cumulativeCompletionTokens completion = $cumulativeTotalTokens total tokens")
         }
 
-        val result = AgentResult(
+        val result = Agentresult(
             finalContent = effectiveFinalContent,
             toolsUsed = toolsUsed,
             messages = messages,
@@ -1310,12 +1310,12 @@ class AgentLoop(
      * - softTrim.maxChars: 4000, headChars: 1500, tailChars: 1500
      * - hardClear.placeholder: "[Old tool result content cleared]"
      */
-    private fun pruneOldToolResults(
+    private fun pruneOldToolresults(
         messages: MutableList<Message>,
         contextWindowTokens: Int
     ) {
         val budgetChars = (contextWindowTokens * 4 * 0.75).toInt()
-        val currentChars = ToolResultContextGuard.estimateContextChars(messages)
+        val currentChars = ToolresultContextGuard.estimateContextChars(messages)
         val usageRatio = currentChars.toFloat() / budgetChars.toFloat()
 
         if (usageRatio < SOFT_TRIM_RATIO) return  // Under 30%, no action needed
@@ -1386,7 +1386,7 @@ class AgentLoop(
         // Drop oldest messages (any role) until under budget.
         // Keep: first system message + last 2 messages (user + assistant).
         // History may contain system-role messages from prior session saves — drop those too.
-        val totalChars = ToolResultContextGuard.estimateContextChars(messages)
+        val totalChars = ToolresultContextGuard.estimateContextChars(messages)
         val roleCounts = messages.groupBy { it.role }.mapValues { it.value.size }
         writeLog("📊 Pruning: total=${messages.size} chars=$totalChars budget=$maxHistoryBudget roles=$roleCounts")
 
@@ -1397,7 +1397,7 @@ class AgentLoop(
         if (messages.size <= keep) return
 
         var iterations = 0
-        while (ToolResultContextGuard.estimateContextChars(messages) > maxHistoryBudget && messages.size > keep && iterations < 15) {
+        while (ToolresultContextGuard.estimateContextChars(messages) > maxHistoryBudget && messages.size > keep && iterations < 15) {
             // Drop oldest half between index 1 and size-2
             val droppableCount = messages.size - keep
             val dropCount = (droppableCount / 2).coerceAtLeast(1)
@@ -1412,7 +1412,7 @@ class AgentLoop(
             iterations++
         }
 
-        writeLog("✅ Pruned: ${messages.size} messages, ${ToolResultContextGuard.estimateContextChars(messages)} chars after $iterations iterations")
+        writeLog("✅ Pruned: ${messages.size} messages, ${ToolresultContextGuard.estimateContextChars(messages)} chars after $iterations iterations")
     }
 
     // ===== Anthropic Refusal Magic Scrub (aligned with OpenClaw scrubAnthropicRefusalMagic) =====
@@ -1581,7 +1581,7 @@ class AgentLoop(
 /**
  * Agent execution result
  */
-data class AgentResult(
+data class Agentresult(
     val finalContent: String,
     val toolsUsed: List<String>,
     val messages: List<Message>,
@@ -1605,7 +1605,7 @@ sealed class ProgressUpdate {
     data class ToolCall(val name: String, val arguments: Map<String, Any?>) : ProgressUpdate()
 
     /** Tool result */
-    data class ToolResult(val name: String, val result: String, val execDuration: Long) : ProgressUpdate()
+    data class Toolresult(val name: String, val result: String, val execDuration: Long) : ProgressUpdate()
 
     /** Iteration complete */
     data class IterationComplete(val number: Int, val iterationDuration: Long, val llmDuration: Long, val execDuration: Long) : ProgressUpdate()

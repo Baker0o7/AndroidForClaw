@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.agent.tools
 
@@ -401,16 +401,16 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     private fun shellEscape(s: String) = "'" + s.replace("'", "'\\''") + "'"
 
     /**
-     * 按需启动 Termux sshd：先拉起 Termux，启动 sshd，等待就绪。
-     * 如果认证失败（authorized_keys 丢失），自动注入公钥。
+     * 按需Start Termux sshd: 先拉起 Termux, Start sshd, WaitReady. 
+     * ifAuthenticateFailed(authorized_keys lose), Auto注入公钥. 
      */
     private suspend fun autoStartSshd(): TermuxStatus {
-        // 连接池已连接则直接返回
+        // Connect池已Connect则直接Return
         if (TermuxSSHPool.isConnected) {
-            Log.i(TAG, "SSH 连接池已连接，跳过按需启动")
+            Log.i(TAG, "SSH Connect池已Connect, Skip按需Start")
             return getStatus()
         }
-        Log.i(TAG, "🐧 按需启动 Termux sshd...")
+        Log.i(TAG, "🐧 按需Start Termux sshd...")
         val launcher = com.xiaomo.androidforclaw.core.TermuxSshdLauncher
         try {
             launcher.ensureAndLaunch(context)
@@ -418,31 +418,31 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             Log.w(TAG, "ensureAndLaunch failed: ${e.message}")
         }
 
-        // 轮询等待 sshd 就绪
+        // 轮询Wait sshd Ready
         var keyInjected = false
         for (attempt in 1..20) {
             kotlinx.coroutines.delay(1000)
             val s = getStatus()
             if (s.ready) {
                 TermuxSSHPool.warmUp(context)
-                Log.i(TAG, "✅ 按需启动 sshd 成功（等待 ${attempt}s）")
+                Log.i(TAG, "✅ 按需Start sshd Success(Wait ${attempt}s)")
                 return s
             }
-            // sshd 可达但认证失败 → 自动注入公钥
+            // sshd 可达但AuthenticateFailed → Auto注入公钥
             if (s.sshReachable && !s.sshAuthOk && !keyInjected) {
                 val pubKey = getPublicKey()
                 if (pubKey != null) {
-                    Log.i(TAG, "🔑 sshd 可达但认证失败，自动注入公钥...")
+                    Log.i(TAG, "🔑 sshd 可达但AuthenticateFailed, Auto注入公钥...")
                     launcher.injectPublicKey(context, pubKey)
                     keyInjected = true
                 }
             }
-            // 重试 RUN_COMMAND
+            // Retry RUN_COMMAND
             if (!s.sshReachable && (attempt == 5 || attempt == 10)) {
                 try { launcher.launch(context) } catch (_: Exception) { }
             }
         }
-        // 超时，返回最终状态
+        // Timeout, Returnmost终Status
         val finalStatus = getStatus()
         if (!finalStatus.ready && launcher.isMiui()) {
             launcher.showAutoStartGuide(context)
@@ -452,9 +452,9 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     // ==================== Tool Interface ====================
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         if (!isTermuxInstalled()) {
-            return ToolResult(
+            return Toolresult(
                 success = false,
                 content = "Termux is not installed. Please install from F-Droid.",
                 metadata = mapOf("backend" to "termux", "step" to TermuxSetupStep.TERMUX_NOT_INSTALLED.name)
@@ -467,7 +467,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             status = withContext(Dispatchers.IO) { autoStartSshd() }
         }
         if (!status.ready) {
-            return ToolResult(
+            return Toolresult(
                 success = false,
                 content = TermuxStatusFormatter.userFacingMessage(status),
                 metadata = mapOf("backend" to "termux", "status" to status.message, "step" to status.lastStep.name)
@@ -488,10 +488,10 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                     "python" -> "python3 -c ${shellEscape(code)}"
                     "nodejs" -> "node -e ${shellEscape(code)}"
                     "shell" -> code
-                    else -> return ToolResult.error("Invalid runtime: $runtime (use python/nodejs/shell)")
+                    else -> return Toolresult.error("Invalid runtime: $runtime (use python/nodejs/shell)")
                 }
             }
-            else -> return ToolResult.error("Missing required parameter: command")
+            else -> return Toolresult.error("Missing required parameter: command")
         }
 
         // Execute via SSH pool
@@ -505,7 +505,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                     val result = TermuxSSHPool.exec(resolvedCommand, cwd, timeout)
                     Log.d(TAG, "Exec completed: exitCode=${result.exitCode}, stdout=${result.stdout.length} chars")
 
-                    ToolResult(
+                    Toolresult(
                         success = result.success,
                         content = buildString {
                             if (result.stdout.isNotEmpty()) appendLine(result.stdout.trim())
@@ -531,7 +531,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Exec failed", e)
-                ToolResult(
+                Toolresult(
                     success = false,
                     content = "Command execution failed: ${e.message}",
                     metadata = mapOf(

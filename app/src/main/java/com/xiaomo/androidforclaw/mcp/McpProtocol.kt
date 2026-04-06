@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.mcp
 
@@ -8,14 +8,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * MCP (Model Context Protocol) 协议定义
+ * MCP (Model Context Protocol) Protocol定义
  *
  * 基于 JSON-RPC 2.0 标准
  * 参考: https://spec.modelcontextprotocol.io/
  */
 
 /**
- * JSON-RPC 2.0 请求
+ * JSON-RPC 2.0 Request
  */
 data class JsonRpcRequest(
     val jsonrpc: String = "2.0",
@@ -72,7 +72,7 @@ data class JsonRpcRequest(
 }
 
 /**
- * JSON-RPC 2.0 成功响应
+ * JSON-RPC 2.0 SuccessResponse
  */
 data class JsonRpcResponse(
     val jsonrpc: String = "2.0",
@@ -103,7 +103,7 @@ data class JsonRpcResponse(
 }
 
 /**
- * JSON-RPC 2.0 错误响应
+ * JSON-RPC 2.0 ErrorResponse
  */
 data class JsonRpcError(
     val jsonrpc: String = "2.0",
@@ -131,7 +131,7 @@ data class JsonRpcError(
     }
 
     companion object {
-        // JSON-RPC 2.0 标准错误码
+        // JSON-RPC 2.0 标准Error码
         const val PARSE_ERROR = -32700
         const val INVALID_REQUEST = -32600
         const val METHOD_NOT_FOUND = -32601
@@ -171,9 +171,9 @@ data class McpTool(
 }
 
 /**
- * MCP Tools List 响应
+ * MCP Tools List Response
  */
-data class McpToolsListResult(
+data class McpToolsListresult(
     val tools: List<McpTool>
 ) {
     fun toJson(): JSONObject {
@@ -186,7 +186,7 @@ data class McpToolsListResult(
 }
 
 /**
- * MCP Tool Call 请求参数
+ * MCP Tool Call RequestParameters
  */
 data class McpToolCallParams(
     val name: String,
@@ -194,9 +194,9 @@ data class McpToolCallParams(
 )
 
 /**
- * MCP Tool Call 响应
+ * MCP Tool Call Response
  */
-data class McpToolCallResult(
+data class McpToolCallresult(
     val content: List<ContentItem>,
     val isError: Boolean = false
 ) {
@@ -227,7 +227,7 @@ data class McpToolCallResult(
 }
 
 /**
- * MCP Initialize 请求参数
+ * MCP Initialize RequestParameters
  */
 data class McpInitializeParams(
     val protocolVersion: String,
@@ -241,9 +241,9 @@ data class McpInitializeParams(
 }
 
 /**
- * MCP Initialize 响应
+ * MCP Initialize Response
  */
-data class McpInitializeResult(
+data class McpInitializeresult(
     val protocolVersion: String,
     val capabilities: Map<String, Any?>,
     val serverInfo: ServerInfo

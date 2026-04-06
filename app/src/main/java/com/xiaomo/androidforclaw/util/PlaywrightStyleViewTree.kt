@@ -1,14 +1,14 @@
 /**
- * Playwright-style View Tree — 将 Android Accessibility ViewNode 转成类似
- * Playwright snapshot 的 role-based ref 树格式，供 MCP 外部 Agent 使用。
+ * Playwright-style View Tree — Convert Android Accessibility ViewNode to Playwright-like
+ * Playwright snapshot role-based ref Tree format, For MCP External Agent use. 
  *
- * 输出示例：
- * - button "登录" [ref=e1] center=(540,1200) bounds=[360,1160,720,1240]
- *   - text "登录" [ref=e2]
- * - textbox "用户名" [ref=e3] center=(540,800) bounds=[100,760,980,840]
- * - link "忘记密码" [ref=e4] center=(540,1300) bounds=[400,1280,680,1320]
+ * Output example: 
+ * - button "Login" [ref=e1] center=(540,1200) bounds=[360,1160,720,1240]
+ *   - text "Login" [ref=e2]
+ * - textbox "User名" [ref=e3] center=(540,800) bounds=[100,760,980,840]
+ * - link "forgetPassword" [ref=e4] center=(540,1300) bounds=[400,1280,680,1320]
  *
- * Agent 使用 ref=eN 配合 tap/long_press 等操作。
+ * Agent uses ref=eN with tap/long_press actions. 
  */
 package com.xiaomo.androidforclaw.util
 
@@ -19,7 +19,7 @@ import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 object PlaywrightStyleViewTree {
 
     /**
-     * ref 映射：ref string → ViewNode (用于后续 tap by ref)
+     * ref Map: ref string -> ViewNode (For subsequent tap by ref)
      */
     data class RefEntry(
         val ref: String,
@@ -28,12 +28,12 @@ object PlaywrightStyleViewTree {
         val node: ViewNode
     )
 
-    data class SnapshotResult(
-        /** Playwright 风格的文本树 */
+    data class Snapshotresult(
+        /** Playwright-style text tree */
         val snapshot: String,
-        /** ref → 节点映射 */
+        /** ref → NodeMap */
         val refs: Map<String, RefEntry>,
-        /** 统计信息 */
+        /** Statistics info */
         val stats: Stats
     )
 
@@ -43,7 +43,7 @@ object PlaywrightStyleViewTree {
         val refCount: Int
     )
 
-    // ── Android className → Playwright role 映射 ──────────────
+    // ── Android className → Playwright role Map ──────────────
 
     private val CLASS_TO_ROLE = mapOf(
         "button" to "button",
@@ -107,7 +107,7 @@ object PlaywrightStyleViewTree {
         "text", "heading", "img", "label"
     )
 
-    // ── 树构建 ────────────────────────────────────────────────
+    // ── Tree construction ────────────────────────────────────────────────
 
     private data class TreeNode(
         val viewNode: ViewNode,
@@ -115,18 +115,18 @@ object PlaywrightStyleViewTree {
     )
 
     /**
-     * 将 ViewNode 列表转成 Playwright 风格的 snapshot。
+     * Convert ViewNode List to Playwright-style snapshot. 
      */
-    fun buildSnapshot(nodes: List<ViewNode>): SnapshotResult {
+    fun buildSnapshot(nodes: List<ViewNode>): Snapshotresult {
         val filtered = nodes.filter { !isSystemStatusBar(it) }
         if (filtered.isEmpty()) {
-            return SnapshotResult("(empty)", emptyMap(), Stats(0, 0, 0))
+            return Snapshotresult("(empty)", emptyMap(), Stats(0, 0, 0))
         }
 
-        // 构建树结构
+        // BuildTree结构
         val treeNodes = buildTree(filtered)
 
-        // 分配 ref 并格式化
+        // 分配 ref 并Format
         var refCounter = 0
         val refs = mutableMapOf<String, RefEntry>()
         val sb = StringBuilder()
@@ -142,7 +142,7 @@ object PlaywrightStyleViewTree {
             val name = resolveName(node)
             val indent = "  ".repeat(depth)
 
-            // 分配 ref：交互元素和有名称的内容元素
+            // 分配 ref: 交互Element和HasName的Inside容Element
             val isInteractive = INTERACTIVE_ROLES.contains(role)
             val isNamedContent = CONTENT_ROLES.contains(role) && !name.isNullOrEmpty()
             val shouldHaveRef = isInteractive || isNamedContent || node.clickable
@@ -152,7 +152,7 @@ object PlaywrightStyleViewTree {
                 refs[ref] = RefEntry(ref, role, name, node)
             }
 
-            // 格式化行
+            // FormatRow
             sb.append(indent).append("- ").append(role)
             if (!name.isNullOrEmpty()) {
                 sb.append(" \"").append(name.replace("\"", "\\\"")).append("\"")
@@ -160,18 +160,18 @@ object PlaywrightStyleViewTree {
             if (ref != null) {
                 sb.append(" [ref=").append(ref).append("]")
             }
-            // 坐标信息（Android 特有，方便 tap 操作）
+            // 坐标Info(Android 特Has, 方便 tap Action)
             sb.append(" center=(${node.point.x},${node.point.y})")
             sb.append(" bounds=[${node.left},${node.top},${node.right},${node.bottom}]")
 
-            // 状态信息
+            // StatusInfo
             if (node.clickable && !isInteractive) sb.append(" [clickable]")
             if (node.scrollable) sb.append(" [scrollable]")
             appendExtraState(sb, node, role)
 
             sb.appendLine()
 
-            // 递归子节点
+            // Recurse子Node
             val childrenToShow = treeNode.children.filterNot { shouldBypassChild(node, it.viewNode) }
             childrenToShow.forEach { appendNode(it, depth + 1) }
         }
@@ -179,7 +179,7 @@ object PlaywrightStyleViewTree {
         treeNodes.forEach { appendNode(it, 0) }
 
         val interactiveCount = refs.values.count { INTERACTIVE_ROLES.contains(it.role) }
-        return SnapshotResult(
+        return Snapshotresult(
             snapshot = sb.toString().trimEnd(),
             refs = refs,
             stats = Stats(
@@ -190,21 +190,21 @@ object PlaywrightStyleViewTree {
         )
     }
 
-    // ── 角色解析 ──────────────────────────────────────────────
+    // ── RoleParse ──────────────────────────────────────────────
 
     private fun resolveRole(node: ViewNode): String {
         val simpleClass = node.className?.substringAfterLast('.')?.lowercase() ?: "group"
 
-        // 优先查映射表
+        // 优先查MapTable
         CLASS_TO_ROLE[simpleClass]?.let { return it }
 
-        // 启发式规则
+        // 启发式Rule
         if (node.clickable) {
             val text = node.text ?: node.contentDesc
             if (!text.isNullOrEmpty()) return "button"
         }
 
-        // 包含关键词的类名
+        // Contains关Key词的Class名
         return when {
             simpleClass.contains("button") -> "button"
             simpleClass.contains("edit") || simpleClass.contains("input") -> "textbox"
@@ -225,12 +225,12 @@ object PlaywrightStyleViewTree {
     }
 
     private fun resolveName(node: ViewNode): String? {
-        // 优先 contentDescription（无障碍名称），其次 text
+        // 优先 contentDescription(AccessibilityName), Its次 text
         return node.contentDesc?.takeIf { it.isNotBlank() }
             ?: node.text?.takeIf { it.isNotBlank() }
     }
 
-    // ── 状态附加 ──────────────────────────────────────────────
+    // ── Status附加 ──────────────────────────────────────────────
 
     private fun appendExtraState(sb: StringBuilder, node: ViewNode, role: String) {
         val axNode = node.node ?: return
@@ -251,7 +251,7 @@ object PlaywrightStyleViewTree {
         } catch (_: Exception) { }
     }
 
-    // ── 树构建辅助 ────────────────────────────────────────────
+    // ── Tree construction辅助 ────────────────────────────────────────────
 
     private fun buildTree(nodes: List<ViewNode>): List<TreeNode> {
         val nodeOrder = nodes.withIndex().associate { it.value to it.index }
@@ -297,10 +297,10 @@ object PlaywrightStyleViewTree {
         while (current.children.size == 1) {
             val child = current.children[0]
             if (isRedundantWrapper(current.viewNode, child.viewNode)) {
-                // 用子节点替代（但保留子节点的 children）
+                // 用子Node替代(但保留子Node的 children)
                 current.children.clear()
                 current.children.addAll(child.children)
-                // 不改 current 的 viewNode，继续折叠
+                // 不改 current 的 viewNode, Continue折叠
             } else {
                 break
             }
@@ -331,7 +331,7 @@ object PlaywrightStyleViewTree {
         }
     }
 
-    // ── 跳过/过滤 ────────────────────────────────────────────
+    // ── Skip/Filter ────────────────────────────────────────────
 
     private fun shouldBypassChild(parent: ViewNode, child: ViewNode): Boolean {
         val parentClass = parent.className?.lowercase() ?: return false
@@ -344,7 +344,7 @@ object PlaywrightStyleViewTree {
     }
 
     private val SYSTEM_STATUS_KEYWORDS = listOf(
-        "android 系统通知", "系统通知", "通知", "wlan", "信号",
+        "android 系统Notification", "系统Notification", "Notification", "wlan", "信号",
         "充电", "sim 卡", "振铃器", "振动", "nfc"
     )
 

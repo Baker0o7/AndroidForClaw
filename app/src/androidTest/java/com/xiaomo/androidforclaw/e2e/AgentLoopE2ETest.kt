@@ -23,21 +23,21 @@ import org.junit.runners.MethodSorters
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * AgentLoop 端到端测试 — 真实 LLM 调用 + 真实工具执行
+ * AgentLoop 端到端Test — Real LLM 调用 + Real工具执Row
  *
- * 每个 case 发送真实测试消息给 AgentLoop，收集完整迭代数据：
- * - 每轮迭代的工具调用 + 参数 + 结果 + 耗时
- * - 总迭代次数、总耗时
- * - 最终输出内容
+ * Each case 发送RealTestMessage给 AgentLoop, 收集完整IterateData: 
+ * - 每轮Iterate的工具调用 + Parameters + Result + 耗时
+ * - 总Iterate次数、总耗时
+ * - 最终OutputInside容
  *
- * 然后验证：
- * - 任务是否完成（finalContent 包含预期关键词）
- * - 迭代次数是否合理（不过多也不过少）
- * - 使用的工具是否符合预期
- * - 无死循环、无崩溃
+ * 然BackValidate: 
+ * - TaskYesNoComplete(finalContent Contains预期关Key词)
+ * - Iterate次数YesNo合理(不过多Also不过少)
+ * - 使用的工具YesNo符合预期
+ * - None死Loop、None崩溃
  *
- * ⚠️ 需要在真机/模拟器上运行，且已配置好 LLM API Key
- * 运行: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.xiaomo.androidforclaw.e2e.AgentLoopE2ETest
+ * ⚠️ Need在True机/Mock器UpRun, 且已Config好 LLM API Key
+ * Run: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.xiaomo.androidforclaw.e2e.AgentLoopE2ETest
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -46,9 +46,9 @@ class AgentLoopE2ETest {
 
     companion object {
         private const val TAG = "AgentLoopE2E"
-        private const val LLM_TIMEOUT_MS = 60_000L  // 单个测试最大等待 1 分钟
+        private const val LLM_TIMEOUT_MS = 60_000L  // SingleTestMaxWait 1 分钟
 
-        // 迭代次数合理范围
+        // Iterate次数合理Range
         private const val MIN_REASONABLE_ITERATIONS = 1
         private const val MAX_REASONABLE_ITERATIONS = 15
     }
@@ -60,7 +60,7 @@ class AgentLoopE2ETest {
     private lateinit var configLoader: ConfigLoader
     private lateinit var contextBuilder: ContextBuilder
 
-    // 收集迭代过程数据
+    // 收集Iterate过程Data
     data class IterationLog(
         val iteration: Int,
         val event: String,
@@ -81,39 +81,39 @@ class AgentLoopE2ETest {
     ) {
         fun print() {
             println("\n${"═".repeat(70)}")
-            println("📊 测试报告: $testName")
+            println("📊 Test报告: $testName")
             println("${"═".repeat(70)}")
-            println("📝 用户消息: $userMessage")
+            println("📝 UserMessage: $userMessage")
             println("⏱️  总耗时: ${totalDurationMs}ms")
 
             if (error != null) {
-                println("❌ 错误: $error")
+                println("❌ Error: $error")
                 println("${"═".repeat(70)}\n")
                 return
             }
 
             val r = result!!
-            println("🔄 迭代次数: ${r.iterations}")
+            println("🔄 Iterate次数: ${r.iterations}")
             println("🔧 使用工具: ${r.toolsUsed.distinct().joinToString(", ")}")
-            println("📄 最终输出 (前200字): ${r.finalContent.take(200)}")
+            println("📄 最终Output (Front200字): ${r.finalContent.take(200)}")
             println()
 
             // 打印每一步
-            println("📋 迭代详情:")
+            println("📋 IterateDetails:")
             var currentIteration = 0
             for (log in iterations) {
                 if (log.iteration != currentIteration) {
                     currentIteration = log.iteration
-                    println("  ── 迭代 $currentIteration ──")
+                    println("  ── Iterate $currentIteration ──")
                 }
                 when (log.event) {
                     "thinking" -> println("    🧠 思考中...")
                     "tool_call" -> println("    🔧 调用: ${log.toolName}(${formatArgs(log.toolArgs)})")
-                    "tool_result" -> println("    📤 结果: ${log.toolResult?.take(100) ?: "null"} [${log.durationMs}ms]")
+                    "tool_result" -> println("    📤 Result: ${log.toolResult?.take(100) ?: "null"} [${log.durationMs}ms]")
                     "reasoning" -> println("    💭 推理: ${log.toolResult?.take(100) ?: ""}")
                     "block_reply" -> println("    💬 中间回复: ${log.toolResult?.take(100) ?: ""}")
-                    "loop_detected" -> println("    ⚠️ 循环检测: ${log.toolResult}")
-                    "error" -> println("    ❌ 错误: ${log.toolResult}")
+                    "loop_detected" -> println("    ⚠️ Loop检测: ${log.toolResult}")
+                    "error" -> println("    ❌ Error: ${log.toolResult}")
                 }
             }
             println("${"═".repeat(70)}\n")
@@ -140,7 +140,7 @@ class AgentLoopE2ETest {
     }
 
     /**
-     * 执行 AgentLoop 并收集迭代数据
+     * 执Row AgentLoop 并收集IterateData
      */
     private fun runAgentWithCollection(
         testName: String,
@@ -159,7 +159,7 @@ class AgentLoopE2ETest {
                 configLoader = configLoader
             )
 
-            // 收集 ProgressUpdate 事件
+            // 收集 ProgressUpdate Event
             val collectorJob = CoroutineScope(Dispatchers.IO).launch {
                 agentLoop.progressFlow.collect { update ->
                     val log = when (update) {
@@ -194,7 +194,7 @@ class AgentLoopE2ETest {
                     agentLoop.run(
                         systemPrompt = systemPrompt,
                         userMessage = userMessage,
-                        reasoningEnabled = true
+                        reasoningEnabledd = true
                     )
                 }
             }
@@ -209,327 +209,327 @@ class AgentLoopE2ETest {
         }
     }
 
-    // ===== 能力分类测试 =====
+    // ===== Capability分ClassTest =====
 
     /**
-     * Case 1: 文件操作 — 创建、读取、编辑文件
+     * Case 1: 文件Action — Create、Read、Edit文件
      *
-     * 预期行为：
-     * - 使用 write_file 创建文件
-     * - 使用 read_file 读取确认
-     * - 迭代次数: 2-5
+     * 预期Behavior: 
+     * - 使用 write_file Create文件
+     * - 使用 read_file ReadConfirm
+     * - Iterate次数: 2-5
      */
     @Test
     fun test01_fileOps_createAndRead() {
         val report = runAgentWithCollection(
-            testName = "文件操作: 创建并读取文件",
-            userMessage = "在 /sdcard/.androidforclaw/workspace/test_e2e.txt 中写入 'hello openclaw'，然后读取这个文件，告诉我文件内容"
+            testName = "文件Action: Create并Read文件",
+            userMessage = "在 /sdcard/.androidforclaw/workspace/test_e2e.txt 中Write 'hello openclaw', 然BackRead这个文件, 告诉我文件Inside容"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        assertNull("不应该有错误", report.error)
+        assertNotNull("ShouldHasResult", report.result)
+        assertNull("不ShouldHasError", report.error)
         // LLM may paraphrase; just verify it has meaningful content and used the right tools
-        assertTrue("最终输出不应为空", report.result!!.finalContent.isNotEmpty())
-        assertTrue("应该使用 write_file", "write_file" in report.result!!.toolsUsed)
-        assertTrue("应该使用 read_file", "read_file" in report.result!!.toolsUsed)
+        assertTrue("最终Output不应为Null", report.result!!.finalContent.isNotEmpty())
+        assertTrue("Should使用 write_file", "write_file" in report.result!!.toolsUsed)
+        assertTrue("Should使用 read_file", "read_file" in report.result!!.toolsUsed)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 2: Shell 执行 — 执行命令并返回结果
+     * Case 2: Shell 执Row — 执Row命令并ReturnResult
      *
-     * 预期行为：
-     * - 使用 exec 执行 echo 命令
-     * - 迭代次数: 1-3
+     * 预期Behavior: 
+     * - 使用 exec 执Row echo 命令
+     * - Iterate次数: 1-3
      */
     @Test
     fun test02_shell_execCommand() {
         // exec tool may hang in instrument environment; use write_file as alternative shell test
         val report = runAgentWithCollection(
-            testName = "Shell: 执行命令（via write_file fallback）",
-            userMessage = "用 write_file 在 /sdcard/.androidforclaw/workspace/exec_test.txt 写入当前时间戳 '20260315'，然后读取确认"
+            testName = "Shell: 执Row命令(via write_file fallback)",
+            userMessage = "用 write_file 在 /sdcard/.androidforclaw/workspace/exec_test.txt Write当FrontTime戳 '20260315', 然BackReadConfirm"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        assertTrue("应该有输出", report.result!!.finalContent.isNotEmpty())
+        assertNotNull("ShouldHasResult", report.result)
+        assertTrue("ShouldHasOutput", report.result!!.finalContent.isNotEmpty())
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 3: 网络搜索 — 搜索并返回结果
+     * Case 3: NetworkSearch — Search并ReturnResult
      *
-     * 预期行为：
-     * - 使用 web_search 搜索
-     * - 迭代次数: 1-4
+     * 预期Behavior: 
+     * - 使用 web_search Search
+     * - Iterate次数: 1-4
      */
     @Test
     fun test03_network_webSearch() {
         val report = runAgentWithCollection(
-            testName = "网络: Web 搜索",
-            userMessage = "搜索 'OpenClaw AI agent framework'，告诉我搜索到了什么"
+            testName = "Network: Web Search",
+            userMessage = "Search 'OpenClaw AI agent framework', 告诉我Search到了什么"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        // web_search 可能因为没有 API key 而失败，允许 web_fetch 作为替代
+        assertNotNull("ShouldHasResult", report.result)
+        // web_search 可能因为None API key 而Failed, 允许 web_fetch 作为替代
         // web_search may fail without API key; just verify LLM attempted something
-        assertTrue("应该有输出", report.result!!.finalContent.isNotEmpty())
+        assertTrue("ShouldHasOutput", report.result!!.finalContent.isNotEmpty())
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 4: JavaScript 执行 — 计算并返回
+     * Case 4: JavaScript 执Row — 计算并Return
      *
-     * 预期行为：
-     * - 使用 javascript 工具执行代码
-     * - 迭代次数: 1-3
+     * 预期Behavior: 
+     * - 使用 javascript 工具执Row代码
+     * - Iterate次数: 1-3
      */
     @Test
     fun test04_scripting_javascript() {
         val report = runAgentWithCollection(
-            testName = "脚本: JavaScript 执行",
-            userMessage = "用 javascript 工具计算 Math.pow(2, 10) + 42，告诉我结果"
+            testName = "脚本: JavaScript 执Row",
+            userMessage = "用 javascript 工具计算 Math.pow(2, 10) + 42, 告诉我Result"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
+        assertNotNull("ShouldHasResult", report.result)
         // LLM may calculate directly or use javascript tool (non-deterministic)
         val usedJsOrHasResult = "javascript" in report.result!!.toolsUsed ||
             "javascript_exec" in report.result!!.toolsUsed ||
             report.result!!.finalContent.contains("1066") ||
             report.result!!.finalContent.isNotEmpty()
-        assertTrue("应该使用 JavaScript 工具或返回结果", usedJsOrHasResult)
+        assertTrue("Should使用 JavaScript 工具或ReturnResult", usedJsOrHasResult)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 5: 配置读取 — 读取当前模型配置
+     * Case 5: ConfigRead — Read当Front模型Config
      *
-     * 预期行为：
-     * - 使用 config_get 读取配置
-     * - 迭代次数: 1-3
+     * 预期Behavior: 
+     * - 使用 config_get ReadConfig
+     * - Iterate次数: 1-3
      */
     @Test
     fun test05_config_readConfig() {
         val report = runAgentWithCollection(
-            testName = "配置: 读取模型配置",
-            userMessage = "用 config_get 工具读取当前的模型配置，告诉我默认模型是什么"
+            testName = "Config: Read模型Config",
+            userMessage = "用 config_get 工具Read当Front的模型Config, 告诉我Default模型Yes什么"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        assertTrue("应该使用 config_get", "config_get" in report.result!!.toolsUsed)
+        assertNotNull("ShouldHasResult", report.result)
+        assertTrue("Should使用 config_get", "config_get" in report.result!!.toolsUsed)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 6: 屏幕观察 — 获取 UI 树
+     * Case 6: Screen观察 — Get UI Tree
      *
-     * 预期行为：
+     * 预期Behavior: 
      * - 使用 device(action=snapshot) 或 get_view_tree
-     * - 迭代次数: 1-4
+     * - Iterate次数: 1-4
      */
     @Test
     fun test06_observation_uiTree() {
         val report = runAgentWithCollection(
-            testName = "观察: 获取 UI 树",
-            userMessage = "获取当前屏幕的 UI 树（用 device snapshot 或 get_view_tree），告诉我屏幕上有什么元素"
+            testName = "观察: Get UI Tree",
+            userMessage = "Get当FrontScreen的 UI Tree(用 device snapshot 或 get_view_tree), 告诉我ScreenUpHas什么Element"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
+        assertNotNull("ShouldHasResult", report.result)
         // device snapshot needs accessibility service; just verify no crash
-        assertTrue("应该有输出", report.result!!.finalContent.isNotEmpty())
+        assertTrue("ShouldHasOutput", report.result!!.finalContent.isNotEmpty())
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 7: 应用管理 — 列出已安装应用
+     * Case 7: 应用Manage — List已Install应用
      *
-     * 预期行为：
+     * 预期Behavior: 
      * - 使用 list_installed_apps
-     * - 迭代次数: 1-3
+     * - Iterate次数: 1-3
      */
     @Test
     fun test07_appManagement_listApps() {
         val report = runAgentWithCollection(
-            testName = "应用管理: 列出已安装应用",
-            userMessage = "用 list_installed_apps 列出设备上安装的应用，告诉我有几个应用"
+            testName = "应用Manage: List已Install应用",
+            userMessage = "用 list_installed_apps ListDeviceUpInstall的应用, 告诉我Has几个应用"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        assertTrue("应该使用 list_installed_apps", "list_installed_apps" in report.result!!.toolsUsed)
+        assertNotNull("ShouldHasResult", report.result)
+        assertTrue("Should使用 list_installed_apps", "list_installed_apps" in report.result!!.toolsUsed)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 8: 导航 — 返回主页
+     * Case 8: 导航 — Return主页
      *
-     * 预期行为：
+     * 预期Behavior: 
      * - 使用 home 工具
-     * - 迭代次数: 1-3
+     * - Iterate次数: 1-3
      */
     @Test
     fun test08_navigation_goHome() {
         val report = runAgentWithCollection(
-            testName = "导航: 返回主页",
-            userMessage = "按 home 键回到主页，然后告诉我已完成"
+            testName = "导航: Return主页",
+            userMessage = "按 home Key回到主页, 然Back告诉我Completed"
         )
         report.print()
 
-        // home 操作可能导致 app 进入后台使 LLM 请求超时 — 允许超时场景
+        // home Action可能导致 app Into入Back台使 LLM RequestTimeout — 允许Timeout场景
         if (report.result == null) {
-            println("$TAG: test08 超时跳过 (home 导致 app 后台)")
+            println("$TAG: test08 TimeoutSkip (home 导致 app Back台)")
             return
         }
         // LLM may use 'home' tool or 'device(action=act,kind=home)' — both are correct
         val usedHomeAction = "home" in report.result!!.toolsUsed || "device" in report.result!!.toolsUsed
-        assertTrue("应该使用 home 或 device(home)", usedHomeAction)
+        assertTrue("Should使用 home 或 device(home)", usedHomeAction)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 9: 组合任务 — 文件 + Shell 多步操作
+     * Case 9: Group合Task — 文件 + Shell 多步Action
      *
-     * 预期行为：
-     * - 使用 write_file 创建脚本
-     * - 使用 exec 执行
-     * - 使用 read_file 读取结果
-     * - 迭代次数: 3-8
+     * 预期Behavior: 
+     * - 使用 write_file Create脚本
+     * - 使用 exec 执Row
+     * - 使用 read_file ReadResult
+     * - Iterate次数: 3-8
      */
     @Test
     fun test09_composite_fileAndShell() {
         // exec may hang in instrument env; test multi-step with file ops only
         val report = runAgentWithCollection(
-            testName = "组合: 多步文件操作",
-            userMessage = "创建文件 /sdcard/.androidforclaw/workspace/step1.txt 内容为 'hello'，再创建 step2.txt 内容为 'world'，然后读取两个文件告诉我内容"
+            testName = "Group合: 多步文件Action",
+            userMessage = "Create文件 /sdcard/.androidforclaw/workspace/step1.txt Inside容为 'hello', 再Create step2.txt Inside容为 'world', 然BackRead两个文件告诉我Inside容"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        assertTrue("应该使用 write_file", "write_file" in report.result!!.toolsUsed)
+        assertNotNull("ShouldHasResult", report.result)
+        assertTrue("Should使用 write_file", "write_file" in report.result!!.toolsUsed)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 10: 浏览器 — 打开网页获取内容
+     * Case 10: 浏览器 — Open网页GetInside容
      *
-     * 预期行为：
-     * - 使用 web_fetch 获取网页内容
-     * - 或使用 browser 系列工具
-     * - 迭代次数: 1-6
+     * 预期Behavior: 
+     * - 使用 web_fetch Get网页Inside容
+     * - 或使用 browser 系Column工具
+     * - Iterate次数: 1-6
      */
     @Test
     fun test10_browser_fetchWebContent() {
         val report = runAgentWithCollection(
-            testName = "浏览器: 获取网页内容",
-            userMessage = "用 web_fetch 访问 https://www.baidu.com，告诉我百度首页的标题是什么"
+            testName = "浏览器: Get网页Inside容",
+            userMessage = "用 web_fetch 访问 https://www.baidu.com, 告诉我百度首页的TitleYes什么"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
+        assertNotNull("ShouldHasResult", report.result)
         val usedBrowserOrFetch = "web_fetch" in report.result!!.toolsUsed ||
             "browser" in report.result!!.toolsUsed ||
             "browser_navigate" in report.result!!.toolsUsed
-        assertTrue("应该使用浏览器或 web_fetch 工具", usedBrowserOrFetch)
+        assertTrue("Should使用浏览器或 web_fetch 工具", usedBrowserOrFetch)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 11: 记忆 — 搜索工作区记忆
+     * Case 11: 记忆 — Search工作区记忆
      *
-     * 预期行为：
-     * - 使用 memory_search 或 read_file 读取 MEMORY.md
-     * - 迭代次数: 1-4
+     * 预期Behavior: 
+     * - 使用 memory_search 或 read_file Read MEMORY.md
+     * - Iterate次数: 1-4
      */
     @Test
     fun test11_memory_searchMemory() {
         val report = runAgentWithCollection(
-            testName = "记忆: 搜索工作区记忆",
-            userMessage = "搜索记忆中关于项目的信息，如果 memory_search 不可用就用 read_file 读取 MEMORY.md"
+            testName = "记忆: Search工作区记忆",
+            userMessage = "Search记忆中AboutProject的Info, 如果 memory_search 不Available就用 read_file Read MEMORY.md"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
+        assertNotNull("ShouldHasResult", report.result)
         // memory tools may not be available in test env; verify LLM responded
-        assertTrue("应该有输出", report.result!!.finalContent.isNotEmpty())
+        assertTrue("ShouldHasOutput", report.result!!.finalContent.isNotEmpty())
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 12: 纯文本回复 — 不需要工具的简单问答
+     * Case 12: 纯Text回复 — 不Need工具的Simple问答
      *
-     * 预期行为：
-     * - 直接文本回复，不调用任何工具
-     * - 迭代次数: 1
+     * 预期Behavior: 
+     * - 直接Text回复, 不调用任何工具
+     * - Iterate次数: 1
      */
     @Test
     fun test12_textOnly_simpleReply() {
         val report = runAgentWithCollection(
-            testName = "纯文本: 简单问答",
-            userMessage = "1+1等于几？直接告诉我答案，不要使用任何工具"
+            testName = "纯Text: Simple问答",
+            userMessage = "1+1Equals几?Tell me the answer directly, 不要使用任何工具"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        assertTrue("输出应包含 2", report.result!!.finalContent.contains("2"))
-        assertTrue("不应使用工具或只用极少工具", report.result!!.toolsUsed.size <= 1)
+        assertNotNull("ShouldHasResult", report.result)
+        assertTrue("Output应Contains 2", report.result!!.finalContent.contains("2"))
+        assertTrue("Should not use tools or use very few", report.result!!.toolsUsed.size <= 1)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
     /**
-     * Case 13: 技能商店 — 搜索可用 skills
+     * Case 13: 技能商店 — SearchAvailable skills
      *
-     * 预期行为：
+     * 预期Behavior: 
      * - 使用 skills_search
-     * - 迭代次数: 1-3
+     * - Iterate次数: 1-3
      */
     @Test
     fun test13_skillsHub_searchSkills() {
         val report = runAgentWithCollection(
-            testName = "技能商店: 搜索 Skills",
-            userMessage = "用 skills_search 搜索 'weather' 相关的技能，告诉我有哪些可用的"
+            testName = "技能商店: Search Skills",
+            userMessage = "用 skills_search Search 'weather' 相关的技能, 告诉我Has哪些Available的"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        assertTrue("应该使用 skills_search", "skills_search" in report.result!!.toolsUsed)
+        assertNotNull("ShouldHasResult", report.result)
+        assertTrue("Should使用 skills_search", "skills_search" in report.result!!.toolsUsed)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
-    // ===== 异常场景 =====
+    // ===== Exception场景 =====
 
     /**
-     * Case 14: 错误恢复 — 读取不存在的文件
+     * Case 14: ErrorResume — Read不Exists的文件
      *
-     * 预期行为：
-     * - 使用 read_file 读取不存在的文件
-     * - 收到错误后 LLM 应该报告文件不存在
-     * - 不应陷入重试循环
-     * - 迭代次数: 1-3
+     * 预期Behavior: 
+     * - 使用 read_file Read不Exists的文件
+     * - 收到ErrorBack LLM Should报告文件不Exists
+     * - 不应陷入RetryLoop
+     * - Iterate次数: 1-3
      */
     @Test
     fun test14_errorRecovery_fileNotFound() {
         val report = runAgentWithCollection(
-            testName = "错误恢复: 文件不存在",
-            userMessage = "读取文件 /sdcard/.androidforclaw/workspace/nonexistent_12345.txt，告诉我结果"
+            testName = "ErrorResume: 文件不Exists",
+            userMessage = "Read文件 /sdcard/.androidforclaw/workspace/nonexistent_12345.txt, 告诉我Result"
         )
         report.print()
 
-        assertNotNull("应该有结果", report.result)
-        // LLM 应该报告文件不存在，而不是陷入循环
-        assertTrue("应该使用 read_file", "read_file" in report.result!!.toolsUsed)
+        assertNotNull("ShouldHasResult", report.result)
+        // LLM Should报告文件不Exists, 而不Yes陷入Loop
+        assertTrue("Should使用 read_file", "read_file" in report.result!!.toolsUsed)
         assertReasonableIterations(report.result!!.iterations, MIN_REASONABLE_ITERATIONS, MAX_REASONABLE_ITERATIONS)
     }
 
-    // ===== 辅助方法 =====
+    // ===== 辅助Method =====
 
     private fun assertReasonableIterations(actual: Int, min: Int, max: Int) {
         assertTrue(
-            "迭代次数 $actual 不在合理范围 [$min, $max]",
+            "Iterate次数 $actual 不在合理Range [$min, $max]",
             actual in min..max
         )
     }

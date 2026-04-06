@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -92,28 +92,28 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
         } catch (_: Exception) {}
         refreshStatus()
 
-        // 进入配置页时：连接池已连接则跳过，否则按需启动
+        // Into入Config页时: Connect池已Connect则Skip, No则按需Start
         val initStatus = withContext(Dispatchers.IO) { bridge.getStatus() }
         val alreadyConnected = com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.isConnected
         if (!alreadyConnected && initStatus.keypairPresent && !initStatus.sshReachable && initStatus.termuxInstalled) {
             launchingSshd = true
-            sshdLaunchMessage = "正在自动启动 sshd..."
+            sshdLaunchMessage = "正在AutoStart sshd..."
             try {
                 withContext(Dispatchers.IO) {
                     com.xiaomo.androidforclaw.core.TermuxSshdLauncher.ensureAndLaunch(context)
                 }
-                // Termux 被拉起后，切回当前 Activity（不是首页）
+                // Termux 被拉起Back, 切回当Front Activity(不Yes首页)
                 val backIntent = android.content.Intent(context, TermuxSetupActivity::class.java)
                 backIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 context.startActivity(backIntent)
-                // 轮询等待 + 自动注入公钥
+                // 轮询Wait + Auto注入公钥
                 var keyInjected = false
                 for (attempt in 1..15) {
                     delay(1000)
                     val s = withContext(Dispatchers.IO) { bridge.getStatus() }
                     refreshStatus()
                     if (s.ready) {
-                        sshdLaunchMessage = "✅ sshd 已就绪"
+                        sshdLaunchMessage = "✅ sshd 已Ready"
                         com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(context)
                         break
                     }
@@ -122,21 +122,21 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                         if (pubKey != null) {
                             com.xiaomo.androidforclaw.core.TermuxSshdLauncher.injectPublicKey(context, pubKey)
                             keyInjected = true
-                            sshdLaunchMessage = "正在配置 SSH 密钥..."
+                            sshdLaunchMessage = "正在Config SSH Key..."
                         }
                     }
                 }
             } catch (e: Exception) {
-                sshdLaunchMessage = "自动启动失败: ${e.message}"
+                sshdLaunchMessage = "AutoStartFailed: ${e.message}"
             } finally {
                 launchingSshd = false
                 refreshStatus()
             }
         } else if (alreadyConnected) {
-            sshdLaunchMessage = null // 已连接，不显示任何提示
+            sshdLaunchMessage = null // 已Connect, 不Show任何Hint
         }
 
-        // 持续刷新状态
+        // 持续RefreshStatus
         while (true) {
             delay(3000)
             refreshStatus()
@@ -308,7 +308,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     context = context
                 )
                 Spacer(Modifier.height(8.dp))
-                // 一键启动 sshd 按钮
+                // 一KeyStart sshd 按钮
                 Button(
                     onClick = {
                         launchingSshd = true
@@ -317,7 +317,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                             try {
                                 TermuxSshdLauncher.ensureAndLaunch(context)
                                 sshdLaunchMessage = "\u5df2\u53d1\u9001\u542f\u52a8\u547d\u4ee4\uff0c\u7b49\u5f85 sshd \u542f\u52a8..."
-                                // 等待 sshd 启动后刷新状态
+                                // Wait sshd StartBackRefreshStatus
                                 delay(3000)
                                 refreshStatus()
                             } catch (e: Exception) {

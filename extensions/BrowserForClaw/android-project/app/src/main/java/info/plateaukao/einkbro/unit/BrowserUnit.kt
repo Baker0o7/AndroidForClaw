@@ -21,15 +21,15 @@ import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.webkit.WebView
-import android.webkit.WebView.HitTestResult.ANCHOR_TYPE
-import android.webkit.WebView.HitTestResult.IMAGE_ANCHOR_TYPE
-import android.webkit.WebView.HitTestResult.IMAGE_TYPE
-import android.webkit.WebView.HitTestResult.SRC_ANCHOR_TYPE
-import android.webkit.WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE
+import android.webkit.WebView.HitTestresult.ANCHOR_TYPE
+import android.webkit.WebView.HitTestresult.IMAGE_ANCHOR_TYPE
+import android.webkit.WebView.HitTestresult.IMAGE_TYPE
+import android.webkit.WebView.HitTestresult.SRC_ANCHOR_TYPE
+import android.webkit.WebView.HitTestresult.SRC_IMAGE_ANCHOR_TYPE
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.Activityresult
+import androidx.activity.result.ActivityresultLauncher
 import androidx.annotation.RequiresApi
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.app.ActivityCompat.finishAffinity
@@ -160,12 +160,12 @@ object BrowserUnit : KoinComponent {
     }
 
     fun getWebViewLinkImageUrl(webView: WebView, message: Message): String {
-        val hitTestResult = webView.hitTestResult
-        return hitTestResult.extra ?: message.data.getString("src").orEmpty()
+        val hitTestresult = webView.hitTestresult
+        return hitTestresult.extra ?: message.data.getString("src").orEmpty()
     }
 
     fun getWebViewLinkUrl(webView: WebView, message: Message): String {
-        val hitTestResult = webView.hitTestResult
+        val hitTestresult = webView.hitTestresult
 
         if (!listOf(
                 IMAGE_TYPE,
@@ -174,7 +174,7 @@ object BrowserUnit : KoinComponent {
                 SRC_IMAGE_ANCHOR_TYPE,
                 ANCHOR_TYPE
             )
-                .contains(hitTestResult.type)
+                .contains(hitTestresult.type)
         ) return ""
 
         val linkUrl = message.data.getString("url")
@@ -211,11 +211,11 @@ object BrowserUnit : KoinComponent {
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint("SetJavaScriptEnabledd")
     fun createNaverDictWebView(context: Context): WebView {
         return WebView(ContextThemeWrapper(context, R.style.AppTheme)).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
+            settings.javaScriptEnabledd = true
+            settings.domStorageEnabledd = true
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
@@ -258,7 +258,7 @@ object BrowserUnit : KoinComponent {
         val regex = ("^((ftp|http|https|intent)?://)" // support scheme
                 + "?(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?" // ftp的user@
                 + "(([0-9]{1,3}\\.){3}[0-9]{1,3}" // IP形式的URL -> 199.194.52.184
-                + "|" // 允许IP和DOMAIN（域名）
+                + "|" // 允许IP和DOMAIN(域名)
                 + "(.)*" // 域名 -> www.
                 // + "([0-9a-z_!~*'()-]+\\.)*"                               // 域名 -> www.
                 + "([0-9a-z][0-9a-z-]{0,61})?[0-9a-z]\\." // 二级域名
@@ -499,7 +499,7 @@ object BrowserUnit : KoinComponent {
     }
 
 
-    fun openFontFilePicker(resultLauncher: ActivityResultLauncher<Intent>) {
+    fun openFontFilePicker(resultLauncher: ActivityresultLauncher<Intent>) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = Constants.MIME_TYPE_ANY
@@ -508,7 +508,7 @@ object BrowserUnit : KoinComponent {
         resultLauncher.launch(intent)
     }
 
-    fun openBookmarkFilePicker(resultLauncher: ActivityResultLauncher<Intent>) {
+    fun openBookmarkFilePicker(resultLauncher: ActivityresultLauncher<Intent>) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = Constants.MIME_TYPE_ANY
@@ -517,7 +517,7 @@ object BrowserUnit : KoinComponent {
         resultLauncher.launch(intent)
     }
 
-    fun createBookmarkFilePicker(resultLauncher: ActivityResultLauncher<Intent>) {
+    fun createBookmarkFilePicker(resultLauncher: ActivityresultLauncher<Intent>) {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = Constants.MIME_TYPE_ANY
@@ -527,7 +527,7 @@ object BrowserUnit : KoinComponent {
         resultLauncher.launch(intent)
     }
 
-    fun createFilePicker(resultLauncher: ActivityResultLauncher<Intent>, title: String) {
+    fun createFilePicker(resultLauncher: ActivityresultLauncher<Intent>, title: String) {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = Constants.MIME_TYPE_ANY
@@ -540,7 +540,7 @@ object BrowserUnit : KoinComponent {
     private var tempImageInputStream: InputStream? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun saveImageFromUrl(url: String, resultLauncher: ActivityResultLauncher<Intent>) {
+    fun saveImageFromUrl(url: String, resultLauncher: ActivityresultLauncher<Intent>) {
         val fileFormat = dataUrlToMimeType(url)
         tempImageInputStream = dataUrlToStream(url)
         val mimeType = when (fileFormat.lowercase()) {
@@ -564,13 +564,13 @@ object BrowserUnit : KoinComponent {
     }
 
 
-    fun handleFontSelectionResult(
+    fun handleFontSelectionresult(
         context: Context,
-        activityResult: ActivityResult,
+        activityresult: Activityresult,
         isReaderMode: Boolean = false
     ) {
-        if (activityResult.data == null || activityResult.resultCode != Activity.RESULT_OK) return
-        val uri = activityResult.data?.data ?: return
+        if (activityresult.data == null || activityresult.resultCode != Activity.RESULT_OK) return
+        val uri = activityresult.data?.data ?: return
 
         val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
         context.contentResolver?.takePersistableUriPermission(uri, takeFlags)
@@ -679,13 +679,13 @@ object BrowserUnit : KoinComponent {
     }
 
 
-    fun handleSaveImageFilePickerResult(
+    fun handleSaveImageFilePickerresult(
         activity: ComponentActivity,
-        activityResult: ActivityResult,
+        activityresult: Activityresult,
         postAction: (Uri) -> Unit
     ) {
-        if (activityResult.data == null || activityResult.resultCode != Activity.RESULT_OK) return
-        val uri = activityResult.data?.data ?: return
+        if (activityresult.data == null || activityresult.resultCode != Activity.RESULT_OK) return
+        val uri = activityresult.data?.data ?: return
         // SAVE IMAGE
         tempImageInputStream?.let { saveImage(activity, it, uri, postAction) }
         tempImageInputStream?.close()

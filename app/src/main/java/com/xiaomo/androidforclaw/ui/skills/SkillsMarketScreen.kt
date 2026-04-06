@@ -29,12 +29,12 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SkillsMarketScreen() {
     val context = LocalContext.current
-    var selectedCategory by remember { mutableStateOf("全部") }
+    var selectedCategory by remember { mutableStateOf("All") }
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredSkills = remember(selectedCategory, searchQuery) {
         SkillsMarketData.featuredSkills.filter { skill ->
-            val matchCategory = selectedCategory == "全部" || skill.category == selectedCategory
+            val matchCategory = selectedCategory == "All" || skill.category == selectedCategory
             val matchSearch = searchQuery.isEmpty() ||
                 skill.name.contains(searchQuery, ignoreCase = true) ||
                 skill.description.contains(searchQuery, ignoreCase = true)
@@ -58,7 +58,7 @@ fun SkillsMarketScreen() {
                 .padding(padding),
             contentPadding = PaddingValues(bottom = 24.dp),
         ) {
-            // ===== 1. 搜索栏 =====
+            // ===== 1. Search栏 =====
             item {
                 OutlinedTextField(
                     value = searchQuery,
@@ -66,13 +66,13 @@ fun SkillsMarketScreen() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    placeholder = { Text("搜索 Skills...") },
+                    placeholder = { Text("Search Skills...") },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                 )
             }
 
-            // ===== 2. 分类筛选 =====
+            // ===== 2. 分ClassFilter =====
             item {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
@@ -89,11 +89,11 @@ fun SkillsMarketScreen() {
                 }
             }
 
-            // ===== 3. 主内容区：热门 Skills =====
+            // ===== 3. 主Inside容区: 热门 Skills =====
             item {
                 SectionHeader(
                     title = "🔥 热门 Skills",
-                    subtitle = "来自 awesome-openclaw-skills · ${filteredSkills.size} 个",
+                    subtitle = "from awesome-openclaw-skills · ${filteredSkills.size} 个",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
             }
@@ -129,11 +129,11 @@ fun SkillsMarketScreen() {
                 )
             }
 
-            // ===== 5. 底部聚合资源 =====
+            // ===== 5. 底部AggregateResource =====
             item {
                 SectionHeader(
-                    title = "📚 更多聚合资源",
-                    subtitle = "发现更多 Skills",
+                    title = "📚 more多AggregateResource",
+                    subtitle = "discovermore多 Skills",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                 )
             }
@@ -153,7 +153,7 @@ fun SkillsMarketScreen() {
     }
 }
 
-// ===== 子组件 =====
+// ===== 子Group件 =====
 
 @Composable
 private fun SectionHeader(
@@ -311,7 +311,7 @@ private fun CollectionCard(
             }
             Icon(
                 Icons.AutoMirrored.Filled.OpenInNew,
-                contentDescription = "打开",
+                contentDescription = "Open",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f),
             )
         }

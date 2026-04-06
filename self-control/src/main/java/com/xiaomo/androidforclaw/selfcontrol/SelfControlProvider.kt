@@ -22,9 +22,9 @@ import kotlinx.coroutines.runBlocking
 /**
  * Self-Control Content Provider
  *
- * 通过 ContentProvider 暴露 Self-Control 能力给外部调用（如 ADB）。
+ * 通过 ContentProvider 暴露 Self-Control Capability给External调用(如 ADB). 
  *
- * 使用方式：
+ * 使用方式: 
  *
  * 1. 通过 ADB 调用 (使用 content:// URI)
  * ```bash
@@ -33,33 +33,33 @@ import kotlinx.coroutines.runBlocking
  *   --method navigate_app \
  *   --extra page:s:config
  *
- * # 配置管理
+ * # ConfigManage
  * adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
  *   --method manage_config \
  *   --extra operation:s:get \
  *   --extra key:s:exploration_mode
  *
- * # 服务控制
+ * # Service控制
  * adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
  *   --method control_service \
  *   --extra operation:s:hide_float
  *
- * # 日志查询
+ * # LogQuery
  * adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
  *   --method query_logs \
  *   --extra level:s:E \
  *   --extra lines:i:50
  * ```
  *
- * 2. 通过应用内部调用
+ * 2. 通过应用Internal调用
  * ```kotlin
  * val registry = SelfControlRegistry(context)
  * val result = registry.execute("navigate_app", mapOf("page" to "config"))
  * ```
  *
- * 注意：
- * - 需要在 AndroidManifest.xml 中声明 provider
- * - 可以配置权限保护
+ * 注意: 
+ * - Need在 AndroidManifest.xml 中声明 provider
+ * - CanConfigPermission保护
  */
 class SelfControlProvider : ContentProvider() {
     companion object {
@@ -88,15 +88,15 @@ class SelfControlProvider : ContentProvider() {
     }
 
     /**
-     * 核心方法：通过 call() 执行 Self-Control Skills
+     * 核心Method: 通过 call() 执Row Self-Control Skills
      *
-     * ADB 调用格式：
+     * ADB 调用格式: 
      * adb shell content call --uri content://AUTHORITY/execute \
      *   --method SKILL_NAME \
      *   --extra arg1:type:value \
      *   --extra arg2:type:value
      *
-     * 类型标记：
+     * Type标记: 
      * - s: String
      * - i: Integer
      * - l: Long
@@ -109,17 +109,17 @@ class SelfControlProvider : ContentProvider() {
 
         return try {
             when (method) {
-                // 执行 Skill
+                // 执Row Skill
                 in registry.getAllSkillNames() -> {
                     executeSkill(method, extras)
                 }
 
-                // 列出所有 Skills
+                // ListAll Skills
                 "list_skills" -> {
                     listSkills()
                 }
 
-                // 健康检查
+                // HealthCheck
                 "health" -> {
                     healthCheck()
                 }
@@ -135,25 +135,25 @@ class SelfControlProvider : ContentProvider() {
     }
 
     /**
-     * 执行 Skill
+     * 执Row Skill
      */
     private fun executeSkill(skillName: String, extras: Bundle?): Bundle {
-        // 将 Bundle 转换为 Map
+        // 将 Bundle Convert为 Map
         val args = extras?.let { bundleToMap(it) } ?: emptyMap()
 
         Log.d(TAG, "Executing skill: $skillName with args: $args")
 
-        // 执行 Skill（阻塞调用）
+        // 执Row Skill(Block调用)
         val result = runBlocking {
             registry.execute(skillName, args)
         }
 
-        // 构建返回 Bundle
+        // BuildReturn Bundle
         return Bundle().apply {
             putBoolean("success", result?.success == true)
             putString("content", result?.content ?: "")
 
-            // 将 metadata 转换为 JSON
+            // 将 metadata Convert为 JSON
             if (result?.metadata?.isNotEmpty() == true) {
                 putString("metadata", gson.toJson(result.metadata))
             }
@@ -163,7 +163,7 @@ class SelfControlProvider : ContentProvider() {
     }
 
     /**
-     * 列出所有可用的 Skills
+     * ListAllAvailable的 Skills
      */
     private fun listSkills(): Bundle {
         val skills = registry.getAllSkillNames()
@@ -186,7 +186,7 @@ class SelfControlProvider : ContentProvider() {
     }
 
     /**
-     * 健康检查
+     * HealthCheck
      */
     private fun healthCheck(): Bundle {
         return Bundle().apply {
@@ -212,7 +212,7 @@ class SelfControlProvider : ContentProvider() {
     }
 
     /**
-     * 构建错误 Bundle
+     * BuildError Bundle
      */
     private fun errorBundle(message: String): Bundle {
         return Bundle().apply {
@@ -221,7 +221,7 @@ class SelfControlProvider : ContentProvider() {
         }
     }
 
-    // ========== ContentProvider 标准方法（不使用）==========
+    // ========== ContentProvider 标准Method(不使用)==========
 
     override fun query(
         uri: Uri,
@@ -230,7 +230,7 @@ class SelfControlProvider : ContentProvider() {
         selectionArgs: Array<out String>?,
         sortOrder: String?
     ): Cursor? {
-        // 可选：通过 query 返回结构化数据
+        // Optional: 通过 query Return结构化Data
         return when (uriMatcher.match(uri)) {
             LIST_SKILLS -> {
                 querySkills()

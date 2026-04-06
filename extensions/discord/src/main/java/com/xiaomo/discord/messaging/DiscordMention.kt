@@ -7,15 +7,15 @@
 package com.xiaomo.discord.messaging
 
 /**
- * Discord @提及处理
+ * Discord @提及Process
  * 参考 Feishu FeishuMention.kt
  */
 object DiscordMention {
     private const val TAG = "DiscordMention"
 
     /**
-     * 解析提及
-     * 从消息内容中提取所有 @提及
+     * Parse提及
+     * 从MessageInside容中提取All @提及
      */
     fun parseMentions(content: String): List<String> {
         val mentions = mutableListOf<String>()
@@ -30,39 +30,39 @@ object DiscordMention {
     }
 
     /**
-     * 格式化用户提及
+     * FormatUser提及
      */
     fun formatUserMention(userId: String): String {
         return "<@$userId>"
     }
 
     /**
-     * 格式化角色提及
+     * FormatRole提及
      */
     fun formatRoleMention(roleId: String): String {
         return "<@&$roleId>"
     }
 
     /**
-     * 格式化频道提及
+     * FormatChannel提及
      */
     fun formatChannelMention(channelId: String): String {
         return "<#$channelId>"
     }
 
     /**
-     * 移除所有提及
+     * 移除All提及
      */
     fun stripMentions(content: String): String {
         return content
-            .replace(Regex("<@!?\\d+>"), "") // 用户提及
-            .replace(Regex("<@&\\d+>"), "") // 角色提及
-            .replace(Regex("<#\\d+>"), "") // 频道提及
+            .replace(Regex("<@!?\\d+>"), "") // User提及
+            .replace(Regex("<@&\\d+>"), "") // Role提及
+            .replace(Regex("<#\\d+>"), "") // Channel提及
             .trim()
     }
 
     /**
-     * 检查消息是否包含指定用户的提及
+     * CheckMessageYesNoContains指定User的提及
      */
     fun containsUserMention(content: String, userId: String): Boolean {
         val pattern = Regex("<@!?$userId>")
@@ -70,7 +70,7 @@ object DiscordMention {
     }
 
     /**
-     * 替换提及为显示名称
+     * Replace提及为ShowName
      */
     fun replaceMentionsWithNames(
         content: String,

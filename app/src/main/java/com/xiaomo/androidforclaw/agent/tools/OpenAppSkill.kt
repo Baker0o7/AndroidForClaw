@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -29,7 +29,7 @@ class OpenAppSkill(private val context: Context) : Skill {
     }
 
     override val name = "open_app"
-    override val description = "打开指定的应用程序。需要提供应用的包名。"
+    override val description = "Open指定的apply程序. Need提供apply的Package name. "
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -40,7 +40,7 @@ class OpenAppSkill(private val context: Context) : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "package_name" to PropertySchema("string", "应用的包名，例如 'com.android.settings'")
+                        "package_name" to PropertySchema("string", "apply的Package name, e.g. 'com.android.settings'")
                     ),
                     required = listOf("package_name")
                 )
@@ -48,11 +48,11 @@ class OpenAppSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val packageName = args["package_name"] as? String
 
         if (packageName == null) {
-            return SkillResult.error("Missing required parameter: package_name")
+            return Skillresult.error("Missing required parameter: package_name")
         }
 
         Log.d(TAG, "Opening app: $packageName")
@@ -75,7 +75,7 @@ class OpenAppSkill(private val context: Context) : Skill {
                         } catch (e: SecurityException) {
                             Log.w(TAG, "Background launch blocked: ${e.message}")
                             // If blocked by BAL restrictions, return error with guidance
-                            return@withTimeout SkillResult.error(
+                            return@withTimeout Skillresult.error(
                                 "Cannot launch app from background due to Android restrictions. " +
                                 "Suggestion: Use 'home' tool first to go to launcher, then use 'tap' to click the app icon."
                             )
@@ -85,24 +85,24 @@ class OpenAppSkill(private val context: Context) : Skill {
                         Log.d(TAG, "Waiting for app to launch...")
                         kotlinx.coroutines.delay(1000)
 
-                        SkillResult.success(
+                        Skillresult.success(
                             "App opened: $packageName (waited 1s for launch)",
                             mapOf("package" to packageName, "wait_time_ms" to 1000)
                         )
                     }
                 } catch (e: TimeoutCancellationException) {
                     Log.e(TAG, "App launch timeout after 5s")
-                    SkillResult.error("App launch timeout after 5s. The app might be slow to start or blocked.")
+                    Skillresult.error("App launch timeout after 5s. The app might be slow to start or blocked.")
                 }
             } else {
-                SkillResult.error("App not found: $packageName")
+                Skillresult.error("App not found: $packageName")
             }
         } catch (e: PackageManager.NameNotFoundException) {
             Log.e(TAG, "Package not found: $packageName", e)
-            SkillResult.error("Package not found: $packageName")
+            Skillresult.error("Package not found: $packageName")
         } catch (e: Exception) {
             Log.e(TAG, "Open app failed", e)
-            SkillResult.error("Open app failed: ${e.message}")
+            Skillresult.error("Open app failed: ${e.message}")
         }
     }
 }

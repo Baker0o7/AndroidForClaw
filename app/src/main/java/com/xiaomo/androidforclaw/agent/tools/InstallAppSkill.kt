@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -47,7 +47,7 @@ class InstallAppSkill(private val context: Context) : Skill {
     }
 
     override val name = "install_app"
-    override val description = "安装 APK 文件到设备。支持本地文件路径或 content:// URI。可用于安装新应用或升级已有应用。"
+    override val description = "Install APK 文件到Device. Support本地File path或 content:// URI. Available于InstallNewapply或Upgrade已Hasapply. "
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -60,11 +60,11 @@ class InstallAppSkill(private val context: Context) : Skill {
                     properties = mapOf(
                         "apk_path" to PropertySchema(
                             "string",
-                            "APK 文件的路径，例如 '/sdcard/Download/app.apk' 或 '/sdcard/.androidforclaw/skills/example.apk'"
+                            "APK 文件的Path, e.g. '/sdcard/Download/app.apk' 或 '/sdcard/.androidforclaw/skills/example.apk'"
                         ),
                         "allow_downgrade" to PropertySchema(
                             "boolean",
-                            "是否允许降级安装（版本号比已安装版本低）。默认 false"
+                            "YesNo允许DowngradeInstall(Version number比已InstallVersion低). Default false"
                         )
                     ),
                     required = listOf("apk_path")
@@ -73,19 +73,19 @@ class InstallAppSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val apkPath = args["apk_path"] as? String
-            ?: return SkillResult.error("Missing required parameter: apk_path")
+            ?: return Skillresult.error("Missing required parameter: apk_path")
         val allowDowngrade = args["allow_downgrade"] as? Boolean ?: false
 
         Log.d(TAG, "Installing APK: $apkPath (allowDowngrade=$allowDowngrade)")
 
         // Resolve file
         val apkFile = resolveApkFile(apkPath)
-            ?: return SkillResult.error("APK file not found: $apkPath")
+            ?: return Skillresult.error("APK file not found: $apkPath")
 
         if (!apkFile.canRead()) {
-            return SkillResult.error("Cannot read APK file: ${apkFile.absolutePath}. Check file permissions.")
+            return Skillresult.error("Cannot read APK file: ${apkFile.absolutePath}. Check file permissions.")
         }
 
         // Extract package info from APK
@@ -101,7 +101,7 @@ class InstallAppSkill(private val context: Context) : Skill {
         }
 
         if (apkPackageName == null) {
-            return SkillResult.error("Invalid APK file: cannot parse package info from $apkPath")
+            return Skillresult.error("Invalid APK file: cannot parse package info from $apkPath")
         }
 
         Log.d(TAG, "APK: $apkPackageName v$apkVersionName ($apkVersionCode)")
@@ -127,7 +127,7 @@ class InstallAppSkill(private val context: Context) : Skill {
                 apkVersionCode == existingVersionCode -> "reinstall (same version ${apkVersionName})"
                 else -> {
                     if (!allowDowngrade) {
-                        return SkillResult.error(
+                        return Skillresult.error(
                             "Downgrade not allowed: installed=$existingVersionName ($existingVersionCode), " +
                                     "apk=$apkVersionName ($apkVersionCode). Set allow_downgrade=true to force."
                         )
@@ -145,7 +145,7 @@ class InstallAppSkill(private val context: Context) : Skill {
         return try {
             val result = performInstall(apkFile, apkPackageName, allowDowngrade)
             if (result.success) {
-                SkillResult.success(
+                Skillresult.success(
                     "Successfully installed $apkPackageName v$apkVersionName ($installType)",
                     mapOf(
                         "package_name" to apkPackageName,
@@ -156,11 +156,11 @@ class InstallAppSkill(private val context: Context) : Skill {
                     )
                 )
             } else {
-                SkillResult.error("Install failed for $apkPackageName: ${result.content}")
+                Skillresult.error("Install failed for $apkPackageName: ${result.content}")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Install failed", e)
-            SkillResult.error("Install failed: ${e.message}")
+            Skillresult.error("Install failed: ${e.message}")
         }
     }
 
@@ -200,7 +200,7 @@ class InstallAppSkill(private val context: Context) : Skill {
         apkFile: File,
         packageName: String,
         allowDowngrade: Boolean
-    ): SkillResult {
+    ): Skillresult {
         val pm = context.packageManager
         val installer = pm.packageInstaller
 
@@ -245,7 +245,7 @@ class InstallAppSkill(private val context: Context) : Skill {
                             when (status) {
                                 PackageInstaller.STATUS_SUCCESS -> {
                                     Log.d(TAG, "Install success: $packageName")
-                                    cont.resume(SkillResult.success("OK"))
+                                    cont.resume(Skillresult.success("OK"))
                                 }
                                 PackageInstaller.STATUS_PENDING_USER_ACTION -> {
                                     // Need user confirmation — launch the confirmation intent
@@ -260,13 +260,13 @@ class InstallAppSkill(private val context: Context) : Skill {
                                         context.startActivity(confirmIntent)
                                         Log.d(TAG, "User confirmation required, launched install dialog")
                                         cont.resume(
-                                            SkillResult.success(
+                                            Skillresult.success(
                                                 "Install requires user confirmation. The install dialog has been shown on screen. " +
                                                         "Use 'screenshot' and 'tap' to interact with the confirmation dialog if needed."
                                             )
                                         )
                                     } else {
-                                        cont.resume(SkillResult.error("User confirmation required but no confirmation intent available"))
+                                        cont.resume(Skillresult.error("User confirmation required but no confirmation intent available"))
                                     }
                                 }
                                 else -> {
@@ -281,7 +281,7 @@ class InstallAppSkill(private val context: Context) : Skill {
                                         else -> "UNKNOWN($status)"
                                     }
                                     Log.e(TAG, "Install failed: $statusName - $message")
-                                    cont.resume(SkillResult.error("$statusName: $message"))
+                                    cont.resume(Skillresult.error("$statusName: $message"))
                                 }
                             }
                         }

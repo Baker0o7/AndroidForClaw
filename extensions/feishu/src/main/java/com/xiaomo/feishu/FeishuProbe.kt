@@ -14,28 +14,28 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 /**
- * 飞书连接探测
- * 对齐 OpenClaw probe.ts
+ * 飞书ConnectProbe
+ * Aligned with OpenClaw probe.ts
  *
- * 功能：
- * - 探测飞书 API 连接状态
- * - 获取机器人信息
- * - 缓存探测结果以减少 API 调用
+ * Feature: 
+ * - Probe飞书 API ConnectStatus
+ * - Get机器人Info
+ * - CacheProberesult以减少 API call
  */
 object FeishuProbe {
     private const val TAG = "FeishuProbe"
 
-    // 探测缓存
-    private val probeCache = mutableMapOf<String, CachedProbeResult>()
+    // ProbeCache
+    private val probeCache = mutableMapOf<String, CachedProberesult>()
     private const val PROBE_SUCCESS_TTL_MS = 10 * 60 * 1000L // 10 minutes
     private const val PROBE_ERROR_TTL_MS = 60 * 1000L // 1 minute
     private const val MAX_PROBE_CACHE_SIZE = 64
     private const val FEISHU_PROBE_REQUEST_TIMEOUT_MS = 10_000L
 
     /**
-     * 探测结果
+     * Proberesult
      */
-    data class ProbeResult(
+    data class Proberesult(
         val ok: Boolean,
         val appId: String?,
         val botName: String? = null,
@@ -44,15 +44,15 @@ object FeishuProbe {
     )
 
     /**
-     * 缓存的探测结果
+     * Cache的Proberesult
      */
-    private data class CachedProbeResult(
-        val result: ProbeResult,
+    private data class CachedProberesult(
+        val result: Proberesult,
         val expiresAt: Long
     )
 
     /**
-     * 机器人信息响应
+     * 机器人InfoResponse
      */
     private data class BotInfoResponse(
         val code: Int,
@@ -71,19 +71,19 @@ object FeishuProbe {
     )
 
     /**
-     * 探测飞书连接
+     * Probe飞书Connect
      *
-     * @param client Feishu 客户端
+     * @param client Feishu Client
      * @param appId App ID
-     * @param timeoutMs 超时时间（毫秒）
-     * @return 探测结果
+     * @param timeoutMs TimeoutTime(毫秒)
+     * @return Proberesult
      */
     suspend fun probe(
         client: FeishuClient,
         appId: String,
         timeoutMs: Long = FEISHU_PROBE_REQUEST_TIMEOUT_MS
-    ): ProbeResult = withContext(Dispatchers.IO) {
-        // 检查缓存
+    ): Proberesult = withContext(Dispatchers.IO) {
+        // CheckCache
         val cacheKey = appId
         val cached = probeCache[cacheKey]
         if (cached != null && cached.expiresAt > System.currentTimeMillis()) {
@@ -92,7 +92,7 @@ object FeishuProbe {
         }
 
         try {
-            // 调用机器人信息 API
+            // call机器人Info API
             val result = withTimeout(timeoutMs) {
                 client.get("/open-apis/bot/v3/info")
             }
@@ -100,13 +100,13 @@ object FeishuProbe {
             if (result.isFailure) {
                 val error = result.exceptionOrNull()
                 Log.w(TAG, "Probe failed for $appId: ${error?.message}")
-                val probeResult = ProbeResult(
+                val proberesult = Proberesult(
                     ok = false,
                     appId = appId,
                     error = error?.message ?: "Unknown error"
                 )
-                setCachedProbeResult(cacheKey, probeResult, PROBE_ERROR_TTL_MS)
-                return@withContext probeResult
+                setCachedProberesult(cacheKey, proberesult, PROBE_ERROR_TTL_MS)
+                return@withContext proberesult
             }
 
             val response = result.getOrNull()
@@ -115,16 +115,16 @@ object FeishuProbe {
             if (code != 0) {
                 val msg = response?.get("msg")?.asString ?: "code $code"
                 Log.w(TAG, "Probe API error for $appId: $msg")
-                val probeResult = ProbeResult(
+                val proberesult = Proberesult(
                     ok = false,
                     appId = appId,
                     error = "API error: $msg"
                 )
-                setCachedProbeResult(cacheKey, probeResult, PROBE_ERROR_TTL_MS)
-                return@withContext probeResult
+                setCachedProberesult(cacheKey, proberesult, PROBE_ERROR_TTL_MS)
+                return@withContext proberesult
             }
 
-            // 解析机器人信息
+            // Parse机器人Info
             val bot = response?.getAsJsonObject("bot")
                 ?: response?.getAsJsonObject("data")?.getAsJsonObject("bot")
 
@@ -132,41 +132,41 @@ object FeishuProbe {
             val botOpenId = bot?.get("open_id")?.asString
 
             Log.d(TAG, "Probe successful for $appId: bot=$botName, openId=$botOpenId")
-            val probeResult = ProbeResult(
+            val proberesult = Proberesult(
                 ok = true,
                 appId = appId,
                 botName = botName,
                 botOpenId = botOpenId
             )
-            setCachedProbeResult(cacheKey, probeResult, PROBE_SUCCESS_TTL_MS)
-            return@withContext probeResult
+            setCachedProberesult(cacheKey, proberesult, PROBE_SUCCESS_TTL_MS)
+            return@withContext proberesult
 
         } catch (e: Exception) {
             Log.e(TAG, "Probe exception for $appId", e)
-            val probeResult = ProbeResult(
+            val proberesult = Proberesult(
                 ok = false,
                 appId = appId,
                 error = e.message ?: "Unknown error"
             )
-            setCachedProbeResult(cacheKey, probeResult, PROBE_ERROR_TTL_MS)
-            return@withContext probeResult
+            setCachedProberesult(cacheKey, proberesult, PROBE_ERROR_TTL_MS)
+            return@withContext proberesult
         }
     }
 
     /**
-     * 缓存探测结果
+     * CacheProberesult
      */
-    private fun setCachedProbeResult(
+    private fun setCachedProberesult(
         cacheKey: String,
-        result: ProbeResult,
+        result: Proberesult,
         ttlMs: Long
-    ): ProbeResult {
-        probeCache[cacheKey] = CachedProbeResult(
+    ): Proberesult {
+        probeCache[cacheKey] = CachedProberesult(
             result = result,
             expiresAt = System.currentTimeMillis() + ttlMs
         )
 
-        // 限制缓存大小
+        // LimitCacheSize
         if (probeCache.size > MAX_PROBE_CACHE_SIZE) {
             val oldest = probeCache.keys.firstOrNull()
             if (oldest != null) {
@@ -178,7 +178,7 @@ object FeishuProbe {
     }
 
     /**
-     * 清除探测缓存（用于测试）
+     * clearProbeCache(用于Test)
      */
     fun clearCache() {
         probeCache.clear()

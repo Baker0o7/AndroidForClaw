@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.cron
 
 /**
- * Cron 系统数据模型 - 对齐 OpenClaw
+ * Cron 系统Data模型 - Aligned with OpenClaw
  */
 
 // Schedule Types
@@ -143,8 +143,8 @@ data class CronFailureAlertConfig(
     val mode: DeliveryMode = DeliveryMode.ANNOUNCE
 )
 
-// Run Result
-data class CronRunResult(
+// Run result
+data class CronRunresult(
     val status: RunStatus,
     val summary: String? = null,
     val delivered: Boolean? = null,

@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -26,8 +26,8 @@ import com.xiaomo.androidforclaw.config.ConfigLoader
 import kotlinx.coroutines.launch
 
 /**
- * 飞书 Channel 配置页面
- * 对齐 clawdbot-feishu 配置项
+ * 飞书 Channel Config页面
+ * 对齐 clawdbot-feishu Config项
  */
 class FeishuChannelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,11 +55,11 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
     val scope = rememberCoroutineScope()
     val configLoader = remember { ConfigLoader(context) }
 
-    // 加载配置
+    // LoadConfig
     val openClawConfig = remember { configLoader.loadOpenClawConfig() }
     val savedConfig = remember { openClawConfig.channels.feishu }
 
-    // 状态变量（对齐 clawdbot-feishu 配置）
+    // StatusVariable(对齐 clawdbot-feishu Config)
     var enabled by remember { mutableStateOf(savedConfig.enabled) }
     var appId by remember { mutableStateOf(savedConfig.appId) }
     var appSecret by remember { mutableStateOf(savedConfig.appSecret) }
@@ -76,17 +76,17 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 title = { Text(stringResource(R.string.feishu_channel_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Return")
                     }
                 },
                 actions = {
                     TextButton(
                         onClick = {
                             scope.launch {
-                                // 读取当前完整配置
+                                // Read当Front完整Config
                                 val currentConfig = configLoader.loadOpenClawConfig()
 
-                                // 更新 feishu 配置
+                                // Update feishu Config
                                 val updatedFeishuConfig = currentConfig.channels.feishu.copy(
                                     enabled = enabled,
                                     appId = appId,
@@ -100,7 +100,7 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                                     dmHistoryLimit = currentConfig.channels.feishu.dmHistoryLimit
                                 )
 
-                                // 更新完整配置
+                                // Update完整Config
                                 val updatedChannelsConfig = currentConfig.channels.copy(
                                     feishu = updatedFeishuConfig
                                 )
@@ -108,14 +108,14 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                                     channels = updatedChannelsConfig
                                 )
 
-                                // 保存到 openclaw.json
+                                // Save到 openclaw.json
                                 configLoader.saveOpenClawConfig(updatedConfig)
 
                                 showSaveSuccess = true
                             }
                         }
                     ) {
-                        Text("保存")
+                        Text("Save")
                     }
                 }
             )
@@ -129,7 +129,7 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 Snackbar(
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    Text("配置已保存")
+                    Text("Config已Save")
                 }
             }
         }
@@ -142,7 +142,7 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 启用开关
+            // Enabledd开关
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
@@ -153,11 +153,11 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "启用 Feishu Channel",
+                            text = "Enabledd Feishu Channel",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = "开启后将接收飞书消息",
+                            text = "开启BackWill receive飞书Message",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -169,9 +169,9 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 }
             }
 
-            // 基础配置
+            // 基础Config
             Text(
-                text = "基础配置",
+                text = "基础Config",
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -188,14 +188,14 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 value = appSecret,
                 onValueChange = { appSecret = it },
                 label = { Text("App Secret") },
-                placeholder = { Text("输入 App Secret") },
+                placeholder = { Text("Input App Secret") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
-            // DM 策略
+            // DM Policy
             Text(
-                text = "私聊策略 (DM Policy)",
+                text = "私聊Policy (DM Policy)",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -209,10 +209,10 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                                 Text(policy.replaceFirstChar { it.uppercase() })
                                 Text(
                                     text = when (policy) {
-                                        "open" -> "接受所有私聊"
-                                        "pairing" -> "需要配对后才能使用"
-                                        "allowlist" -> "仅白名单用户"
-                                        else -> "其他策略"
+                                        "open" -> "acceptAll私聊"
+                                        "pairing" -> "Need配对Back才能use"
+                                        "allowlist" -> "仅白名单User"
+                                        else -> "Its他Policy"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -224,9 +224,9 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 }
             }
 
-            // 群聊策略
+            // 群聊Policy
             Text(
-                text = "群聊策略 (Group Policy)",
+                text = "群聊Policy (Group Policy)",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -240,9 +240,9 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                                 Text(policy.replaceFirstChar { it.uppercase() })
                                 Text(
                                     text = when (policy) {
-                                        "open" -> "接受所有群聊"
+                                        "open" -> "Accept all group chats"
                                         "allowlist" -> "仅白名单群聊"
-                                        "disabled" -> "禁用群聊"
+                                        "disabled" -> "Disabled群聊"
                                         else -> ""
                                     },
                                     style = MaterialTheme.typography.bodySmall,
@@ -255,13 +255,13 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 }
             }
 
-            // 群聊白名单
+            // Group chat whitelist
             if (groupPolicy == "allowlist") {
                 OutlinedTextField(
                     value = groupAllowFrom,
                     onValueChange = { groupAllowFrom = it },
-                    label = { Text("群聊白名单") },
-                    placeholder = { Text("每行一个群聊ID\noc_xxxxxx") },
+                    label = { Text("Group chat whitelist") },
+                    placeholder = { Text("每Row一个群聊ID\noc_xxxxxx") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp),
@@ -280,11 +280,11 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "群聊需要 @ 提及",
+                            text = "群聊Need @ 提及",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            text = "开启后仅响应 @ 机器人的消息",
+                            text = "开启Back仅Response @ 机器人的Message",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -296,9 +296,9 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 }
             }
 
-            // 配置文件路径提示
+            // ConfigFile pathHint
             Text(
-                text = "配置保存在:\n/sdcard/.androidforclaw/openclaw.json (channels.feishu)",
+                text = "ConfigSave在:\n/sdcard/.androidforclaw/openclaw.json (channels.feishu)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 8.dp)

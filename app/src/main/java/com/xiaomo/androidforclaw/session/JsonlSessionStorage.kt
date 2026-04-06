@@ -16,13 +16,13 @@ import java.time.Instant
 import java.util.UUID
 
 /**
- * JSONL Session 存储
- * 对齐 OpenClaw 的 agents/main/sessions/ 架构
+ * JSONL Session Storage
+ * Aligned with OpenClaw 的 agents/main/sessions/ 架构
  *
  * JSONL 格式:
- * - 每条消息一行 JSON
- * - 增量追加，不重写整个文件
- * - 易于解析和流式读取
+ * - 每条Message一Row JSON
+ * - 增量追加, 不Override整个文件
+ * - 易于Parse和流式Read
  */
 class JsonlSessionStorage(private val context: Context) {
 
@@ -43,7 +43,7 @@ class JsonlSessionStorage(private val context: Context) {
     }
 
     /**
-     * 创建新会话
+     * CreateNewSession
      */
     fun createSession(title: String = "New Session"): String {
         val sessionId = UUID.randomUUID().toString()
@@ -63,17 +63,17 @@ class JsonlSessionStorage(private val context: Context) {
         )
         saveSessionsIndex(index)
 
-        Log.i(TAG, "创建新会话: $sessionId")
+        Log.i(TAG, "CreateNewSession: $sessionId")
         return sessionId
     }
 
     /**
-     * 追加消息到会话 (JSONL 格式)
+     * 追加Message到Session (JSONL 格式)
      */
     fun appendMessage(sessionId: String, message: SessionMessage) {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         if (!sessionFile.exists()) {
-            Log.e(TAG, "会话文件不存在: $sessionId")
+            Log.e(TAG, "Session文件不Exists: $sessionId")
             return
         }
 
@@ -89,16 +89,16 @@ class JsonlSessionStorage(private val context: Context) {
             )
         }
 
-        Log.d(TAG, "追加消息到会话 $sessionId: ${message.role}")
+        Log.d(TAG, "追加Message到Session $sessionId: ${message.role}")
     }
 
     /**
-     * 读取会话所有消息
+     * ReadSessionAllMessage
      */
     fun loadSession(sessionId: String): List<SessionMessage> {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
         if (!sessionFile.exists()) {
-            Log.w(TAG, "会话文件不存在: $sessionId")
+            Log.w(TAG, "Session文件不Exists: $sessionId")
             return emptyList()
         }
 
@@ -109,32 +109,32 @@ class JsonlSessionStorage(private val context: Context) {
                     try {
                         gson.fromJson(line, SessionMessage::class.java)
                     } catch (e: Exception) {
-                        Log.e(TAG, "解析消息失败: $line", e)
+                        Log.e(TAG, "ParseMessageFailed: $line", e)
                         null
                     }
                 }
         } catch (e: Exception) {
-            Log.e(TAG, "加载会话失败: $sessionId", e)
+            Log.e(TAG, "LoadSessionFailed: $sessionId", e)
             emptyList()
         }
     }
 
     /**
-     * 获取所有会话列表
+     * GetAllSessionList
      */
     fun listSessions(): Map<String, SessionMetadata> {
         return loadSessionsIndex()
     }
 
     /**
-     * 获取会话元数据
+     * GetSession元Data
      */
     fun getSessionMetadata(sessionId: String): SessionMetadata? {
         return loadSessionsIndex()[sessionId]
     }
 
     /**
-     * 更新会话标题
+     * UpdateSessionTitle
      */
     fun updateSessionTitle(sessionId: String, newTitle: String) {
         updateSessionMetadata(sessionId) { metadata ->
@@ -143,7 +143,7 @@ class JsonlSessionStorage(private val context: Context) {
     }
 
     /**
-     * 删除会话
+     * DeleteSession
      */
     fun deleteSession(sessionId: String): Boolean {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -154,14 +154,14 @@ class JsonlSessionStorage(private val context: Context) {
             val index = loadSessionsIndex().toMutableMap()
             index.remove(sessionId)
             saveSessionsIndex(index)
-            Log.i(TAG, "删除会话: $sessionId")
+            Log.i(TAG, "DeleteSession: $sessionId")
         }
 
         return deleted
     }
 
     /**
-     * 清空会话（保留文件但清空内容）
+     * 清NullSession(保留文件但清NullInside容)
      */
     fun clearSession(sessionId: String) {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -173,12 +173,12 @@ class JsonlSessionStorage(private val context: Context) {
                     lastMessageAt = Instant.now().toString()
                 )
             }
-            Log.i(TAG, "清空会话: $sessionId")
+            Log.i(TAG, "清NullSession: $sessionId")
         }
     }
 
     /**
-     * 导出会话为 JSONL 文件
+     * ExportSession为 JSONL 文件
      */
     fun exportSession(sessionId: String, outputPath: String): Boolean {
         val sessionFile = File(SESSIONS_DIR, "$sessionId.jsonl")
@@ -186,21 +186,21 @@ class JsonlSessionStorage(private val context: Context) {
 
         return try {
             sessionFile.copyTo(outputFile, overwrite = true)
-            Log.i(TAG, "导出会话 $sessionId 到 $outputPath")
+            Log.i(TAG, "ExportSession $sessionId 到 $outputPath")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "导出会话失败", e)
+            Log.e(TAG, "ExportSessionFailed", e)
             false
         }
     }
 
     /**
-     * 导入 JSONL 会话文件
+     * Import JSONL Session文件
      */
     fun importSession(inputPath: String, title: String? = null): String? {
         val inputFile = File(inputPath)
         if (!inputFile.exists()) {
-            Log.e(TAG, "导入文件不存在: $inputPath")
+            Log.e(TAG, "Import文件不Exists: $inputPath")
             return null
         }
 
@@ -223,16 +223,16 @@ class JsonlSessionStorage(private val context: Context) {
             )
             saveSessionsIndex(index)
 
-            Log.i(TAG, "导入会话成功: $sessionId")
+            Log.i(TAG, "ImportSessionSuccess: $sessionId")
             sessionId
         } catch (e: Exception) {
-            Log.e(TAG, "导入会话失败", e)
+            Log.e(TAG, "ImportSessionFailed", e)
             null
         }
     }
 
     /**
-     * 获取会话统计信息
+     * GetSessionStatistics info
      */
     fun getSessionStats(sessionId: String): SessionStats? {
         val messages = loadSession(sessionId)
@@ -262,12 +262,12 @@ class JsonlSessionStorage(private val context: Context) {
         val dir = File(SESSIONS_DIR)
         if (!dir.exists()) {
             dir.mkdirs()
-            Log.d(TAG, "创建 sessions 目录: $SESSIONS_DIR")
+            Log.d(TAG, "Create sessions 目录: $SESSIONS_DIR")
         }
     }
 
     /**
-     * 加载 sessions.json 索引
+     * Load sessions.json Index
      */
     private fun loadSessionsIndex(): Map<String, SessionMetadata> {
         val indexFile = File(SESSIONS_INDEX_FILE)
@@ -280,13 +280,13 @@ class JsonlSessionStorage(private val context: Context) {
             val wrapper = gson.fromJson(json, SessionsIndexWrapper::class.java)
             wrapper.sessions
         } catch (e: Exception) {
-            Log.e(TAG, "加载 sessions.json 失败", e)
+            Log.e(TAG, "Load sessions.json Failed", e)
             emptyMap()
         }
     }
 
     /**
-     * 保存 sessions.json 索引
+     * Save sessions.json Index
      */
     private fun saveSessionsIndex(sessions: Map<String, SessionMetadata>) {
         val indexFile = File(SESSIONS_INDEX_FILE)
@@ -296,12 +296,12 @@ class JsonlSessionStorage(private val context: Context) {
             val json = gson.toJson(wrapper)
             indexFile.writeText(json)
         } catch (e: Exception) {
-            Log.e(TAG, "保存 sessions.json 失败", e)
+            Log.e(TAG, "Save sessions.json Failed", e)
         }
     }
 
     /**
-     * 更新会话元数据
+     * UpdateSession元Data
      */
     private fun updateSessionMetadata(
         sessionId: String,
@@ -316,7 +316,7 @@ class JsonlSessionStorage(private val context: Context) {
 }
 
 /**
- * Session 消息 (JSONL 每行一条)
+ * Session Message (JSONL 每Row一条)
  */
 data class SessionMessage(
     val role: String,              // "user" | "assistant" | "system" | "tool"
@@ -328,7 +328,7 @@ data class SessionMessage(
 )
 
 /**
- * Session 元数据 (sessions.json 中存储)
+ * Session 元Data (sessions.json 中Storage)
  */
 data class SessionMetadata(
     val title: String,
@@ -338,14 +338,14 @@ data class SessionMetadata(
 )
 
 /**
- * sessions.json 包装器
+ * sessions.json Package装器
  */
 private data class SessionsIndexWrapper(
     val sessions: Map<String, SessionMetadata>
 )
 
 /**
- * Session 统计信息
+ * Session Statistics info
  */
 data class SessionStats(
     val sessionId: String,

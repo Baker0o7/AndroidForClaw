@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
- * Discord 消息去重
+ * Discord Message去重
  * 参考 Feishu FeishuDedup.kt
  */
 class DiscordDedup(
@@ -21,11 +21,11 @@ class DiscordDedup(
         private const val TAG = "DiscordDedup"
     }
 
-    // 消息 ID 缓存 (messageId -> timestamp)
+    // Message ID Cache (messageId -> timestamp)
     private val seenMessages = ConcurrentHashMap<String, Long>()
 
     /**
-     * 检查消息是否已处理
+     * CheckMessageYesNo已Process
      */
     fun isDuplicate(messageId: String): Boolean {
         val now = System.currentTimeMillis()
@@ -33,13 +33,13 @@ class DiscordDedup(
         // 清理过期条目
         cleanupExpired(now)
 
-        // 检查是否存在
+        // CheckYesNoExists
         val seen = seenMessages.putIfAbsent(messageId, now)
         return seen != null
     }
 
     /**
-     * 标记消息为已处理
+     * 标记Message为已Process
      */
     fun markSeen(messageId: String) {
         seenMessages[messageId] = System.currentTimeMillis()
@@ -63,7 +63,7 @@ class DiscordDedup(
     }
 
     /**
-     * 清除所有缓存
+     * clearAllCache
      */
     fun clearAll() {
         val count = seenMessages.size
@@ -72,7 +72,7 @@ class DiscordDedup(
     }
 
     /**
-     * 获取缓存大小
+     * GetCacheSize
      */
     fun getCacheSize(): Int {
         return seenMessages.size

@@ -29,22 +29,22 @@ class FeishuDocTools(config: FeishuConfig, client: FeishuClient) {
     }
 
     fun getToolDefinitions(): List<ToolDefinition> {
-        return getAllTools().filter { it.isEnabled() }.map { it.getToolDefinition() }
+        return getAllTools().filter { it.isEnabledd() }.map { it.getToolDefinition() }
     }
 }
 
 /**
- * 创建文档工具
+ * CreateDocument工具
  */
 class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_create"
-    override val description = "创建飞书文档"
+    override val description = "Create飞书Document"
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
-            val title = args["title"] as? String ?: return@withContext ToolResult.error("Missing title")
+            val title = args["title"] as? String ?: return@withContext Toolresult.error("Missing title")
             val content = args["content"] as? String ?: ""
             val folderId = args["folder_id"] as? String
 
@@ -59,19 +59,19 @@ class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             val result = client.post("/open-apis/docx/v1/documents", body)
 
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed")
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val docId = data?.get("document")?.asJsonObject?.get("document_id")?.asString
-                ?: return@withContext ToolResult.error("Missing document_id")
+                ?: return@withContext Toolresult.error("Missing document_id")
 
-            // 如果有内容，写入文档（对齐 OpenClaw writeDoc 逻辑）
+            // ifHasInside容, WriteDocument(Aligned with OpenClaw writeDoc 逻辑)
             var contentWriteError: String? = null
             if (content.isNotEmpty()) {
-                val writeResult = DocUpdateHelper(client).updateDocContent(docId, content)
-                if (writeResult.isFailure) {
-                    contentWriteError = writeResult.exceptionOrNull()?.message
+                val writeresult = DocUpdateHelper(client).updateDocContent(docId, content)
+                if (writeresult.isFailure) {
+                    contentWriteError = writeresult.exceptionOrNull()?.message
                     Log.w("DocCreateTool", "Content write failed for $docId: $contentWriteError")
                 }
             }
@@ -86,11 +86,11 @@ class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             if (contentWriteError != null) {
                 metadata["content_write_error"] = contentWriteError
             }
-            ToolResult.success(metadata)
+            Toolresult.success(metadata)
 
         } catch (e: Exception) {
             Log.e("DocCreateTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -100,9 +100,9 @@ class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "title" to PropertySchema("string", "文档标题"),
-                    "content" to PropertySchema("string", "文档内容（可选）"),
-                    "folder_id" to PropertySchema("string", "文件夹ID（可选）")
+                    "title" to PropertySchema("string", "DocumentTitle"),
+                    "content" to PropertySchema("string", "DocumentInside容(Optional)"),
+                    "folder_id" to PropertySchema("string", "文件夹ID(Optional)")
                 ),
                 required = listOf("title")
             )
@@ -112,33 +112,33 @@ class DocCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * 读取文档工具
+ * ReadDocument工具
  */
 class DocReadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_read"
-    override val description = "读取飞书文档内容"
+    override val description = "Read飞书DocumentInside容"
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
-            val docId = args["document_id"] as? String ?: return@withContext ToolResult.error("Missing document_id")
+            val docId = args["document_id"] as? String ?: return@withContext Toolresult.error("Missing document_id")
 
             val result = client.get("/open-apis/docx/v1/documents/$docId/raw_content")
 
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed")
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val content = data?.get("content")?.asString ?: ""
 
             Log.d("DocReadTool", "Doc read: $docId")
-            ToolResult.success(mapOf("document_id" to docId, "content" to content))
+            Toolresult.success(mapOf("document_id" to docId, "content" to content))
 
         } catch (e: Exception) {
             Log.e("DocReadTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -148,7 +148,7 @@ class DocReadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(c
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "document_id" to PropertySchema("string", "文档ID")
+                    "document_id" to PropertySchema("string", "DocumentID")
                 ),
                 required = listOf("document_id")
             )
@@ -157,8 +157,8 @@ class DocReadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(c
 }
 
 /**
- * 文档内容写入工具类 - 对齐 OpenClaw docx.ts 的 insertBlocksWithDescendant。
- * DocCreateTool 和 DocUpdateTool 共用。
+ * DocumentInside容Write工具Class - Aligned with OpenClaw docx.ts 的 insertBlocksWithDescendant. 
+ * DocCreateTool 和 DocUpdateTool 共用. 
  */
 class DocUpdateHelper(private val client: FeishuClient) {
     companion object {
@@ -166,24 +166,24 @@ class DocUpdateHelper(private val client: FeishuClient) {
     }
 
     /**
-     * 将文本内容写入文档 body。
-     * 1. 获取文档 block 列表，找到 body 块 (block_type=1, parent_id=docId)
-     * 2. 通过 documentBlockChildren.create API 在 body 块下插入文本子块
+     * 将TextInside容WriteDocument body. 
+     * 1. GetDocument block List, 找到 body 块 (block_type=1, parent_id=docId)
+     * 2. 通过 documentBlockChildren.create API 在 body 块DownInsertText子块
      */
-    suspend fun updateDocContent(docId: String, content: String): Result<Unit> {
-        // Step 1: 获取文档的 block 列表，找到 body 块
-        val blocksResult = client.get("/open-apis/docx/v1/documents/$docId/blocks?page_size=500")
-        if (blocksResult.isFailure) {
-            val err = blocksResult.exceptionOrNull()?.message ?: "Failed to list blocks"
+    suspend fun updateDocContent(docId: String, content: String): result<Unit> {
+        // Step 1: GetDocument的 block List, 找到 body 块
+        val blocksresult = client.get("/open-apis/docx/v1/documents/$docId/blocks?page_size=500")
+        if (blocksresult.isFailure) {
+            val err = blocksresult.exceptionOrNull()?.message ?: "Failed to list blocks"
             Log.w(TAG, "List blocks failed: $err, trying batch_update fallback")
             return insertViaBatchUpdate(docId, content)
         }
 
-        val blocks = blocksResult.getOrNull()
+        val blocks = blocksresult.getOrNull()
             ?.getAsJsonObject("data")
             ?.getAsJsonArray("items")
 
-        // 找 body 块：parent_id == docId 且 block_type == 1
+        // 找 body 块: parent_id == docId 且 block_type == 1
         var bodyBlockId: String? = null
         blocks?.forEach { block ->
             val b = block.asJsonObject
@@ -200,7 +200,7 @@ class DocUpdateHelper(private val client: FeishuClient) {
             bodyBlockId = docId
         }
 
-        // Step 2: 使用 documentBlockChildren.create API 插入文本块
+        // Step 2: use documentBlockChildren.create API InsertText块
         val createBody = mapOf(
             "children" to listOf(
                 mapOf(
@@ -221,26 +221,26 @@ class DocUpdateHelper(private val client: FeishuClient) {
             "index" to 0
         )
 
-        val createResult = client.post(
+        val createresult = client.post(
             "/open-apis/docx/v1/documents/$docId/blocks/$bodyBlockId/children",
             createBody
         )
 
-        if (createResult.isFailure) {
-            val err = createResult.exceptionOrNull()?.message ?: "block children create failed"
+        if (createresult.isFailure) {
+            val err = createresult.exceptionOrNull()?.message ?: "block children create failed"
             Log.w(TAG, "block children create failed: $err, trying batch_update fallback")
             return insertViaBatchUpdate(docId, content)
         }
 
         Log.d(TAG, "Content written to doc $docId via block children API")
-        return Result.success(Unit)
+        return result.success(Unit)
     }
 
     /**
-     * Fallback: 使用 batch_update insert 请求插入文本。
-     * 对齐 OpenClaw docx.ts 的 batchUpdateInsertChildren 逻辑。
+     * Fallback: use batch_update insert RequestInsertText. 
+     * Aligned with OpenClaw docx.ts 的 batchUpdateInsertChildren 逻辑. 
      */
-    private suspend fun insertViaBatchUpdate(docId: String, content: String): Result<Unit> {
+    private suspend fun insertViaBatchUpdate(docId: String, content: String): result<Unit> {
         val body = mapOf(
             "requests" to listOf(
                 mapOf(
@@ -270,42 +270,42 @@ class DocUpdateHelper(private val client: FeishuClient) {
         if (result.isFailure) {
             val err = result.exceptionOrNull()?.message ?: "batch_update failed"
             Log.e(TAG, "batch_update fallback also failed: $err")
-            return Result.failure(Exception(err))
+            return result.failure(Exception(err))
         }
 
         Log.d(TAG, "Content written to doc $docId via batch_update fallback")
-        return Result.success(Unit)
+        return result.success(Unit)
     }
 }
 
 /**
- * 更新文档工具
+ * UpdateDocument工具
  */
 class DocUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_update"
-    override val description = "更新飞书文档内容"
+    override val description = "Update飞书DocumentInside容"
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
-            val docId = args["document_id"] as? String ?: return@withContext ToolResult.error("Missing document_id")
-            val content = args["content"] as? String ?: return@withContext ToolResult.error("Missing content")
+            val docId = args["document_id"] as? String ?: return@withContext Toolresult.error("Missing document_id")
+            val content = args["content"] as? String ?: return@withContext Toolresult.error("Missing content")
 
             // 复用 DocCreateTool 的 updateDocContent 逻辑
             val helper = DocUpdateHelper(client)
             val result = helper.updateDocContent(docId, content)
 
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed")
             }
 
             Log.d("DocUpdateTool", "Doc updated: $docId")
-            ToolResult.success(mapOf("document_id" to docId))
+            Toolresult.success(mapOf("document_id" to docId))
 
         } catch (e: Exception) {
             Log.e("DocUpdateTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -315,8 +315,8 @@ class DocUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "document_id" to PropertySchema("string", "文档ID"),
-                    "content" to PropertySchema("string", "要添加的内容")
+                    "document_id" to PropertySchema("string", "DocumentID"),
+                    "content" to PropertySchema("string", "要Add的Inside容")
                 ),
                 required = listOf("document_id", "content")
             )
@@ -325,30 +325,30 @@ class DocUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * 删除文档工具
+ * DeleteDocument工具
  */
 class DocDeleteTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_delete"
-    override val description = "删除飞书文档"
+    override val description = "Delete飞书Document"
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
-            val docId = args["document_id"] as? String ?: return@withContext ToolResult.error("Missing document_id")
+            val docId = args["document_id"] as? String ?: return@withContext Toolresult.error("Missing document_id")
 
             val result = client.delete("/open-apis/docx/v1/documents/$docId")
 
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed")
             }
 
             Log.d("DocDeleteTool", "Doc deleted: $docId")
-            ToolResult.success(mapOf("document_id" to docId))
+            Toolresult.success(mapOf("document_id" to docId))
 
         } catch (e: Exception) {
             Log.e("DocDeleteTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -358,7 +358,7 @@ class DocDeleteTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "document_id" to PropertySchema("string", "文档ID")
+                    "document_id" to PropertySchema("string", "DocumentID")
                 ),
                 required = listOf("document_id")
             )

@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -26,9 +26,9 @@ class TypeSkill(private val context: Context) : Skill {
     override val name = "type"
     override val description: String
         get() {
-            val isAccessibilityEnabled = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value == true &&
+            val isAccessibilityEnableddd = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value == true &&
                                         com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isServiceReady()
-            val statusNote = if (!isAccessibilityEnabled) " ⚠️ **不可用**-无障碍服务未连接" else " ✅"
+            val statusNote = if (!isAccessibilityEnableddd) " ⚠️ **不Available**-AccessibilityServiceNot connected" else " ✅"
             return "Type text into focused input field (must tap input first)$statusNote"
         }
 
@@ -41,7 +41,7 @@ class TypeSkill(private val context: Context) : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "text" to PropertySchema("string", "要输入的文本内容")
+                        "text" to PropertySchema("string", "要Input的TextInside容")
                     ),
                     required = listOf("text")
                 )
@@ -49,11 +49,11 @@ class TypeSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val text = args["text"] as? String
 
         if (text == null) {
-            return SkillResult.error("Missing required parameter: text")
+            return Skillresult.error("Missing required parameter: text")
         }
 
         Log.d(TAG, "Typing text: $text")
@@ -65,7 +65,7 @@ class TypeSkill(private val context: Context) : Skill {
             val waitTime = (100L + (text.length * 5L).coerceAtMost(300L)).coerceAtLeast(1000L)
             kotlinx.coroutines.delay(waitTime)
 
-            SkillResult.success(
+            Skillresult.success(
                 "Typed: $text (${text.length} chars)",
                 mapOf(
                     "text" to text,
@@ -75,7 +75,7 @@ class TypeSkill(private val context: Context) : Skill {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Type failed", e)
-            SkillResult.error("Type failed: ${e.message}")
+            Skillresult.error("Type failed: ${e.message}")
         }
     }
 }

@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -18,6 +18,6 @@ enum class MMKVKeys(val key: String) {
     // Exploration mode switch (false: Planning mode, true: Exploration mode)
     EXPLORATION_MODE("exploration_mode"),
 
-    // Gateway URL (可自定义，默认 ws://127.0.0.1:8765)
+    // Gateway URL (可Custom, Default ws://127.0.0.1:8765)
     GATEWAY_URL("gateway_url")
 }

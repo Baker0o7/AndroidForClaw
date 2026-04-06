@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -36,18 +36,18 @@ import java.net.Inet4Address
 import java.net.NetworkInterface
 
 /**
- * MCP Server 配置页面
+ * MCP Server Config页面
  *
  * ┌──────────────────────────────────────────────────────────────┐
- * │  ⚠️  此页面管理的 MCP Server 是给【外部 Agent】用的           │
- * │     （Claude Desktop、Cursor、其他 MCP 客户端等）             │
+ * │  ⚠️  此页面Manage的 MCP Server Yes给【External Agent】用的           │
+ * │     (Claude Desktop、Cursor、Its他 MCP Client等)             │
  * │                                                              │
- * │     与 AndroidForClaw 自身的 AI 功能完全无关。                 │
- * │     AndroidForClaw 通过内部 DeviceTool 直接操作手机，          │
- * │     不经过此 MCP Server。                                     │
+ * │     与 AndroidForClaw 自身的 AI FeaturecompletelyNone关.                  │
+ * │     AndroidForClaw 通过Internal DeviceTool 直接Action手机,           │
+ * │     不经过此 MCP Server.                                      │
  * │                                                              │
- * │     此 MCP Server 的作用是让同一局域网下的其他 AI Agent        │
- * │     能够远程操控这台手机（查看屏幕、点击、滑动等）。            │
+ * │     此 MCP Server 的作用Yes让同一局域网Down的Its他 AI Agent        │
+ * │     能够远程操控这台手机(ViewScreen、click、swipe等).             │
  * └──────────────────────────────────────────────────────────────┘
  */
 class McpConfigActivity : ComponentActivity() {
@@ -88,7 +88,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.mcp_server_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Return")
                     }
                 }
             )
@@ -109,7 +109,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 tonalElevation = 0.dp
             ) {
                 Text(
-                    text = "此服务用于外部 Agent（Claude Desktop、Cursor 等）远程操控本手机，与 AndroidForClaw 自身功能无关。",
+                    text = "此Service用于External Agent(Claude Desktop、Cursor 等)远程操控本手机, 与 AndroidForClaw 自身FeatureNone关. ",
                     modifier = Modifier.padding(14.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -127,9 +127,9 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("服务状态", style = MaterialTheme.typography.titleSmall)
+                            Text("ServiceStatus", style = MaterialTheme.typography.titleSmall)
                             Text(
-                                text = if (serverRunning) "运行中 · 端口 $port" else "已停止",
+                                text = if (serverRunning) "Run中 · 端口 $port" else "已Stop",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (serverRunning)
                                     MaterialTheme.colorScheme.primary
@@ -146,7 +146,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                                         server.start()
                                         serverRunning = true
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "启动失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "StartFailed: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
                                     ObserverMcpServer.stopServer()
@@ -178,7 +178,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            "MCP 配置",
+                            "MCP Config",
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.weight(1f)
                         )
@@ -186,19 +186,19 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                             onClick = {
                                 val cb = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 cb.setPrimaryClip(ClipData.newPlainText("mcp-config", mcpConfig))
-                                Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "已Copy", Toast.LENGTH_SHORT).show()
                             }
                         ) {
                             Icon(Icons.Default.ContentCopy, null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("复制")
+                            Text("Copy")
                         }
                     }
 
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = "将以下配置粘贴到 Claude Desktop / Cursor 的 MCP 设置中：",
+                        text = "将以DownConfigpaste到 Claude Desktop / Cursor 的 MCP Settings中: ",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -231,19 +231,19 @@ private fun McpConfigScreen(onBack: () -> Unit) {
                 tonalElevation = 1.dp
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("可用工具", style = MaterialTheme.typography.titleSmall)
+                    Text("Available工具", style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(8.dp))
 
                     val tools = listOf(
-                        "get_view_tree" to "获取 UI 树",
+                        "get_view_tree" to "Get UI Tree",
                         "screenshot" to "截屏 (base64 PNG)",
-                        "tap" to "点击坐标 (x, y)",
-                        "long_press" to "长按坐标 (x, y)",
-                        "swipe" to "滑动手势",
-                        "input_text" to "输入文字",
-                        "press_home" to "按 Home 键",
-                        "press_back" to "按返回键",
-                        "get_current_app" to "获取前台应用包名",
+                        "tap" to "click坐标 (x, y)",
+                        "long_press" to "long press坐标 (x, y)",
+                        "swipe" to "swipe手势",
+                        "input_text" to "Input文字",
+                        "press_home" to "按 Home Key",
+                        "press_back" to "按ReturnKey",
+                        "get_current_app" to "GetFront台applyPackage name",
                     )
 
                     tools.forEach { (name, desc) ->

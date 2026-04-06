@@ -19,11 +19,11 @@ import kotlinx.coroutines.runBlocking
 /**
  * Self-Control Service
  *
- * 提供本地 Binder 接口，供应用内部和 ADB shell 调用。
+ * 提供本地 Binder Interface, 供应用Internal和 ADB shell 调用. 
  *
- * 使用方式：
+ * 使用方式: 
  *
- * 1. 应用内部调用
+ * 1. 应用Internal调用
  * ```kotlin
  * val connection = object : ServiceConnection {
  *     override fun onServiceConnected(name: ComponentName, service: IBinder) {
@@ -35,9 +35,9 @@ import kotlinx.coroutines.runBlocking
  * bindService(Intent(this, SelfControlService::class.java), connection, BIND_AUTO_CREATE)
  * ```
  *
- * 2. 通过 ADB Shell（配合 app_process）
+ * 2. 通过 ADB Shell(配合 app_process)
  * ```bash
- * # 需要配合自定义的 shell 工具
+ * # Need配合Custom的 shell 工具
  * adb shell /system/bin/phoneforclaw-ctl navigate_app page=config
  * ```
  */
@@ -66,7 +66,7 @@ class SelfControlService : Service() {
      */
     inner class LocalBinder : Binder() {
         /**
-         * 执行 Skill（同步）
+         * 执Row Skill(Sync)
          */
         fun execute(skillName: String, args: Map<String, Any?>): SkillResult? {
             return runBlocking {
@@ -75,42 +75,42 @@ class SelfControlService : Service() {
         }
 
         /**
-         * 执行 Skill（异步）
+         * 执Row Skill(Async)
          */
         suspend fun executeAsync(skillName: String, args: Map<String, Any?>): SkillResult? {
             return registry.execute(skillName, args)
         }
 
         /**
-         * 列出所有 Skills
+         * ListAll Skills
          */
         fun listSkills(): List<String> {
             return registry.getAllSkillNames()
         }
 
         /**
-         * 获取 Skill 定义
+         * Get Skill 定义
          */
         fun getSkillDefinitions(): List<ToolDefinition> {
             return registry.getAllToolDefinitions()
         }
 
         /**
-         * 检查 Skill 是否存在
+         * Check Skill YesNoExists
          */
         fun hasSkill(skillName: String): Boolean {
             return registry.contains(skillName)
         }
 
         /**
-         * 获取摘要信息
+         * Get摘要Info
          */
         fun getSummary(): String {
             return registry.getSummary()
         }
 
         /**
-         * 健康检查
+         * HealthCheck
          */
         fun healthCheck(): Map<String, Any> {
             return mapOf(
@@ -122,7 +122,7 @@ class SelfControlService : Service() {
     }
 
     /**
-     * 处理 START 命令（可用于 adb shell am startservice）
+     * Process START 命令(Available于 adb shell am startservice)
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let { handleIntent(it) }

@@ -4,15 +4,15 @@ package com.xiaomo.androidforclaw.camera
  * OpenClaw Source Reference:
  * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/JpegSizeLimiter.kt
  *
- * JPEG 压缩尺寸限制器
- * 自动降低质量和缩放尺寸，确保输出不超过指定大小
+ * JPEG Compress尺寸Limit器
+ * Auto降低质量和缩放尺寸, EnsureOutput不超过指定Size
  */
 
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-data class JpegSizeLimiterResult(
+data class JpegSizeLimiterresult(
     val bytes: ByteArray,
     val width: Int,
     val height: Int,
@@ -31,14 +31,14 @@ object JpegSizeLimiter {
         maxScaleAttempts: Int = 6,
         maxQualityAttempts: Int = 6,
         encode: (width: Int, height: Int, quality: Int) -> ByteArray,
-    ): JpegSizeLimiterResult {
+    ): JpegSizeLimiterresult {
         require(initialWidth > 0 && initialHeight > 0) { "Invalid image size" }
         require(maxBytes > 0) { "Invalid maxBytes" }
 
         var width = initialWidth
         var height = initialHeight
         val clampedStartQuality = startQuality.coerceIn(minQuality, 100)
-        var best = JpegSizeLimiterResult(
+        var best = JpegSizeLimiterresult(
             bytes = encode(width, height, clampedStartQuality),
             width = width,
             height = height,
@@ -50,7 +50,7 @@ object JpegSizeLimiter {
             var quality = clampedStartQuality
             repeat(maxQualityAttempts) {
                 val bytes = encode(width, height, quality)
-                best = JpegSizeLimiterResult(bytes = bytes, width = width, height = height, quality = quality)
+                best = JpegSizeLimiterresult(bytes = bytes, width = width, height = height, quality = quality)
                 if (bytes.size <= maxBytes) return best
                 if (quality <= minQuality) return@repeat
                 quality = max(minQuality, (quality * 0.75).roundToInt())

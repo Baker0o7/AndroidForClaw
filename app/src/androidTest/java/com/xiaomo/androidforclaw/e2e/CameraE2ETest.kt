@@ -18,22 +18,22 @@ import org.junit.Assert.*
 import org.junit.runner.RunWith
 
 /**
- * Camera Skill 端到端测试
+ * Camera Skill 端到端Test
  *
- * 流程：
- * 1. 向 AgentLoop 发送"拍照看看有什么"
- * 2. Agent 调用 eye skill（action=look）
- * 3. Agent 根据拍到的照片描述内容
- * 4. 验证：使用了 camera 工具 + 最终输出有实质内容（非错误）= 通过
+ * 流程: 
+ * 1. 向 AgentLoop 发送"拍照看看Has什么"
+ * 2. Agent 调用 eye skill(action=look)
+ * 3. Agent 根据拍到的照片DescriptionInside容
+ * 4. Validate: 使用了 camera 工具 + 最终OutputHas实质Inside容(非Error)= 通过
  *
- * 运行:
+ * Run:
  * ./gradlew :app:connectedDebugAndroidTest \
  *   -Pandroid.testInstrumentationRunnerArguments.class=com.xiaomo.androidforclaw.e2e.CameraE2ETest
  *
- * ⚠️ 前置条件:
- * - 真机（有摄像头）
- * - 已授予 CAMERA 权限
- * - 已配置 LLM API Key
+ * ⚠️ Front置Condition:
+ * - True机(Has摄Like头)
+ * - 已授予 CAMERA Permission
+ * - 已Config LLM API Key
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -41,7 +41,7 @@ class CameraE2ETest {
 
     companion object {
         private const val TAG = "CameraE2E"
-        private const val TIMEOUT_MS = 120_000L // 2 分钟超时（拍照 + LLM 响应）
+        private const val TIMEOUT_MS = 120_000L // 2 分钟Timeout(拍照 + LLM Response)
     }
 
     private lateinit var context: Context
@@ -67,7 +67,7 @@ class CameraE2ETest {
     }
 
     /**
-     * 核心测试：发送"拍照看看有什么"，验证 Agent 调用 camera 并描述照片内容
+     * 核心Test: 发送"拍照看看Has什么", Validate Agent 调用 camera 并Description照片Inside容
      */
     @Test
     fun test_cameraSnap_describeContent() {
@@ -87,54 +87,54 @@ class CameraE2ETest {
             withTimeout(TIMEOUT_MS) {
                 agentLoop.run(
                     systemPrompt = systemPrompt,
-                    userMessage = "拍照看看有什么",
-                    reasoningEnabled = false
+                    userMessage = "拍照看看Has什么",
+                    reasoningEnabledd = false
                 )
             }
         }
 
         // 打印报告
         println("═".repeat(60))
-        println("📊 Camera E2E 测试报告")
+        println("📊 Camera E2E Test报告")
         println("═".repeat(60))
-        println("🔄 迭代次数: ${result.iterations}")
+        println("🔄 Iterate次数: ${result.iterations}")
         println("🔧 使用工具: ${result.toolsUsed.joinToString(", ")}")
-        println("📄 最终输出: ${result.finalContent.take(500)}")
+        println("📄 最终Output: ${result.finalContent.take(500)}")
         println("═".repeat(60))
 
-        // 验证 1: 使用了 eye 工具
+        // Validate 1: 使用了 eye 工具
         assertTrue(
-            "Agent 应该调用 eye 工具，实际使用: ${result.toolsUsed}",
+            "Agent Should调用 eye 工具, 实际使用: ${result.toolsUsed}",
             result.toolsUsed.any { it == "eye" }
         )
 
-        // 验证 2: 最终输出有实质内容（不是空的，也不是纯错误信息）
+        // Validate 2: 最终OutputHas实质Inside容(不YesNull的, Also不Yes纯ErrorInfo)
         assertTrue(
-            "最终输出不应为空",
+            "最终Output不应为Null",
             result.finalContent.isNotBlank()
         )
 
-        // 验证 3: 输出不是权限错误（说明拍照成功了）
+        // Validate 3: Output不YesPermissionError(说明拍照Success了)
         assertFalse(
-            "不应该是权限错误（请先在设备上授予 CAMERA 权限）",
+            "不ShouldYesPermissionError(请先在DeviceUp授予 CAMERA Permission)",
             result.finalContent.contains("CAMERA_PERMISSION_REQUIRED")
         )
 
-        // 验证 4: 输出不是通用错误
+        // Validate 4: Output不Yes通用Error
         val isError = result.finalContent.contains("UNAVAILABLE") &&
-            !result.finalContent.contains("拍") // 排除正常描述中偶尔出现的词
+            !result.finalContent.contains("拍") // 排除正常Description中偶尔出现的词
         assertFalse(
-            "拍照不应失败: ${result.finalContent.take(200)}",
+            "拍照不应Failed: ${result.finalContent.take(200)}",
             isError
         )
 
-        // 验证 5: Agent 应该描述了照片内容（有实质性描述）
-        // 只要输出长度 > 10 且不是纯错误，就认为 Agent 描述了内容
+        // Validate 5: Agent ShouldDescription了照片Inside容(Has实质性Description)
+        // 只要Output长度 > 10 且不Yes纯Error, 就认为 Agent Description了Inside容
         assertTrue(
-            "Agent 应该描述照片内容，实际输出长度: ${result.finalContent.length}",
+            "Agent ShouldDescription照片Inside容, Actual output length: ${result.finalContent.length}",
             result.finalContent.length > 10
         )
 
-        println("✅ Camera E2E 测试通过！Agent 成功拍照并描述了内容。")
+        println("✅ Camera E2E Test通过!Agent Success拍照并Description了Inside容. ")
     }
 }

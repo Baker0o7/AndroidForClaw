@@ -16,8 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书权限工具集
- * 对齐 OpenClaw src/perm-tools
+ * 飞书Permission工具集
+ * Aligned with OpenClaw src/perm-tools
  */
 class FeishuPermTools(config: FeishuConfig, client: FeishuClient) {
     private val checkTool = PermCheckTool(config, client)
@@ -29,28 +29,28 @@ class FeishuPermTools(config: FeishuConfig, client: FeishuClient) {
     }
 
     fun getToolDefinitions(): List<ToolDefinition> {
-        return getAllTools().filter { it.isEnabled() }.map { it.getToolDefinition() }
+        return getAllTools().filter { it.isEnabledd() }.map { it.getToolDefinition() }
     }
 }
 
 /**
- * 检查权限工具
+ * CheckPermission工具
  */
 class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_check"
-    override val description = "检查飞书文档权限"
+    override val description = "Check飞书DocumentPermission"
 
-    override fun isEnabled() = config.enablePermTools
+    override fun isEnabledd() = config.enablePermTools
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
-            val token = args["token"] as? String ?: return@withContext ToolResult.error("Missing token")
+            val token = args["token"] as? String ?: return@withContext Toolresult.error("Missing token")
             val type = args["type"] as? String ?: "doc" // doc, sheet, bitable, etc.
 
             val result = client.get("/open-apis/drive/v1/permissions/$token/public?type=$type")
 
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed")
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
@@ -58,7 +58,7 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             val externalAccess = data?.get("external_access")?.asBoolean ?: false
 
             Log.d("PermCheckTool", "Permission checked: $token")
-            ToolResult.success(mapOf(
+            Toolresult.success(mapOf(
                 "token" to token,
                 "type" to type,
                 "permission_public" to permissionPublic,
@@ -67,7 +67,7 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 
         } catch (e: Exception) {
             Log.e("PermCheckTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -77,8 +77,8 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "文档token"),
-                    "type" to PropertySchema("string", "文档类型（doc/sheet/bitable等，默认doc）")
+                    "token" to PropertySchema("string", "Documenttoken"),
+                    "type" to PropertySchema("string", "DocumentType(doc/sheet/bitable等, Defaultdoc)")
                 ),
                 required = listOf("token")
             )
@@ -87,20 +87,20 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * 授予权限工具
+ * grantPermission工具
  */
 class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_grant"
-    override val description = "授予飞书文档权限"
+    override val description = "grant飞书DocumentPermission"
 
-    override fun isEnabled() = config.enablePermTools
+    override fun isEnabledd() = config.enablePermTools
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
-            val token = args["token"] as? String ?: return@withContext ToolResult.error("Missing token")
+            val token = args["token"] as? String ?: return@withContext Toolresult.error("Missing token")
             val type = args["type"] as? String ?: "doc"
             val memberType = args["member_type"] as? String ?: "user" // user, chat, etc.
-            val memberId = args["member_id"] as? String ?: return@withContext ToolResult.error("Missing member_id")
+            val memberId = args["member_id"] as? String ?: return@withContext Toolresult.error("Missing member_id")
             val perm = args["perm"] as? String ?: "view" // view, edit, full_access
 
             val body = mapOf(
@@ -113,11 +113,11 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             val result = client.post("/open-apis/drive/v1/permissions/$token/members", body)
 
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed")
             }
 
             Log.d("PermGrantTool", "Permission granted: $token to $memberId")
-            ToolResult.success(mapOf(
+            Toolresult.success(mapOf(
                 "token" to token,
                 "member_id" to memberId,
                 "perm" to perm
@@ -125,7 +125,7 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 
         } catch (e: Exception) {
             Log.e("PermGrantTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -135,11 +135,11 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "文档token"),
-                    "type" to PropertySchema("string", "文档类型（doc/sheet/bitable等，默认doc）"),
-                    "member_type" to PropertySchema("string", "成员类型（user/chat等，默认user）"),
-                    "member_id" to PropertySchema("string", "成员ID"),
-                    "perm" to PropertySchema("string", "权限级别（view/edit/full_access，默认view）")
+                    "token" to PropertySchema("string", "Documenttoken"),
+                    "type" to PropertySchema("string", "DocumentType(doc/sheet/bitable等, Defaultdoc)"),
+                    "member_type" to PropertySchema("string", "MemberType(user/chat等, Defaultuser)"),
+                    "member_id" to PropertySchema("string", "MemberID"),
+                    "perm" to PropertySchema("string", "Permission级别(view/edit/full_access, Defaultview)")
                 ),
                 required = listOf("token", "member_id")
             )
@@ -148,37 +148,37 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
 }
 
 /**
- * 撤销权限工具
+ * undoPermission工具
  */
 class PermRevokeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_perm_revoke"
-    override val description = "撤销飞书文档权限"
+    override val description = "undo飞书DocumentPermission"
 
-    override fun isEnabled() = config.enablePermTools
+    override fun isEnabledd() = config.enablePermTools
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
-            val token = args["token"] as? String ?: return@withContext ToolResult.error("Missing token")
+            val token = args["token"] as? String ?: return@withContext Toolresult.error("Missing token")
             val type = args["type"] as? String ?: "doc"
             val memberType = args["member_type"] as? String ?: "user"
-            val memberId = args["member_id"] as? String ?: return@withContext ToolResult.error("Missing member_id")
+            val memberId = args["member_id"] as? String ?: return@withContext Toolresult.error("Missing member_id")
 
             val path = "/open-apis/drive/v1/permissions/$token/members/$memberId?type=$type&member_type=$memberType"
             val result = client.delete(path)
 
             if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+                return@withContext Toolresult.error(result.exceptionOrNull()?.message ?: "Failed")
             }
 
             Log.d("PermRevokeTool", "Permission revoked: $token from $memberId")
-            ToolResult.success(mapOf(
+            Toolresult.success(mapOf(
                 "token" to token,
                 "member_id" to memberId
             ))
 
         } catch (e: Exception) {
             Log.e("PermRevokeTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -188,10 +188,10 @@ class PermRevokeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "token" to PropertySchema("string", "文档token"),
-                    "type" to PropertySchema("string", "文档类型（doc/sheet/bitable等，默认doc）"),
-                    "member_type" to PropertySchema("string", "成员类型（user/chat等，默认user）"),
-                    "member_id" to PropertySchema("string", "成员ID")
+                    "token" to PropertySchema("string", "Documenttoken"),
+                    "type" to PropertySchema("string", "DocumentType(doc/sheet/bitable等, Defaultdoc)"),
+                    "member_type" to PropertySchema("string", "MemberType(user/chat等, Defaultuser)"),
+                    "member_id" to PropertySchema("string", "MemberID")
                 ),
                 required = listOf("token", "member_id")
             )

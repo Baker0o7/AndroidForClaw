@@ -9,8 +9,8 @@ package com.xiaomo.discord
 import com.google.gson.annotations.SerializedName
 
 /**
- * Discord 配置
- * 参考 OpenClaw Discord 扩展配置结构
+ * Discord Config
+ * 参考 OpenClaw Discord 扩展Config结构
  */
 data class DiscordConfig(
     @SerializedName("enabled")
@@ -22,23 +22,23 @@ data class DiscordConfig(
     @SerializedName("name")
     val name: String? = null,
 
-    // DM (私聊) 策略
+    // DM (私聊) Policy
     @SerializedName("dm")
     val dm: DmConfig? = null,
 
-    // 群组策略
+    // GroupPolicy
     @SerializedName("groupPolicy")
     val groupPolicy: String? = null, // "open", "allowlist", "denylist"
 
-    // Guild (服务器) 配置
+    // Guild (Service器) Config
     @SerializedName("guilds")
     val guilds: Map<String, GuildConfig>? = null,
 
-    // 回复模式
+    // 回复Schema
     @SerializedName("replyToMode")
     val replyToMode: String? = null, // "off", "always", "threads"
 
-    // 多账户支持
+    // 多AccountSupport
     @SerializedName("accounts")
     val accounts: Map<String, DiscordAccountConfig>? = null
 ) {
@@ -84,7 +84,7 @@ data class DiscordConfig(
 }
 
 /**
- * Discord 账户信息
+ * Discord AccountInfo
  */
 data class DiscordAccount(
     val accountId: String,

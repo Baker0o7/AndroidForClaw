@@ -3,8 +3,8 @@
  * - ../openclaw/src/agents/tools/canvas-tool.ts
  *
  * AndroidForClaw adaptation: Canvas tool for Agent function calling.
- * 优先走 Screen tab 内嵌的 CanvasController（WebView），
- * 而不是启动独立的 CanvasActivity。
+ * 优先走 Screen tab Inside嵌的 CanvasController(WebView), 
+ * 而不YesStart独立的 CanvasActivity. 
  */
 package com.xiaomo.androidforclaw.agent.tools
 
@@ -18,16 +18,16 @@ import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**
- * Canvas Tool — 让 Agent 通过 function calling 控制 Canvas WebView。
+ * Canvas Tool — 让 Agent 通过 function calling 控制 Canvas WebView. 
  *
  * Actions:
- * - present: 显示 Canvas（可选 url/target）
- * - hide: 隐藏/关闭 Canvas
- * - navigate: 导航到新 URL
- * - eval: 执行 JavaScript 并返回结果
- * - snapshot: 截取 Canvas 截图（返回 base64）
- * - a2ui_push: 推送 A2UI JSONL 内容
- * - a2ui_reset: 重置 A2UI 内容
+ * - present: Show Canvas(Optional url/target)
+ * - hide: Hide/Close Canvas
+ * - navigate: 导航到New URL
+ * - eval: 执Row JavaScript 并Returnresult
+ * - snapshot: 截取 Canvas Screenshot(Return base64)
+ * - a2ui_push: push A2UI JSONL Inside容
+ * - a2ui_reset: Reset A2UI Inside容
  */
 class CanvasTool(private val context: Context) : Tool {
     companion object {
@@ -93,12 +93,12 @@ class CanvasTool(private val context: Context) : Tool {
         )
     }
 
-    /** 获取 Screen tab 的 CanvasController（优先），不可用时返回 null */
+    /** Get Screen tab 的 CanvasController(优先), 不Available时Return null */
     private fun getController(): CanvasController? = CanvasManager.screenTabController
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val action = args["action"] as? String
-            ?: return ToolResult.error("action is required")
+            ?: return Toolresult.error("action is required")
 
         return try {
             when (action) {
@@ -109,15 +109,15 @@ class CanvasTool(private val context: Context) : Tool {
                 "snapshot" -> executeSnapshot(args)
                 "a2ui_push" -> executeA2uiPush(args)
                 "a2ui_reset" -> executeA2uiReset()
-                else -> ToolResult.error("Unknown canvas action: $action")
+                else -> Toolresult.error("Unknown canvas action: $action")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Canvas action '$action' failed", e)
-            ToolResult.error("canvas.$action failed: ${e.message}")
+            Toolresult.error("canvas.$action failed: ${e.message}")
         }
     }
 
-    private fun executePresent(args: Map<String, Any?>): ToolResult {
+    private fun executePresent(args: Map<String, Any?>): Toolresult {
         val url = args["url"] as? String ?: args["target"] as? String
         val ctrl = getController()
         if (ctrl != null) {
@@ -128,27 +128,27 @@ class CanvasTool(private val context: Context) : Tool {
             }
             Log.i(TAG, "canvas.present via CanvasController url=$url")
         } else {
-            // Fallback: 启动独立 CanvasActivity
+            // Fallback: Start独立 CanvasActivity
             CanvasManager.present(context, url)
         }
-        return ToolResult.success("{\"ok\":true}")
+        return Toolresult.success("{\"ok\":true}")
     }
 
-    private fun executeHide(): ToolResult {
+    private fun executeHide(): Toolresult {
         val ctrl = getController()
         if (ctrl != null) {
-            // 导航回默认首页（scaffold）
+            // 导航回Default首页(scaffold)
             ctrl.navigate("")
             Log.i(TAG, "canvas.hide via CanvasController (reset to scaffold)")
         } else {
             CanvasManager.hide()
         }
-        return ToolResult.success("{\"ok\":true}")
+        return Toolresult.success("{\"ok\":true}")
     }
 
-    private fun executeNavigate(args: Map<String, Any?>): ToolResult {
+    private fun executeNavigate(args: Map<String, Any?>): Toolresult {
         val url = args["url"] as? String ?: args["target"] as? String
-            ?: return ToolResult.error("url is required for navigate")
+            ?: return Toolresult.error("url is required for navigate")
         val ctrl = getController()
         if (ctrl != null) {
             val resolved = CanvasManager.resolveUrlPublic(url)
@@ -157,23 +157,23 @@ class CanvasTool(private val context: Context) : Tool {
         } else {
             CanvasManager.navigate(url)
         }
-        return ToolResult.success("{\"ok\":true}")
+        return Toolresult.success("{\"ok\":true}")
     }
 
-    private suspend fun executeEval(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeEval(args: Map<String, Any?>): Toolresult {
         val js = args["javaScript"] as? String
-            ?: return ToolResult.error("javaScript is required for eval")
+            ?: return Toolresult.error("javaScript is required for eval")
         val ctrl = getController()
         if (ctrl != null) {
             val result = ctrl.eval(js)
-            return ToolResult.success(result)
+            return Toolresult.success(result)
         } else {
             val result = CanvasManager.eval(js)
-            return ToolResult.success(result ?: "null")
+            return Toolresult.success(result ?: "null")
         }
     }
 
-    private suspend fun executeSnapshot(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeSnapshot(args: Map<String, Any?>): Toolresult {
         val formatRaw = (args["outputFormat"] as? String)?.lowercase() ?: "png"
         val maxWidth = (args["maxWidth"] as? Number)?.toInt()
         val quality = (args["quality"] as? Number)?.toDouble()
@@ -187,10 +187,10 @@ class CanvasTool(private val context: Context) : Tool {
             }
             val base64 = ctrl.snapshotBase64(format, quality, maxWidth)
             if (base64.isEmpty()) {
-                return ToolResult.error("Snapshot failed: empty result")
+                return Toolresult.error("Snapshot failed: empty result")
             }
             val mimeType = if (format == CanvasController.SnapshotFormat.Jpeg) "image/jpeg" else "image/png"
-            return ToolResult.success(
+            return Toolresult.success(
                 "{\"ok\":true, \"format\":\"${format.rawValue}\", \"mimeType\":\"$mimeType\"}",
                 metadata = mapOf(
                     "base64" to base64,
@@ -204,10 +204,10 @@ class CanvasTool(private val context: Context) : Tool {
             val q = (quality?.toInt()) ?: 90
             val result = CanvasManager.snapshot(format, maxWidth, q)
             if (result.base64.isEmpty()) {
-                return ToolResult.error("Snapshot failed: empty result")
+                return Toolresult.error("Snapshot failed: empty result")
             }
             val mimeType = if (format == "jpeg") "image/jpeg" else "image/png"
-            return ToolResult.success(
+            return Toolresult.success(
                 "{\"ok\":true, \"format\":\"${result.format}\", \"width\":${result.width}, \"height\":${result.height}, \"mimeType\":\"$mimeType\"}",
                 metadata = mapOf(
                     "base64" to result.base64,
@@ -220,9 +220,9 @@ class CanvasTool(private val context: Context) : Tool {
         }
     }
 
-    private suspend fun executeA2uiPush(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeA2uiPush(args: Map<String, Any?>): Toolresult {
         val jsonl = args["jsonl"] as? String
-            ?: return ToolResult.error("jsonl is required for a2ui_push")
+            ?: return Toolresult.error("jsonl is required for a2ui_push")
         val escaped = jsonl.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
         val js = """
             (function() {
@@ -237,18 +237,18 @@ class CanvasTool(private val context: Context) : Tool {
         val ctrl = getController()
         if (ctrl != null) {
             val result = ctrl.eval(js)
-            return ToolResult.success("{\"ok\":true,\"result\":$result}")
+            return Toolresult.success("{\"ok\":true,\"result\":$result}")
         } else {
             val activity = CanvasManager.currentActivity
-                ?: return ToolResult.error("No active Canvas for a2ui_push")
+                ?: return Toolresult.error("No active Canvas for a2ui_push")
             activity.runOnUiThread {
                 activity.webView.evaluateJavascript(js, null)
             }
-            return ToolResult.success("{\"ok\":true}")
+            return Toolresult.success("{\"ok\":true}")
         }
     }
 
-    private suspend fun executeA2uiReset(): ToolResult {
+    private suspend fun executeA2uiReset(): Toolresult {
         val js = """
             (function() {
                 if (window.__openclaw && window.__openclaw.a2ui && window.__openclaw.a2ui.reset) {
@@ -262,14 +262,14 @@ class CanvasTool(private val context: Context) : Tool {
         val ctrl = getController()
         if (ctrl != null) {
             val result = ctrl.eval(js)
-            return ToolResult.success("{\"ok\":true,\"result\":$result}")
+            return Toolresult.success("{\"ok\":true,\"result\":$result}")
         } else {
             val activity = CanvasManager.currentActivity
-                ?: return ToolResult.error("No active Canvas for a2ui_reset")
+                ?: return Toolresult.error("No active Canvas for a2ui_reset")
             activity.runOnUiThread {
                 activity.webView.evaluateJavascript(js, null)
             }
-            return ToolResult.success("{\"ok\":true}")
+            return Toolresult.success("{\"ok\":true}")
         }
     }
 }

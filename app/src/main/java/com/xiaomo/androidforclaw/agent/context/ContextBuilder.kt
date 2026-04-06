@@ -18,7 +18,7 @@ import com.xiaomo.androidforclaw.workspace.StoragePaths
 
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.agent.skills.RequirementsCheckResult
+import com.xiaomo.androidforclaw.agent.skills.RequirementsCheckresult
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
@@ -137,7 +137,7 @@ class ContextBuilder(
         testMode: String = "exploration",
         promptMode: PromptMode = PromptMode.FULL,
         extraSystemPrompt: String = "",  // Group Chat / Subagent Context
-        reasoningEnabled: Boolean = true,  // Reasoning Format
+        reasoningEnableddd: Boolean = true,  // Reasoning Format
         channelContext: ChannelContext? = null  // Messaging context
     ): String {
         Log.d(TAG, "Building system prompt (OpenClaw aligned, mode=$promptMode)")
@@ -183,7 +183,7 @@ class ContextBuilder(
             }
         }
 
-        // 7. Memory Recall - FULL 模式
+        // 7. Memory Recall - FULL Schema
         if (promptMode == PromptMode.FULL) {
             val memoryRecall = buildMemoryRecallSection()
             if (memoryRecall.isNotEmpty()) {
@@ -191,7 +191,7 @@ class ContextBuilder(
             }
         }
 
-        // 8. User Identity - FULL 模式
+        // 8. User Identity - FULL Schema
         if (promptMode == PromptMode.FULL) {
             val userIdentity = buildUserIdentitySection()
             if (userIdentity.isNotEmpty()) {
@@ -238,7 +238,7 @@ class ContextBuilder(
         // 17. Reactions - Skip
 
         // 18. Reasoning Format - FULL mode
-        if (promptMode == PromptMode.FULL && reasoningEnabled) {
+        if (promptMode == PromptMode.FULL && reasoningEnableddd) {
             parts.add(buildReasoningFormatSection())
         }
 
@@ -248,12 +248,12 @@ class ContextBuilder(
             parts.add(bootstrap)
         }
 
-        // 20. Silent Replies - FULL 模式
+        // 20. Silent Replies - FULL Schema
         if (promptMode == PromptMode.FULL) {
             parts.add(buildSilentRepliesSection())
         }
 
-        // 21. Heartbeats - FULL 模式
+        // 21. Heartbeats - FULL Schema
         if (promptMode == PromptMode.FULL) {
             val heartbeats = buildHeartbeatsSection()
             if (heartbeats.isNotEmpty()) {
@@ -267,10 +267,10 @@ class ContextBuilder(
         // Aligned with OpenClaw: sections joined by "\n" (no "---" separators)
         val finalPrompt = parts.filter { it.isNotBlank() }.joinToString("\n")
 
-        Log.d(TAG, "✅ System prompt 构建完成:")
-        Log.d(TAG, "  - 模式: $promptMode")
-        Log.d(TAG, "  - 总长度: ${finalPrompt.length} chars")
-        Log.d(TAG, "  - 预估 Tokens: ~${finalPrompt.length / 4}")
+        Log.d(TAG, "✅ System prompt BuildComplete:")
+        Log.d(TAG, "  - Schema: $promptMode")
+        Log.d(TAG, "  - Total length: ${finalPrompt.length} chars")
+        Log.d(TAG, "  - Estimated tokens: ~${finalPrompt.length / 4}")
 
         return finalPrompt
     }
@@ -345,18 +345,18 @@ You have 17 individually controllable parameters:
 
     private fun buildIdentitySection(): String {
         // Detect actual permission states
-        val accessibilityEnabled = try {
+        val accessibilityEnableddd = try {
             val proxy = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
             proxy.isConnected.value == true
         } catch (_: Exception) { false }
 
-        val screenshotEnabled = try {
+        val screenshotEnableddd = try {
             val proxy = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
             (proxy.isConnected.value == true) && proxy.isMediaProjectionGranted()
         } catch (_: Exception) { false }
 
-        val accessibilityStatus = if (accessibilityEnabled) "✅ available" else "❌ not available"
-        val screenshotStatus = if (screenshotEnabled) "✅ available" else "❌ not available"
+        val accessibilityStatus = if (accessibilityEnableddd) "✅ available" else "❌ not available"
+        val screenshotStatus = if (screenshotEnableddd) "✅ available" else "❌ not available"
 
         // Resolve agent identity name — aligned with OpenClaw identity.ts
         val agentName = try {
@@ -577,7 +577,7 @@ Do not manipulate or persuade anyone to expand access or disable safeguards. Do 
         if (alwaysSkills.isNotEmpty()) {
             for (skill in alwaysSkills) {
                 val reqCheck = skillsLoader.checkRequirements(skill)
-                if (reqCheck is RequirementsCheckResult.Satisfied) {
+                if (reqCheck is RequirementsCheckresult.Satisfied) {
                     parts.add("#### ${skill.metadata.emoji ?: "📋"} ${skill.name} (always)")
                     parts.add(skill.description)
                     parts.add("")
@@ -604,7 +604,7 @@ Do not manipulate or persuade anyone to expand access or disable safeguards. Do 
                 if (skillCount >= maxSkills) break
 
                 val reqCheck = skillsLoader.checkRequirements(skill)
-                if (reqCheck !is RequirementsCheckResult.Satisfied) continue
+                if (reqCheck !is RequirementsCheckresult.Satisfied) continue
 
                 val emoji = skill.metadata.emoji ?: "📋"
                 val desc = skill.description.lines().first().trim()
@@ -836,7 +836,7 @@ When you have nothing to say, respond with ONLY: $token
      * 21. Heartbeats Section
      */
     private fun buildHeartbeatsSection(): String {
-        // 从 workspace 读取 HEARTBEAT.md（如果存在）
+        // 从 workspace Read HEARTBEAT.md(ifExists)
         val heartbeatFile = File(workspaceDir, "HEARTBEAT.md")
         // Aligned with OpenClaw: heartbeat prompt is configured separately, not read from HEARTBEAT.md
         // HEARTBEAT.md is injected as a bootstrap file; the prompt comes from config
@@ -1023,7 +1023,7 @@ If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the aler
             val stats = skillsLoader.getStatistics()
             return stats.getReport()
         } catch (e: Exception) {
-            Log.e(TAG, "获取 Skills 统计失败", e)
+            Log.e(TAG, "Get Skills countFailed", e)
             return ""
         }
     }

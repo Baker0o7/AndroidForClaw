@@ -100,7 +100,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // Gateway Controller
         private var gatewayController: GatewayController? = null
 
-        // 本地进程内 channel（绕过 WebSocket）
+        // 本地ProcessInside channel(绕过 WebSocket)
         private var localGatewayChannel: com.xiaomo.androidforclaw.gateway.LocalGatewayChannel? = null
 
         fun isGatewayRunning(): Boolean = gatewayController != null
@@ -163,19 +163,19 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // Accessibility Health Monitor
         private var healthMonitor: AccessibilityHealthMonitor? = null
 
-        // Camera Capture Manager (对齐 OpenClaw CameraCaptureManager)
+        // Camera Capture Manager (Aligned with OpenClaw CameraCaptureManager)
         private var cameraCaptureManager: CameraCaptureManager? = null
 
         fun getCameraCaptureManager(): CameraCaptureManager? = cameraCaptureManager
 
         private fun onAppForeground() {
-            Log.d(TAG, "App回到前台")
+            Log.d(TAG, "App回到Front台")
             // Check if test task is running, if so ensure WakeLock is acquired
             ensureWakeLockForTesting()
         }
 
         private fun onAppBackground() {
-            Log.d(TAG, "App进入后台")
+            Log.d(TAG, "AppInto入Back台")
             // Check if test task is running, if so ensure WakeLock is acquired
             ensureWakeLockForTesting()
         }
@@ -201,25 +201,25 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     if (isRunning) {
                         // Test task is running, ensure WakeLock is acquired
                         // acquireScreenWakeLock has internal duplicate acquisition prevention, safe to call
-                        Log.d(TAG, "检测到测试任务在运行，确保 WakeLock 已获取（应用状态: ${if (activeActivityCount == 0) "后台" else "前台"}）")
+                        Log.d(TAG, "DetectedTestTask在Run, Ensure WakeLock 已Get(applyStatus: ${if (activeActivityCount == 0) "Back台" else "Front台"})")
                         WakeLockManager.acquireScreenWakeLock()
                     } else {
                         // Test task has stopped, release WakeLock
-                        Log.d(TAG, "测试任务已停止，释放 WakeLock")
+                        Log.d(TAG, "TestTask已Stop, Release WakeLock")
                         WakeLockManager.releaseScreenWakeLock()
                     }
                 } else {
                     // No test task, ensure WakeLock is released
                     // releaseScreenWakeLock has internal check, skip if not active
                     if (WakeLockManager.isScreenWakeLockActive()) {
-                        Log.d(TAG, "没有测试任务，释放 WakeLock")
+                        Log.d(TAG, "NoneTestTask, Release WakeLock")
                         WakeLockManager.releaseScreenWakeLock()
                     } else {
-                        Log.d(TAG, "没有测试任务，WakeLock 未激活，无需释放")
+                        Log.d(TAG, "NoneTestTask, WakeLock 未Activate, None需Release")
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "检查测试任务状态失败: ${e.message}", e)
+                Log.e(TAG, "CheckTestTaskStatusFailed: ${e.message}", e)
             }
         }
 
@@ -236,9 +236,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 androidx.localbroadcastmanager.content.LocalBroadcastManager
                     .getInstance(application)
                     .sendBroadcast(intent)
-                Log.d(TAG, "✅ 已发送本地广播")
+                Log.d(TAG, "✅ 已send本地Broadcast")
             } catch (e: Exception) {
-                Log.e(TAG, "发送本地广播失败: ${e.message}", e)
+                Log.e(TAG, "send本地BroadcastFailed: ${e.message}", e)
             }
         }
     }
@@ -256,7 +256,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         com.xiaomo.androidforclaw.config.ProviderRegistry.init(this)
         registerActivityLifecycleCallbacks(this)
 
-        // 初始化 CameraCaptureManager (对齐 OpenClaw camera.snap/clip)
+        // Initialize CameraCaptureManager (Aligned with OpenClaw camera.snap/clip)
         cameraCaptureManager = CameraCaptureManager(this)
 
         // Initialize file logging system
@@ -282,7 +282,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
         // ⚠️ Block 1: SkillParser test temporarily skipped (JSON parsing issue pending fix)
         // testSkillParser()
-        Log.i(TAG, "⏭️  Block 1 测试已跳过，应用继续启动")
+        Log.i(TAG, "⏭️  Block 1 Test已Skip, applyContinueStart")
 
         // Check if test task is running on app startup, if so acquire WakeLock
         // Delayed check to ensure TaskDataManager is initialized
@@ -293,8 +293,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // 🌐 Start Gateway service
         startGatewayService()
 
-        // 🐧 Termux SSH pre-warm: 仅在 sshd 已运行时 warm-up，不主动拉起 Termux
-        // Termux 按需启动：在 AI 实际调用 exec 工具时才会触发 ensureAndLaunch
+        // 🐧 Termux SSH pre-warm: 仅在 sshd 已Run时 warm-up, 不主动拉起 Termux
+        // Termux 按需Start: 在 AI 实际call exec 工具时才会触发 ensureAndLaunch
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val termux = com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool(applicationContext)
@@ -304,7 +304,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationContext)
                     Log.i(TAG, "✅ Termux SSH pool warmed up (sshd already running)")
                 } else {
-                    Log.i(TAG, "Termux SSH warm-up skipped: sshd not running (按需启动)")
+                    Log.i(TAG, "Termux SSH warm-up skipped: sshd not running (按需Start)")
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Termux SSH warm-up skipped: ${e.message}")
@@ -315,7 +315,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         if (hasStoragePermission()) {
             startAllChannels()
         } else {
-            Log.w(TAG, "⚠️ 存储权限未授权，跳过 Channel 初始化。授权后将自动启动。")
+            Log.w(TAG, "⚠️ StoragePermission未Authorize, Skip Channel Initialize. AuthorizeBack将AutoStart. ")
         }
 
         // 🪟 Initialize floating window manager
@@ -329,9 +329,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         GlobalScope.launch(Dispatchers.Main) {
             AccessibilityProxy.isConnected.observeForever { connected ->
                 if (connected) {
-                    Log.i(TAG, "✅ 无障碍服务已连接")
+                    Log.i(TAG, "✅ AccessibilityService已Connect")
                 } else {
-                    Log.w(TAG, "⚠️ 无障碍服务未连接")
+                    Log.w(TAG, "⚠️ AccessibilityServiceNot connected")
                 }
             }
         }
@@ -355,12 +355,12 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             } else {
                 startService(serviceIntent)
             }
-            Log.i(TAG, "✅ 前台服务已启动（保活）")
+            Log.i(TAG, "✅ Front台Service已Start(保活)")
         } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
             // Android 14+: cannot start foreground service from background
-            Log.w(TAG, "⚠️ 前台服务启动受限（应用在后台），将在下次回到前台时重试")
+            Log.w(TAG, "⚠️ Front台ServiceStart受限(apply在Back台), 将在Down次回到Front台时Retry")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ 前台服务启动失败", e)
+            Log.e(TAG, "❌ Front台ServiceStartFailed", e)
         }
     }
 
@@ -377,7 +377,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             gatewayServer = GatewayServer(this, port = 19789)
             gatewayServer?.start()
 
-            Log.i(TAG, "✅ Gateway Server 启动成功")
+            Log.i(TAG, "✅ Gateway Server StartSuccess")
             Log.i(TAG, "  - HTTP: http://0.0.0.0:19789")
             Log.i(TAG, "  - WebSocket: ws://0.0.0.0:19789/ws")
 
@@ -389,12 +389,12 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         Log.i(TAG, "  - 局域网访问: http://$ip:19789")
                     }
                 } catch (e: Exception) {
-                    Log.w(TAG, "无法获取本机 IP", e)
+                    Log.w(TAG, "CannotGet本机 IP", e)
                 }
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Gateway Server 启动失败", e)
+            Log.e(TAG, "❌ Gateway Server StartFailed", e)
         }
     }
 
@@ -415,7 +415,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "获取 IP 地址失败", e)
+            Log.e(TAG, "Get IP 地址Failed", e)
         }
         return null
     }
@@ -429,9 +429,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun initializeFileLogger() {
         try {
             com.xiaomo.androidforclaw.logging.AppLog.init(this)
-            Log.i(TAG, "✅ 文件日志系统已初始化")
+            Log.i(TAG, "✅ 文件Log系统已Initialize")
         } catch (e: Exception) {
-            Log.e(TAG, "初始化文件日志系统失败", e)
+            Log.e(TAG, "Initialize文件Log系统Failed", e)
         }
     }
 
@@ -441,9 +441,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun initializeCronJobs() {
         try {
             com.xiaomo.androidforclaw.cron.CronInitializer.initialize(this)
-            Log.i(TAG, "✅ Cron 系统已初始化")
+            Log.i(TAG, "✅ Cron 系统已Initialize")
         } catch (e: Exception) {
-            Log.e(TAG, "初始化 Cron 系统失败", e)
+            Log.e(TAG, "Initialize Cron 系统Failed", e)
         }
     }
 
@@ -456,35 +456,35 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
             if (!initializer.isWorkspaceInitialized()) {
                 Log.i(TAG, "========================================")
-                Log.i(TAG, "📁 首次启动 - 初始化 Workspace...")
+                Log.i(TAG, "📁 首次Start - Initialize Workspace...")
                 Log.i(TAG, "========================================")
 
                 val success = initializer.initializeWorkspace()
 
                 if (success) {
-                    Log.i(TAG, "✅ Workspace 初始化成功")
-                    Log.i(TAG, "   路径: ${initializer.getWorkspacePath()}")
+                    Log.i(TAG, "✅ Workspace InitializeSuccess")
+                    Log.i(TAG, "   Path: ${initializer.getWorkspacePath()}")
                     Log.i(TAG, "   Device ID: ${initializer.getDeviceId()}")
                     Log.i(TAG, "   文件: BOOTSTRAP.md, IDENTITY.md, USER.md, SOUL.md, AGENTS.md, TOOLS.md")
                 } else {
-                    Log.e(TAG, "❌ Workspace 初始化失败")
+                    Log.e(TAG, "❌ Workspace InitializeFailed")
                 }
             } else {
-                Log.d(TAG, "Workspace 已初始化: ${initializer.getWorkspacePath()}")
+                Log.d(TAG, "Workspace 已Initialize: ${initializer.getWorkspacePath()}")
             }
 
             // Always ensure bundled skills are deployed (copies missing, won't overwrite)
             initializer.ensureBundledSkills()
 
         } catch (e: Exception) {
-            Log.e(TAG, "初始化 Workspace 失败", e)
+            Log.e(TAG, "Initialize Workspace Failed", e)
         }
     }
 
     private fun testConfigSystem() {
         try {
             Log.d(TAG, "========================================")
-            Log.d(TAG, "🧪 配置系统测试开始")
+            Log.d(TAG, "🧪 Config系统TestStart")
             Log.d(TAG, "========================================")
 
             // Run basic config tests
@@ -495,11 +495,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
             Log.d(TAG, "")
             Log.d(TAG, "========================================")
-            Log.i(TAG, "✅ 配置系统测试完成!")
+            Log.i(TAG, "✅ Config系统TestComplete!")
             Log.d(TAG, "========================================")
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ 配置系统测试异常: ${e.message}", e)
+            Log.e(TAG, "❌ Config系统TestException: ${e.message}", e)
         }
     }
 
@@ -511,7 +511,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun startAutoTest() {
         try {
             Log.i(TAG, "========================================")
-            Log.i(TAG, "🚀 启动自动测试")
+            Log.i(TAG, "🚀 StartAutoTest")
             Log.i(TAG, "========================================")
             /*
             */
@@ -525,13 +525,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         application = application
                     )
                 } catch (e: Exception) {
-                    Log.e(TAG, "自动测试执行失败: ${e.message}", e)
+                    Log.e(TAG, "AutoTest执RowFailed: ${e.message}", e)
                 }
             }
             */
 
         } catch (e: Exception) {
-            Log.e(TAG, "启动自动测试失败: ${e.message}", e)
+            Log.e(TAG, "StartAutoTestFailed: ${e.message}", e)
         }
     }
 
@@ -541,7 +541,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun startGatewayService() {
         try {
             Log.i(TAG, "========================================")
-            Log.i(TAG, "🌐 启动 Gateway 服务 (GatewayController)...")
+            Log.i(TAG, "🌐 Start Gateway Service (GatewayController)...")
             Log.i(TAG, "========================================")
 
             // Initialize TaskDataManager
@@ -567,7 +567,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 modelRef = null
             )
 
-            // Create GatewayController（端口可从 MMKV 配置，默认 8765）
+            // Create GatewayController(端口可从 MMKV Config, Default 8765)
             val gwUrl = com.tencent.mmkv.MMKV.defaultMMKV()
                 ?.decodeString(com.xiaomo.androidforclaw.util.MMKVKeys.GATEWAY_URL.key, "ws://127.0.0.1:8765")
                 ?: "ws://127.0.0.1:8765"
@@ -584,22 +584,22 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 authToken = null // Temporarily disable auth
             )
 
-            Log.i(TAG, "✅ GatewayController 实例创建成功")
+            Log.i(TAG, "✅ GatewayController InstanceCreateSuccess")
 
-            // 创建本地进程内 channel，绕过 WebSocket
+            // Create本地ProcessInside channel, 绕过 WebSocket
             localGatewayChannel = com.xiaomo.androidforclaw.gateway.LocalGatewayChannel(gatewayController!!)
-            Log.i(TAG, "✅ LocalGatewayChannel 创建成功")
+            Log.i(TAG, "✅ LocalGatewayChannel CreateSuccess")
 
             // Start service
             gatewayController?.start()
 
             Log.i(TAG, "========================================")
-            Log.i(TAG, "✅ Gateway 服务已启动: ws://0.0.0.0:$gwPort")
+            Log.i(TAG, "✅ Gateway Service已Start: ws://0.0.0.0:$gwPort")
             Log.i(TAG, "========================================")
 
         } catch (e: Exception) {
             Log.e(TAG, "========================================")
-            Log.e(TAG, "❌ Gateway 初始化失败", e)
+            Log.e(TAG, "❌ Gateway InitializeFailed", e)
             e.printStackTrace()
             Log.e(TAG, "========================================")
         }
@@ -626,20 +626,20 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     fun startAllChannels() {
         if (!channelsStarted.compareAndSet(false, true)) {
-            Log.i(TAG, "⏭️ startAllChannels() 已启动过，跳过重复调用")
+            Log.i(TAG, "⏭️ startAllChannels() 已Start过, SkipDuplicatecall")
             return
         }
-        Log.i(TAG, "🚀 startAllChannels() — 启动所有消息通道")
-        startFeishuChannelIfEnabled()
-        startDiscordChannelIfEnabled()
-        startTelegramChannelIfEnabled()
-        startSlackChannelIfEnabled()
-        startSignalChannelIfEnabled()
-        startWeixinChannelIfEnabled()
+        Log.i(TAG, "🚀 startAllChannels() — StartAllMessage通道")
+        startFeishuChannelIfEnableddd()
+        startDiscordChannelIfEnableddd()
+        startTelegramChannelIfEnableddd()
+        startSlackChannelIfEnableddd()
+        startSignalChannelIfEnableddd()
+        startWeixinChannelIfEnableddd()
     }
 
     fun restartAllChannels() {
-        Log.i(TAG, "🔄 restartAllChannels() — 重启所有消息通道")
+        Log.i(TAG, "🔄 restartAllChannels() — RestartAllMessage通道")
         channelsStarted.set(false)
         startAllChannels()
     }
@@ -647,13 +647,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     /**
      * Start Feishu Channel (if enabled in config)
      */
-    private fun startFeishuChannelIfEnabled() {
-        Log.i(TAG, "⏰ startFeishuChannelIfEnabled() 被调用")
+    private fun startFeishuChannelIfEnableddd() {
+        Log.i(TAG, "⏰ startFeishuChannelIfEnableddd() 被call")
         val scope = CoroutineScope(Dispatchers.IO)
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 Log.i(TAG, "========================================")
-                Log.i(TAG, "📱 检查 Feishu Channel 配置...")
+                Log.i(TAG, "📱 Check Feishu Channel Config...")
                 Log.i(TAG, "========================================")
 
                 val configLoader = ConfigLoader(this@MyApplication)
@@ -661,14 +661,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 val feishuConfig = openClawConfig.channels.feishu
 
                 if (!feishuConfig.enabled) {
-                    Log.i(TAG, "⏭️  Feishu Channel 未启用，跳过初始化")
-                    Log.i(TAG, "   配置路径: /sdcard/.androidforclaw/openclaw.json")
-                    Log.i(TAG, "   设置 channels.feishu.enabled = true 以启用")
+                    Log.i(TAG, "⏭️  Feishu Channel 未Enabledd, SkipInitialize")
+                    Log.i(TAG, "   ConfigPath: /sdcard/.androidforclaw/openclaw.json")
+                    Log.i(TAG, "   Settings channels.feishu.enabled = true 以Enabledd")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
 
-                Log.i(TAG, "✅ Feishu Channel 已启用，准备启动...")
+                Log.i(TAG, "✅ Feishu Channel 已Enabledd, 准备Start...")
                 Log.i(TAG, "   App ID: ${feishuConfig.appId}")
                 Log.i(TAG, "   Domain: ${feishuConfig.domain}")
                 Log.i(TAG, "   Mode: ${feishuConfig.connectionMode}")
@@ -713,7 +713,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     val mmkv = MMKV.defaultMMKV()
                     mmkv?.encode("channel_feishu_enabled", true)
 
-                    // 获取 PARTIAL_WAKE_LOCK 保持 CPU 运行，防止锁屏后 Doze 断网
+                    // Get PARTIAL_WAKE_LOCK 保持 CPU Run, PreventLock屏Back Doze 断网
                     try {
                         val pm = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
                         val wl = pm.newWakeLock(
@@ -723,14 +723,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         wl.setReferenceCounted(false)
                         wl.acquire()
                         feishuWakeLock = wl
-                        Log.i(TAG, "🔒 已获取 Feishu Channel WakeLock（防止锁屏断连）")
+                        Log.i(TAG, "🔒 已Get Feishu Channel WakeLock(PreventLock屏断连)")
                     } catch (e: Exception) {
-                        Log.w(TAG, "获取 Feishu WakeLock 失败: ${e.message}")
+                        Log.w(TAG, "Get Feishu WakeLock Failed: ${e.message}")
                     }
 
                     Log.i(TAG, "========================================")
-                    Log.i(TAG, "✅ Feishu Channel 启动成功!")
-                    Log.i(TAG, "   现在可以接收飞书消息了")
+                    Log.i(TAG, "✅ Feishu Channel StartSuccess!")
+                    Log.i(TAG, "   nowCanreceive飞书Message了")
                     Log.i(TAG, "========================================")
 
                     // Register feishu tools into MainEntryNew's ToolRegistry
@@ -742,12 +742,12 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             // Register Feishu tools into function-call ToolRegistry
                             // (skills are guidance; actual tool execution still needs registry entry)
                             val count = com.xiaomo.androidforclaw.agent.tools.registerFeishuTools(mainToolRegistry, ftr)
-                            Log.i(TAG, "🔧 已注册 $count 个飞书工具到 MainEntryNew ToolRegistry")
+                            Log.i(TAG, "🔧 已Register $count Feishu tools to MainEntryNew ToolRegistry")
                         } else {
-                            Log.w(TAG, "⚠️ MainEntryNew 未初始化，飞书工具将在首次消息处理时注册")
+                            Log.w(TAG, "⚠️ MainEntryNew 未Initialize, 飞书工具将在首次MessageProcess时Register")
                         }
                     } catch (e: Exception) {
-                        Log.w(TAG, "飞书工具注册到 MainEntryNew 失败: ${e.message}")
+                        Log.w(TAG, "飞书工具Register到 MainEntryNew Failed: ${e.message}")
                     }
 
                     // Subscribe to event flow, handle received messages
@@ -762,8 +762,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     mmkv?.encode("channel_feishu_enabled", false)
 
                     Log.e(TAG, "========================================")
-                    Log.e(TAG, "❌ Feishu Channel 启动失败")
-                    Log.e(TAG, "   错误: ${result?.exceptionOrNull()?.message}")
+                    Log.e(TAG, "❌ Feishu Channel StartFailed")
+                    Log.e(TAG, "   Error: ${result?.exceptionOrNull()?.message}")
                     Log.e(TAG, "========================================")
                 }
 
@@ -773,7 +773,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 mmkv?.encode("channel_feishu_enabled", false)
 
                 Log.e(TAG, "========================================")
-                Log.e(TAG, "❌ Feishu Channel 初始化异常", e)
+                Log.e(TAG, "❌ Feishu Channel InitializeException", e)
                 Log.e(TAG, "========================================")
             }
         }
@@ -882,14 +882,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             // 1. Add "typing" reaction (Typing Indicator)
             val configLoader = ConfigLoader(this@MyApplication)
             val openClawConfig = configLoader.loadOpenClawConfig()
-            val typingIndicatorEnabled = openClawConfig.channels.feishu.typingIndicator
+            val typingIndicatorEnableddd = openClawConfig.channels.feishu.typingIndicator
 
-            if (typingIndicatorEnabled) {
-                Log.d(TAG, "⌨️  添加输入中表情...")
-                val reactionResult = feishuChannel?.addReaction(event.messageId, "Typing")
-                if (reactionResult?.isSuccess == true) {
-                    typingReactionId = reactionResult.getOrNull()
-                    Log.d(TAG, "✅ 输入中表情已添加: $typingReactionId")
+            if (typingIndicatorEnableddd) {
+                Log.d(TAG, "⌨️  AddInput中Table情...")
+                val reactionresult = feishuChannel?.addReaction(event.messageId, "Typing")
+                if (reactionresult?.isSuccess == true) {
+                    typingReactionId = reactionresult.getOrNull()
+                    Log.d(TAG, "✅ Input中Table情已Add: $typingReactionId")
                 }
             }
 
@@ -901,7 +901,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 Log.d(TAG, "🔕 noReply directive detected, skipping reply")
                 // Remove reaction and return immediately
                 if (typingReactionId != null) {
-                    Log.d(TAG, "🧹 移除输入中表情...")
+                    Log.d(TAG, "🧹 移除Input中Table情...")
                     feishuChannel?.removeReaction(event.messageId, typingReactionId)
                 }
                 return
@@ -909,7 +909,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
             // 3. Remove typing reaction
             if (typingReactionId != null) {
-                Log.d(TAG, "🧹 移除输入中表情...")
+                Log.d(TAG, "🧹 移除Input中Table情...")
                 feishuChannel?.removeReaction(event.messageId, typingReactionId)
             }
 
@@ -938,20 +938,20 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "处理飞书消息失败", e)
+            Log.e(TAG, "Process飞书MessageFailed", e)
             // Ensure reaction is removed (even if error occurs)
             if (typingReactionId != null) {
                 try {
                     feishuChannel?.removeReaction(event.messageId, typingReactionId)
                 } catch (cleanupError: Exception) {
-                    Log.w(TAG, "清理输入中表情失败", cleanupError)
+                    Log.w(TAG, "清理Input中Table情Failed", cleanupError)
                 }
             }
-            // 发送错误提示给用户，避免静默无回复
+            // sendErrorHint给User, 避免静默None回复
             try {
-                sendFeishuReply(event, "⚠️ 处理消息时出错：${e.message?.take(200) ?: "未知错误"}")
+                sendFeishuReply(event, "⚠️ ProcessMessage时出错: ${e.message?.take(200) ?: "UnknownError"}")
             } catch (sendError: Exception) {
-                Log.e(TAG, "发送错误提示也失败了", sendError)
+                Log.e(TAG, "sendErrorHintAlsoFailed了", sendError)
             }
         }
     }
@@ -1006,10 +1006,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private fun handleFeishuEvent(event: com.xiaomo.feishu.FeishuEvent) {
         when (event) {
             is com.xiaomo.feishu.FeishuEvent.Message -> {
-                Log.i(TAG, "📨 收到飞书消息")
-                Log.i(TAG, "   发送者: ${event.senderId}")
-                Log.i(TAG, "   内容: ${event.content}")
-                Log.i(TAG, "   聊天类型: ${event.chatType}")
+                Log.i(TAG, "📨 收到飞书Message")
+                Log.i(TAG, "   send者: ${event.senderId}")
+                Log.i(TAG, "   Inside容: ${event.content}")
+                Log.i(TAG, "   ChatType: ${event.chatType}")
                 Log.i(TAG, "   Mentions: ${event.mentions}")
 
                 // 🔄 Update current chat context (for Agent tool use)
@@ -1018,7 +1018,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     receiveIdType = "chat_id",
                     messageId = event.messageId
                 )
-                Log.d(TAG, "✅ 已更新当前对话上下文: chatId=${event.chatId}")
+                Log.d(TAG, "✅ 已Update当FrontConversationUpDown文: chatId=${event.chatId}")
 
                 // ✅ Check message permissions (aligned with OpenClaw bot.ts)
                 try {
@@ -1035,7 +1035,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             "pairing" -> {
                                 // TODO: Implement pairing logic
                                 // Temporarily allow all DMs (dev mode)
-                                Log.d(TAG, "✅ DM allowed (pairing mode - 暂未实现配对验证)")
+                                Log.d(TAG, "✅ DM allowed (pairing mode - 暂未Implementation配对Validate)")
                             }
                             "allowlist" -> {
                                 // Check allowlist
@@ -1048,16 +1048,16 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                     if (sender != null) {
                                         kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                             try {
-                                                val rejectMessage = "⚠️ 抱歉，你的账号不在白名单中，无法使用此机器人。\n\n你的飞书 User ID: `${event.senderId}`\n\n如需使用，请联系管理员将你的 User ID 添加到白名单。"
+                                                val rejectMessage = "⚠️ sorry, YourAccount不在白名单中, Cannotuse此机器人. \n\nYour飞书 User ID: `${event.senderId}`\n\nsuch as需use, 请联系Manage员将Your User ID Add到白名单. "
                                                 sender.sendTextMessage(
                                                     receiveId = event.chatId,
                                                     text = rejectMessage,
                                                     receiveIdType = "chat_id",
                                                     renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO
                                                 )
-                                                Log.i(TAG, "✅ 已发送白名单拒绝提示")
+                                                Log.i(TAG, "✅ 已send白名单denyHint")
                                             } catch (e: Exception) {
-                                                Log.e(TAG, "❌ 发送白名单拒绝提示失败: ${e.message}")
+                                                Log.e(TAG, "❌ send白名单denyHintFailed: ${e.message}")
                                             }
                                         }
                                     }
@@ -1085,46 +1085,46 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         if (requireMention) {
                             // Check @_all (aligned with OpenClaw: treat as @ all bots)
                             if (event.content.contains("@_all")) {
-                                Log.d(TAG, "✅ 消息包含 @_all")
+                                Log.d(TAG, "✅ MessageContains @_all")
                             } else if (event.mentions.isEmpty()) {
                                 // No @mention at all
-                                Log.w(TAG, "❌ 群消息需要 @机器人，但没有任何 @mention，忽略此消息")
-                                Log.w(TAG, "   消息内容: ${event.content}")
+                                Log.w(TAG, "❌ 群MessageNeed @机器人, 但None任何 @mention, Ignore此Message")
+                                Log.w(TAG, "   MessageInside容: ${event.content}")
                                 return
                             } else {
                                 // Has @mention, check if bot is @mentioned
                                 val botOpenId = feishuChannel?.getBotOpenId()
                                 if (botOpenId == null) {
                                     // Cannot get bot open_id, reject message for safety
-                                    Log.w(TAG, "❌ 无法获取 bot open_id，无法验证 @mention，忽略此消息")
-                                    Log.w(TAG, "   提示: 检查飞书配置或网络连接，确保能获取机器人信息")
+                                    Log.w(TAG, "❌ CannotGet bot open_id, CannotValidate @mention, Ignore此Message")
+                                    Log.w(TAG, "   Hint: Check飞书Config或NetworkConnect, Ensure能Get机器人Info")
                                     return
                                 } else if (botOpenId !in event.mentions) {
-                                    // open_id 不匹配，用 mentionNames 兜底（Lark SDK 偶现 open_id 解析异常）
+                                    // open_id 不match, 用 mentionNames 兜底(Lark SDK 偶现 open_id ParseException)
                                     val botName = feishuChannel?.getBotName()
                                     val nameMatch = botName != null && event.mentionNames.any {
                                         it.equals(botName, ignoreCase = true)
                                     }
                                     if (nameMatch) {
-                                        Log.w(TAG, "⚠️ 群消息 @mention open_id 不匹配(${event.mentions})，但 name 匹配($botName)，放行")
+                                        Log.w(TAG, "⚠️ 群Message @mention open_id 不match(${event.mentions}), 但 name match($botName), 放Row")
                                     } else {
-                                        Log.w(TAG, "❌ 群消息 @了其他人但没有 @机器人(${botOpenId})，忽略此消息")
-                                        Log.w(TAG, "   消息内容: ${event.content}")
+                                        Log.w(TAG, "❌ 群Message @了Its他人但None @机器人(${botOpenId}), Ignore此Message")
+                                        Log.w(TAG, "   MessageInside容: ${event.content}")
                                         Log.w(TAG, "   Bot Open ID: $botOpenId, Bot Name: $botName")
                                         Log.w(TAG, "   Mentions: ${event.mentions}")
                                         Log.w(TAG, "   MentionNames: ${event.mentionNames}")
                                         return
                                     }
                                 } else {
-                                    Log.d(TAG, "✅ 群消息包含机器人的 @mention")
+                                    Log.d(TAG, "✅ 群MessageContains机器人的 @mention")
                                 }
                             }
                         } else {
-                            Log.d(TAG, "✅ 群消息无需 @机器人（requireMention=false）")
+                            Log.d(TAG, "✅ 群MessageNone需 @机器人(requireMention=false)")
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "检查消息权限失败", e)
+                    Log.e(TAG, "CheckMessagePermissionFailed", e)
                     // For safety, ignore message on error
                     return
                 }
@@ -1136,9 +1136,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 if (messageQueueManager.isStopCommand(event.content)) {
                     GlobalScope.launch(Dispatchers.IO) {
                         if (messageQueueManager.stopActiveRun(queueKey)) {
-                            sendFeishuReply(event, "✅ 已停止当前任务")
+                            sendFeishuReply(event, "✅ 已Stop当FrontTask")
                         } else {
-                            sendFeishuReply(event, "当前没有正在执行的任务")
+                            sendFeishuReply(event, "当FrontNone正在执Row的Task")
                         }
                     }
                     return
@@ -1160,7 +1160,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 val queueMode = getQueueModeForChat(event.chatId, event.chatType)
 
                 // 🚀 Enqueue message for processing (fully aligned with OpenClaw)
-                // OpenClaw 主 session 无消息处理超时，此处也不加超时限制
+                // OpenClaw 主 session NoneMessageProcessTimeout, 此处Also不加TimeoutLimit
                 GlobalScope.launch(Dispatchers.IO) {
                     try {
                         messageQueueManager.enqueue(
@@ -1174,33 +1174,33 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             processFeishuMessageWithTyping(originalEvent, msg)
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "消息队列处理失败", e)
+                        Log.e(TAG, "MessageQueueProcessFailed", e)
                     }
                 }
             }
             is com.xiaomo.feishu.FeishuEvent.Connected -> {
-                Log.i(TAG, "✅ Feishu WebSocket 已连接")
+                Log.i(TAG, "✅ Feishu WebSocket 已Connect")
             }
             is com.xiaomo.feishu.FeishuEvent.Disconnected -> {
-                Log.w(TAG, "⚠️ Feishu WebSocket 已断开，5 秒后尝试重连...")
+                Log.w(TAG, "⚠️ Feishu WebSocket 已disconnect, 5 秒BackTry重连...")
                 GlobalScope.launch(Dispatchers.IO) {
                     kotlinx.coroutines.delay(5000)
                     try {
-                        Log.i(TAG, "🔄 尝试重连 Feishu WebSocket...")
+                        Log.i(TAG, "🔄 Try重连 Feishu WebSocket...")
                         feishuChannel?.stop()
                         val result = feishuChannel?.start()
                         if (result?.isSuccess == true) {
-                            Log.i(TAG, "✅ Feishu WebSocket 重连成功")
+                            Log.i(TAG, "✅ Feishu WebSocket 重连Success")
                         } else {
-                            Log.e(TAG, "❌ Feishu WebSocket 重连失败: ${result?.exceptionOrNull()?.message}")
+                            Log.e(TAG, "❌ Feishu WebSocket 重连Failed: ${result?.exceptionOrNull()?.message}")
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "❌ Feishu WebSocket 重连异常", e)
+                        Log.e(TAG, "❌ Feishu WebSocket 重连Exception", e)
                     }
                 }
             }
             is com.xiaomo.feishu.FeishuEvent.Error -> {
-                Log.e(TAG, "❌ Feishu 错误: ${event.error.message}")
+                Log.e(TAG, "❌ Feishu Error: ${event.error.message}")
             }
         }
     }
@@ -1216,7 +1216,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 // Track last active chat for cron delivery
                 setLastActiveChat("feishu", event.chatId)
 
-                Log.i(TAG, "🤖 开始处理消息: ${event.content}")
+                Log.i(TAG, "🤖 StartProcessMessage: ${event.content}")
 
                 // 📎 Download media attachment if present (aligned with OpenClaw resolveFeishuMediaList)
                 var userMessage = event.content
@@ -1227,10 +1227,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             client = feishuChannel!!.getClient(),
                             cacheDir = cacheDir
                         )
-                        val downloadResult = mediaDownload.downloadMedia(event.messageId, eventMediaKeys)
-                        if (downloadResult.isSuccess) {
-                            val localPath = downloadResult.getOrNull()!!.file.absolutePath
-                            Log.i(TAG, "📎 媒体附件已下载: $localPath (type=${eventMediaKeys.mediaType})")
+                        val downloadresult = mediaDownload.downloadMedia(event.messageId, eventMediaKeys)
+                        if (downloadresult.isSuccess) {
+                            val localPath = downloadresult.getOrNull()!!.file.absolutePath
+                            Log.i(TAG, "📎 媒体附件已Download: $localPath (type=${eventMediaKeys.mediaType})")
                             // Aligned with OpenClaw: append file path for lazy loading in agent loop
                             if (eventMediaKeys.mediaType == "image") {
                                 userMessage = if (userMessage.isBlank()) {
@@ -1239,13 +1239,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                     "$userMessage\n[Image: source: $localPath]"
                                 }
                             } else {
-                                userMessage = "$userMessage\n[附件已下载: $localPath]"
+                                userMessage = "$userMessage\n[附件已Download: $localPath]"
                             }
                         } else {
-                            Log.w(TAG, "📎 媒体下载失败: ${downloadResult.exceptionOrNull()?.message}")
+                            Log.w(TAG, "📎 媒体DownloadFailed: ${downloadresult.exceptionOrNull()?.message}")
                         }
                     } catch (e: Exception) {
-                        Log.w(TAG, "📎 媒体下载异常: ${e.message}")
+                        Log.w(TAG, "📎 媒体DownloadException: ${e.message}")
                     }
                 }
 
@@ -1262,15 +1262,15 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
                 val session = MainEntryNew.getSessionManager()?.getOrCreate(sessionId)
                 if (session == null) {
-                    return@withContext "系统错误：无法创建会话"
+                    return@withContext "系统Error: CannotCreateSession"
                 }
 
-                Log.i(TAG, "📋 [Session] 加载会话: ${session.messageCount()} 条历史消息")
+                Log.i(TAG, "📋 [Session] LoadSession: ${session.messageCount()} 条历史Message")
 
                 // Get history messages and cleanup (ensure tool_use and tool_result are paired)
                 val rawHistory = session.getRecentMessages(20)
                 val contextHistory = cleanupToolMessages(rawHistory)
-                Log.i(TAG, "📋 [Session] 清理后: ${contextHistory.size} 条消息（原始: ${rawHistory.size}）")
+                Log.i(TAG, "📋 [Session] 清理Back: ${contextHistory.size} 条Message(原始: ${rawHistory.size})")
 
                 // Initialize components
                 val taskDataManager = TaskDataManager.getInstance()
@@ -1293,10 +1293,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             // Register Feishu tools into function-call ToolRegistry
                             // (skills help routing, but real execution requires tool registration)
                             val feishuToolCount = com.xiaomo.androidforclaw.agent.tools.registerFeishuTools(toolRegistry, feishuToolRegistry)
-                            Log.i(TAG, "🔧 已注册 $feishuToolCount 个飞书工具到 ToolRegistry")
+                            Log.i(TAG, "🔧 已Register $feishuToolCount Feishu tools to ToolRegistry")
                         }
                     } catch (e: Exception) {
-                        Log.w(TAG, "飞书工具注册失败: ${e.message}")
+                        Log.w(TAG, "飞书工具RegisterFailed: ${e.message}")
                     }
                 }
 
@@ -1355,22 +1355,22 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             // Start streaming card on first Thinking event
                             update is ProgressUpdate.Thinking && streamingCard != null && !streamingFailed && streamingCard.cardId == null -> {
                                 try {
-                                    val startResult = streamingCard.start("*Thinking...*")
-                                    if (startResult.isSuccess) {
-                                        val cardId = startResult.getOrNull()!!
+                                    val startresult = streamingCard.start("*Thinking...*")
+                                    if (startresult.isSuccess) {
+                                        val cardId = startresult.getOrNull()!!
                                         val sender = feishuChannel?.sender
                                         if (sender != null) {
                                             // Send card message with reply routing
-                                            val sendResult = if (event.chatType == "group" && event.rootId == null) {
+                                            val sendresult = if (event.chatType == "group" && event.rootId == null) {
                                                 sender.sendCardByIdReply(event.messageId, cardId)
                                             } else {
                                                 sender.sendCardById(event.chatId, cardId)
                                             }
-                                            streamingCardMessageId = sendResult.getOrNull()?.messageId
+                                            streamingCardMessageId = sendresult.getOrNull()?.messageId
                                             Log.i(TAG, "📺 Streaming card sent: $streamingCardMessageId")
                                         }
                                     } else {
-                                        Log.w(TAG, "Streaming card creation failed: ${startResult.exceptionOrNull()?.message}")
+                                        Log.w(TAG, "Streaming card creation failed: ${startresult.exceptionOrNull()?.message}")
                                         streamingFailed = true
                                     }
                                 } catch (e: Exception) {
@@ -1395,14 +1395,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                 } catch (e: Exception) { /* ignore */ }
                             }
 
-                            // 流式增量: reasoning token 实时追加到流式卡片
+                            // 流式增量: reasoning token 实时Append to流式卡片
                             update is ProgressUpdate.ReasoningDelta && streamingCard?.isActive() == true -> {
                                 try {
                                     streamingCard.appendText(update.text)
                                 } catch (e: Exception) { /* ignore */ }
                             }
 
-                            // 流式增量: content token 实时追加到流式卡片
+                            // 流式增量: content token 实时Append to流式卡片
                             update is ProgressUpdate.ContentDelta && streamingCard?.isActive() == true -> {
                                 try {
                                     streamingCard.appendText(update.text)
@@ -1426,7 +1426,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                             sendFeishuReply(event, text)
                                             blockRepliesSent.add(text)
                                         } catch (e: Exception) {
-                                            Log.w(TAG, "发送中间回复失败: ${e.message}")
+                                            Log.w(TAG, "send中间回复Failed: ${e.message}")
                                         }
                                     }
                                 }
@@ -1441,7 +1441,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         systemPrompt = systemPrompt,
                         userMessage = userMessage,
                         contextHistory = contextHistory.map { it.toNewMessage() },
-                        reasoningEnabled = true
+                        reasoningEnableddd = true
                     )
                 } finally {
                     // Always unregister after the run completes (or fails)
@@ -1456,14 +1456,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     session.addMessage(message.toLegacyMessage())
                 }
                 MainEntryNew.getSessionManager()?.save(session)
-                Log.i(TAG, "💾 [Session] 会话已保存，总消息数: ${session.messageCount()}")
+                Log.i(TAG, "💾 [Session] Session已Save, 总Message数: ${session.messageCount()}")
 
-                Log.i(TAG, "✅ Agent 处理完成")
-                Log.i(TAG, "   迭代次数: ${result.iterations}")
-                Log.i(TAG, "   使用工具: ${result.toolsUsed.joinToString(", ")}")
+                Log.i(TAG, "✅ Agent ProcessComplete")
+                Log.i(TAG, "   Iterate次数: ${result.iterations}")
+                Log.i(TAG, "   use工具: ${result.toolsUsed.joinToString(", ")}")
 
                 // Close streaming card with final content
-                val finalContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "抱歉，我无法处理这个请求。")
+                val finalContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "sorry, 我CannotProcess这个Request. ")
 
                 if (streamingCard?.isActive() == true) {
                     try {
@@ -1486,8 +1486,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 }
 
             } catch (e: Exception) {
-                Log.e(TAG, "Agent 处理失败", e)
-                "抱歉，处理消息时出错了：${e.message}"
+                Log.e(TAG, "Agent ProcessFailed", e)
+                "sorry, ProcessMessage时出错了: ${e.message}"
             }
         }
     }
@@ -1505,41 +1505,41 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
      */
     private suspend fun sendFeishuReply(event: com.xiaomo.feishu.FeishuEvent.Message, content: String) {
         try {
-            Log.i(TAG, "📤 发送回复到飞书...")
+            Log.i(TAG, "📤 send回复到飞书...")
 
             // Filter internal reasoning tags (<think>, <final>, etc.)
             val cleanContent = filterReasoningTags(content)
 
             val sender = feishuChannel?.sender
             if (sender == null) {
-                Log.e(TAG, "❌ FeishuSender 未初始化")
+                Log.e(TAG, "❌ FeishuSender 未Initialize")
                 return
             }
 
             // Detect screenshot path
-            val screenshotPathRegex = Regex("""路径:\s*((?:/storage/|/sdcard/|content://)[^\s\n]+\.png)""")
+            val screenshotPathRegex = Regex("""Path:\s*((?:/storage/|/sdcard/|content://)[^\s\n]+\.png)""")
             val screenshotMatch = screenshotPathRegex.find(cleanContent)
 
             if (screenshotMatch != null) {
                 val screenshotPath = screenshotMatch.groupValues[1]
-                Log.i(TAG, "📸 检测到截图路径: $screenshotPath")
+                Log.i(TAG, "📸 DetectedScreenshotPath: $screenshotPath")
 
                 // Upload and send image
                 val imageFile = resolveImageFile(screenshotPath)
                 if (imageFile != null && imageFile.exists()) {
                     try {
-                        val imageResult = feishuChannel?.uploadAndSendImage(
+                        val imageresult = feishuChannel?.uploadAndSendImage(
                             imageFile = imageFile,
                             receiveId = event.chatId,
                             receiveIdType = "chat_id"
                         )
-                        if (imageResult?.isSuccess == true) {
-                            Log.i(TAG, "✅ 图片发送成功")
+                        if (imageresult?.isSuccess == true) {
+                            Log.i(TAG, "✅ Graph片sendSuccess")
                         } else {
-                            Log.e(TAG, "❌ 图片上传失败: ${imageResult?.exceptionOrNull()?.message}")
+                            Log.e(TAG, "❌ Graph片UploadFailed: ${imageresult?.exceptionOrNull()?.message}")
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "上传截图失败", e)
+                        Log.e(TAG, "UploadScreenshot failed", e)
                     }
                 }
 
@@ -1552,13 +1552,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 sendTextWithRouting(sender, event, cleanContent)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "发送飞书回复失败", e)
+            Log.e(TAG, "send飞书回复Failed", e)
         }
     }
 
     /**
-     * 发送文本回复（带路由策略）
-     * 对齐 OpenClaw reply-dispatcher: group → quote reply, thread → thread reply, DM → direct
+     * sendText回复(带RoutePolicy)
+     * Aligned with OpenClaw reply-dispatcher: group → quote reply, thread → thread reply, DM → direct
      */
     private suspend fun sendTextWithRouting(
         sender: com.xiaomo.feishu.messaging.FeishuSender,
@@ -1571,7 +1571,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         val useQuoteReply = event.chatType == "group" && event.rootId == null && event.threadId == null
         val useThreadReply = event.rootId != null || event.threadId != null
 
-        var result: Result<com.xiaomo.feishu.messaging.SendResult>? = null
+        var result: result<com.xiaomo.feishu.messaging.Sendresult>? = null
 
         // Strategy 1: Thread reply (message is in a topic)
         if (useThreadReply) {
@@ -1614,14 +1614,14 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         }
 
         if (result.isSuccess) {
-            Log.i(TAG, "✅ 回复发送成功: ${result.getOrNull()?.messageId}")
+            Log.i(TAG, "✅ 回复sendSuccess: ${result.getOrNull()?.messageId}")
         } else {
-            val errorMsg = result.exceptionOrNull()?.message ?: "未知错误"
-            Log.e(TAG, "❌ 回复发送失败: $errorMsg")
+            val errorMsg = result.exceptionOrNull()?.message ?: "UnknownError"
+            Log.e(TAG, "❌ 回复sendFailed: $errorMsg")
 
             // Fallback: card fails → plain text
             if (errorMsg.contains("table number over limit") || errorMsg.contains("230099") || errorMsg.contains("HTTP 400")) {
-                Log.w(TAG, "⚠️ 降级为纯文本模式重试...")
+                Log.w(TAG, "⚠️ Downgrade为纯TextSchemaRetry...")
                 sender.sendTextMessage(
                     receiveId = event.chatId,
                     text = text,
@@ -1633,7 +1633,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     }
 
     /**
-     * 解析图片文件路径（支持 Content URI 和文件路径）
+     * ParseGraph片File path(Support Content URI 和File path)
      */
     private fun resolveImageFile(path: String): java.io.File? {
         return if (path.startsWith("content://")) {
@@ -1664,13 +1664,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     /**
      * Start Discord Channel (if configured)
      */
-    private fun startDiscordChannelIfEnabled() {
-        Log.i(TAG, "⏰ startDiscordChannelIfEnabled() 被调用")
+    private fun startDiscordChannelIfEnableddd() {
+        Log.i(TAG, "⏰ startDiscordChannelIfEnableddd() 被call")
         val scope = CoroutineScope(Dispatchers.IO)
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 Log.i(TAG, "========================================")
-                Log.i(TAG, "🤖 检查 Discord Channel 配置...")
+                Log.i(TAG, "🤖 Check Discord Channel Config...")
                 Log.i(TAG, "========================================")
 
                 val configLoader = ConfigLoader(this@MyApplication)
@@ -1678,22 +1678,22 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 val discordConfigData = openClawConfig.channels.discord
 
                 if (discordConfigData == null || !discordConfigData.enabled) {
-                    Log.i(TAG, "⏭️  Discord Channel 未启用，跳过初始化")
-                    Log.i(TAG, "   配置路径: /sdcard/.androidforclaw/openclaw.json")
-                    Log.i(TAG, "   设置 channels.discord.enabled = true 以启用")
+                    Log.i(TAG, "⏭️  Discord Channel 未Enabledd, SkipInitialize")
+                    Log.i(TAG, "   ConfigPath: /sdcard/.androidforclaw/openclaw.json")
+                    Log.i(TAG, "   Settings channels.discord.enabled = true 以Enabledd")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
 
                 val token = discordConfigData.token
                 if (token.isNullOrBlank()) {
-                    Log.w(TAG, "⚠️  Discord Bot Token 未配置，跳过启动")
-                    Log.i(TAG, "   请在配置中设置 channels.discord.token")
+                    Log.w(TAG, "⚠️  Discord Bot Token Not configured, SkipStart")
+                    Log.i(TAG, "   请在Config中Settings channels.discord.token")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
 
-                Log.i(TAG, "✅ Discord Channel 已启用，准备启动...")
+                Log.i(TAG, "✅ Discord Channel 已Enabledd, 准备Start...")
                 Log.i(TAG, "   Name: ${discordConfigData.name ?: "default"}")
                 Log.i(TAG, "   DM Policy: ${discordConfigData.dm?.policy ?: "pairing"}")
                 Log.i(TAG, "   Group Policy: ${discordConfigData.groupPolicy ?: "open"}")
@@ -1758,9 +1758,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     mmkv?.encode("channel_discord_enabled", true)
 
                     Log.i(TAG, "========================================")
-                    Log.i(TAG, "✅ Discord Channel 启动成功!")
+                    Log.i(TAG, "✅ Discord Channel StartSuccess!")
                     Log.i(TAG, "   Bot: ${discordChannel?.getBotUsername()} (${discordChannel?.getBotUserId()})")
-                    Log.i(TAG, "   现在可以接收 Discord 消息了")
+                    Log.i(TAG, "   nowCanreceive Discord Message了")
                     Log.i(TAG, "========================================")
 
                     // Subscribe to event flow, handle received messages
@@ -1775,8 +1775,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     mmkv?.encode("channel_discord_enabled", false)
 
                     Log.e(TAG, "========================================")
-                    Log.e(TAG, "❌ Discord Channel 启动失败")
-                    Log.e(TAG, "   错误: ${result.exceptionOrNull()?.message}")
+                    Log.e(TAG, "❌ Discord Channel StartFailed")
+                    Log.e(TAG, "   Error: ${result.exceptionOrNull()?.message}")
                     Log.e(TAG, "========================================")
                 }
 
@@ -1786,7 +1786,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 mmkv?.encode("channel_discord_enabled", false)
 
                 Log.e(TAG, "========================================")
-                Log.e(TAG, "❌ Discord Channel 初始化异常", e)
+                Log.e(TAG, "❌ Discord Channel InitializeException", e)
                 Log.e(TAG, "========================================")
             }
         }
@@ -1803,7 +1803,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 }
 
                 is ChannelEvent.Message -> {
-                    Log.i(TAG, "📨 收到 Discord 消息")
+                    Log.i(TAG, "📨 收到 Discord Message")
                     Log.i(TAG, "   From: ${event.authorName} (${event.authorId})")
                     Log.i(TAG, "   Content: ${event.content}")
                     Log.i(TAG, "   Type: ${event.chatType}")
@@ -1830,7 +1830,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "处理 Discord 事件失败", e)
+            Log.e(TAG, "Process Discord EventFailed", e)
         }
     }
 
@@ -1878,23 +1878,23 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     // ── Weixin Channel ───────────────────────────────────────────────────────
 
     /**
-     * 重新启动微信通道（扫码登录成功后调用）。
-     * 会先停掉旧的 channel（如有），再重新初始化并启动 monitor。
+     * 重NewStart微信通道(扫码LoginSuccessBackcall). 
+     * 会先停掉Old的 channel(such asHas), 再重NewInitialize并Start monitor. 
      */
     // Track WeChat collector job to cancel on restart (prevents duplicate collectors)
     private var weixinCollectorJob: kotlinx.coroutines.Job? = null
 
     fun restartWeixinChannel() {
-        Log.i(TAG, "🔄 restartWeixinChannel() 被调用")
+        Log.i(TAG, "🔄 restartWeixinChannel() 被call")
         weixinChannel?.stop()
         weixinChannel = null
         weixinCollectorJob?.cancel()
         weixinCollectorJob = null
-        startWeixinChannelIfEnabled()
+        startWeixinChannelIfEnableddd()
     }
 
-    private fun startWeixinChannelIfEnabled() {
-        Log.i(TAG, "⏰ startWeixinChannelIfEnabled() 被调用")
+    private fun startWeixinChannelIfEnableddd() {
+        Log.i(TAG, "⏰ startWeixinChannelIfEnableddd() 被call")
 
         // Cancel old collector + channel to prevent duplicate processing
         weixinCollectorJob?.cancel()
@@ -1909,11 +1909,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 val weixinCfg = openClawConfig.channels.weixin
 
                 if (weixinCfg == null || !weixinCfg.enabled) {
-                    Log.i(TAG, "⏭️  Weixin Channel 未启用，跳过")
+                    Log.i(TAG, "⏭️  Weixin Channel 未Enabledd, Skip")
                     return@launch
                 }
 
-                Log.i(TAG, "✅ Weixin Channel 已启用，准备启动...")
+                Log.i(TAG, "✅ Weixin Channel 已Enabledd, 准备Start...")
 
                 val config = com.xiaomo.weixin.WeixinConfig(
                     enabled = true,
@@ -1926,22 +1926,22 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 val configured = channel.init()
 
                 if (!configured) {
-                    Log.w(TAG, "Weixin Channel 未登录，需要先扫码")
+                    Log.w(TAG, "Weixin Channel 未Login, Need先扫码")
                     return@launch
                 }
 
                 val started = channel.start()
                 if (!started) {
-                    Log.e(TAG, "Weixin Channel 启动失败")
+                    Log.e(TAG, "Weixin Channel StartFailed")
                     return@launch
                 }
 
                 weixinChannel = channel
-                Log.i(TAG, "✅ Weixin Channel 启动成功")
+                Log.i(TAG, "✅ Weixin Channel StartSuccess")
 
                 // Collect inbound messages and dispatch to agent via MessageQueueManager
                 channel.messageFlow?.collect { msg ->
-                    Log.i(TAG, "📨 Weixin 收到消息: from=${msg.fromUserId} body=${msg.body.take(50)} hasMedia=${msg.hasMedia} mediaType=${msg.mediaType}")
+                    Log.i(TAG, "📨 Weixin 收到Message: from=${msg.fromUserId} body=${msg.body.take(50)} hasMedia=${msg.hasMedia} mediaType=${msg.mediaType}")
 
                     // Download media if present
                     var downloadedMediaFile: java.io.File? = null
@@ -1952,17 +1952,17 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                 fileExtension = msg.mediaFileExtension ?: "bin",
                             )
                             if (downloadedMediaFile != null) {
-                                Log.i(TAG, "📎 Weixin 媒体下载成功: ${downloadedMediaFile.absolutePath} (${downloadedMediaFile.length()} bytes)")
+                                Log.i(TAG, "📎 Weixin 媒体DownloadSuccess: ${downloadedMediaFile.absolutePath} (${downloadedMediaFile.length()} bytes)")
                             } else {
-                                Log.w(TAG, "⚠️ Weixin 媒体下载失败")
+                                Log.w(TAG, "⚠️ Weixin 媒体DownloadFailed")
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Weixin 媒体下载异常", e)
+                            Log.e(TAG, "Weixin 媒体DownloadException", e)
                         }
                     }
 
                     if (msg.body.isBlank() && !msg.hasMedia) {
-                        Log.d(TAG, "Weixin: 空消息且无媒体，跳过")
+                        Log.d(TAG, "Weixin: NullMessage且None媒体, Skip")
                         return@collect
                     }
 
@@ -1980,30 +1980,30 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                     append("[Image: source: ${downloadedMediaFile.absolutePath}]")
                                 }
                                 com.xiaomo.weixin.api.MessageItemType.VOICE -> {
-                                    append("[用户发送了一条语音")
+                                    append("[Usersend了一条语音")
                                     if (msg.voicePlaytime != null) append(", 时长${msg.voicePlaytime}秒")
-                                    if (!msg.voiceText.isNullOrBlank()) append(", 内容: ${msg.voiceText}")
+                                    if (!msg.voiceText.isNullOrBlank()) append(", Inside容: ${msg.voiceText}")
                                     append(", 文件: ${downloadedMediaFile.absolutePath}]")
                                 }
                                 com.xiaomo.weixin.api.MessageItemType.FILE -> {
-                                    append("[用户发送了一个文件: ${msg.mediaFileName ?: downloadedMediaFile.name}, 路径: ${downloadedMediaFile.absolutePath}]")
+                                    append("[Usersend了一个文件: ${msg.mediaFileName ?: downloadedMediaFile.name}, Path: ${downloadedMediaFile.absolutePath}]")
                                 }
                                 com.xiaomo.weixin.api.MessageItemType.VIDEO -> {
-                                    append("[用户发送了一个视频: ${downloadedMediaFile.absolutePath}]")
+                                    append("[Usersend了一个视频: ${downloadedMediaFile.absolutePath}]")
                                 }
                             }
                         } else if (msg.hasMedia && downloadedMediaFile == null) {
                             if (isNotEmpty()) append("\n\n")
-                            append("[用户发送了媒体文件，但下载失败]")
+                            append("[Usersend了媒体文件, 但DownloadFailed]")
                         }
                     }
 
                     // Channel-agnostic stop command check
                     if (messageQueueManager.isStopCommand(agentContent)) {
                         if (messageQueueManager.stopActiveRun(queueKey)) {
-                            channel.sender?.sendText(msg.fromUserId, "✅ 已停止当前任务")
+                            channel.sender?.sendText(msg.fromUserId, "✅ 已Stop当FrontTask")
                         } else {
-                            channel.sender?.sendText(msg.fromUserId, "当前没有正在执行的任务")
+                            channel.sender?.sendText(msg.fromUserId, "当FrontNone正在执Row的Task")
                         }
                         return@collect
                     }
@@ -2031,18 +2031,18 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                 processWeixinMessageQueued(originalMsg, queueKey)
                             }
                         } catch (e: kotlinx.coroutines.CancellationException) {
-                            Log.i(TAG, "Weixin: 任务被用户取消 ${msg.fromUserId}")
+                            Log.i(TAG, "Weixin: Task被UserCancel ${msg.fromUserId}")
                         } catch (e: Exception) {
-                            Log.e(TAG, "Weixin 消息队列处理失败", e)
+                            Log.e(TAG, "Weixin MessageQueueProcessFailed", e)
                             try {
-                                channel.sender?.sendText(msg.fromUserId, "处理消息时出错：${e.message}")
+                                channel.sender?.sendText(msg.fromUserId, "ProcessMessage时出错: ${e.message}")
                             } catch (_: Exception) {}
                         }
                     }
                 }
 
             } catch (e: Exception) {
-                Log.e(TAG, "Weixin Channel 启动异常", e)
+                Log.e(TAG, "Weixin Channel StartException", e)
             }
         }
     }
@@ -2078,7 +2078,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     if (isNotEmpty()) append("\n\n")
                     when (msg.mediaType) {
                         com.xiaomo.weixin.api.MessageItemType.IMAGE -> {
-                            // 下载微信 CDN 图片（AES 解密）→ 附加 Image: source 路径（对齐 OpenClaw 延迟加载模式）
+                            // Download微信 CDN Graph片(AES Decrypt)→ 附加 Image: source Path(Aligned with OpenClaw DelayLoadSchema)
                             if (msg.mediaCdn != null) {
                                 try {
                                     val imageFile = com.xiaomo.weixin.cdn.WeixinCdnDownloader.downloadAndDecrypt(
@@ -2089,28 +2089,28 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                         append("[Image: source: ${imageFile.absolutePath}]")
                                         Log.i(TAG, "🖼️ Weixin image downloaded: ${imageFile.absolutePath}")
                                     } else {
-                                        append("[用户发送了一张图片]")
+                                        append("[Usersend了一张Graph片]")
                                         Log.w(TAG, "🖼️ Weixin image CDN download returned null")
                                     }
                                 } catch (e: Exception) {
-                                    append("[用户发送了一张图片]")
+                                    append("[Usersend了一张Graph片]")
                                     Log.e(TAG, "🖼️ Weixin image download failed", e)
                                 }
                             } else {
-                                append("[用户发送了一张图片]")
+                                append("[Usersend了一张Graph片]")
                             }
                         }
                         com.xiaomo.weixin.api.MessageItemType.VOICE -> {
-                            append("[用户发送了一条语音")
+                            append("[Usersend了一条语音")
                             if (msg.voicePlaytime != null) append(", 时长${msg.voicePlaytime}秒")
-                            if (!msg.voiceText.isNullOrBlank()) append(", 内容: ${msg.voiceText}")
+                            if (!msg.voiceText.isNullOrBlank()) append(", Inside容: ${msg.voiceText}")
                             append("]")
                         }
                         com.xiaomo.weixin.api.MessageItemType.FILE -> {
-                            append("[用户发送了一个文件: ${msg.mediaFileName ?: "未知文件名"}]")
+                            append("[Usersend了一个文件: ${msg.mediaFileName ?: "Unknown文件名"}]")
                         }
                         com.xiaomo.weixin.api.MessageItemType.VIDEO -> {
-                            append("[用户发送了一个视频]")
+                            append("[Usersend了一个视频]")
                         }
                     }
                 }
@@ -2121,7 +2121,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             }
             val sessionManager = MainEntryNew.getSessionManager()
             if (sessionManager == null) {
-                sender?.sendText(toUser, "系统错误：无法创建会话")
+                sender?.sendText(toUser, "系统Error: CannotCreateSession")
                 return
             }
 
@@ -2248,11 +2248,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             // Cancel typing
             sender?.cancelTyping(toUser)
         } catch (e: kotlinx.coroutines.CancellationException) {
-            Log.i(TAG, "Weixin: 任务被用户取消 ${msg.fromUserId}")
+            Log.i(TAG, "Weixin: Task被UserCancel ${msg.fromUserId}")
         } catch (e: Exception) {
-            Log.e(TAG, "processWeixinMessageQueued 异常", e)
+            Log.e(TAG, "processWeixinMessageQueued Exception", e)
             try {
-                sender?.sendText(toUser, "处理消息时出错：${e.message}")
+                sender?.sendText(toUser, "ProcessMessage时出错: ${e.message}")
             } catch (_: Exception) {}
         }
     }
@@ -2266,47 +2266,47 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
         return """
 # 身份
-你是 **$botName**，一个运行在 Android 设备上的智能助手，通过 Discord 与用户交互。
+你Yes **$botName**, 一个Run在 Android DeviceUp的Smart助手, 通过 Discord 与User交互. 
 
-# 当前上下文
+# 当FrontUpDown文
 - **平台**: Discord
-- **频道类型**: ${event.chatType}
-- **频道 ID**: ${event.channelId}
-- **用户**: ${event.authorName} (ID: ${event.authorId})
+- **ChannelType**: ${event.chatType}
+- **Channel ID**: ${event.channelId}
+- **User**: ${event.authorName} (ID: ${event.authorId})
 - **Bot ID**: $botId
 
-# 核心能力
-你可以通过工具调用来控制 Android 设备：
-- 📸 截图观察屏幕
-- 👆 点击、滑动、输入
-- 🏠 导航、打开应用
-- 🔍 获取 UI 信息
+# 核心Capability
+你Can通过工具call来控制 Android Device: 
+- 📸 Screenshot观察Screen
+- 👆 click、swipe、Input
+- 🏠 导航、Openapply
+- 🔍 Get UI Info
 
-# 交互规则
-1. **简洁明了**: Discord 消息尽量简洁，重要信息用 Markdown 格式化
-2. **主动截图**: 需要观察屏幕时主动使用 screenshot 工具
-3. **逐步执行**: 复杂任务分解为多个步骤
-4. **反馈进度**: 长时间操作时告知用户当前进度
-5. **错误处理**: 遇到问题时说明原因并提供建议
+# 交互Rule
+1. **简洁明了**: Discord Message尽量简洁, 重要Info用 Markdown Format
+2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
+3. **逐步执Row**: ComplexTask分解为Multiple步骤
+4. **反馈Into度**: 长TimeAction时告知User当Forward度
+5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
 
-# 响应格式
-- 使用 Discord Markdown: **粗体**、*斜体*、`代码`、```代码块```
-- 重要操作结果用表情符号: ✅ ❌ ⚠️ 🔄
-- 列表使用 - 或数字编号
+# Response格式
+- use Discord Markdown: **粗体**、*斜体*、`代码`、```代码块```
+- 重要Actionresult用Table情符号: ✅ ❌ ⚠️ 🔄
+- Listuse - 或Number编号
 
-# 注意事项
-- 不要输出过长的消息（建议 1500 字符以内）
-- 代码块使用语法高亮
-- 链接使用 [文本](URL) 格式
+# Note事项
+- 不要Output过长的Message(suggest 1500 字符以Inside)
+- 代码块use语法高亮
+- 链接use [Text](URL) 格式
 
-现在，请处理用户的消息。
+now, 请ProcessUser的Message. 
         """.trimIndent()
     }
 
     // ==================== Telegram Channel ====================
 
-    private fun startTelegramChannelIfEnabled() {
-        Log.i(TAG, "startTelegramChannelIfEnabled() called")
+    private fun startTelegramChannelIfEnableddd() {
+        Log.i(TAG, "startTelegramChannelIfEnableddd() called")
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 Log.i(TAG, "Checking Telegram Channel config...")
@@ -2424,38 +2424,38 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             val botId = telegramChannel?.getBotId() ?: ""
                             return """
 # 身份
-你是 **$botName**，一个运行在 Android 设备上的智能助手，通过 Telegram 与用户交互。
+你Yes **$botName**, 一个Run在 Android DeviceUp的Smart助手, 通过 Telegram 与User交互. 
 
-# 当前上下文
+# 当FrontUpDown文
 - **平台**: Telegram
-- **聊天类型**: ${event.chatType}
-- **聊天 ID**: ${event.chatId}
-- **用户**: ${event.senderName} (ID: ${event.senderId})
+- **ChatType**: ${event.chatType}
+- **Chat ID**: ${event.chatId}
+- **User**: ${event.senderName} (ID: ${event.senderId})
 - **Bot ID**: $botId
 
-# 核心能力
-你可以通过工具调用来控制 Android 设备：
-- 截图观察屏幕
-- 点击、滑动、输入
-- 导航、打开应用
-- 获取 UI 信息
+# 核心Capability
+你Can通过工具call来控制 Android Device: 
+- Screenshot观察Screen
+- click、swipe、Input
+- 导航、Openapply
+- Get UI Info
 
-# 交互规则
-1. **简洁明了**: Telegram 消息尽量简洁，重要信息用 Markdown 格式化
-2. **主动截图**: 需要观察屏幕时主动使用 screenshot 工具
-3. **逐步执行**: 复杂任务分解为多个步骤
-4. **反馈进度**: 长时间操作时告知用户当前进度
-5. **错误处理**: 遇到问题时说明原因并提供建议
+# 交互Rule
+1. **简洁明了**: Telegram Message尽量简洁, 重要Info用 Markdown Format
+2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
+3. **逐步执Row**: ComplexTask分解为Multiple步骤
+4. **反馈Into度**: 长TimeAction时告知User当Forward度
+5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
 
-# 响应格式
-- 使用 Telegram Markdown: *粗体*、_斜体_、`代码`、```代码块```
-- 列表使用 - 或数字编号
+# Response格式
+- use Telegram Markdown: *粗体*、_斜体_、`代码`、```代码块```
+- Listuse - 或Number编号
 
-# 注意事项
-- 不要输出过长的消息（建议 3000 字符以内）
-- 代码块使用语法高亮
+# Note事项
+- 不要Output过长的Message(suggest 3000 字符以Inside)
+- 代码块use语法高亮
 
-现在，请处理用户的消息。
+now, 请ProcessUser的Message. 
                             """.trimIndent()
                         }
                     }
@@ -2473,8 +2473,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     // ==================== Slack Channel ====================
 
-    private fun startSlackChannelIfEnabled() {
-        Log.i(TAG, "startSlackChannelIfEnabled() called")
+    private fun startSlackChannelIfEnableddd() {
+        Log.i(TAG, "startSlackChannelIfEnableddd() called")
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val configLoader = ConfigLoader(this@MyApplication)
@@ -2585,39 +2585,39 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             val botId = slackChannel?.getBotId() ?: ""
                             return """
 # 身份
-你是 **$botName**，一个运行在 Android 设备上的智能助手，通过 Slack 与用户交互。
+你Yes **$botName**, 一个Run在 Android DeviceUp的Smart助手, 通过 Slack 与User交互. 
 
-# 当前上下文
+# 当FrontUpDown文
 - **平台**: Slack
-- **频道类型**: ${event.channelType}
-- **频道 ID**: ${event.channelId}
-- **用户 ID**: ${event.userId}
+- **ChannelType**: ${event.channelType}
+- **Channel ID**: ${event.channelId}
+- **User ID**: ${event.userId}
 - **Bot ID**: $botId
 
-# 核心能力
-你可以通过工具调用来控制 Android 设备：
-- 截图观察屏幕
-- 点击、滑动、输入
-- 导航、打开应用
-- 获取 UI 信息
+# 核心Capability
+你Can通过工具call来控制 Android Device: 
+- Screenshot观察Screen
+- click、swipe、Input
+- 导航、Openapply
+- Get UI Info
 
-# 交互规则
-1. **简洁明了**: Slack 消息尽量简洁，重要信息用 Markdown 格式化
-2. **主动截图**: 需要观察屏幕时主动使用 screenshot 工具
-3. **逐步执行**: 复杂任务分解为多个步骤
-4. **反馈进度**: 长时间操作时告知用户当前进度
-5. **错误处理**: 遇到问题时说明原因并提供建议
+# 交互Rule
+1. **简洁明了**: Slack Message尽量简洁, 重要Info用 Markdown Format
+2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
+3. **逐步执Row**: ComplexTask分解为Multiple步骤
+4. **反馈Into度**: 长TimeAction时告知User当Forward度
+5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
 
-# 响应格式
-- 使用 Slack mrkdwn: *粗体*、_斜体_、`代码`、```代码块```
-- 列表使用 - 或数字编号
-- 不支持标准 Markdown 链接，使用 <URL|文本> 格式
+# Response格式
+- use Slack mrkdwn: *粗体*、_斜体_、`代码`、```代码块```
+- Listuse - 或Number编号
+- 不Support标准 Markdown 链接, use <URL|Text> 格式
 
-# 注意事项
-- 不要输出过长的消息（建议 3000 字符以内）
-- 代码块使用语法高亮
+# Note事项
+- 不要Output过长的Message(suggest 3000 字符以Inside)
+- 代码块use语法高亮
 
-现在，请处理用户的消息。
+now, 请ProcessUser的Message. 
                             """.trimIndent()
                         }
                     }
@@ -2635,8 +2635,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     // ==================== Signal Channel ====================
 
-    private fun startSignalChannelIfEnabled() {
-        Log.i(TAG, "startSignalChannelIfEnabled() called")
+    private fun startSignalChannelIfEnableddd() {
+        Log.i(TAG, "startSignalChannelIfEnableddd() called")
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val configLoader = ConfigLoader(this@MyApplication)
@@ -2751,35 +2751,35 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             val phoneNumber = signalChannel?.getPhoneNumber() ?: ""
                             return """
 # 身份
-你是一个运行在 Android 设备上的智能助手，通过 Signal 与用户交互。
+你Yes一个Run在 Android DeviceUp的Smart助手, 通过 Signal 与User交互. 
 
-# 当前上下文
+# 当FrontUpDown文
 - **平台**: Signal
-- **聊天类型**: ${event.chatType}
-- **聊天 ID**: ${event.chatId}
-- **用户**: ${event.sourceName} (${event.sourceNumber})
+- **ChatType**: ${event.chatType}
+- **Chat ID**: ${event.chatId}
+- **User**: ${event.sourceName} (${event.sourceNumber})
 - **本机号码**: $phoneNumber
 
-# 核心能力
-你可以通过工具调用来控制 Android 设备：
-- 截图观察屏幕
-- 点击、滑动、输入
-- 导航、打开应用
-- 获取 UI 信息
+# 核心Capability
+你Can通过工具call来控制 Android Device: 
+- Screenshot观察Screen
+- click、swipe、Input
+- 导航、Openapply
+- Get UI Info
 
-# 交互规则
-1. **简洁明了**: Signal 消息尽量简洁
-2. **主动截图**: 需要观察屏幕时主动使用 screenshot 工具
-3. **逐步执行**: 复杂任务分解为多个步骤
-4. **反馈进度**: 长时间操作时告知用户当前进度
-5. **错误处理**: 遇到问题时说明原因并提供建议
+# 交互Rule
+1. **简洁明了**: Signal Message尽量简洁
+2. **主动Screenshot**: Need观察Screen时主动use screenshot 工具
+3. **逐步执Row**: ComplexTask分解为Multiple步骤
+4. **反馈Into度**: 长TimeAction时告知User当Forward度
+5. **ErrorProcess**: 遇到Issue时illustrateReason并提供suggest
 
-# 响应格式
-- Signal 支持有限的格式化，使用纯文本为主
-- 列表使用 - 或数字编号
-- 不要输出过长的消息（建议 1500 字符以内）
+# Response格式
+- Signal SupportHas限的Format, use纯Text为主
+- Listuse - 或Number编号
+- 不要Output过长的Message(suggest 1500 字符以Inside)
 
-现在，请处理用户的消息。
+now, 请ProcessUser的Message. 
                             """.trimIndent()
                         }
                     }
@@ -2815,9 +2815,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             val mmkv = MMKV.defaultMMKV()
             mmkv?.encode("channel_discord_enabled", false)
 
-            Log.i(TAG, "Discord 服务已停止")
+            Log.i(TAG, "Discord Service已Stop")
         } catch (e: Exception) {
-            Log.e(TAG, "停止 Discord 服务时出错", e)
+            Log.e(TAG, "Stop Discord Service时出错", e)
         }
 
         // Stop Signal related services
@@ -2874,7 +2874,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         gatewayServer?.stop()
         gatewayServer = null
 
-        Log.i(TAG, "应用终止，所有服务已停止")
+        Log.i(TAG, "applyTerminate, AllService已Stop")
     }
 
     /**

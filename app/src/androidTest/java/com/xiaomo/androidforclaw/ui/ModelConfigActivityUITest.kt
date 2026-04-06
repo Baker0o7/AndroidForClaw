@@ -32,9 +32,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * ModelConfigActivity UI 自动化测试 — 56 tests
+ * ModelConfigActivity UI Auto化Test — 56 tests
  *
- * 运行:
+ * Run:
  * adb shell am instrument -w -e class com.xiaomo.androidforclaw.ui.ModelConfigActivityUITest \
  *   com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
  */
@@ -145,13 +145,13 @@ class ModelConfigActivityUITest {
 
     @Test
     fun test01_activityLaunches_showsToolbarTitle() {
-        onView(withText("模型配置"))
+        onView(withText("模型Config"))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun test02_page1_sectionTitle() {
-        onView(withText("选择 AI 服务商"))
+        onView(withText("选择 AI Service商"))
             .check(matches(isDisplayed()))
     }
 
@@ -254,7 +254,7 @@ class ModelConfigActivityUITest {
 
     @Test
     fun test12_page1_customSection() {
-        onView(withText("自定义"))
+        onView(withText("Custom"))
             .perform(nestedScrollTo())
             .check(matches(isDisplayed()))
     }
@@ -316,7 +316,7 @@ class ModelConfigActivityUITest {
         navigateToOpenRouter()
         activityRule.scenario.onActivity { activity ->
             val til = activity.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_api_key)
-            assertThat("Helper says 可选", til.helperText?.toString() ?: "", containsString("可选"))
+            assertThat("Helper says Optional", til.helperText?.toString() ?: "", containsString("Optional"))
         }
     }
 
@@ -440,7 +440,7 @@ class ModelConfigActivityUITest {
         navigateToOpenRouter()
         onView(withId(R.id.btn_save))
             .check(matches(isDisplayed()))
-            .check(matches(withText("保存并使用")))
+            .check(matches(withText("Save并使用")))
     }
 
     // ========================================================================
@@ -519,7 +519,7 @@ class ModelConfigActivityUITest {
         waitForUi()
         onView(withId(R.id.page_provider_list))
             .check(matches(isDisplayed()))
-        onView(withText("选择 AI 服务商"))
+        onView(withText("选择 AI Service商"))
             .check(matches(isDisplayed()))
     }
 
@@ -549,7 +549,7 @@ class ModelConfigActivityUITest {
         navigateToAnthropic()
         activityRule.scenario.onActivity { activity ->
             val til = activity.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_api_key)
-            assertThat("No 可选", til.helperText?.toString() ?: "", not(containsString("可选")))
+            assertThat("No Optional", til.helperText?.toString() ?: "", not(containsString("Optional")))
         }
     }
 
@@ -585,7 +585,7 @@ class ModelConfigActivityUITest {
         navigateToOllama()
         activityRule.scenario.onActivity { activity ->
             val til = activity.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_api_key)
-            assertThat("Ollama optional", til.helperText?.toString() ?: "", containsString("可选"))
+            assertThat("Ollama optional", til.helperText?.toString() ?: "", containsString("Optional"))
         }
     }
 
@@ -620,7 +620,7 @@ class ModelConfigActivityUITest {
     fun test51_addModelDialog_opens() {
         navigateToOpenRouter()
         clickViewById(R.id.btn_add_model)
-        onView(withText("添加模型"))
+        onView(withText("Add模型"))
             .check(matches(isDisplayed()))
     }
 
@@ -645,7 +645,7 @@ class ModelConfigActivityUITest {
     fun test54_addModelDialog_cancel() {
         navigateToOpenRouter()
         clickViewById(R.id.btn_add_model)
-        onView(withText("取消")).perform(click())
+        onView(withText("Cancel")).perform(click())
         waitForUi()
         onView(withId(R.id.btn_save)).check(matches(isDisplayed()))
     }
@@ -660,7 +660,7 @@ class ModelConfigActivityUITest {
         clickViewById(R.id.btn_add_model)
         onView(withId(R.id.et_dialog_model_id)).perform(replaceText("test/my-custom-model"))
         onView(withId(R.id.et_dialog_model_name)).perform(replaceText("My Custom Model"))
-        onView(withText("添加")).perform(click())
+        onView(withText("Add")).perform(click())
         waitForUi()
         activityRule.scenario.onActivity { activity ->
             val count = activity.findViewById<ViewGroup>(R.id.container_preset_models).childCount
@@ -734,7 +734,7 @@ class ModelConfigActivityUITest {
             val page2 = activity.findViewById<ViewGroup>(R.id.page_provider_detail)
             val tv = page2?.findViewById<TextView>(R.id.tv_provider_status)
             assertThat("Status visible", tv?.visibility, `is`(View.VISIBLE))
-            assertThat("Status text", tv?.text?.toString(), `is`("已配置"))
+            assertThat("Status text", tv?.text?.toString(), `is`("已Config"))
         }
     }
 

@@ -6,15 +6,15 @@ import org.junit.Test
 import java.io.File
 
 /**
- * ProviderRegistry 单元测试
+ * ProviderRegistry 单元Test
  *
- * 验证 provider 从 JSON 加载、normalize 映射和注册完整性。
+ * Validate provider 从 JSON Load、normalize Map和Register完整性. 
  */
 class ProviderRegistryTest {
 
     @Before
     fun setup() {
-        // 单元测试中没有 Android Context，直接从文件加载 JSON
+        // 单元Test中None Android Context, 直接从文件Load JSON
         ProviderRegistry.reset()
         // Gradle test working dir is the module root (app/)
         val candidates = listOf(
@@ -30,7 +30,7 @@ class ProviderRegistryTest {
         }
     }
 
-    // ========== normalizeProviderId 测试 ==========
+    // ========== normalizeProviderId Test ==========
 
     @Test
     fun `normalizeProviderId maps kimi to moonshot`() {
@@ -65,7 +65,7 @@ class ProviderRegistryTest {
         assertEquals("custom-xyz", ProviderRegistry.normalizeProviderId("custom-xyz"))
     }
 
-    // ========== JSON 加载测试 ==========
+    // ========== JSON LoadTest ==========
 
     @Test
     fun `ALL list loads from providers_json`() {
@@ -91,7 +91,7 @@ class ProviderRegistryTest {
         assertEquals("OpenRouter", openrouter!!.name)
     }
 
-    // ========== Provider 内容测试 ==========
+    // ========== Provider Inside容Test ==========
 
     @Test
     fun `ALL list contains moonshot provider`() {
@@ -152,7 +152,7 @@ class ProviderRegistryTest {
         assertEquals("/api/tags", ollama!!.discoveryEndpoint)
     }
 
-    // ========== buildProviderConfig 测试 ==========
+    // ========== buildProviderConfig Test ==========
 
     @Test
     fun `buildProviderConfig uses definition defaults`() {
@@ -184,7 +184,7 @@ class ProviderRegistryTest {
         assertEquals("anthropic/claude-sonnet-4-6", ProviderRegistry.buildModelRef("anthropic", "claude-sonnet-4-6"))
     }
 
-    // ========== initFromJson 测试 ==========
+    // ========== initFromJson Test ==========
 
     @Test
     fun `initFromJson parses minimal JSON correctly`() {

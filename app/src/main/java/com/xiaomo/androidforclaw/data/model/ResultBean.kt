@@ -1,19 +1,19 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.data.model
 
 import android.graphics.Bitmap
 import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 
-data class ResultBean(
+data class resultBean(
     val action: String? = null,
     val preImage: String? = null,
     val afterImage: String? = null
 )
 
-data class CheckResult(
+data class Checkresult(
     val lastScreenshot: Bitmap?,
     val newScreenshot: Bitmap,
     val lastPerceptionInfos: List<ViewNode>,
@@ -22,6 +22,6 @@ data class CheckResult(
     val newKeyboardActive: Boolean,
     val summary: String,
     val action: String,
-    // 反思评分是否为A
+    // reflect评分YesNo为A
     val isA: Boolean
 )

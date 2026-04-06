@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -25,46 +25,46 @@ class SPHelper private constructor(context: Context) {
         }
     }
 
-    // 保存数据
+    // Save data
     fun saveData(key: String, value: String) {
         editor.putString(key, value)
         editor.apply()
     }
 
-    // 保存数据
+    // Save data
     fun saveData(key: String, value: Int) {
         editor.putInt(key, value)
         editor.apply()
     }
 
-    // 保存数据
+    // Save data
     fun saveData(key: String, value: Boolean) {
         editor.putBoolean(key, value)
         editor.apply()
     }
 
-    // 保存数据
+    // Save data
     fun saveData(key: String, value: Long) {
         editor.putLong(key, value)
         editor.apply()
     }
 
-    // 读取数据
+    // Read data
     fun getData(key: String, defaultValue: String): String? {
         return sharedPreferences.getString(key, defaultValue)
     }
 
-    // 读取数据
+    // Read data
     fun getData(key: String, defaultValue: Int): Int {
         return sharedPreferences.getInt(key, defaultValue)
     }
 
-    // 读取数据
+    // Read data
     fun getData(key: String, defaultValue: Boolean): Boolean {
         return sharedPreferences.getBoolean(key, defaultValue)
     }
 
-    // 读取数据
+    // Read data
     fun getData(key: String, defaultValue: Long): Long {
         return sharedPreferences.getLong(key, defaultValue)
     }

@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -51,7 +51,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val includeSystem = args["include_system"] as? Boolean ?: false
         val filter = args["filter"] as? String
 
@@ -97,11 +97,11 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
             Log.d(TAG, "Found ${apps.size} apps (includeSystem=$includeSystem, filter=$filter)")
 
             val content = buildString {
-                appendLine("📱 已安装应用列表 (${apps.size} 个)")
+                appendLine("📱 已InstallapplyList (${apps.size} 个)")
                 appendLine()
 
                 if (apps.isEmpty()) {
-                    appendLine("未找到匹配的应用")
+                    appendLine("未找到match的apply")
                 } else {
                     apps.forEachIndexed { index, app ->
                         val label = app["label"] as String
@@ -110,12 +110,12 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
 
                         val systemTag = if (isSystem) " [系统]" else ""
                         appendLine("${index + 1}. $label$systemTag")
-                        appendLine("   包名: $packageName")
+                        appendLine("   Package name: $packageName")
                     }
                 }
             }
 
-            SkillResult.success(
+            Skillresult.success(
                 content,
                 mapOf(
                     "count" to apps.size,
@@ -124,7 +124,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to list installed apps", e)
-            SkillResult.error("Failed to list apps: ${e.message}")
+            Skillresult.error("Failed to list apps: ${e.message}")
         }
     }
 }

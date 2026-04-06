@@ -4,7 +4,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * AppUpdater 版本比较和常量测试
+ * AppUpdater VersionCompare和ConstantTest
  */
 class AppUpdaterTest {
 

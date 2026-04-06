@@ -22,25 +22,25 @@ private const val TAG = "FeishuDocComments"
 class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
     override val name = "feishu_doc_comments"
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official description)
-    override val description = "【以用户身份】管理云文档评论。支持: " +
-        "(1) list - 获取评论列表(含完整回复); " +
-        "(2) create - 添加全文评论(支持文本、@用户、超链接); " +
-        "(3) patch - 解决/恢复评论。" +
-        "支持 wiki token。"
+    override val description = "【As user】Manage云DocumentComment. Support: " +
+        "(1) list - GetCommentList(含完整回复); " +
+        "(2) create - Add全文Comment(SupportText、@User、超链接); " +
+        "(3) patch - Resolve/ResumeComment. " +
+        "Support wiki token. "
 
-    override fun isEnabled() = config.enableDocTools
+    override fun isEnabledd() = config.enableDocTools
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult = withContext(Dispatchers.IO) {
         try {
             val action = args["action"] as? String
-                ?: return@withContext ToolResult.error("Missing required parameter: action")
+                ?: return@withContext Toolresult.error("Missing required parameter: action")
 
             // Matching official: extract parameters
             val fileToken = args["file_token"] as? String
-                ?: return@withContext ToolResult.error("Missing required parameter: file_token")
+                ?: return@withContext Toolresult.error("Missing required parameter: file_token")
             val fileType = args["file_type"] as? String
-                ?: return@withContext ToolResult.error("Missing required parameter: file_type")
+                ?: return@withContext Toolresult.error("Missing required parameter: file_type")
             val userIdType = args["user_id_type"] as? String ?: "open_id"
 
             // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official wiki token conversion)
@@ -51,7 +51,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                 try {
                     val wikiNodeRes = client.get("/open-apis/wiki/v2/spaces/get_node?token=$fileToken&obj_type=wiki")
                     if (wikiNodeRes.isFailure) {
-                        return@withContext ToolResult.error("failed to resolve wiki token \"$fileToken\": ${wikiNodeRes.exceptionOrNull()?.message}")
+                        return@withContext Toolresult.error("failed to resolve wiki token \"$fileToken\": ${wikiNodeRes.exceptionOrNull()?.message}")
                     }
 
                     val node = wikiNodeRes.getOrNull()?.getAsJsonObject("data")?.getAsJsonObject("node")
@@ -59,7 +59,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                     val objType = node?.get("obj_type")?.asString
 
                     if (objToken == null || objType == null) {
-                        return@withContext ToolResult.error("failed to resolve wiki token \"$fileToken\" to document object (may be a folder node rather than a document)")
+                        return@withContext Toolresult.error("failed to resolve wiki token \"$fileToken\" to document object (may be a folder node rather than a document)")
                     }
 
                     actualFileToken = objToken
@@ -67,7 +67,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                     Log.i(TAG, "doc_comments: wiki token converted: obj_token=\"$actualFileToken\", obj_type=\"$actualFileType\"")
                 } catch (err: Exception) {
                     Log.e(TAG, "doc_comments: failed to convert wiki token", err)
-                    return@withContext ToolResult.error("failed to resolve wiki token \"$fileToken\": ${err.message}")
+                    return@withContext Toolresult.error("failed to resolve wiki token \"$fileToken\": ${err.message}")
                 }
             }
 
@@ -76,11 +76,11 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                 "list" -> doList(args, actualFileToken, actualFileType, userIdType)
                 "create" -> doCreate(args, actualFileToken, actualFileType, userIdType)
                 "patch" -> doPatch(args, actualFileToken, actualFileType)
-                else -> ToolResult.error("未知的 action: $action")
+                else -> Toolresult.error("Unknown的 action: $action")
             }
         } catch (e: Exception) {
             Log.e(TAG, "feishu_doc_comments failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
+            Toolresult.error(e.message ?: "Unknown error")
         }
     }
 
@@ -90,7 +90,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
         actualFileToken: String,
         actualFileType: String,
         userIdType: String
-    ): ToolResult {
+    ): Toolresult {
         val isWhole = args["is_whole"] as? Boolean
         val isSolved = args["is_solved"] as? Boolean
         val pageSize = (args["page_size"] as? Number)?.toInt() ?: 50 // Matching official default
@@ -107,7 +107,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
 
         val result = client.get(path)
         if (result.isFailure) {
-            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to list comments")
+            return Toolresult.error(result.exceptionOrNull()?.message ?: "Failed to list comments")
         }
 
         val data = result.getOrNull()?.getAsJsonObject("data")
@@ -129,7 +129,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
         )
         if (nextPageToken != null) resultMap["page_token"] = nextPageToken
 
-        return ToolResult.success(resultMap)
+        return Toolresult.success(resultMap)
     }
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official create action)
@@ -138,13 +138,13 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
         actualFileToken: String,
         actualFileType: String,
         userIdType: String
-    ): ToolResult {
+    ): Toolresult {
         @Suppress("UNCHECKED_CAST")
         val elements = args["elements"] as? List<Map<String, Any?>>
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official validation)
         if (elements == null || elements.isEmpty()) {
-            return ToolResult.error("elements 参数必填且不能为空")
+            return Toolresult.error("elements ParametersRequired且cannot为Null")
         }
 
         Log.i(TAG, "doc_comments.create: file_token=\"$actualFileToken\", elements=${elements.size}")
@@ -167,7 +167,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
         )
 
         if (result.isFailure) {
-            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to create comment")
+            return Toolresult.error(result.exceptionOrNull()?.message ?: "Failed to create comment")
         }
 
         val data = result.getOrNull()?.getAsJsonObject("data")
@@ -175,7 +175,7 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
 
         Log.i(TAG, "doc_comments.create: created comment $commentId")
 
-        return ToolResult.success(data ?: JsonObject())
+        return Toolresult.success(data ?: JsonObject())
     }
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official patch action)
@@ -183,17 +183,17 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
         args: Map<String, Any?>,
         actualFileToken: String,
         actualFileType: String
-    ): ToolResult {
+    ): Toolresult {
         val commentId = args["comment_id"] as? String
 
         // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official validation)
         if (commentId == null) {
-            return ToolResult.error("comment_id 参数必填")
+            return Toolresult.error("comment_id ParametersRequired")
         }
 
         val isSolvedValue = args["is_solved_value"] as? Boolean
         if (isSolvedValue == null) {
-            return ToolResult.error("is_solved_value 参数必填")
+            return Toolresult.error("is_solved_value ParametersRequired")
         }
 
         Log.i(TAG, "doc_comments.patch: comment_id=\"$commentId\", is_solved=$isSolvedValue")
@@ -206,12 +206,12 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
         )
 
         if (result.isFailure) {
-            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to patch comment")
+            return Toolresult.error(result.exceptionOrNull()?.message ?: "Failed to patch comment")
         }
 
         Log.i(TAG, "doc_comments.patch: success")
 
-        return ToolResult.success(mapOf("success" to true))
+        return Toolresult.success(mapOf("success" to true))
     }
 
     // @aligned openclaw-lark v2026.3.30 — line-by-line (matching official convertElementsToSDKFormat)
@@ -320,17 +320,17 @@ class FeishuDocCommentsTool(config: FeishuConfig, client: FeishuClient) : Feishu
                 properties = mapOf(
                     "action" to PropertySchema("string", "Action: list, create, or patch",
                         enum = listOf("list", "create", "patch")),
-                    "file_token" to PropertySchema("string", "云文档token或wiki节点token(可从文档URL获取)。如果是wiki token，会自动转换为实际文档的obj_token"),
-                    "file_type" to PropertySchema("string", "文档类型。wiki类型会自动解析为实际文档类型(docx/sheet/bitable等)",
+                    "file_token" to PropertySchema("string", "云Documenttoken或wikiNodetoken(可从DocumentURLGet). ifYeswiki token, 会AutoConvert为实际Document的obj_token"),
+                    "file_type" to PropertySchema("string", "DocumentType. wikiType会AutoParse为实际DocumentType(docx/sheet/bitable等)",
                         enum = listOf("doc", "docx", "sheet", "file", "slides", "wiki")),
-                    "is_whole" to PropertySchema("boolean", "是否只获取全文评论(action=list时可选)"),
-                    "is_solved" to PropertySchema("boolean", "是否只获取已解决的评论(action=list时可选)"),
-                    "page_size" to PropertySchema("integer", "分页大小"),
-                    "page_token" to PropertySchema("string", "分页标记"),
-                    "elements" to PropertySchema("array", "评论内容元素数组(action=create时必填)。支持text(纯文本)、mention(@用户)、link(超链接)三种类型",
+                    "is_whole" to PropertySchema("boolean", "YesNo只Get全文Comment(action=list时Optional)"),
+                    "is_solved" to PropertySchema("boolean", "YesNo只Get已Resolve的Comment(action=list时Optional)"),
+                    "page_size" to PropertySchema("integer", "Page size"),
+                    "page_token" to PropertySchema("string", "Page token"),
+                    "elements" to PropertySchema("array", "CommentInside容ElementArray(action=create时Required). Supporttext(纯Text)、mention(@User)、link(超链接)三种Type",
                         items = PropertySchema("object", "Comment element")),
-                    "comment_id" to PropertySchema("string", "评论ID(action=patch时必填)"),
-                    "is_solved_value" to PropertySchema("boolean", "解决状态:true=解决,false=恢复(action=patch时必填)"),
+                    "comment_id" to PropertySchema("string", "CommentID(action=patch时Required)"),
+                    "is_solved_value" to PropertySchema("boolean", "ResolveStatus:true=Resolve,false=Resume(action=patch时Required)"),
                     "user_id_type" to PropertySchema("string", "User ID type: open_id, union_id, user_id",
                         enum = listOf("open_id", "union_id", "user_id"))
                 ),

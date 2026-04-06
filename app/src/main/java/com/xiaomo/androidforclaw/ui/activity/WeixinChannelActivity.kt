@@ -62,8 +62,8 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
         val account = WeixinAccountStore.loadAccount()
         if (account != null && !account.token.isNullOrBlank()) {
             isLoggedIn = true
-            accountInfo = "账号: ${account.accountId ?: "未知"}\n用户: ${account.userId ?: "未知"}"
-            statusText = "✅ 已登录"
+            accountInfo = "Account: ${account.accountId ?: "Unknown"}\nUser: ${account.userId ?: "Unknown"}"
+            statusText = "✅ 已Login"
         }
     }
 
@@ -73,7 +73,7 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                 title = { Text("微信 (Weixin)") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Return")
                     }
                 }
             )
@@ -93,7 +93,7 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            // 启用开关
+            // Enabledd开关
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
@@ -104,11 +104,11 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "启用微信 Channel",
+                            text = "Enabledd微信 Channel",
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
-                            text = "开启后将接收微信消息",
+                            text = "开启BackWill receive微信Message",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -117,7 +117,7 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                         checked = enabled,
                         onCheckedChange = { newValue ->
                             enabled = newValue
-                            // 保存到配置
+                            // Save到Config
                             val currentConfig = configLoader.loadOpenClawConfig()
                             val updatedWeixin = (currentConfig.channels.weixin ?: com.xiaomo.androidforclaw.config.WeixinChannelConfig())
                                 .copy(enabled = newValue)
@@ -127,14 +127,14 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                             configLoader.saveOpenClawConfig(updatedConfig)
 
                             if (newValue) {
-                                // 启用：尝试启动通道
+                                // Enabledd: TryStart通道
                                 (context.applicationContext as? com.xiaomo.androidforclaw.core.MyApplication)
                                     ?.restartWeixinChannel()
-                                statusText = "✅ 已启用"
+                                statusText = "✅ 已Enabledd"
                             } else {
-                                // 禁用：停止通道
+                                // Disabled: Stop通道
                                 com.xiaomo.androidforclaw.core.MyApplication.getWeixinChannel()?.stop()
-                                statusText = "已禁用"
+                                statusText = "已Disabled"
                             }
                         },
                     )
@@ -150,7 +150,7 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("✅ 已连接微信", style = MaterialTheme.typography.titleMedium)
+                        Text("✅ 已Connect微信", style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(accountInfo, style = MaterialTheme.typography.bodySmall)
                     }
@@ -159,17 +159,17 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                 // Logout button
                 OutlinedButton(
                     onClick = {
-                        // 停止微信消息监听
+                        // Stop微信Message监听
                         com.xiaomo.androidforclaw.core.MyApplication.getWeixinChannel()?.stop()
                         WeixinAccountStore.clearAccount()
                         isLoggedIn = false
                         accountInfo = ""
-                        statusText = "已退出登录"
+                        statusText = "已exitLogin"
                         qrBitmap = null
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("退出登录")
+                    Text("exitLogin")
                 }
             } else {
                 // QR code display
@@ -179,11 +179,11 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                             modifier = Modifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text("使用微信扫描二维码", style = MaterialTheme.typography.titleSmall)
+                            Text("use微信扫描二维码", style = MaterialTheme.typography.titleSmall)
                             Spacer(modifier = Modifier.height(12.dp))
                             Image(
                                 bitmap = bmp.asImageBitmap(),
-                                contentDescription = "微信登录二维码",
+                                contentDescription = "微信Login二维码",
                                 modifier = Modifier.size(250.dp),
                             )
                         }
@@ -194,7 +194,7 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                 Button(
                     onClick = {
                         isLoggingIn = true
-                        statusText = "正在获取二维码..."
+                        statusText = "正在Get二维码..."
                         qrBitmap = null
 
                         scope.launch {
@@ -209,14 +209,14 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                                 val qrLogin = channel.createQRLogin()
 
                                 // Fetch QR code
-                                val qrResult = qrLogin.fetchQRCode()
-                                if (qrResult == null) {
-                                    statusText = "❌ 获取二维码失败"
+                                val qrresult = qrLogin.fetchQRCode()
+                                if (qrresult == null) {
+                                    statusText = "❌ Get二维码Failed"
                                     isLoggingIn = false
                                     return@launch
                                 }
 
-                                val (qrcodeUrl, qrcode) = qrResult
+                                val (qrcodeUrl, qrcode) = qrresult
 
                                 // Generate QR image locally from qrcode_img_content (URL for WeChat scanning)
                                 statusText = "正在生成二维码..."
@@ -225,22 +225,22 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                                 val bitmap = QRCodeGenerator.generate(qrcodeUrl, 512)
                                 if (bitmap != null) {
                                     qrBitmap = bitmap
-                                    statusText = "请使用微信扫描二维码"
+                                    statusText = "请use微信扫描二维码"
                                 } else {
-                                    statusText = "⚠️ 二维码生成失败，请重试"
+                                    statusText = "⚠️ 二维码生成Failed, 请Retry"
                                     isLoggingIn = false
                                     return@launch
                                 }
 
                                 // Wait for login
-                                val loginResult = qrLogin.waitForLogin(
+                                val loginresult = qrLogin.waitForLogin(
                                     qrcode = qrcode,
                                     onStatusUpdate = { status ->
                                         statusText = when (status) {
-                                            "wait" -> "等待扫码..."
-                                            "scaned" -> "👀 已扫码，请在微信上确认"
-                                            "expired" -> "二维码已过期，正在刷新..."
-                                            "confirmed" -> "✅ 登录成功！"
+                                            "wait" -> "Wait扫码..."
+                                            "scaned" -> "👀 已扫码, 请在微信UpConfirm"
+                                            "expired" -> "二维码已过期, 正在Refresh..."
+                                            "confirmed" -> "✅ LoginSuccess!"
                                             else -> status
                                         }
                                     },
@@ -252,21 +252,21 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                                     }
                                 )
 
-                                if (loginResult.connected) {
+                                if (loginresult.connected) {
                                     isLoggedIn = true
-                                    accountInfo = "账号: ${loginResult.accountId ?: "未知"}\n用户: ${loginResult.userId ?: "未知"}"
-                                    statusText = loginResult.message
+                                    accountInfo = "Account: ${loginresult.accountId ?: "Unknown"}\nUser: ${loginresult.userId ?: "Unknown"}"
+                                    statusText = loginresult.message
                                     qrBitmap = null
 
-                                    // 通知 MyApplication 重新启动微信消息监听
+                                    // Notification MyApplication 重NewStart微信Message监听
                                     (context.applicationContext as? com.xiaomo.androidforclaw.core.MyApplication)
                                         ?.restartWeixinChannel()
                                 } else {
-                                    statusText = "❌ ${loginResult.message}"
+                                    statusText = "❌ ${loginresult.message}"
                                 }
                             } catch (e: Exception) {
                                 Log.e("WeixinLogin", "Login error", e)
-                                statusText = "❌ 登录失败: ${e.message}"
+                                statusText = "❌ LoginFailed: ${e.message}"
                             } finally {
                                 isLoggingIn = false
                             }
@@ -282,7 +282,7 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Text(if (isLoggingIn) "登录中..." else "扫码登录")
+                    Text(if (isLoggingIn) "Login中..." else "扫码Login")
                 }
             }
 
@@ -311,13 +311,13 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                 )
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("说明", style = MaterialTheme.typography.titleSmall)
+                    Text("illustrate", style = MaterialTheme.typography.titleSmall)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "基于微信 ClawBot 插件协议，扫码后即可通过微信与 AI 对话。\n" +
-                                "• 仅支持私聊消息\n" +
-                                "• 支持文字、图片、语音、文件\n" +
-                                "• 登录凭证保存在本地",
+                        "基于微信 ClawBot 插件Protocol, 扫码BackCan via WeChat AI Conversation. \n" +
+                                "• 仅Support私聊Message\n" +
+                                "• Support文字、Graph片、语音、文件\n" +
+                                "• Login凭证Save在本地",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }

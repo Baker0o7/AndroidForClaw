@@ -10,7 +10,7 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * Model Configuration Data Classes
- * 解析由 ConfigLoader 的 JSONObject 处理，不依赖 Gson 注解。
+ * Parseby ConfigLoader 的 JSONObject Process, 不Dependency Gson Annotation. 
  */
 
 data class ModelsConfig(
@@ -47,8 +47,8 @@ data class ModelCompatConfig(
     val supportsReasoningEffort: Boolean? = null,
     val maxTokensField: String? = null,
     val thinkingFormat: String? = null,
-    val requiresToolResultName: Boolean? = null,
-    val requiresAssistantAfterToolResult: Boolean? = null,
+    val requiresToolresultName: Boolean? = null,
+    val requiresAssistantAfterToolresult: Boolean? = null,
     // OpenClaw model-compat.ts additions
     val toolSchemaProfile: String? = null,
     val nativeWebSearchTool: Boolean? = null,

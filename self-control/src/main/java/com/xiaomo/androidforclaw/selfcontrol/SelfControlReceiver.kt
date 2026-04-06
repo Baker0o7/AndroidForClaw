@@ -20,11 +20,11 @@ import kotlinx.coroutines.launch
 /**
  * Self-Control Broadcast Receiver
  *
- * 通过 Broadcast 暴露 Self-Control 能力给外部调用（如 ADB）。
+ * 通过 Broadcast 暴露 Self-Control Capability给External调用(如 ADB). 
  *
- * 使用方式：
+ * 使用方式: 
  *
- * 1. 通过 ADB 发送广播
+ * 1. 通过 ADB 发送Broadcast
  * ```bash
  * # 页面导航
  * adb shell am broadcast \
@@ -32,14 +32,14 @@ import kotlinx.coroutines.launch
  *   --es skill navigate_app \
  *   --es page config
  *
- * # 配置管理 - 读取
+ * # ConfigManage - Read
  * adb shell am broadcast \
  *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
  *   --es skill manage_config \
  *   --es operation get \
  *   --es key exploration_mode
  *
- * # 配置管理 - 设置
+ * # ConfigManage - Settings
  * adb shell am broadcast \
  *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
  *   --es skill manage_config \
@@ -47,31 +47,31 @@ import kotlinx.coroutines.launch
  *   --es key exploration_mode \
  *   --es value true
  *
- * # 服务控制
+ * # Service控制
  * adb shell am broadcast \
  *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
  *   --es skill control_service \
  *   --es operation hide_float
  *
- * # 日志查询
+ * # LogQuery
  * adb shell am broadcast \
  *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
  *   --es skill query_logs \
  *   --es level E \
  *   --ei lines 50
  *
- * # 列出所有 Skills
+ * # ListAll Skills
  * adb shell am broadcast \
  *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
  *   --es action list_skills
  *
- * # 健康检查
+ * # HealthCheck
  * adb shell am broadcast \
  *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
  *   --es action health
  * ```
  *
- * 参数类型：
+ * ParametersType: 
  * - --es key value   (String)
  * - --ei key value   (Integer)
  * - --el key value   (Long)
@@ -79,9 +79,9 @@ import kotlinx.coroutines.launch
  * - --ef key value   (Float)
  * - --ed key value   (Double)
  *
- * 返回结果：
- * - 通过 logcat 查看（TAG: SelfControlReceiver）
- * - 通过 resultData 返回（有序广播）
+ * ReturnResult: 
+ * - 通过 logcat View(TAG: SelfControlReceiver)
+ * - 通过 resultData Return(Has序Broadcast)
  */
 class SelfControlReceiver : BroadcastReceiver() {
     companion object {
@@ -106,7 +106,7 @@ class SelfControlReceiver : BroadcastReceiver() {
         val action = intent.getStringExtra("action")
         val skillName = intent.getStringExtra("skill")
 
-        // 异步执行（避免阻塞广播）
+        // Async执Row(避免BlockBroadcast)
         val pendingResult = goAsync()
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -118,10 +118,10 @@ class SelfControlReceiver : BroadcastReceiver() {
                     else -> "Error: Missing 'action' or 'skill' parameter"
                 }
 
-                // 输出结果到 logcat
+                // OutputResult到 logcat
                 Log.i(TAG, "Result: $result")
 
-                // 设置返回数据（有序广播）
+                // SettingsReturnData(Has序Broadcast)
                 pendingResult.resultData = result
                 pendingResult.resultCode = if (result.startsWith("Error")) -1 else 0
 
@@ -136,7 +136,7 @@ class SelfControlReceiver : BroadcastReceiver() {
     }
 
     /**
-     * 执行 Skill
+     * 执Row Skill
      */
     private suspend fun handleExecuteSkill(
         context: Context,
@@ -145,24 +145,24 @@ class SelfControlReceiver : BroadcastReceiver() {
     ): String {
         val registry = SelfControlRegistry(context)
 
-        // 检查 Skill 是否存在
+        // Check Skill YesNoExists
         if (!registry.contains(skillName)) {
             return "Error: Unknown skill: $skillName. Available: ${registry.getAllSkillNames()}"
         }
 
-        // 提取参数
+        // 提取Parameters
         val args = extractArgs(intent)
 
         Log.d(TAG, "Executing skill: $skillName with args: $args")
 
-        // 执行 Skill
+        // 执Row Skill
         val result = registry.execute(skillName, args)
 
         if (result == null) {
             return "Error: Skill execution returned null"
         }
 
-        // 格式化输出
+        // Formatted output
         return if (result.success) {
             buildString {
                 appendLine("✅ Success")
@@ -180,7 +180,7 @@ class SelfControlReceiver : BroadcastReceiver() {
     }
 
     /**
-     * 列出所有 Skills
+     * ListAll Skills
      */
     private fun handleListSkills(context: Context): String {
         val registry = SelfControlRegistry(context)
@@ -213,7 +213,7 @@ class SelfControlReceiver : BroadcastReceiver() {
     }
 
     /**
-     * 健康检查
+     * HealthCheck
      */
     private fun handleHealth(context: Context): String {
         val registry = SelfControlRegistry(context)
@@ -228,14 +228,14 @@ class SelfControlReceiver : BroadcastReceiver() {
     }
 
     /**
-     * 从 Intent 提取参数
+     * 从 Intent 提取Parameters
      */
     private fun extractArgs(intent: Intent): Map<String, Any?> {
         val args = mutableMapOf<String, Any?>()
         val extras = intent.extras ?: return args
 
         extras.keySet().forEach { key ->
-            // 跳过特殊 key
+            // Skip特殊 key
             if (key in setOf("action", "skill")) {
                 return@forEach
             }

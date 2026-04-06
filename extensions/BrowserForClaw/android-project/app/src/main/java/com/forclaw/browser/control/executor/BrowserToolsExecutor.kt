@@ -6,25 +6,25 @@
  */
 package com.forclaw.browser.control.executor
 
-import com.forclaw.browser.control.model.ToolResult
+import com.forclaw.browser.control.model.Toolresult
 import com.forclaw.browser.control.tools.*
 
 /**
- * 浏览器工具执行器
+ * 浏览器工具执Row器
  *
  * 职责:
- * - 注册所有可用的浏览器工具
- * - 根据工具名称路由到具体工具
- * - 统一处理异常
+ * - RegisterAllAvailable的浏览器工具
+ * - according to工具NameRoute到Concrete工具
+ * - 统一ProcessException
  */
 object BrowserToolsExecutor {
 
     private val tools = mutableMapOf<String, BrowserTool>()
 
     /**
-     * 初始化执行器，注册所有工具
+     * Initialize执Row器, RegisterAll工具
      *
-     * 应该在 Application.onCreate() 中调用
+     * Should在 Application.onCreate() 中call
      */
     fun init() {
         // 核心 5 个工具 (v0.3.0)
@@ -34,7 +34,7 @@ object BrowserToolsExecutor {
         register(BrowserScrollTool())
         register(BrowserGetContentTool())
 
-        // 新增 7 个工具 (v0.4.0)
+        // New增 7 个工具 (v0.4.0)
         register(BrowserWaitTool())
         register(BrowserExecuteTool())
         register(BrowserPressTool())
@@ -46,48 +46,48 @@ object BrowserToolsExecutor {
     }
 
     /**
-     * 注册工具
+     * Register工具
      *
-     * @param tool 要注册的工具实例
+     * @param tool 要Register的工具Instance
      */
     private fun register(tool: BrowserTool) {
         tools[tool.name] = tool
     }
 
     /**
-     * 执行工具
+     * 执Row工具
      *
-     * @param toolName 工具名称
-     * @param args 参数 Map
-     * @return 执行结果
+     * @param toolName 工具Name
+     * @param args Parameters Map
+     * @return 执Rowresult
      */
-    suspend fun execute(toolName: String, args: Map<String, Any?>): ToolResult {
-        // 1. 查找工具
+    suspend fun execute(toolName: String, args: Map<String, Any?>): Toolresult {
+        // 1. Find工具
         val tool = tools[toolName]
-            ?: return ToolResult.error("Unknown tool: $toolName")
+            ?: return Toolresult.error("Unknown tool: $toolName")
 
-        // 2. 执行工具
+        // 2. 执Row工具
         return try {
             tool.execute(args)
         } catch (e: Exception) {
-            ToolResult.error("Tool execution failed: ${e.message}")
+            Toolresult.error("Tool execution failed: ${e.message}")
         }
     }
 
     /**
-     * 获取所有可用工具的名称
+     * GetAllAvailable工具的Name
      *
-     * @return 工具名称列表
+     * @return 工具NameList
      */
     fun getAvailableTools(): List<String> {
         return tools.keys.toList()
     }
 
     /**
-     * 检查工具是否存在
+     * Check if tool exists
      *
-     * @param toolName 工具名称
-     * @return true 如果工具存在
+     * @param toolName 工具Name
+     * @return true if工具Exists
      */
     fun hasT(toolName: String): Boolean {
         return tools.containsKey(toolName)

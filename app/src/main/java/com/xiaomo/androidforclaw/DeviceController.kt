@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw
 
@@ -30,13 +30,13 @@ object DeviceController {
             try {
                 val uriString = AccessibilityProxy.captureScreen()
                 if (uriString.isEmpty()) {
-                    Log.w(TAG, "截图失败：URI 为空")
+                    Log.w(TAG, "Screenshot failed: URI is empty")
                     return@runBlocking null
                 }
 
                 Log.d(TAG, "Got screenshot URI: $uriString")
 
-                // 尝试作为 Content URI 解码
+                // Try作为 Content URI Decode
                 val bitmap = try {
                     if (uriString.startsWith("content://")) {
                         val uri = android.net.Uri.parse(uriString)
@@ -44,7 +44,7 @@ object DeviceController {
                             BitmapFactory.decodeStream(inputStream)
                         }
                     } else {
-                        // 回退到文件路径
+                        // Fallback到File path
                         BitmapFactory.decodeFile(uriString)
                     }
                 } catch (e: Exception) {
@@ -55,49 +55,49 @@ object DeviceController {
                 if (bitmap != null) {
                     Pair(bitmap, uriString)
                 } else {
-                    Log.e(TAG, "无法解码截图: $uriString")
+                    Log.e(TAG, "CannotDecodeScreenshot: $uriString")
                     null
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "截图失败", e)
+                Log.e(TAG, "Screenshot failed", e)
                 null
             }
         }
     }
 
-    // 判断当前启用的输入法是否是 ADB Keyboard
+    // Check当FrontEnabledd的Input methodYesNoYes ADB Keyboard
     fun isClawKeyboardActive(context: Context): Boolean {
         val currentInputMethod = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.DEFAULT_INPUT_METHOD
         )
-        // 3. 检查ADB输入法是否在启用列表中
+        // 3. CheckADBInput methodYesNo在EnableddList中
         val adbInputMethodName =
-            "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME" // ADB输入法的名称，根据实际情况修改
+            "${context.packageName}/com.xiaomo.androidforclaw.service.ClawIME" // ADBInput method的Name, according to实际情况Modify
         return currentInputMethod == adbInputMethodName || currentInputMethod.contains("adbkeyboard")
     }
 
-    // 判断当前焦点是否在输入框上
+    // Check当FrontFocusYesNo在Input fieldUp
     fun findFocusedEditText(service: AccessibilityService): AccessibilityNodeInfo? {
         val rootNode = service.rootInActiveWindow ?: return null
         return rootNode.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
     }
 
 
-    // 综合判断：是否 ADB 键盘 + 焦点在输入框
+    // 综合Check: YesNo ADB Key盘 + Focus在Input field
     fun isAdbKeyboardVisible(service: AccessibilityService, context: Context): Boolean {
         val focusedNode = findFocusedEditText(service)
         val isClawIme = isClawKeyboardActive(context)
-        Log.d("ADB键盘判断", "是否焦点在EditText: ${focusedNode != null}")
+        Log.d("ADBKey盘Check", "YesNoFocus在EditText: ${focusedNode != null}")
         return focusedNode != null && isClawIme
     }
 
 
-    // todo 截屏和抓tree 放到一起 delay合并到一起
+    // todo 截屏和抓tree 放到一起 delayMerge到一起
     fun detectIcons(context: Context): Pair<List<ViewNode>, List<ViewNode>>? {
-        // 检查无障碍服务是否连接
+        // CheckAccessibilityServiceYesNoConnect
         if (!AccessibilityProxy.isServiceReady()) {
-            Log.w(TAG, "无障碍服务未就绪")
+            Log.w(TAG, "AccessibilityService未Ready")
             return null
         }
 
@@ -106,7 +106,7 @@ object DeviceController {
                 Log.d(TAG, "detectIcons: dumpView via AIDL")
                 var dumpView = AccessibilityProxy.dumpViewTree(useCache = false)
 
-                // 最多重试 3 次
+                // most多Retry 3 次
                 var retryCount = 0
                 while (dumpView.isEmpty() && retryCount < 3) {
                     Log.d(TAG, "detectIcons: retry $retryCount")
@@ -116,19 +116,19 @@ object DeviceController {
                 }
 
                 if (dumpView.isEmpty()) {
-                    Log.w(TAG, "无法获取 UI 树（已重试 $retryCount 次）")
+                    Log.w(TAG, "CannotGet UI Tree(已Retry $retryCount 次)")
                     return@runBlocking null
                 }
 
-                // 克隆原始数据
+                // Clone原始Data
                 val originalNodes = dumpView.map { it.copy() }
 
-                // 经过完整处理的数据
+                // 经过完整Process的Data
                 val processedNodes = processHierarchy(dumpView)
 
                 Pair(originalNodes, processedNodes)
             } catch (e: Exception) {
-                Log.e(TAG, "获取 UI 树失败", e)
+                Log.e(TAG, "Get UI TreeFailed", e)
                 null
             }
         }
@@ -213,6 +213,6 @@ object DeviceController {
         AccessibilityProxy.pressHome()
     }
 
-    // 已移除ADB依赖，不再提供shell命令执行
+    // 已移除ADBDependency, 不再提供shell命令执Row
 
 }

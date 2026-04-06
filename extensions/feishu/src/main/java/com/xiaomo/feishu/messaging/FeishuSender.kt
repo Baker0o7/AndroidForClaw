@@ -17,8 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 飞书消息发送器
- * 对齐 OpenClaw src/send.ts
+ * 飞书Messagesend器
+ * Aligned with OpenClaw src/send.ts
  */
 class FeishuSender(
     private val config: FeishuConfig,
@@ -32,11 +32,11 @@ class FeishuSender(
     private val media = FeishuMedia(config, client)
 
     /**
-     * 发送文本消息
+     * sendTextMessage
      *
-     * 对齐 OpenClaw 逻辑：
-     * - 自动检测代码块和 Markdown 表格
-     * - 使用 interactive card (schema 2.0) 渲染格式化内容
+     * Aligned with OpenClaw 逻辑: 
+     * - Auto检测代码块和 Markdown Table
+     * - use interactive card (schema 2.0) 渲染FormatInside容
      */
     suspend fun sendTextMessage(
         receiveId: String,
@@ -44,15 +44,15 @@ class FeishuSender(
         receiveIdType: String = "open_id",
         mentionTargets: List<MentionTarget> = emptyList(),
         renderMode: RenderMode = RenderMode.AUTO
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
-            // 分块发送（如果超过限制）
+            // 分块send(if超过Limit)
             val chunks = chunkText(text, config.textChunkLimit)
             if (chunks.size > 1) {
                 return@withContext sendChunkedMessages(receiveId, chunks, receiveIdType)
             }
 
-            // 判断是否使用卡片（对齐 OpenClaw）
+            // DetermineYesNouse卡片(Aligned with OpenClaw)
             val useCard = when (renderMode) {
                 RenderMode.CARD -> true
                 RenderMode.TEXT -> false
@@ -60,12 +60,12 @@ class FeishuSender(
             }
 
             if (useCard) {
-                // 使用 Markdown 卡片发送（正确渲染代码块和表格）
+                // use Markdown 卡片send(正确渲染代码块和Table)
                 Log.d(TAG, "Using markdown card for formatted content")
                 val card = buildMarkdownCard(text, mentionTargets)
                 return@withContext sendCard(receiveId, card, receiveIdType)
             } else {
-                // 使用普通文本消息
+                // use普通TextMessage
                 val content = if (mentionTargets.isNotEmpty()) {
                     buildMentionedTextContent(text, mentionTargets)
                 } else {
@@ -76,59 +76,59 @@ class FeishuSender(
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send text message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送卡片消息
+     * send卡片Message
      */
     suspend fun sendCard(
         receiveId: String,
         card: String,
         receiveIdType: String = "open_id"
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
             sendMessageInternal(receiveId, "interactive", card, receiveIdType)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send card message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 更新卡片消息
+     * Update卡片Message
      */
     suspend fun updateCard(
         messageId: String,
         card: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val body = mapOf("content" to card)
             val result = client.patch("/open-apis/im/v1/messages/$messageId", body)
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             Log.d(TAG, "Card updated: $messageId")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update card", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 通过 card_id 发送 Card Kit 卡片（用于 Streaming Card）
-     * 对齐 OpenClaw: client.im.message.create with card_id reference
+     * 通过 card_id send Card Kit 卡片(用于 Streaming Card)
+     * Aligned with OpenClaw: client.im.message.create with card_id reference
      */
     suspend fun sendCardById(
         receiveId: String,
         cardId: String,
         receiveIdType: String = "chat_id"
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
             val content = gson.toJson(mapOf(
                 "type" to "card",
@@ -137,17 +137,17 @@ class FeishuSender(
             sendMessageInternal(receiveId, "interactive", content, receiveIdType)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send card by id", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 通过 card_id 发送引用回复卡片（Streaming Card + Quote Reply）
+     * 通过 card_id send引用回复卡片(Streaming Card + Quote Reply)
      */
     suspend fun sendCardByIdReply(
         replyToMessageId: String,
         cardId: String
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
             val content = gson.toJson(mapOf(
                 "type" to "card",
@@ -156,17 +156,17 @@ class FeishuSender(
             sendQuoteReply(replyToMessageId, "interactive", content)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send card by id reply", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 编辑消息
+     * EditMessage
      */
     suspend fun editMessage(
         messageId: String,
         text: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val content = buildTextContent(text)
             val body = mapOf(
@@ -177,101 +177,101 @@ class FeishuSender(
             val result = client.put("/open-apis/im/v1/messages/$messageId", body)
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             Log.d(TAG, "Message edited: $messageId")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to edit message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 删除消息
+     * DeleteMessage
      */
-    suspend fun deleteMessage(messageId: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun deleteMessage(messageId: String): result<Unit> = withContext(Dispatchers.IO) {
         try {
             val result = client.delete("/open-apis/im/v1/messages/$messageId")
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             Log.d(TAG, "Message deleted: $messageId")
-            Result.success(Unit)
+            result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to delete message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送图片消息
-     * 对齐 OpenClaw src/send.ts sendImage()
+     * sendGraph片Message
+     * Aligned with OpenClaw src/send.ts sendImage()
      */
     suspend fun sendImage(
         receiveId: String,
         imageKey: String,
         receiveIdType: String = "open_id"
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
             val content = gson.toJson(mapOf("image_key" to imageKey))
             sendMessageInternal(receiveId, "image", content, receiveIdType)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send image", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 上传图片并发送
-     * 对齐 OpenClaw 逻辑：upload file -> get image_key -> send image
+     * UploadGraph片Concurrency送
+     * Aligned with OpenClaw 逻辑: upload file -> get image_key -> send image
      */
     suspend fun uploadAndSendImage(
         receiveId: String,
         filePath: String,
         receiveIdType: String = "open_id"
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
             val file = java.io.File(filePath)
             if (!file.exists()) {
-                return@withContext Result.failure(Exception("File not found: $filePath"))
+                return@withContext result.failure(Exception("File not found: $filePath"))
             }
 
-            // 1. 上传图片获取 image_key (使用新的 FeishuImageUploadTool)
+            // 1. UploadGraph片Get image_key (useNew的 FeishuImageUploadTool)
             val uploadTool = com.xiaomo.feishu.tools.media.FeishuImageUploadTool(config, client)
-            val toolResult = uploadTool.execute(mapOf("image_path" to file.absolutePath))
+            val toolresult = uploadTool.execute(mapOf("image_path" to file.absolutePath))
 
-            if (!toolResult.success) {
-                return@withContext Result.failure(Exception(toolResult.error ?: "Upload failed"))
+            if (!toolresult.success) {
+                return@withContext result.failure(Exception(toolresult.error ?: "Upload failed"))
             }
 
-            val imageKey = toolResult.data as? String
-                ?: return@withContext Result.failure(Exception("Missing image_key"))
+            val imageKey = toolresult.data as? String
+                ?: return@withContext result.failure(Exception("Missing image_key"))
 
             Log.d(TAG, "Image uploaded: $imageKey")
 
-            // 2. 发送图片消息
+            // 2. sendGraph片Message
             sendImage(receiveId, imageKey, receiveIdType)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to upload and send image", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 话题内回复（Thread Reply）
-     * 对齐 OpenClaw replyInThread
+     * 话题Inside回复(Thread Reply)
+     * Aligned with OpenClaw replyInThread
      */
     suspend fun replyInThread(
         messageId: String,
         text: String
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
             val content = buildTextContent(text)
             val body = mapOf(
@@ -284,31 +284,31 @@ class FeishuSender(
             val result = client.post("/open-apis/im/v1/messages", body)
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val newMessageId = data?.get("message_id")?.asString
-                ?: return@withContext Result.failure(Exception("Missing message_id"))
+                ?: return@withContext result.failure(Exception("Missing message_id"))
 
             Log.d(TAG, "Thread reply sent: $newMessageId")
-            Result.success(SendResult(newMessageId, listOf(newMessageId)))
+            result.success(Sendresult(newMessageId, listOf(newMessageId)))
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to reply in thread", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 引用回复（Quote Reply）
-     * 对齐 OpenClaw reply-dispatcher: POST /im/v1/messages/{message_id}/reply
+     * 引用回复(Quote Reply)
+     * Aligned with OpenClaw reply-dispatcher: POST /im/v1/messages/{message_id}/reply
      */
     suspend fun sendQuoteReply(
         replyToMessageId: String,
         msgType: String,
         content: String
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
             val body = mapOf(
                 "content" to content,
@@ -321,74 +321,74 @@ class FeishuSender(
             )
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val newMessageId = data?.get("message_id")?.asString
-                ?: return@withContext Result.failure(Exception("Missing message_id"))
+                ?: return@withContext result.failure(Exception("Missing message_id"))
 
             Log.d(TAG, "Quote reply sent: $newMessageId (reply to $replyToMessageId)")
-            Result.success(SendResult(newMessageId, listOf(newMessageId)))
+            result.success(Sendresult(newMessageId, listOf(newMessageId)))
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send quote reply", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 引用回复文本消息（高层便捷方法）
-     * 自动处理卡片检测、分块
+     * 引用回复TextMessage(高层便捷Method)
+     * AutoProcess卡片检测、分块
      */
     suspend fun sendTextReply(
         replyToMessageId: String,
         text: String,
         mentionTargets: List<MentionTarget> = emptyList(),
         renderMode: RenderMode = RenderMode.AUTO
-    ): Result<SendResult> = withContext(Dispatchers.IO) {
+    ): result<Sendresult> = withContext(Dispatchers.IO) {
         try {
-            // 分块处理
+            // 分块Process
             val chunks = chunkText(text, config.textChunkLimit)
             if (chunks.size > 1) {
-                // 第一块用引用回复，后续直接发
-                val firstResult = sendSingleTextReply(replyToMessageId, chunks[0], mentionTargets, renderMode)
-                if (firstResult.isFailure) return@withContext firstResult
+                // First块用引用回复, Back续直接发
+                val firstresult = sendSingleTextReply(replyToMessageId, chunks[0], mentionTargets, renderMode)
+                if (firstresult.isFailure) return@withContext firstresult
 
-                val messageIds = mutableListOf(firstResult.getOrNull()!!.messageId)
-                // 后续 chunks 需要 receiveId，从 reply API 无法直接获取 chatId
-                // 所以后续 chunks 作为普通消息发送不太合适，这里简化为全部用第一条的方式
+                val messageIds = mutableListOf(firstresult.getOrNull()!!.messageId)
+                // Back续 chunks Need receiveId, 从 reply API Cannot直接Get chatId
+                // soBack续 chunks 作为普通Messagesend不太合适, 这里简化为All用First条的方式
                 for (i in 1 until chunks.size) {
                     kotlinx.coroutines.delay(200)
-                    val chunkResult = sendQuoteReply(
+                    val chunkresult = sendQuoteReply(
                         replyToMessageId,
                         if (shouldUseCard(chunks[i])) "interactive" else "text",
                         if (shouldUseCard(chunks[i])) buildMarkdownCard(chunks[i], mentionTargets)
                         else buildTextContent(chunks[i])
                     )
-                    if (chunkResult.isSuccess) {
-                        messageIds.add(chunkResult.getOrNull()!!.messageId)
+                    if (chunkresult.isSuccess) {
+                        messageIds.add(chunkresult.getOrNull()!!.messageId)
                     }
                 }
-                return@withContext Result.success(SendResult(messageIds.first(), messageIds))
+                return@withContext result.success(Sendresult(messageIds.first(), messageIds))
             }
 
             sendSingleTextReply(replyToMessageId, text, mentionTargets, renderMode)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send text reply", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
     /**
-     * 发送单条引用回复
+     * send单条引用回复
      */
     private suspend fun sendSingleTextReply(
         replyToMessageId: String,
         text: String,
         mentionTargets: List<MentionTarget>,
         renderMode: RenderMode
-    ): Result<SendResult> {
+    ): result<Sendresult> {
         val useCard = when (renderMode) {
             RenderMode.CARD -> true
             RenderMode.TEXT -> false
@@ -409,21 +409,21 @@ class FeishuSender(
     }
 
     /**
-     * 获取消息详情
+     * GetMessageDetails
      */
-    suspend fun getMessage(messageId: String): Result<MessageInfo> = withContext(Dispatchers.IO) {
+    suspend fun getMessage(messageId: String): result<MessageInfo> = withContext(Dispatchers.IO) {
         try {
             val result = client.get("/open-apis/im/v1/messages/$messageId")
 
             if (result.isFailure) {
-                return@withContext Result.failure(result.exceptionOrNull()!!)
+                return@withContext result.failure(result.exceptionOrNull()!!)
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
             val items = data?.getAsJsonArray("items")
 
             if (items == null || items.size() == 0) {
-                return@withContext Result.failure(Exception("Message not found"))
+                return@withContext result.failure(Exception("Message not found"))
             }
 
             val item = items[0].asJsonObject
@@ -442,25 +442,25 @@ class FeishuSender(
                 createTime = item.get("create_time")?.asLong
             )
 
-            Result.success(messageInfo)
+            result.success(messageInfo)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get message", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
-    // ===== 内部方法 =====
+    // ===== InternalMethod =====
 
     /**
-     * 发送消息（内部）
+     * sendMessage(Internal)
      */
     private suspend fun sendMessageInternal(
         receiveId: String,
         msgType: String,
         content: String,
         receiveIdType: String
-    ): Result<SendResult> {
+    ): result<Sendresult> {
         val body = mapOf(
             "receive_id" to receiveId,
             "msg_type" to msgType,
@@ -473,25 +473,25 @@ class FeishuSender(
         )
 
         if (result.isFailure) {
-            return Result.failure(result.exceptionOrNull()!!)
+            return result.failure(result.exceptionOrNull()!!)
         }
 
         val data = result.getOrNull()?.getAsJsonObject("data")
         val messageId = data?.get("message_id")?.asString
-            ?: return Result.failure(Exception("Missing message_id"))
+            ?: return result.failure(Exception("Missing message_id"))
 
         Log.d(TAG, "Message sent: $messageId")
-        return Result.success(SendResult(messageId, listOf(messageId)))
+        return result.success(Sendresult(messageId, listOf(messageId)))
     }
 
     /**
-     * 发送分块消息
+     * send分块Message
      */
     private suspend fun sendChunkedMessages(
         receiveId: String,
         chunks: List<String>,
         receiveIdType: String
-    ): Result<SendResult> {
+    ): result<Sendresult> {
         val messageIds = mutableListOf<String>()
 
         for ((index, chunk) in chunks.withIndex()) {
@@ -508,32 +508,32 @@ class FeishuSender(
                 Log.e(TAG, "Failed to send chunk $index")
             }
 
-            // 避免发送过快
+            // 避免send过快
             kotlinx.coroutines.delay(200)
         }
 
         if (messageIds.isEmpty()) {
-            return Result.failure(Exception("All chunks failed to send"))
+            return result.failure(Exception("All chunks failed to send"))
         }
 
-        return Result.success(SendResult(messageIds.first(), messageIds))
+        return result.success(Sendresult(messageIds.first(), messageIds))
     }
 
     /**
-     * 构建文本内容
+     * BuildTextInside容
      */
     private fun buildTextContent(text: String): String {
         return gson.toJson(mapOf("text" to text))
     }
 
     /**
-     * 构建带提及的文本内容
+     * Build带提及的TextInside容
      */
     private fun buildMentionedTextContent(
         text: String,
         mentionTargets: List<MentionTarget>
     ): String {
-        // 构建提及内容
+        // Build提及Inside容
         val mentionedText = StringBuilder()
         for (target in mentionTargets) {
             mentionedText.append("<at user_id=\"${target.userId}\"></at> ")
@@ -544,7 +544,7 @@ class FeishuSender(
     }
 
     /**
-     * 文本分块
+     * Text分块
      */
     private fun chunkText(text: String, limit: Int): List<String> {
         if (text.length <= limit) {
@@ -563,7 +563,7 @@ class FeishuSender(
                 }
             }
             FeishuConfig.ChunkMode.NEWLINE -> {
-                // 按换行符分块
+                // 按换Row符分块
                 val lines = text.split("\n")
                 var currentChunk = StringBuilder()
 
@@ -573,7 +573,7 @@ class FeishuSender(
                             chunks.add(currentChunk.toString())
                             currentChunk = StringBuilder()
                         }
-                        // 如果单行超过限制，强制分块
+                        // if单Row超过Limit, 强制分块
                         if (line.length > limit) {
                             chunks.addAll(chunkText(line, limit))
                         } else {
@@ -597,7 +597,7 @@ class FeishuSender(
     }
 
     /**
-     * 提取纯文本
+     * 提取纯Text
      */
     private fun extractPlainText(content: String, msgType: String): String {
         return try {
@@ -605,7 +605,7 @@ class FeishuSender(
             when (msgType) {
                 "text" -> json.get("text")?.asString ?: content
                 "post" -> {
-                    // 富文本消息，提取所有文本
+                    // 富TextMessage, 提取AllText
                     val contentObj = json.getAsJsonObject("content")
                     val zhCn = contentObj?.getAsJsonArray("zh_cn")
                     zhCn?.joinToString("\n") { element ->
@@ -623,24 +623,24 @@ class FeishuSender(
     }
 
     /**
-     * 检测是否应该使用卡片格式
-     * 对齐 OpenClaw: 任何 markdown 格式都用卡片渲染，避免原始符号暴露
+     * 检测YesNoShoulduse卡片格式
+     * Aligned with OpenClaw: 任何 markdown 格式都用卡片渲染, 避免原始符号暴露
      */
     private fun shouldUseCard(text: String): Boolean {
         // 检测代码块 ```
         if (text.contains("```")) return true
 
-        // 检测 Markdown 表格 |...|
+        // 检测 Markdown Table |...|
         val tableCount = countMarkdownTables(text)
         if (tableCount > 0) {
             if (tableCount > config.maxTablesPerCard) {
-                Log.w(TAG, "⚠️ 表格数量 ($tableCount) 超过飞书限制 (${config.maxTablesPerCard}),将使用纯文本")
+                Log.w(TAG, "⚠️ Table数量 ($tableCount) 超过飞书Limit (${config.maxTablesPerCard}),将use纯Text")
                 return false
             }
             return true
         }
 
-        // 检测常见 Markdown 格式（加粗、斜体、标题、列表、链接等）
+        // 检测常见 Markdown 格式(加粗、斜体、Title、List、链接等)
         val markdownPatterns = listOf(
             Regex("\\*\\*.+?\\*\\*"),           // **bold**
             Regex("\\*.+?\\*"),                  // *italic*
@@ -660,7 +660,7 @@ class FeishuSender(
     }
 
     /**
-     * 统计 Markdown 中的表格数量
+     * count Markdown 中的Table数量
      */
     private fun countMarkdownTables(text: String): Int {
         var tableCount = 0
@@ -671,15 +671,15 @@ class FeishuSender(
             val line = lines[i]
             val nextLine = lines.getOrNull(i + 1) ?: continue
 
-            // 检查是否是表格行（包含 |）
+            // CheckYesNoYesTableRow(Contains |)
             if (line.contains("|") && !inTable) {
-                // 检查下一行是否是分隔符（如 |---|---| 或 |:-:|:-:|）
+                // CheckDown一RowYesNoYes分隔符(such as |---|---| 或 |:-:|:-:|)
                 if (nextLine.matches(Regex("^\\s*\\|[-:| ]+\\|\\s*$"))) {
                     tableCount++
                     inTable = true
                 }
             } else if (inTable && !line.contains("|")) {
-                // 表格结束
+                // TableEnd
                 inTable = false
             }
         }
@@ -688,8 +688,8 @@ class FeishuSender(
     }
 
     /**
-     * 构建 Markdown 卡片
-     * 对齐 OpenClaw buildMarkdownCard()
+     * Build Markdown 卡片
+     * Aligned with OpenClaw buildMarkdownCard()
      *
      * Uses schema 2.0 format for proper markdown rendering (code blocks, tables, etc.)
      */
@@ -697,7 +697,7 @@ class FeishuSender(
         text: String,
         mentionTargets: List<MentionTarget> = emptyList()
     ): String {
-        // 处理 @提及
+        // Process @提及
         val cardText = if (mentionTargets.isNotEmpty()) {
             buildMentionedCardContent(text, mentionTargets)
         } else {
@@ -723,14 +723,14 @@ class FeishuSender(
     }
 
     /**
-     * 构建带提及的卡片内容
-     * 对齐 OpenClaw buildMentionedCardContent()
+     * Build带提及的卡片Inside容
+     * Aligned with OpenClaw buildMentionedCardContent()
      */
     private fun buildMentionedCardContent(
         text: String,
         mentionTargets: List<MentionTarget>
     ): String {
-        // 在卡片中，使用 <at user_id="xxx"></at> 语法
+        // In card, use <at user_id="xxx"></at> 语法
         val mentionedText = StringBuilder()
         for (target in mentionTargets) {
             mentionedText.append("<at user_id=\"${target.userId}\"></at> ")
@@ -741,14 +741,14 @@ class FeishuSender(
 }
 
 /**
- * 渲染模式（对齐 OpenClaw）
+ * 渲染Schema(Aligned with OpenClaw)
  */
 enum class RenderMode {
-    /** 自动检测（默认） */
+    /** Auto检测(Default) */
     AUTO,
-    /** 强制使用卡片 */
+    /** 强制use卡片 */
     CARD,
-    /** 强制使用文本 */
+    /** 强制useText */
     TEXT
 }
 
@@ -762,15 +762,15 @@ data class MentionTarget(
 )
 
 /**
- * 发送结果
+ * sendresult
  */
-data class SendResult(
+data class Sendresult(
     val messageId: String,
     val allMessageIds: List<String>
 )
 
 /**
- * 消息信息
+ * MessageInfo
  */
 data class MessageInfo(
     val messageId: String,

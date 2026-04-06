@@ -1,31 +1,31 @@
 package com.xiaomo.base
 
 /**
- * 本地进程内 gateway 通信接口。
+ * 本地ProcessInside gateway 通信Interface. 
  *
- * 替代 WebSocket 实现，允许同进程的 ChatController 直接与 GatewayController 交互，
- * 无需经过本地 localhost:8765 WebSocket 中转。
+ * 替代 WebSocket Implementation, 允许同Process的 ChatController 直接与 GatewayController 交互, 
+ * None需经过本地 localhost:8765 WebSocket 中转. 
  *
- * - 远程 gateway 连接仍使用 GatewaySession（WebSocket），它实现本接口。
- * - 本地同进程连接使用 LocalGatewayChannel（app 模块），同样实现本接口。
+ * - 远程 gateway Connect仍使用 GatewaySession(WebSocket), 它Implementation本Interface. 
+ * - 本地同ProcessConnect使用 LocalGatewayChannel(app Module), 同样Implementation本Interface. 
  */
 interface IGatewayChannel {
     /**
-     * 发起 RPC 请求，返回 JSON 字符串响应。
+     * 发起 RPC Request, Return JSON StringResponse. 
      */
     suspend fun request(method: String, paramsJson: String?, timeoutMs: Long = 15_000L): String
 
     /**
-     * 发送节点事件（chat.subscribe 等）。
-     * 本地实现可直接忽略或处理。
+     * 发送NodeEvent(chat.subscribe 等). 
+     * 本地Implementation可直接Ignore或Process. 
      */
     suspend fun sendNodeEvent(event: String, payloadJson: String?): Boolean
 
     /**
-     * 注册事件监听器，用于接收来自 gateway 的推送事件（agent 进度、chat 状态等）。
+     * RegisterEventListener, 用于接收来自 gateway 的推送Event(agent Into度、chat Status等). 
      *
-     * - LocalGatewayChannel：将监听器注册到 GatewayController，事件直接投递，不走 WebSocket。
-     * - GatewaySession：默认 no-op，事件已通过构造时传入的 onEvent 回调路由。
+     * - LocalGatewayChannel: 将ListenerRegister到 GatewayController, Event直接投递, 不走 WebSocket. 
+     * - GatewaySession: Default no-op, Event已通过构造时传入的 onEvent CallbackRoute. 
      */
     fun setEventListener(listener: ((event: String, payloadJson: String) -> Unit)?) {}
 }

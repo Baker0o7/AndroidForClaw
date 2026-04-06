@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -25,9 +25,9 @@ class SwipeSkill : Skill {
     override val name = "swipe"
     override val description: String
         get() {
-            val isAccessibilityEnabled = AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isServiceReady()
-            val statusNote = if (!isAccessibilityEnabled) " ⚠️ **不可用**-无障碍服务未连接" else " ✅"
-            return "在屏幕上滑动。用于滚动页面、切换标签页等场景。支持上下左右滑动。**注意**: 操作屏幕前使用 get_view_tree() 获取 UI 元素信息即可，不需要再调用 screenshot()。$statusNote"
+            val isAccessibilityEnableddd = AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isServiceReady()
+            val statusNote = if (!isAccessibilityEnableddd) " ⚠️ **不Available**-AccessibilityServiceNot connected" else " ✅"
+            return "在ScreenUpswipe. 用于滚动页面、Switch tabs, etc. Support swipe up/down/left/right. **Note**: ActionScreenFrontuse get_view_tree() Get UI ElementInfothat is可, 不Need再call screenshot(). $statusNote"
         }
 
     override fun getToolDefinition(): ToolDefinition {
@@ -41,9 +41,9 @@ class SwipeSkill : Skill {
                     properties = mapOf(
                         "start_x" to PropertySchema("integer", "起始 X 坐标"),
                         "start_y" to PropertySchema("integer", "起始 Y 坐标"),
-                        "end_x" to PropertySchema("integer", "结束 X 坐标"),
-                        "end_y" to PropertySchema("integer", "结束 Y 坐标"),
-                        "duration" to PropertySchema("integer", "滑动持续时间（毫秒），默认 300")
+                        "end_x" to PropertySchema("integer", "End X 坐标"),
+                        "end_y" to PropertySchema("integer", "End Y 坐标"),
+                        "duration" to PropertySchema("integer", "swipe持续Time(毫秒), Default 300")
                     ),
                     required = listOf("start_x", "start_y", "end_x", "end_y")
                 )
@@ -51,9 +51,9 @@ class SwipeSkill : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         if (!AccessibilityProxy.isConnected.value!!) {
-            return SkillResult.error("Accessibility service not connected")
+            return Skillresult.error("Accessibility service not connected")
         }
 
         val startX = (args["start_x"] as? Number)?.toInt()
@@ -63,7 +63,7 @@ class SwipeSkill : Skill {
         val duration = (args["duration"] as? Number)?.toLong() ?: 300L
 
         if (startX == null || startY == null || endX == null || endY == null) {
-            return SkillResult.error("Missing required parameters: start_x, start_y, end_x, end_y")
+            return Skillresult.error("Missing required parameters: start_x, start_y, end_x, end_y")
         }
 
         Log.d(TAG, "Swiping from ($startX, $startY) to ($endX, $endY) in ${duration}ms")
@@ -75,18 +75,18 @@ class SwipeSkill : Skill {
 
             if (success == null) {
                 Log.e(TAG, "Swipe timeout after 5s")
-                return SkillResult.error("Swipe operation timeout after 5s. Accessibility service may be unresponsive.")
+                return Skillresult.error("Swipe operation timeout after 5s. Accessibility service may be unresponsive.")
             }
 
             if (!success) {
-                return SkillResult.error("Swipe operation failed")
+                return Skillresult.error("Swipe operation failed")
             }
 
             // Wait for swipe completion + UI stabilization (swipe animation + inertial scrolling)
             val waitTime = (duration + 1000L).coerceAtLeast(1000L)
             kotlinx.coroutines.delay(waitTime)
 
-            SkillResult.success(
+            Skillresult.success(
                 "Swiped from ($startX, $startY) to ($endX, $endY)",
                 mapOf(
                     "start" to "$startX,$startY",
@@ -96,10 +96,10 @@ class SwipeSkill : Skill {
                 )
             )
         } catch (e: IllegalStateException) {
-            SkillResult.error("Service disconnected: ${e.message}")
+            Skillresult.error("Service disconnected: ${e.message}")
         } catch (e: Exception) {
             Log.e(TAG, "Swipe failed", e)
-            SkillResult.error("Swipe failed: ${e.message}")
+            Skillresult.error("Swipe failed: ${e.message}")
         }
     }
 }

@@ -4,7 +4,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * Memory 系统常量对齐 OpenClaw 验证
+ * Memory 系统ConstantAligned with OpenClaw Validate
  */
 class MemoryConstantsTest {
 

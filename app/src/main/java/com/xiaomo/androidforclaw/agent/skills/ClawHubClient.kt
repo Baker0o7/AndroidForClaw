@@ -27,27 +27,27 @@ import java.util.concurrent.TimeUnit
  * Interfaces with https://clawhub.ai API
  * Provides skill search, download, and details query functions
  *
- * Token 优先级（对齐 OpenClaw src/infra/clawhub.ts）:
+ * Token Priority(Aligned with OpenClaw src/infra/clawhub.ts):
  * 1. SharedPreferences "clawhub_token"
- * 2. 无 token → 匿名请求（可能被限流）
+ * 2. None token → anonymous request(may be rate limited)
  */
 class ClawHubClient(private val context: Context? = null) {
     companion object {
         private const val TAG = "ClawHubClient"
         private const val BASE_URL = "https://clawhub.ai"
-        private const val API_BASE = "$BASE_URL/api/v1"  // 使用 v1 API
+        private const val API_BASE = "$BASE_URL/api/v1"  // use v1 API
         private const val PREF_KEY_TOKEN = "clawhub_token"
 
         /**
-         * 保存 ClawHub token
+         * Save ClawHub token
          */
         fun saveToken(context: Context, token: String) {
             SPHelper.getInstance(context).saveData(PREF_KEY_TOKEN, token)
-            Log.i(TAG, "ClawHub token 已保存")
+            Log.i(TAG, "ClawHub token 已Save")
         }
 
         /**
-         * 获取 ClawHub token（可能为 null）
+         * Get ClawHub token(possibly为 null)
          */
         fun getToken(context: Context): String? {
             val token = SPHelper.getInstance(context).getData(PREF_KEY_TOKEN, "")
@@ -55,11 +55,11 @@ class ClawHubClient(private val context: Context? = null) {
         }
 
         /**
-         * 清除 ClawHub token
+         * clear ClawHub token
          */
         fun clearToken(context: Context) {
             SPHelper.getInstance(context).saveData(PREF_KEY_TOKEN, "")
-            Log.i(TAG, "ClawHub token 已清除")
+            Log.i(TAG, "ClawHub token 已clear")
         }
     }
 
@@ -72,14 +72,14 @@ class ClawHubClient(private val context: Context? = null) {
     private val gson = Gson()
 
     /**
-     * 获取当前 token
+     * Get当Front token
      */
     private fun resolveToken(): String? {
         return context?.let { getToken(it) }
     }
 
     /**
-     * 构建请求，自动附加 Authorization header（如果有 token）
+     * BuildRequest, Auto附加 Authorization header(ifHas token)
      */
     private fun buildRequest(url: String): Request.Builder {
         val builder = Request.Builder().url(url)
@@ -98,7 +98,7 @@ class ClawHubClient(private val context: Context? = null) {
         query: String,
         limit: Int = 20,
         offset: Int = 0
-    ): Result<SkillSearchResult> = withContext(Dispatchers.IO) {
+    ): result<SkillSearchresult> = withContext(Dispatchers.IO) {
         try {
             // ClawHub API v1: GET /api/v1/search?q=query&limit=20
             val url = "$API_BASE/search?q=$query&limit=$limit"
@@ -112,9 +112,9 @@ class ClawHubClient(private val context: Context? = null) {
             if (!response.isSuccessful || body == null) {
                 Log.e(TAG, "Search failed: ${response.code} - ${response.message}")
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext result.failure(ClawHubRateLimitException("ClawHub API Request被限流 (429)"))
                 }
-                return@withContext Result.failure(
+                return@withContext result.failure(
                     Exception("Search failed: ${response.code} - ${response.message}")
                 )
             }
@@ -130,14 +130,14 @@ class ClawHubClient(private val context: Context? = null) {
                         ?: obj.get("slug")?.asString ?: "",
                     description = obj.get("summary")?.takeIf { !it.isJsonNull }?.asString ?: "",
                     version = obj.get("version")?.takeIf { !it.isJsonNull }?.asString ?: "latest",
-                    author = null,  // v1 API 不返回 author
-                    downloads = 0,  // v1 API 不返回 downloads
+                    author = null,  // v1 API 不Return author
+                    downloads = 0,  // v1 API 不Return downloads
                     rating = obj.get("score")?.takeIf { !it.isJsonNull }?.asFloat
                 )
             }
 
-            Result.success(
-                SkillSearchResult(
+            result.success(
+                SkillSearchresult(
                     skills = skills,
                     total = json.get("total")?.asInt ?: skills.size,
                     limit = limit,
@@ -147,7 +147,7 @@ class ClawHubClient(private val context: Context? = null) {
 
         } catch (e: Exception) {
             Log.e(TAG, "Search failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
@@ -156,7 +156,7 @@ class ClawHubClient(private val context: Context? = null) {
      *
      * GET /api/skills/:slug
      */
-    suspend fun getSkillDetails(slug: String): Result<SkillDetails> = withContext(Dispatchers.IO) {
+    suspend fun getSkillDetails(slug: String): result<SkillDetails> = withContext(Dispatchers.IO) {
         try {
             val url = "$API_BASE/skills/$slug"
             Log.d(TAG, "Getting skill details: $url")
@@ -168,9 +168,9 @@ class ClawHubClient(private val context: Context? = null) {
 
             if (!response.isSuccessful || body == null) {
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext result.failure(ClawHubRateLimitException("ClawHub API Request被限流 (429)"))
                 }
-                return@withContext Result.failure(
+                return@withContext result.failure(
                     Exception("Get details failed: ${response.code} - ${response.message}")
                 )
             }
@@ -188,7 +188,7 @@ class ClawHubClient(private val context: Context? = null) {
             // - owner.displayName -> author
             // - stats.downloads -> downloads
 
-            Result.success(
+            result.success(
                 SkillDetails(
                     slug = skill.get("slug")?.asString ?: "",
                     name = skill.get("displayName")?.takeIf { !it.isJsonNull }?.asString
@@ -196,18 +196,18 @@ class ClawHubClient(private val context: Context? = null) {
                     description = skill.get("summary")?.takeIf { !it.isJsonNull }?.asString ?: "",
                     version = latestVersion?.get("version")?.takeIf { !it.isJsonNull }?.asString ?: "latest",
                     author = owner?.get("displayName")?.takeIf { !it.isJsonNull }?.asString,
-                    homepage = null,  // v1 API 不返回 homepage
-                    repository = null,  // v1 API 不返回 repository
+                    homepage = null,  // v1 API 不Return homepage
+                    repository = null,  // v1 API 不Return repository
                     downloads = stats?.get("downloads")?.takeIf { !it.isJsonNull }?.asInt ?: 0,
-                    rating = null,  // v1 API 不返回 rating
-                    readme = null,  // v1 API 不返回 readme
+                    rating = null,  // v1 API 不Return rating
+                    readme = null,  // v1 API 不Return readme
                     metadata = skill.getAsJsonObject("metadata")
                 )
             )
 
         } catch (e: Exception) {
             Log.e(TAG, "Get details failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
@@ -216,7 +216,7 @@ class ClawHubClient(private val context: Context? = null) {
      *
      * GET /api/skills/:slug/versions
      */
-    suspend fun getSkillVersions(slug: String): Result<List<SkillVersion>> = withContext(Dispatchers.IO) {
+    suspend fun getSkillVersions(slug: String): result<List<SkillVersion>> = withContext(Dispatchers.IO) {
         try {
             val url = "$API_BASE/skills/$slug/versions"
             Log.d(TAG, "Getting skill versions: $url")
@@ -228,9 +228,9 @@ class ClawHubClient(private val context: Context? = null) {
 
             if (!response.isSuccessful || body == null) {
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext result.failure(ClawHubRateLimitException("ClawHub API Request被限流 (429)"))
                 }
-                return@withContext Result.failure(
+                return@withContext result.failure(
                     Exception("Get versions failed: ${response.code} - ${response.message}")
                 )
             }
@@ -246,11 +246,11 @@ class ClawHubClient(private val context: Context? = null) {
                 )
             }
 
-            Result.success(versions)
+            result.success(versions)
 
         } catch (e: Exception) {
             Log.e(TAG, "Get versions failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 
@@ -269,7 +269,7 @@ class ClawHubClient(private val context: Context? = null) {
         version: String = "latest",
         targetFile: File,
         progressCallback: ((Long, Long) -> Unit)? = null
-    ): Result<File> = withContext(Dispatchers.IO) {
+    ): result<File> = withContext(Dispatchers.IO) {
         try {
             val url = "$API_BASE/download?slug=$slug&version=$version"
             Log.d(TAG, "Downloading skill: $url")
@@ -280,15 +280,15 @@ class ClawHubClient(private val context: Context? = null) {
 
             if (!response.isSuccessful) {
                 if (response.code == 429) {
-                    return@withContext Result.failure(ClawHubRateLimitException("ClawHub API 请求被限流 (429)"))
+                    return@withContext result.failure(ClawHubRateLimitException("ClawHub API Request被限流 (429)"))
                 }
-                return@withContext Result.failure(
+                return@withContext result.failure(
                     Exception("Download failed: ${response.code} - ${response.message}")
                 )
             }
 
             val body = response.body
-                ?: return@withContext Result.failure(Exception("Empty response body"))
+                ?: return@withContext result.failure(Exception("Empty response body"))
 
             val contentLength = body.contentLength()
             Log.d(TAG, "Content length: $contentLength bytes")
@@ -315,28 +315,28 @@ class ClawHubClient(private val context: Context? = null) {
             // Move to target file
             if (tempFile.renameTo(targetFile)) {
                 Log.i(TAG, "✅ Downloaded skill to ${targetFile.absolutePath}")
-                Result.success(targetFile)
+                result.success(targetFile)
             } else {
-                Result.failure(Exception("Failed to rename temp file"))
+                result.failure(Exception("Failed to rename temp file"))
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Download failed", e)
-            Result.failure(e)
+            result.failure(e)
         }
     }
 }
 
 /**
- * ClawHub 429 限流异常
- * 当 API 返回 429 时抛出，Tool 层据此提示用户提供 token
+ * ClawHub 429 限流Exception
+ * 当 API Return 429 时抛出, Tool 层据此HintUser提供 token
  */
 class ClawHubRateLimitException(message: String) : Exception(message)
 
 /**
- * Skill Search Result
+ * Skill Search result
  */
-data class SkillSearchResult(
+data class SkillSearchresult(
     val skills: List<SkillSearchEntry>,
     val total: Int,
     val limit: Int,

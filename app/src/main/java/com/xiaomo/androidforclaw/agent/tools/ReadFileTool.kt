@@ -39,7 +39,7 @@ class ReadFileTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "path" to PropertySchema("string", "要读取的文件路径")
+                        "path" to PropertySchema("string", "要Read的File path")
                     ),
                     required = listOf("path")
                 )
@@ -47,11 +47,11 @@ class ReadFileTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val path = args["path"] as? String
 
         if (path == null) {
-            return ToolResult.error("Missing required parameter: path")
+            return Toolresult.error("Missing required parameter: path")
         }
 
         Log.d(TAG, "Reading file: $path")
@@ -63,23 +63,23 @@ class ReadFileTool(
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
                 if (!canonicalFile.path.startsWith(canonicalAllowed.path)) {
-                    return ToolResult.error("Path is outside allowed directory: $path")
+                    return Toolresult.error("Path is outside allowed directory: $path")
                 }
             }
 
             if (!file.exists()) {
-                return ToolResult.error("File not found: $path")
+                return Toolresult.error("File not found: $path")
             }
 
             if (!file.isFile) {
-                return ToolResult.error("Not a file: $path")
+                return Toolresult.error("Not a file: $path")
             }
 
             val content = file.readText(Charsets.UTF_8)
-            ToolResult.success(content)
+            Toolresult.success(content)
         } catch (e: Exception) {
             Log.e(TAG, "Read file failed", e)
-            ToolResult.error("Read file failed: ${e.message}")
+            Toolresult.error("Read file failed: ${e.message}")
         }
     }
 

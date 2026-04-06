@@ -6,8 +6,8 @@ package com.xiaomo.androidforclaw.agent.tools
  * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCaptureManager.kt
  *
  * AndroidForClaw adaptation: 眼睛 Skill
- * 手机的前后摄像头就是 Agent 的两只眼睛，用于观察物理环境。
- * 支持 list / look / watch 三种操作
+ * 手机的FrontBack摄Like头Is Agent 的两只眼睛, 用于观察物理Environment. 
+ * Support list / look / watch 三种Action
  */
 
 import android.Manifest
@@ -28,13 +28,13 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * 眼睛 Skill — 你的两只眼睛（前置 + 后置摄像头）
+ * 眼睛 Skill — Your两只眼睛(Front置 + Back置摄Like头)
  *
- * 当你需要观察物理环境、看看周围发生了什么时，使用这个工具。
- * - front（前眼）：面向用户的摄像头，可以看到用户和用户面前的环境
- * - back（后眼）：背向用户的摄像头，可以看到手机背面对着的环境
+ * 当你Need观察物理Environment、看看周围发生了什么时, use这个工具. 
+ * - front(Front眼): 面向User的摄Like头, Can看到User和User面Front的Environment
+ * - back(Back眼): 背向User的摄Like头, Can看到手机背面对着的Environment
  *
- * 对齐 OpenClaw camera.list / camera.snap / camera.clip
+ * Aligned with OpenClaw camera.list / camera.snap / camera.clip
  */
 class EyeSkill(
     private val context: Context,
@@ -62,33 +62,33 @@ class EyeSkill(
                     properties = mapOf(
                         "action" to PropertySchema(
                             type = "string",
-                            description = "操作类型: list(列出可用的眼睛), look(看一眼并理解，图片直接嵌入给你看), snap(纯拍照，只返回文件路径), watch(持续观察，录制短视频)",
+                            description = "Action type: list(ListAvailable的眼睛), look(看一眼并理解, Graph片直接嵌入给你看), snap(纯拍照, 只ReturnFile path), watch(持续观察, 录制短视频)",
                             enum = listOf("list", "look", "snap", "watch")
                         ),
                         "facing" to PropertySchema(
                             type = "string",
-                            description = "使用哪只眼睛: front(前眼，面向用户) 或 back(后眼，面向外部环境)，默认 back",
+                            description = "use哪只眼睛: front(Front眼, 面向User) 或 back(Back眼, 面向ExternalEnvironment), Default back",
                             enum = listOf("front", "back")
                         ),
                         "quality" to PropertySchema(
                             type = "number",
-                            description = "图像质量 0.1-1.0，默认 0.95（仅 look）"
+                            description = "GraphLike质量 0.1-1.0, Default 0.95(仅 look)"
                         ),
                         "max_width" to PropertySchema(
                             type = "number",
-                            description = "最大图像宽度（像素），默认 1600（仅 look）"
+                            description = "MaxGraphLikeBreadth(Like素), Default 1600(仅 look)"
                         ),
                         "duration_ms" to PropertySchema(
                             type = "number",
-                            description = "观察时长（毫秒），默认 3000，最大 60000（仅 watch）"
+                            description = "观察时长(毫秒), Default 3000, Max 60000(仅 watch)"
                         ),
                         "include_audio" to PropertySchema(
                             type = "boolean",
-                            description = "是否同时聆听声音，默认 true（仅 watch）"
+                            description = "YesNoat the same time聆听声音, Default true(仅 watch)"
                         ),
                         "device_id" to PropertySchema(
                             type = "string",
-                            description = "指定摄像头 ID（从 list 获取，可选）"
+                            description = "指定摄Like头 ID(从 list Get, Optional)"
                         ),
                     ),
                     required = listOf("action")
@@ -97,11 +97,11 @@ class EyeSkill(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val action = (args["action"] as? String)?.lowercase()
-            ?: return SkillResult.error("Missing required parameter: action")
+            ?: return Skillresult.error("Missing required parameter: action")
 
-        // 兼容旧的 action 名称
+        // 兼容Old的 action Name
         val normalizedAction = when (action) {
             "snap" -> "look"
             "clip" -> "watch"
@@ -111,33 +111,33 @@ class EyeSkill(
         return when (normalizedAction) {
             "list" -> executeList()
             "look" -> {
-                val permResult = ensureCameraPermission()
-                if (permResult != null) return permResult
+                val permresult = ensureCameraPermission()
+                if (permresult != null) return permresult
                 executeLook(args, embedImage = true)
             }
             "snap" -> {
-                val permResult = ensureCameraPermission()
-                if (permResult != null) return permResult
+                val permresult = ensureCameraPermission()
+                if (permresult != null) return permresult
                 executeLook(args, embedImage = false)
             }
             "watch" -> {
-                val permResult = ensureCameraPermission()
-                if (permResult != null) return permResult
+                val permresult = ensureCameraPermission()
+                if (permresult != null) return permresult
                 executeWatch(args)
             }
-            else -> SkillResult.error("Unknown action: $action. Use: list, look, snap, watch")
+            else -> Skillresult.error("Unknown action: $action. Use: list, look, snap, watch")
         }
     }
 
     /**
-     * 检查相机权限，如果没有则弹出透明 Activity 请求。
-     * @return null=权限已就绪，SkillResult=权限被拒绝的错误结果
+     * Check相机Permission, ifNone则弹出Transparent Activity Request. 
+     * @return null=Permission已Ready, Skillresult=Permission被deny的Errorresult
      */
-    private suspend fun ensureCameraPermission(): SkillResult? {
+    private suspend fun ensureCameraPermission(): Skillresult? {
         if (context.checkSelfPermission(Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
         ) {
-            return null // 已有权限
+            return null // 已HasPermission
         }
 
         Log.d(TAG, "CAMERA permission not granted, requesting via CameraPermissionActivity")
@@ -145,52 +145,52 @@ class EyeSkill(
 
         return if (granted) {
             Log.d(TAG, "CAMERA permission granted by user")
-            null // 权限已授予
+            null // Permission已grant
         } else {
             Log.w(TAG, "CAMERA permission denied by user")
-            SkillResult.error("需要相机权限才能使用眼睛。请在系统设置中授予相机权限后重试。")
+            Skillresult.error("Need相机Permission才能use眼睛. 请在系统Settings中grant相机PermissionBackRetry. ")
         }
     }
 
     /**
-     * 列出可用的眼睛（摄像头）
+     * ListAvailable的眼睛(摄Like头)
      */
-    private suspend fun executeList(): SkillResult {
+    private suspend fun executeList(): Skillresult {
         return try {
             val devices = cameraManager.listDevices()
             if (devices.isEmpty()) {
-                return SkillResult.success("没有检测到可用的眼睛（摄像头）")
+                return Skillresult.success("NoneDetectedAvailable的眼睛(摄Like头)")
             }
             val output = buildString {
-                appendLine("可用的眼睛 (${devices.size} 个):")
+                appendLine("Available的眼睛 (${devices.size} 个):")
                 devices.forEach { d ->
                     val eyeName = when (d.position) {
-                        "front" -> "前眼（面向用户）"
-                        "back" -> "后眼（面向环境）"
+                        "front" -> "Front眼(面向User)"
+                        "back" -> "Back眼(面向Environment)"
                         else -> d.position
                     }
                     appendLine("  - id: ${d.id}, $eyeName, type: ${d.deviceType}")
                 }
             }
-            SkillResult.success(output, mapOf("device_count" to devices.size))
+            Skillresult.success(output, mapOf("device_count" to devices.size))
         } catch (e: Exception) {
             Log.e(TAG, "eye.list failed", e)
-            SkillResult.error("列出可用眼睛失败: ${e.message}")
+            Skillresult.error("ListAvailable眼睛Failed: ${e.message}")
         }
     }
 
     /**
-     * 看一眼（拍照）
-     * @param embedImage true=look（图片嵌入给模型看），false=snap（只返回文件路径）
+     * 看一眼(拍照)
+     * @param embedImage true=look(GraphEmbed image for model), false=snap(只ReturnFile path)
      */
-    private suspend fun executeLook(args: Map<String, Any?>, embedImage: Boolean = true): SkillResult {
+    private suspend fun executeLook(args: Map<String, Any?>, embedImage: Boolean = true): Skillresult {
         return try {
             val facing = (args["facing"] as? String)?.lowercase() ?: "back"
             val quality = (args["quality"] as? Number)?.toDouble() ?: 0.95
             val maxWidth = (args["max_width"] as? Number)?.toInt() ?: 1600
             val deviceId = args["device_id"] as? String
 
-            val eyeName = if (facing == "front") "前眼" else "后眼"
+            val eyeName = if (facing == "front") "Front眼" else "Back眼"
             Log.d(TAG, "eye.look: facing=$facing($eyeName), quality=$quality, maxWidth=$maxWidth")
 
             val result = cameraManager.snap(
@@ -200,12 +200,12 @@ class EyeSkill(
                 deviceId = deviceId,
             )
 
-            // 压缩图片（对齐 OpenClaw image-sanitization 策略）
+            // CompressGraph片(Aligned with OpenClaw image-sanitization Policy)
             val sanitized = withContext(Dispatchers.IO) {
                 ImageSanitizer.sanitize(result.base64, "image/jpeg")
-            } ?: return SkillResult.error("图片压缩失败")
+            } ?: return Skillresult.error("Graph片CompressFailed")
 
-            // 保存到工作空间
+            // Saveto workSpace
             val photoDir = File(StoragePaths.workspace, "eye").apply { mkdirs() }
             val photoFile = File(photoDir, "look_${System.currentTimeMillis()}.jpg")
             withContext(Dispatchers.IO) {
@@ -215,18 +215,18 @@ class EyeSkill(
 
             val output = buildString {
                 if (embedImage) {
-                    appendLine("👁️ 通过${eyeName}观察完成")
+                    appendLine("👁️ 通过${eyeName}观察Complete")
                     appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
                     appendLine("文件: ${photoFile.absolutePath}")
-                    appendLine("（图片已内嵌，请直接描述你看到的内容）")
+                    appendLine("(Graph片已Inside嵌, 请直接Description你看到的Inside容)")
                 } else {
-                    appendLine("📸 通过${eyeName}拍照完成")
+                    appendLine("📸 通过${eyeName}拍照Complete")
                     appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
                     appendLine("文件: ${photoFile.absolutePath}")
                 }
             }
 
-            SkillResult.success(
+            Skillresult.success(
                 output,
                 mapOf(
                     "format" to "jpeg",
@@ -238,21 +238,21 @@ class EyeSkill(
             )
         } catch (e: Exception) {
             Log.e(TAG, "eye.look failed", e)
-            SkillResult.error("观察失败: ${e.message}")
+            Skillresult.error("观察Failed: ${e.message}")
         }
     }
 
     /**
-     * 持续观察（录像）
+     * 持续观察(录Like)
      */
-    private suspend fun executeWatch(args: Map<String, Any?>): SkillResult {
+    private suspend fun executeWatch(args: Map<String, Any?>): Skillresult {
         return try {
             val facing = (args["facing"] as? String)?.lowercase() ?: "back"
             val durationMs = (args["duration_ms"] as? Number)?.toInt() ?: 3000
             val includeAudio = (args["include_audio"] as? Boolean) ?: true
             val deviceId = args["device_id"] as? String
 
-            val eyeName = if (facing == "front") "前眼" else "后眼"
+            val eyeName = if (facing == "front") "Front眼" else "Back眼"
             Log.d(TAG, "eye.watch: facing=$facing($eyeName), duration=$durationMs, audio=$includeAudio")
 
             val result = cameraManager.clip(
@@ -262,7 +262,7 @@ class EyeSkill(
                 deviceId = deviceId,
             )
 
-            // 保存到工作空间
+            // Saveto workSpace
             val videoDir = File(StoragePaths.workspace, "eye").apply { mkdirs() }
             val videoFile = File(videoDir, "watch_${System.currentTimeMillis()}.mp4")
             withContext(Dispatchers.IO) {
@@ -271,13 +271,13 @@ class EyeSkill(
             }
 
             val output = buildString {
-                appendLine("👁️ 通过${eyeName}持续观察完成")
+                appendLine("👁️ 通过${eyeName}持续观察Complete")
                 appendLine("时长: ${result.durationMs}ms")
-                appendLine("声音: ${if (result.hasAudio) "有" else "无"}")
+                appendLine("声音: ${if (result.hasAudio) "Has" else "None"}")
                 appendLine("文件: ${videoFile.absolutePath}")
             }
 
-            SkillResult.success(
+            Skillresult.success(
                 output,
                 mapOf(
                     "format" to result.format,
@@ -288,7 +288,7 @@ class EyeSkill(
             )
         } catch (e: Exception) {
             Log.e(TAG, "eye.watch failed", e)
-            SkillResult.error("持续观察失败: ${e.message}")
+            Skillresult.error("持续观察Failed: ${e.message}")
         }
     }
 }

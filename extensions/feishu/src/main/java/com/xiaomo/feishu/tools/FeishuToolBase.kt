@@ -12,43 +12,43 @@ import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
 
 /**
- * 飞书工具基类
- * 所有飞书工具的通用接口
+ * 飞书工具基Class
+ * All飞书工具的通用Interface
  */
 abstract class FeishuToolBase(
     protected val config: FeishuConfig,
     protected val client: FeishuClient
 ) {
     /**
-     * 工具名称
+     * 工具Name
      */
     abstract val name: String
 
     /**
-     * 工具描述
+     * 工具Description
      */
     abstract val description: String
 
     /**
-     * 工具是否启用
+     * 工具YesNoEnabled
      */
-    abstract fun isEnabled(): Boolean
+    abstract fun isEnabledd(): Boolean
 
     /**
-     * 执行工具
+     * 执Row工具
      */
-    abstract suspend fun execute(args: Map<String, Any?>): ToolResult
+    abstract suspend fun execute(args: Map<String, Any?>): Toolresult
 
     /**
-     * 获取工具定义（用于 LLM）
+     * GetTool definition(用于 LLM)
      */
     abstract fun getToolDefinition(): ToolDefinition
 }
 
 /**
- * 工具执行结果
+ * 工具执Rowresult
  */
-data class ToolResult(
+data class Toolresult(
     val success: Boolean,
     val data: Any? = null,
     val error: String? = null,
@@ -56,15 +56,15 @@ data class ToolResult(
 ) {
     companion object {
         fun success(data: Any? = null, metadata: Map<String, Any> = emptyMap()) =
-            ToolResult(true, data, null, metadata)
+            Toolresult(true, data, null, metadata)
 
         fun error(error: String, metadata: Map<String, Any> = emptyMap()) =
-            ToolResult(false, null, error, metadata)
+            Toolresult(false, null, error, metadata)
     }
 }
 
 /**
- * 工具定义（用于 LLM）
+ * Tool definition(用于 LLM)
  */
 data class ToolDefinition(
     val type: String = "function",

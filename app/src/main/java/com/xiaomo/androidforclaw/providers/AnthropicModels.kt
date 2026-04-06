@@ -2,14 +2,14 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
 import com.google.gson.annotations.SerializedName
 
 /**
- * Anthropic Messages API 数据模型
+ * Anthropic Messages API Data模型
  * For Legacy Anthropic API compatible interface
  */
 

@@ -66,7 +66,7 @@ fun SignalChannelScreen(
                 title = { Text(stringResource(R.string.signal_channel_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "返回")
+                        Icon(Icons.Filled.ArrowBack, "Return")
                     }
                 },
                 actions = {
@@ -91,7 +91,7 @@ fun SignalChannelScreen(
                                 showSaveSuccess = true
                             }
                         }
-                    ) { Text("保存") }
+                    ) { Text("Save") }
                 }
             )
         }
@@ -104,13 +104,13 @@ fun SignalChannelScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ── 启用 ──
+            // ── Enabledd ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("启用 Signal", style = MaterialTheme.typography.titleMedium)
+                Text("Enabledd Signal", style = MaterialTheme.typography.titleMedium)
                 Switch(checked = enabled, onCheckedChange = { enabled = it })
             }
 
@@ -120,7 +120,7 @@ fun SignalChannelScreen(
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("手机号 (E.164 格式，对应 signal-cli account)") },
+                label = { Text("手机号 (E.164 格式, 对应 signal-cli account)") },
                 placeholder = { Text("+8613800138000") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -128,19 +128,19 @@ fun SignalChannelScreen(
             )
 
             // ── signal-cli daemon ──
-            Text("signal-cli Daemon 连接", style = MaterialTheme.typography.titleSmall)
+            Text("signal-cli Daemon Connect", style = MaterialTheme.typography.titleSmall)
             OutlinedTextField(
                 value = httpUrl,
                 onValueChange = { httpUrl = it },
-                label = { Text("Daemon URL（可选，优先使用）") },
-                placeholder = { Text("http://127.0.0.1:8080  留空则用下方 host+port") },
+                label = { Text("Daemon URL(Optional, 优先use)") },
+                placeholder = { Text("http://127.0.0.1:8080  Leave empty to use host+port below") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
             OutlinedTextField(
                 value = httpPortText,
                 onValueChange = { httpPortText = it.filter { c -> c.isDigit() } },
-                label = { Text("Daemon Port（默认 8080）") },
+                label = { Text("Daemon Port(Default 8080)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -178,7 +178,7 @@ fun SignalChannelScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("群聊需要 @提及")
+                Text("群聊Need @提及")
                 Switch(checked = requireMention, onCheckedChange = { requireMention = it })
             }
 
@@ -188,8 +188,8 @@ fun SignalChannelScreen(
             OutlinedTextField(
                 value = historyLimitText,
                 onValueChange = { historyLimitText = it.filter { c -> c.isDigit() } },
-                label = { Text("历史消息条数限制（可选）") },
-                placeholder = { Text("留空 = 不限制，如 50") },
+                label = { Text("历史Message条数Limit(Optional)") },
+                placeholder = { Text("留Null = 不Limit, such as 50") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -207,12 +207,12 @@ fun SignalChannelScreen(
 
             if (showSaveSuccess) {
                 Spacer(Modifier.height(4.dp))
-                Text("✅ 配置已保存", color = MaterialTheme.colorScheme.primary)
+                Text("✅ Config已Save", color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "配置保存后需要重启应用生效。\nSignal 接入需要在主机上运行 signal-cli daemon。",
+                text = "ConfigSaveBackNeedRestartapply生效. \nSignal 接入Need在主机UpRun signal-cli daemon. ",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

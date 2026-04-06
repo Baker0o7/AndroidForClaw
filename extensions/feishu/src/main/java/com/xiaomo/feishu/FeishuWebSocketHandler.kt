@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 /**
- * 飞书 WebSocket 连接处理器
- * 使用官方 oapi-sdk-java 的 com.lark.oapi.ws.Client 实现
+ * 飞书 WebSocket ConnectProcess器
+ * use官方 oapi-sdk-java 的 com.lark.oapi.ws.Client Implementation
  */
 class FeishuWebSocketHandler(
     private val config: FeishuConfig,
@@ -41,11 +41,11 @@ class FeishuWebSocketHandler(
     override fun start() {
         scope.launch {
             try {
-                Log.i(TAG, "🚀 启动 Feishu WebSocket 连接...")
+                Log.i(TAG, "🚀 Start Feishu WebSocket Connect...")
                 Log.i(TAG, "   App ID: ${config.appId}")
                 Log.i(TAG, "   Domain: ${config.domain}")
 
-                // 创建事件分发器
+                // CreateEvent分发器
                 val eventDispatcher = EventDispatcher.newBuilder(
                     config.verificationToken ?: "",
                     config.encryptKey ?: ""
@@ -58,34 +58,34 @@ class FeishuWebSocketHandler(
                                         handleMessageReceive(data.event)
                                     }
                                 } catch (e: Exception) {
-                                    Log.e(TAG, "处理消息事件失败", e)
+                                    Log.e(TAG, "ProcessMessageEventFailed", e)
                                 }
                             }
                         }
                     })
                     .onP2MessageReadV1(object : ImService.P2MessageReadV1Handler() {
                         override fun handle(data: com.lark.oapi.service.im.v1.model.P2MessageReadV1?) {
-                            // 忽略消息已读事件
+                            // IgnoreMessage已读Event
                         }
                     })
                     .build()
 
-                // 创建 WebSocket 客户端
+                // Create WebSocket Client
                 wsClient = com.lark.oapi.ws.Client.Builder(config.appId, config.appSecret)
                     .eventHandler(eventDispatcher)
                     .build()
 
-                // 启动 WebSocket
-                Log.i(TAG, "正在连接 WebSocket...")
+                // Start WebSocket
+                Log.i(TAG, "正在Connect WebSocket...")
                 wsClient?.start()
 
-                // 注意：start() 方法会阻塞主线程，直到连接关闭
-                // 所以我们在协程中调用它
-                Log.i(TAG, "✅ WebSocket 已启动")
+                // 注意: start() Method会Block主Thread, 直到ConnectClose
+                // so我们在协程中call它
+                Log.i(TAG, "✅ WebSocket 已Start")
                 eventFlow.emit(FeishuEvent.Connected)
 
             } catch (e: Exception) {
-                Log.e(TAG, "❌ 启动 WebSocket 失败", e)
+                Log.e(TAG, "❌ Start WebSocket Failed", e)
                 eventFlow.emit(FeishuEvent.Error(e))
             }
         }
@@ -93,17 +93,17 @@ class FeishuWebSocketHandler(
 
     override fun stop() {
         try {
-            // 注意：ws.Client 的 disconnect() 和 reconnect() 方法是 protected 的
-            // 我们只能通过其他方式停止（比如中断线程）
+            // 注意: ws.Client 的 disconnect() 和 reconnect() MethodYes protected 的
+            // 我们只能通过Its他方式Stop(for instanceInterruptThread)
             wsClient = null
-            Log.i(TAG, "WebSocket 已停止")
+            Log.i(TAG, "WebSocket 已Stop")
         } catch (e: Exception) {
-            Log.e(TAG, "停止 WebSocket 时出错", e)
+            Log.e(TAG, "Stop WebSocket 时出错", e)
         }
     }
 
     /**
-     * 处理接收消息事件
+     * ProcessreceiveMessageEvent
      */
     private suspend fun handleMessageReceive(event: com.lark.oapi.service.im.v1.model.P2MessageReceiveV1Data) {
         try {
@@ -117,15 +117,15 @@ class FeishuWebSocketHandler(
             val msgType = message.messageType ?: return
             val content = message.content ?: return
 
-            // 使用 ContentParser 解析所有消息类型（对齐 OpenClaw bot-content.ts）
-            val parseResult = com.xiaomo.feishu.messaging.FeishuContentParser.parseMessageContent(msgType, content)
+            // use ContentParser ParseAllMessageType(Aligned with OpenClaw bot-content.ts)
+            val parseresult = com.xiaomo.feishu.messaging.FeishuContentParser.parseMessageContent(msgType, content)
 
-            // 提取 thread/reply 字段（对齐 OpenClaw reply-dispatcher）
+            // 提取 thread/reply Field(Aligned with OpenClaw reply-dispatcher)
             val rootId = try { message.rootId } catch (e: Exception) { null }
             val parentId = try { message.parentId } catch (e: Exception) { null }
             val threadId = try { message.threadId } catch (e: Exception) { null }
 
-            // 解析 mentions
+            // Parse mentions
             val mentions = mutableListOf<String>()
             val mentionNames = mutableListOf<String>()
             message.mentions?.forEach { mention ->
@@ -143,31 +143,31 @@ class FeishuWebSocketHandler(
                 System.currentTimeMillis()
             }
 
-            // 发送事件
+            // sendEvent
             eventFlow.emit(
                 FeishuEvent.Message(
                     messageId = messageId,
                     senderId = senderId,
                     chatId = chatId,
                     chatType = chatType,
-                    content = parseResult.text,
+                    content = parseresult.text,
                     msgType = msgType,
                     mentions = mentions,
                     mentionNames = mentionNames,
                     rootId = rootId,
                     parentId = parentId,
                     threadId = threadId,
-                    mediaKeys = parseResult.mediaKeys,
+                    mediaKeys = parseresult.mediaKeys,
                     createTime = createTime
                 )
             )
 
-            Log.d(TAG, "📨 收到消息: $messageId from $senderId (type=$msgType)")
-            Log.d(TAG, "   内容: ${parseResult.text.take(200)}")
+            Log.d(TAG, "📨 收到Message: $messageId from $senderId (type=$msgType)")
+            Log.d(TAG, "   Inside容: ${parseresult.text.take(200)}")
             if (rootId != null) Log.d(TAG, "   rootId: $rootId, threadId: $threadId")
 
         } catch (e: Exception) {
-            Log.e(TAG, "处理消息失败", e)
+            Log.e(TAG, "ProcessMessageFailed", e)
         }
     }
 }

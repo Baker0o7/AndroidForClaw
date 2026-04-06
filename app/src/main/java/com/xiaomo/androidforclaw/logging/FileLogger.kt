@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * - Structured logging (timestamp, level, tag, message)
  * - Log rotation (size limit)
  * - Categorized storage (app.log, gateway.log)
- * - 异步写入：所有 I/O 在后台单线程执行，不阻塞调用方
+ * - AsyncWrite: All I/O 在Back台单Thread执Row, 不Blockcall方
  */
 class FileLogger(private val context: Context) {
 
@@ -39,14 +39,14 @@ class FileLogger(private val context: Context) {
     private val appLogFilePath get() = "$logsDir/app.log"
     private val gatewayLogFilePath get() = "$logsDir/gateway.log"
 
-    private var loggingEnabled = true
+    private var loggingEnableddd = true
 
-    /** 异步写入队列 */
+    /** AsyncWriteQueue */
     private data class LogEntry(val filePath: String, val content: String)
     private val writeQueue = LinkedBlockingQueue<LogEntry>()
     private val running = AtomicBoolean(true)
 
-    /** 后台写入线程 */
+    /** Back台WriteThread */
     private val writerThread = Thread({
         while (running.get() || writeQueue.isNotEmpty()) {
             try {
@@ -56,7 +56,7 @@ class FileLogger(private val context: Context) {
             } catch (_: InterruptedException) {
                 break
             } catch (e: Exception) {
-                Log.e(TAG, "写入日志文件失败", e)
+                Log.e(TAG, "WriteLog文件Failed", e)
             }
         }
     }, "FileLogger-Writer").apply {
@@ -69,10 +69,10 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * Log app logs（不再调用 outputToLogcat，由 Log.kt 包装器负责 logcat 输出）
+     * Log app logs(不再call outputToLogcat, by Log.kt Package装器负责 logcat Output)
      */
     fun logApp(level: LogLevel, tag: String, message: String, error: Throwable? = null) {
-        if (!loggingEnabled) return
+        if (!loggingEnableddd) return
         val logLine = formatLogLine(level, tag, message, error)
         writeQueue.offer(LogEntry(appLogFilePath, logLine))
     }
@@ -81,16 +81,16 @@ class FileLogger(private val context: Context) {
      * Log Gateway logs
      */
     fun logGateway(level: LogLevel, message: String, error: Throwable? = null) {
-        if (!loggingEnabled) return
+        if (!loggingEnableddd) return
         val logLine = formatLogLine(level, "Gateway", message, error)
         writeQueue.offer(LogEntry(gatewayLogFilePath, logLine))
     }
 
     /**
-     * Enable/disable file logging
+     * Enabledd/disable file logging
      */
-    fun setLoggingEnabled(enabled: Boolean) {
-        loggingEnabled = enabled
+    fun setLoggingEnableddd(enabled: Boolean) {
+        loggingEnableddd = enabled
         Log.i(TAG, "File logging ${if (enabled) "enabled" else "disabled"}")
     }
 
@@ -121,7 +121,7 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * 获取日志统计信息
+     * GetLogStatistics info
      */
     fun getLogStats(): LogStats {
         val appFile = File(appLogFilePath)
@@ -145,7 +145,7 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * 导出日志
+     * ExportLog
      */
     fun exportLogs(logType: LogType, outputPath: String): Boolean {
         return try {
@@ -160,16 +160,16 @@ class FileLogger(private val context: Context) {
                     outputFile.writeText(combined)
                 }
             }
-            Log.i(TAG, "日志已导出到: $outputPath")
+            Log.i(TAG, "Log已Export到: $outputPath")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "导出日志失败", e)
+            Log.e(TAG, "ExportLogFailed", e)
             false
         }
     }
 
     /**
-     * 读取最近的日志行
+     * Readmost近的LogRow
      */
     fun readRecentLogs(logType: LogType, lineCount: Int = 100): List<String> {
         val file = when (logType) {
@@ -183,39 +183,39 @@ class FileLogger(private val context: Context) {
         return try {
             file.readLines().takeLast(lineCount)
         } catch (e: Exception) {
-            Log.e(TAG, "读取日志失败", e)
+            Log.e(TAG, "ReadLogFailed", e)
             emptyList()
         }
     }
 
-    /** 停止后台写入线程 */
+    /** StopBack台WriteThread */
     fun shutdown() {
         running.set(false)
         writerThread.interrupt()
     }
 
-    // ==================== 私有方法 ====================
+    // ==================== PrivateMethod ====================
 
     /**
-     * 实际写入文件（在后台线程执行）
+     * 实际Write文件(在Back台Thread执Row)
      */
     private fun doAppendToFile(filePath: String, content: String) {
         try {
             val file = File(filePath)
 
-            // 检查文件大小，超过限制则轮转
+            // Check文件Size, 超过Limit则轮转
             if (file.exists() && file.length() > MAX_FILE_SIZE) {
                 rotateLog(file)
             }
 
             file.appendText(content)
         } catch (e: Exception) {
-            Log.e(TAG, "写入日志文件失败: $filePath", e)
+            Log.e(TAG, "WriteLog文件Failed: $filePath", e)
         }
     }
 
     /**
-     * 日志轮转
+     * Log轮转
      */
     private fun rotateLog(file: File) {
         try {
@@ -225,16 +225,16 @@ class FileLogger(private val context: Context) {
 
             file.renameTo(archiveFile)
 
-            Log.i(TAG, "日志已轮转: $archiveName")
+            Log.i(TAG, "Log已轮转: $archiveName")
 
             cleanOldArchives(file.parentFile)
         } catch (e: Exception) {
-            Log.e(TAG, "日志轮转失败", e)
+            Log.e(TAG, "Log轮转Failed", e)
         }
     }
 
     /**
-     * 清理旧的归档日志
+     * 清理Old的归档Log
      */
     private fun cleanOldArchives(logsDir: File?) {
         if (logsDir == null || !logsDir.exists()) return
@@ -248,11 +248,11 @@ class FileLogger(private val context: Context) {
             if (archives.size > MAX_ARCHIVED_LOGS) {
                 archives.drop(MAX_ARCHIVED_LOGS).forEach { file ->
                     file.delete()
-                    Log.d(TAG, "删除旧日志: ${file.name}")
+                    Log.d(TAG, "DeleteOldLog: ${file.name}")
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "清理旧归档失败", e)
+            Log.e(TAG, "清理Old归档Failed", e)
         }
     }
 
@@ -299,7 +299,7 @@ enum class LogType {
 }
 
 /**
- * 日志统计
+ * Logcount
  */
 data class LogStats(
     val appLogSize: Long,
@@ -326,11 +326,11 @@ data class LogStats(
 }
 
 /**
- * 全局日志实例（便捷使用）
+ * GlobalLogInstance(便捷use)
  *
- * 注意：AppLog 方法只写入文件，不再调用 logcat。
- * logcat 输出由 Log.kt 包装器在调用 AppLog 之外单独完成，
- * 避免 Log.kt → AppLog → FileLogger → outputToLogcat → Log.kt 的无限递归。
+ * Note: AppLog Method只Write文件, 不再call logcat. 
+ * logcat Outputby Log.kt Package装器在call AppLog 之OutsideIndividualComplete, 
+ * 避免 Log.kt → AppLog → FileLogger → outputToLogcat → Log.kt 的None限Recurse. 
  */
 object AppLog {
     private lateinit var fileLogger: FileLogger

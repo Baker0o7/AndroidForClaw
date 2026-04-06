@@ -16,10 +16,10 @@ import org.junit.runner.RunWith
 import org.junit.Assert.*
 
 /**
- * Agent 集成测试
- * 在真实 Android 环境中测试 Agent 功能
+ * Agent 集成Test
+ * 在Real Android Environment中Test Agent Feature
  *
- * 运行:
+ * Run:
  * ./gradlew connectedDebugAndroidTest --tests "AgentIntegrationTest"
  */
 @RunWith(AndroidJUnit4::class)
@@ -41,7 +41,7 @@ class AgentIntegrationTest {
 
         context = ApplicationProvider.getApplicationContext<MyApplication>()
 
-        // 创建测试配置文件
+        // CreateTestConfig文件
         setupTestConfig()
 
         configLoader = ConfigLoader(context)
@@ -55,7 +55,7 @@ class AgentIntegrationTest {
             configDir.mkdirs()
         }
 
-        // 创建测试用的openclaw.json - 包含providers (models.json已废弃)
+        // CreateTest用的openclaw.json - Containsproviders (models.json已废弃)
         val openClawFile = java.io.File(configDir, "openclaw.json")
         if (!openClawFile.exists()) {
             openClawFile.writeText("""
@@ -104,141 +104,141 @@ class AgentIntegrationTest {
         }
     }
 
-    // ========== 配置系统集成测试 ==========
+    // ========== Config系统集成Test ==========
 
     @Test
     fun testConfigLoader_loadsSuccessfully() {
         val config = configLoader.loadOpenClawConfig()
 
-        assertNotNull("配置应该加载成功", config)
+        assertNotNull("ConfigShouldLoadSuccess", config)
         // providers may be empty in test environment if no models.json configured
         // just verify config loaded without crash
     }
 
     @Test
     fun testConfigLoader_findsProviders() {
-        // 获取provider
+        // Getprovider
         val provider = configLoader.getProviderConfig("anthropic")
 
-        // 如果测试环境有配置anthropic,验证其有效性
+        // 如果TestEnvironmentHasConfiganthropic,ValidateItsValid性
         if (provider != null) {
-            assertNotNull("BaseUrl 不应为空", provider.baseUrl)
-            assertTrue("应该有models", provider.models.isNotEmpty())
+            assertNotNull("BaseUrl 不应为Null", provider.baseUrl)
+            assertTrue("ShouldHasmodels", provider.models.isNotEmpty())
         }
-        // 如果没有配置,测试至少不崩溃即可
+        // 如果NoneConfig,Test至少不崩溃即可
     }
 
     @Test
     fun testOpenClawConfig_loadsSuccessfully() {
         val config = configLoader.loadOpenClawConfig()
 
-        assertNotNull("OpenClaw 配置应该加载成功", config)
-        assertTrue("maxIterations 应该 > 0", config.agent.maxIterations > 0)
-        assertNotNull("skills 配置应该存在", config.skills)
+        assertNotNull("OpenClaw ConfigShouldLoadSuccess", config)
+        assertTrue("maxIterations Should > 0", config.agent.maxIterations > 0)
+        assertNotNull("skills ConfigShouldExists", config.skills)
     }
 
-    // ========== Tool Registry 集成测试 ==========
+    // ========== Tool Registry 集成Test ==========
 
     @Test
     fun testToolRegistry_hasTools() {
         val toolCount = toolRegistry.getToolCount()
 
-        assertTrue("应该有工具注册", toolCount > 0)
+        assertTrue("ShouldHas工具Register", toolCount > 0)
     }
 
     @Test
     fun testToolRegistry_hasWaitSkill() {
         val hasWait = toolRegistry.contains("device")
 
-        assertTrue("应该包含 device skill", hasWait)
+        assertTrue("ShouldContains device skill", hasWait)
     }
 
     @Test
     fun testToolRegistry_hasStopSkill() {
         val hasStop = toolRegistry.contains("stop")
 
-        assertTrue("应该包含 stop skill", hasStop)
+        assertTrue("ShouldContains stop skill", hasStop)
     }
 
     @Test
     fun testToolRegistry_hasLogSkill() {
         val hasLog = toolRegistry.contains("log")
 
-        assertTrue("应该包含 log skill", hasLog)
+        assertTrue("ShouldContains log skill", hasLog)
     }
 
     @Test
     fun testToolRegistry_getDefinitions() {
         val definitions = toolRegistry.getToolDefinitions()
 
-        assertTrue("应该有工具定义", definitions.isNotEmpty())
+        assertTrue("ShouldHasTool definition", definitions.isNotEmpty())
 
-        // 验证每个定义的结构
+        // ValidateEach定义的结构
         definitions.forEach { def ->
-            assertEquals("Type 应该是 function", "function", def.type)
-            assertNotNull("Function 不应为空", def.function)
-            assertTrue("Name 应该非空", def.function.name.isNotBlank())
-            assertTrue("Description 应该非空", def.function.description.isNotBlank())
+            assertEquals("Type ShouldYes function", "function", def.type)
+            assertNotNull("Function 不应为Null", def.function)
+            assertTrue("Name Should非Null", def.function.name.isNotBlank())
+            assertTrue("Description Should非Null", def.function.description.isNotBlank())
         }
     }
 
-    // ========== Skill 执行集成测试 ==========
+    // ========== Skill 执Row集成Test ==========
 
     @Test
     fun testWaitSkill_executesInAndroid() = runBlocking {
         val startTime = System.currentTimeMillis()
 
-        // WaitSkill使用seconds参数
+        // WaitSkill使用secondsParameters
         val result = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "wait", "timeMs" to 100))
 
         val elapsed = System.currentTimeMillis() - startTime
 
-        assertTrue("Wait 应该成功", result.success)
-        assertTrue("应该等待至少 100ms", elapsed >= 95)
-        assertTrue("应该在 200ms 内完成", elapsed < 200)
+        assertTrue("Wait ShouldSuccess", result.success)
+        assertTrue("ShouldWait至少 100ms", elapsed >= 95)
+        assertTrue("Should在 200ms InsideComplete", elapsed < 200)
     }
 
     @Test
     fun testLogSkill_executesInAndroid() = runBlocking {
         val result = toolRegistry.execute("log", mapOf(
-            "message" to "集成测试日志",
+            "message" to "集成TestLog",
             "level" to "INFO"
         ))
 
-        assertTrue("Log 应该成功", result.success)
+        assertTrue("Log ShouldSuccess", result.success)
     }
 
     @Test
     fun testStopSkill_executesInAndroid() = runBlocking {
         val result = toolRegistry.execute("stop", mapOf(
-            "reason" to "集成测试停止"
+            "reason" to "集成TestStop"
         ))
 
-        assertTrue("Stop 应该成功", result.success)
-        assertTrue("应该有 stopped 元数据", result.metadata.containsKey("stopped"))
-        assertEquals("stopped 应该为 true", true, result.metadata["stopped"])
+        assertTrue("Stop ShouldSuccess", result.success)
+        assertTrue("ShouldHas stopped 元Data", result.metadata.containsKey("stopped"))
+        assertEquals("stopped Should为 true", true, result.metadata["stopped"])
     }
 
     @Test
     fun testMultipleSkills_executeSequentially() = runBlocking {
-        // 执行多个技能
-        val result1 = toolRegistry.execute("log", mapOf("message" to "第一个"))
+        // 执RowMultiple技能
+        val result1 = toolRegistry.execute("log", mapOf("message" to "First"))
         val result2 = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "wait", "timeMs" to 50))
         val result3 = toolRegistry.execute("log", mapOf("message" to "第二个"))
 
-        assertTrue("所有技能应该成功", result1.success && result2.success && result3.success)
+        assertTrue("All技能ShouldSuccess", result1.success && result2.success && result3.success)
     }
 
     @Test
     fun testSkill_withInvalidArguments() = runBlocking {
-        // 测试缺少必需参数
+        // Test缺少RequiredParameters
         val result = toolRegistry.execute("device", mapOf("action" to "invalid_action"))
 
-        assertFalse("无效操作应该失败", result.success)
-        assertTrue("应该包含错误信息", result.content.isNotEmpty())
+        assertFalse("None效ActionShouldFailed", result.success)
+        assertTrue("ShouldContainsErrorInfo", result.content.isNotEmpty())
     }
 
-    // ========== 工作空间集成测试 ==========
+    // ========== 工作Space集成Test ==========
 
     @Test
     fun testWorkspace_directoryExists() {
@@ -248,9 +248,9 @@ class AgentIntegrationTest {
             workspaceDir.mkdirs()
         }
 
-        assertTrue("工作空间应该存在", workspaceDir.exists())
-        assertTrue("应该可读", workspaceDir.canRead())
-        assertTrue("应该可写", workspaceDir.canWrite())
+        assertTrue("工作SpaceShouldExists", workspaceDir.exists())
+        assertTrue("Should可读", workspaceDir.canRead())
+        assertTrue("Should可写", workspaceDir.canWrite())
     }
 
     @Test
@@ -261,7 +261,7 @@ class AgentIntegrationTest {
             skillsDir.mkdirs()
         }
 
-        assertTrue("Skills 目录应该存在", skillsDir.exists())
+        assertTrue("Skills 目录ShouldExists", skillsDir.exists())
     }
 
     @Test
@@ -271,37 +271,37 @@ class AgentIntegrationTest {
         try {
             testFile.writeText("Integration test content")
 
-            assertTrue("文件应该创建成功", testFile.exists())
-            assertEquals("内容应该匹配", "Integration test content", testFile.readText())
+            assertTrue("文件ShouldCreateSuccess", testFile.exists())
+            assertEquals("Inside容Should匹配", "Integration test content", testFile.readText())
 
         } finally {
             testFile.delete()
         }
     }
 
-    // ========== Assets 资源集成测试 ==========
+    // ========== Assets Resource集成Test ==========
 
     @Test
     fun testAssets_skillsDirectoryExists() {
         try {
             val skillsList = context.assets.list("skills")
 
-            assertNotNull("Skills 目录应该存在", skillsList)
-            // 可能为空，取决于是否有内置 skills
+            assertNotNull("Skills 目录ShouldExists", skillsList)
+            // 可能为Null, 取决于YesNoHasInside置 skills
 
         } catch (e: Exception) {
-            fail("访问 assets skills 失败: ${e.message}")
+            fail("访问 assets skills Failed: ${e.message}")
         }
     }
 
-    // ========== TaskDataManager 集成测试 ==========
+    // ========== TaskDataManager 集成Test ==========
 
     @Test
     fun testTaskDataManager_initialization() {
-        assertNotNull("TaskDataManager 应该初始化", taskDataManager)
+        assertNotNull("TaskDataManager ShouldInitialize", taskDataManager)
     }
 
-    // ========== 性能集成测试 ==========
+    // ========== Performance集成Test ==========
 
     @Test
     fun testPerformance_multipleToolCalls() = runBlocking {
@@ -309,14 +309,14 @@ class AgentIntegrationTest {
         val startTime = System.currentTimeMillis()
 
         repeat(iterations) {
-            toolRegistry.execute("log", mapOf("message" to "性能测试 $it"))
+            toolRegistry.execute("log", mapOf("message" to "PerformanceTest $it"))
         }
 
         val elapsed = System.currentTimeMillis() - startTime
 
-        // 平均每次调用应该在合理时间内（< 100ms/次）
+        // 平均每次调用Should在合理TimeInside(< 100ms/次)
         val avgTime = elapsed / iterations
-        assertTrue("平均执行时间应该合理 (< 100ms)", avgTime < 100)
+        assertTrue("平均执RowTimeShould合理 (< 100ms)", avgTime < 100)
     }
 
     @Test
@@ -330,8 +330,8 @@ class AgentIntegrationTest {
 
         val elapsed = System.currentTimeMillis() - startTime
 
-        // 配置重载应该快速（< 500ms/次）
+        // ConfigOverloadShouldFast(< 500ms/次)
         val avgTime = elapsed / iterations
-        assertTrue("配置重载应该快速 (< 500ms)", avgTime < 500)
+        assertTrue("ConfigOverloadShouldFast (< 500ms)", avgTime < 500)
     }
 }

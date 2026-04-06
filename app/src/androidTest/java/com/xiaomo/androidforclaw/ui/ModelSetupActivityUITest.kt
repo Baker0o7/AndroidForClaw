@@ -23,21 +23,21 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * ModelSetupActivity UI 自动化测试
+ * ModelSetupActivity UI Auto化Test
  *
- * 覆盖场景：
- * 1. 页面启动 & 基本元素展示
- * 2. 默认模式交互（OpenRouter）
- * 3. 高级选项展开/收起
+ * Override场景: 
+ * 1. 页面Start & 基本Element展示
+ * 2. DefaultSchema交互(OpenRouter)
+ * 3. 高级Options展开/收起
  * 4. Provider 切换
- * 5. 不填 Key 直接开始（内置 Key）
- * 6. 填入自定义 Key 开始
- * 7. 跳过按钮
- * 8. 自定义 Provider 特殊 UI
- * 9. 模型选择下拉
- * 10. 错误提示验证
+ * 5. 不填 Key 直接Start(Inside置 Key)
+ * 6. 填入Custom Key Start
+ * 7. Skip按钮
+ * 8. Custom Provider 特殊 UI
+ * 9. 模型选择Down拉
+ * 10. ErrorHintValidate
  *
- * 运行:
+ * Run:
  * adb shell am instrument -w -e class com.xiaomo.androidforclaw.ui.ModelSetupActivityUITest \
  *   com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
  */
@@ -91,7 +91,7 @@ class ModelSetupActivityUITest {
         }
     }
 
-    // ==================== 1. 页面启动 & 基本元素 ====================
+    // ==================== 1. 页面Start & 基本Element ====================
 
     @Test
     fun test01_activityLaunches() {
@@ -105,13 +105,13 @@ class ModelSetupActivityUITest {
         launchActivity()
         onView(withText("🤖")).check(matches(isDisplayed()))
         onView(withText("欢迎使用 AndroidForClaw")).check(matches(isDisplayed()))
-        onView(withText("已内置 Key，可直接开始使用")).check(matches(isDisplayed()))
+        onView(withText("已Inside置 Key, 可直接Start使用")).check(matches(isDisplayed()))
     }
 
     @Test
     fun test03_tutorialCardDisplayed() {
         launchActivity()
-        onView(withText("📖 如何获取 API Key？")).check(matches(isDisplayed()))
+        onView(withText("📖 如何Get API Key?")).check(matches(isDisplayed()))
     }
 
     @Test
@@ -131,9 +131,9 @@ class ModelSetupActivityUITest {
     fun test06_buttonsDisplayed() {
         launchActivity()
         onView(withId(R.id.btn_skip)).check(matches(isDisplayed()))
-        onView(withId(R.id.btn_skip)).check(matches(withText("跳过")))
+        onView(withId(R.id.btn_skip)).check(matches(withText("Skip")))
         onView(withId(R.id.btn_start)).check(matches(isDisplayed()))
-        onView(withId(R.id.btn_start)).check(matches(withText("开始使用")))
+        onView(withId(R.id.btn_start)).check(matches(withText("Start使用")))
     }
 
     @Test
@@ -141,10 +141,10 @@ class ModelSetupActivityUITest {
         launchActivity()
         onView(withId(R.id.tv_open_openrouter))
             .check(matches(isDisplayed()))
-            .check(matches(withText("🔗 打开 openrouter.ai/keys")))
+            .check(matches(withText("🔗 Open openrouter.ai/keys")))
     }
 
-    // ==================== 2. 默认模式 ====================
+    // ==================== 2. DefaultSchema ====================
 
     @Test
     fun test08_defaultQuickSetupShowsModelDropdown() {
@@ -160,7 +160,7 @@ class ModelSetupActivityUITest {
             .check(matches(withEffectiveVisibility(Visibility.GONE)))
     }
 
-    // ==================== 3. 高级选项展开/收起 ====================
+    // ==================== 3. 高级Options展开/收起 ====================
 
     @Test
     fun test10_advancedToggleExpands() {
@@ -185,7 +185,7 @@ class ModelSetupActivityUITest {
     fun test12_advancedToggleTextChanges() {
         launchActivity()
         onView(withId(R.id.tv_advanced))
-            .check(matches(withText(containsString("使用其他服务商"))))
+            .check(matches(withText(containsString("使用Its他Service商"))))
 
         onView(withId(R.id.tv_advanced)).perform(scrollTo(), click())
         onView(withId(R.id.tv_advanced))
@@ -193,7 +193,7 @@ class ModelSetupActivityUITest {
 
         onView(withId(R.id.tv_advanced)).perform(scrollTo(), click())
         onView(withId(R.id.tv_advanced))
-            .check(matches(withText(containsString("使用其他服务商"))))
+            .check(matches(withText(containsString("使用Its他Service商"))))
     }
 
     // ==================== 4. Provider 切换 ====================
@@ -242,7 +242,7 @@ class ModelSetupActivityUITest {
             val tilApiBase = activity.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_api_base)
             val etApiBase = activity.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_setup_api_base)
             assert(tilApiBase.visibility == android.view.View.VISIBLE) { "API Base field should be visible in custom mode" }
-            assert(etApiBase.isEnabled) { "API Base input should be enabled in custom mode" }
+            assert(etApiBase.isEnabledd) { "API Base input should be enabled in custom mode" }
         }
     }
 
@@ -262,7 +262,7 @@ class ModelSetupActivityUITest {
             .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
-    // ==================== 5. 不填 Key 直接开始（内置 Key）====================
+    // ==================== 5. 不填 Key 直接Start(Inside置 Key)====================
 
     @Test
     fun test18_startWithoutKey_usesBuiltIn() {
@@ -273,7 +273,7 @@ class ModelSetupActivityUITest {
         assertEquals(Lifecycle.State.DESTROYED, s.state)
     }
 
-    // ==================== 6. 填入自定义 Key ====================
+    // ==================== 6. 填入Custom Key ====================
 
     @Test
     fun test19_enterCustomKey() {
@@ -286,7 +286,7 @@ class ModelSetupActivityUITest {
         assertEquals(Lifecycle.State.DESTROYED, s.state)
     }
 
-    // ==================== 7. 跳过按钮 ====================
+    // ==================== 7. Skip按钮 ====================
 
     @Test
     fun test19b_startWithoutKey_persistsOpenRouterProviderConfig() {
@@ -391,7 +391,7 @@ class ModelSetupActivityUITest {
         assert(openrouter != null) { "Expected skip to persist default openrouter provider" }
     }
 
-    // ==================== 8. 自定义 Provider 特殊 UI ====================
+    // ==================== 8. Custom Provider 特殊 UI ====================
 
     @Test
     fun test21_customProvider_baseUrlRequired() {
@@ -438,7 +438,7 @@ class ModelSetupActivityUITest {
         assertEquals(Lifecycle.State.DESTROYED, s.state)
     }
 
-    // ==================== 9. 模型输入（仅自定义 Provider） ====================
+    // ==================== 9. 模型Input(仅Custom Provider) ====================
 
     @Test
     fun test24_customProvider_modelInputBecomesVisible() {
@@ -458,7 +458,7 @@ class ModelSetupActivityUITest {
             .check(matches(withText("my-custom-model")))
     }
 
-    // ==================== 10. Provider hint 验证 ====================
+    // ==================== 10. Provider hint Validate ====================
 
     @Test
     fun test27_providerHintShowsOnAdvanced() {
@@ -489,7 +489,7 @@ class ModelSetupActivityUITest {
             .check(matches(withText(containsString("兼容"))))
     }
 
-    // ==================== 11. API Key 输入行为 ====================
+    // ==================== 11. API Key InputBehavior ====================
 
     @Test
     fun test29_apiKeyInputIsPlainText() {
@@ -502,8 +502,8 @@ class ModelSetupActivityUITest {
     @Test
     fun test30_apiKeyHelperText() {
         launchActivity()
-        // The helper text "可选，留空则使用内置 Key" is in a child of TextInputLayout
-        onView(withText(containsString("可选")))
+        // The helper text "Optional, 留Null则使用Inside置 Key" is in a child of TextInputLayout
+        onView(withText(containsString("Optional")))
             .check(matches(isDisplayed()))
     }
 
@@ -512,16 +512,16 @@ class ModelSetupActivityUITest {
     @Test
     fun test31_tutorialStepsDisplayed() {
         launchActivity()
-        onView(withText(containsString("打开 openrouter.ai 注册账号")))
+        onView(withText(containsString("Open openrouter.ai RegisterAccount")))
             .check(matches(isDisplayed()))
-        onView(withText(containsString("复制 Key")))
+        onView(withText(containsString("Copy Key")))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun test32_descriptionTextDisplayed() {
         launchActivity()
-        onView(withText(containsString("OpenRouter 聚合了")))
+        onView(withText(containsString("OpenRouter Aggregate了")))
             .check(matches(isDisplayed()))
     }
 

@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 
 
@@ -33,8 +33,8 @@ class LogSkill : Skill {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "message" to PropertySchema("string", "日志消息"),
-                        "level" to PropertySchema("string", "日志级别: debug, info, warn, error，默认 info")
+                        "message" to PropertySchema("string", "LogMessage"),
+                        "level" to PropertySchema("string", "Log级别: debug, info, warn, error, Default info")
                     ),
                     required = listOf("message")
                 )
@@ -42,12 +42,12 @@ class LogSkill : Skill {
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): SkillResult {
+    override suspend fun execute(args: Map<String, Any?>): Skillresult {
         val message = args["message"] as? String
         val level = args["level"] as? String ?: "info"
 
         if (message == null) {
-            return SkillResult.error("Missing required parameter: message")
+            return Skillresult.error("Missing required parameter: message")
         }
 
         return try {
@@ -58,10 +58,10 @@ class LogSkill : Skill {
                 "error" -> Log.e(TAG, message)
                 else -> Log.i(TAG, message)
             }
-            SkillResult.success("Logged: $message")
+            Skillresult.success("Logged: $message")
         } catch (e: Exception) {
             Log.e(TAG, "Log failed", e)
-            SkillResult.error("Log failed: ${e.message}")
+            Skillresult.error("Log failed: ${e.message}")
         }
     }
 }

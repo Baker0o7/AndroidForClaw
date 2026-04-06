@@ -12,8 +12,8 @@ import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 飞书消息去重
- * 对齐 OpenClaw src/dedup.ts
+ * 飞书Message去重
+ * Aligned with OpenClaw src/dedup.ts
  */
 class FeishuDedup {
     companion object {
@@ -25,22 +25,22 @@ class FeishuDedup {
     private val messageCache = ConcurrentHashMap<String, Long>()
 
     /**
-     * 尝试记录消息（如果已存在则返回 false）
+     * AttemptRecordMessage(if已Exists则Return false)
      */
     fun tryRecordMessage(messageId: String): Boolean {
         val now = System.currentTimeMillis()
 
-        // 清理过期缓存
+        // 清理过期Cache
         cleanupExpired(now)
 
-        // 检查是否已存在
+        // CheckYesNo已Exists
         val existing = messageCache.putIfAbsent(messageId, now)
         if (existing != null) {
             Log.d(TAG, "Duplicate message detected: $messageId")
             return false
         }
 
-        // 限制缓存大小
+        // LimitCacheSize
         if (messageCache.size > MAX_CACHE_SIZE) {
             Log.w(TAG, "Message cache size exceeded, clearing old entries")
             cleanupOldest(MAX_CACHE_SIZE / 2)
@@ -50,14 +50,14 @@ class FeishuDedup {
     }
 
     /**
-     * 检查消息是否已处理
+     * CheckMessageYesNo已Process
      */
     fun isMessageProcessed(messageId: String): Boolean {
         return messageCache.containsKey(messageId)
     }
 
     /**
-     * 清理过期缓存
+     * 清理过期Cache
      */
     private fun cleanupExpired(now: Long) {
         val expiredKeys = messageCache.entries
@@ -74,7 +74,7 @@ class FeishuDedup {
     }
 
     /**
-     * 清理最旧的记录
+     * 清理mostOld的Record
      */
     private fun cleanupOldest(keepCount: Int) {
         val sorted = messageCache.entries
@@ -89,7 +89,7 @@ class FeishuDedup {
     }
 
     /**
-     * 清除所有缓存
+     * clearAllCache
      */
     fun clearAll() {
         messageCache.clear()
@@ -97,7 +97,7 @@ class FeishuDedup {
     }
 
     /**
-     * 获取缓存统计
+     * GetCachecount
      */
     fun getStats(): DedupStats {
         return DedupStats(
@@ -109,7 +109,7 @@ class FeishuDedup {
 }
 
 /**
- * 去重统计
+ * 去重count
  */
 data class DedupStats(
     val totalMessages: Int,

@@ -13,43 +13,43 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * 浏览器管理器
+ * 浏览器Manage器
  *
  * 职责:
- * - 管理 BrowserActivity 实例
- * - 提供 JavaScript 执行接口
- * - 提供导航控制接口
- * - 确保 UI 线程安全
+ * - Manage BrowserActivity Instance
+ * - 提供 JavaScript 执RowInterface
+ * - 提供导航控制Interface
+ * - Ensure UI ThreadSecure
  */
 object BrowserManager {
 
     private var browserActivity: BrowserActivity? = null
 
     /**
-     * 设置当前 BrowserActivity 实例
+     * Settings当Front BrowserActivity Instance
      *
-     * 应该在 BrowserActivity.onCreate() 中调用
+     * Should在 BrowserActivity.onCreate() 中call
      */
     fun setBrowserActivity(activity: BrowserActivity?) {
         browserActivity = activity
     }
 
     /**
-     * 获取当前 BrowserActivity 实例
+     * Get当Front BrowserActivity Instance
      */
     fun getBrowserActivity(): BrowserActivity? = browserActivity
 
     /**
-     * 获取当前活动的 WebView
+     * Get当Front活动的 WebView
      */
     private fun getCurrentWebView(): EBWebView? {
         return browserActivity?.getCurrentAlbumController() as? EBWebView
     }
 
     /**
-     * 在 UI 线程执行操作
+     * 在 UI Thread执RowAction
      *
-     * @param action 要执行的操作
+     * @param action 要执Row的Action
      */
     private fun runOnUiThread(action: (BrowserActivity) -> Unit) {
         val activity = browserActivity ?: return
@@ -59,10 +59,10 @@ object BrowserManager {
     }
 
     /**
-     * 执行 JavaScript 代码
+     * 执Row JavaScript 代码
      *
      * @param script JavaScript 代码
-     * @return 执行结果 (JSON 字符串)，如果失败返回 null
+     * @return 执Rowresult (JSON String), ifFailedReturn null
      */
     suspend fun evaluateJavascript(script: String): String? {
         return suspendCoroutine { continuation ->
@@ -93,27 +93,27 @@ object BrowserManager {
     }
 
     /**
-     * 获取当前页面 URL
+     * Get当Front页面 URL
      *
-     * @return 当前 URL，如果没有活动页面返回 null
+     * @return 当Front URL, ifNone活动页面Return null
      */
     fun getCurrentUrl(): String? {
         return browserActivity?.getCurrentAlbumController()?.albumUrl
     }
 
     /**
-     * 获取当前页面标题
+     * Get当Front页面Title
      *
-     * @return 当前标题，如果没有活动页面返回 null
+     * @return 当FrontTitle, ifNone活动页面Return null
      */
     fun getCurrentTitle(): String? {
         return browserActivity?.getCurrentAlbumController()?.albumTitle
     }
 
     /**
-     * 检查是否有活动的浏览器实例
+     * CheckYesNoHas活动的浏览器Instance
      *
-     * @return true 如果有活动实例
+     * @return true ifHas活动Instance
      */
     fun isActive(): Boolean {
         return browserActivity != null && getCurrentWebView() != null

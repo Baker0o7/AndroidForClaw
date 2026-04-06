@@ -59,8 +59,8 @@ class GatewayWebSocketServer(
     fun getActiveConnections(): Int = connections.size
 
     /**
-     * 本地进程内直接调用已注册的 RPC 方法，绕过 WebSocket 网络层。
-     * 返回 JSON 字符串，或在方法未找到时抛出异常。
+     * 本地ProcessInside直接call已Register的 RPC Method, 绕过 WebSocket Network层. 
+     * Return JSON String, 或在Method未找到时抛出Exception. 
      */
     suspend fun handleLocalRequest(method: String, paramsJson: String?): Any? {
         val handler = handlers[method] ?: throw IllegalArgumentException("Unknown method: $method")
@@ -99,7 +99,7 @@ class GatewayWebSocketServer(
     }
 
     override fun serve(session: IHTTPSession): Response {
-        // WebSocket 升级请求必须优先交给 NanoWSD 处理，否则会返回 200 而非 101
+        // WebSocket UpgradeRequestMust优先交给 NanoWSD Process, No则会Return 200 而非 101
         val upgradeHeader = session.headers["upgrade"]
         if (upgradeHeader != null && upgradeHeader.equals("websocket", ignoreCase = true)) {
             return super.serve(session)
@@ -107,7 +107,7 @@ class GatewayWebSocketServer(
 
         val uri = session.uri
 
-        // 非 WebSocket 请求：返回 homepage
+        // 非 WebSocket Request: Return homepage
         if (uri == "/" || uri.isEmpty()) {
             return newFixedLengthResponse(
                 Response.Status.OK,
@@ -395,7 +395,7 @@ class GatewayWebSocketServer(
             </div>
             <div class="info-item">
                 <span class="info-label">Authentication</span>
-                <span class="info-value">${if (tokenAuth != null) "Enabled" else "Disabled"}</span>
+                <span class="info-value">${if (tokenAuth != null) "Enableddd" else "Disabledd"}</span>
             </div>
         </div>
 

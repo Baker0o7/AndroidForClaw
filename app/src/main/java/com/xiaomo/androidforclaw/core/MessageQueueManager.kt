@@ -100,8 +100,8 @@ class MessageQueueManager {
      * Stop commands recognized across all channels.
      */
     private val STOP_COMMANDS = setOf(
-        "停止", "停", "stop", "cancel", "取消",
-        "停止任务", "停止全部任务", "中止", "终止"
+        "Stop", "停", "stop", "cancel", "Cancel",
+        "StopTask", "Stop allTask", "中止", "Terminate"
     )
 
     /**

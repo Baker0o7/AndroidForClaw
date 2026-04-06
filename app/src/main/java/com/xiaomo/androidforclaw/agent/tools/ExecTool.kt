@@ -51,8 +51,8 @@ class ExecTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "command" to PropertySchema("string", "要执行的 shell 命令"),
-                        "working_dir" to PropertySchema("string", "可选的工作目录")
+                        "command" to PropertySchema("string", "要执Row的 shell 命令"),
+                        "working_dir" to PropertySchema("string", "Optional的工作目录")
                     ),
                     required = listOf("command")
                 )
@@ -60,18 +60,18 @@ class ExecTool(
         )
     }
 
-    override suspend fun execute(args: Map<String, Any?>): ToolResult {
+    override suspend fun execute(args: Map<String, Any?>): Toolresult {
         val command = args["command"] as? String
         val workDir = args["working_dir"] as? String ?: workingDir
 
         if (command == null) {
-            return ToolResult.error("Missing required parameter: command")
+            return Toolresult.error("Missing required parameter: command")
         }
 
         // Safety check
         val guardError = guardCommand(command)
         if (guardError != null) {
-            return ToolResult.error(guardError)
+            return Toolresult.error(guardError)
         }
 
         Log.d(TAG, "Executing command: $command")
@@ -99,7 +99,7 @@ class ExecTool(
                 val finished = process.waitFor(timeoutSec, java.util.concurrent.TimeUnit.SECONDS)
                 if (!finished) {
                     process.destroyForcibly()
-                    return@withContext ToolResult.error("Command timed out after ${timeoutSec}s")
+                    return@withContext Toolresult.error("Command timed out after ${timeoutSec}s")
                 }
 
                 val result = run {
@@ -138,14 +138,14 @@ class ExecTool(
 
                 // Truncate overly long output
                 val maxLen = 10000
-                val finalResult = if (rendered.length > maxLen) {
+                val finalresult = if (rendered.length > maxLen) {
                     rendered.take(maxLen) + "\n... (truncated, ${rendered.length - maxLen} more chars)"
                 } else {
                     rendered
                 }
 
-                ToolResult.success(
-                    finalResult,
+                Toolresult.success(
+                    finalresult,
                     metadata = mapOf(
                         "backend" to "android-internal",
                         "stdout" to stdout,
@@ -156,10 +156,10 @@ class ExecTool(
                     )
                 )
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                ToolResult.error("Command timed out after ${timeout}ms")
+                Toolresult.error("Command timed out after ${timeout}ms")
             } catch (e: Exception) {
                 Log.e(TAG, "Command execution failed", e)
-                ToolResult.error("Command execution failed: ${e.message}")
+                Toolresult.error("Command execution failed: ${e.message}")
             }
         }
     }

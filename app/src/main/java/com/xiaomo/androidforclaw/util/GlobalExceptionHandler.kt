@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * - No OpenClaw counterpart (Android-only)
  */
 package com.xiaomo.androidforclaw.util
 
@@ -19,11 +19,11 @@ class GlobalExceptionHandler : UncaughtExceptionHandler {
     }
 
     override fun uncaughtException(t: Thread, e: Throwable) {
-        // OOM 特殊处理：不做任何上报，立刻崩溃，避免二次分配导致雪上加霜
+        // OOM 特殊Process: 不做任何Up报, 立刻崩溃, 避免二次分配导致雪Up加霜
         if (e is OutOfMemoryError) {
             try {
-                Log.e(TAG, "========== OOM 触发，直接崩溃 ==========")
-                Log.e(TAG, "线程: ${t.name}")
+                Log.e(TAG, "========== OOM 触发, 直接崩溃 ==========")
+                Log.e(TAG, "Thread: ${t.name}")
             } catch (_: Throwable) {
                 // 尽量避免再分配
             }
@@ -31,35 +31,35 @@ class GlobalExceptionHandler : UncaughtExceptionHandler {
             return
         }
 
-        // 非 OOM：记录日志
-        Log.e(TAG, "========== 全局异常捕获 ==========")
-        Log.e(TAG, "未捕获的异常: ${e.message}", e)
-        Log.e(TAG, "线程: ${t.name}")
+        // 非 OOM: RecordLog
+        Log.e(TAG, "========== GlobalException捕获 ==========")
+        Log.e(TAG, "未捕获的Exception: ${e.message}", e)
+        Log.e(TAG, "Thread: ${t.name}")
 
-        // 生成错误总结
+        // 生成Errorsummarize
         val errorSummary = generateErrorSummary(e)
-        Log.e(TAG, "错误总结:\n$errorSummary")
+        Log.e(TAG, "Errorsummarize:\n$errorSummary")
 
-        // 调用默认处理器（会导致应用崩溃）
+        // callDefaultProcess器(会导致apply崩溃)
         e.printStackTrace()
         defaultHandler?.uncaughtException(t, e)
     }
 
     /**
-     * 生成错误总结（提取关键信息）
+     * 生成Errorsummarize(提取关KeyInfo)
      */
     private fun generateErrorSummary(e: Throwable): String {
         val summary = StringBuilder()
 
-        // 异常类型
+        // ExceptionType
         val exceptionType = e.javaClass.simpleName
-        summary.append("异常类型: $exceptionType")
+        summary.append("ExceptionType: $exceptionType")
 
-        // 异常消息
-        val message = e.message?.takeIf { it.isNotBlank() } ?: "无异常消息"
-        summary.append("\n异常消息: $message")
+        // ExceptionMessage
+        val message = e.message?.takeIf { it.isNotBlank() } ?: "No exception message"
+        summary.append("\nExceptionMessage: $message")
 
-        // 关键堆栈信息（取前3行，过滤掉系统类）
+        // 关KeyHeapStackInfo(取Front3Row, Filter掉系统Class)
         val stackTrace = e.stackTrace
         val keyStackLines = stackTrace
             .filter {
@@ -73,13 +73,13 @@ class GlobalExceptionHandler : UncaughtExceptionHandler {
             }
 
         if (keyStackLines.isNotEmpty()) {
-            summary.append("\n关键堆栈:\n$keyStackLines")
+            summary.append("\n关KeyHeapStack:\n$keyStackLines")
         } else {
-            // 如果没有找到关键堆栈，使用前3行
+            // ifNone找到关KeyHeapStack, useFront3Row
             val fallbackStack = stackTrace.take(3).joinToString("\n") {
                 "  at ${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber})"
             }
-            summary.append("\n堆栈信息:\n$fallbackStack")
+            summary.append("\nHeapStackInfo:\n$fallbackStack")
         }
 
         return summary.toString()

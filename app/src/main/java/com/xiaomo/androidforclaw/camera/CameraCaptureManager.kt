@@ -4,8 +4,8 @@ package com.xiaomo.androidforclaw.camera
  * OpenClaw Source Reference:
  * - ../openclaw/apps/android/app/src/main/java/ai/openclaw/app/node/CameraCaptureManager.kt
  *
- * AndroidForClaw adaptation: 相机捕获管理器
- * 基于 CameraX，支持拍照(snap)和录像(clip)
+ * AndroidForClaw adaptation: 相机捕获Manage器
+ * 基于 CameraX, Support拍照(snap)和录Like(clip)
  */
 
 import android.Manifest
@@ -54,26 +54,26 @@ import kotlin.coroutines.resumeWithException
 import kotlin.math.roundToInt
 
 /**
- * 相机捕获管理器
- * 对齐 OpenClaw CameraCaptureManager
+ * 相机捕获Manage器
+ * Aligned with OpenClaw CameraCaptureManager
  */
 class CameraCaptureManager(private val context: Context) {
     companion object {
         private const val TAG = "CameraCaptureManager"
-        /** base64 payload 上限 5MB */
+        /** base64 payload Up限 5MB */
         private const val MAX_PAYLOAD_BYTES = 5 * 1024 * 1024
-        /** clip 原始文件上限 18MB */
+        /** clip 原始文件Up限 18MB */
         const val CLIP_MAX_RAW_BYTES: Long = 18L * 1024L * 1024L
     }
 
-    data class SnapResult(
+    data class Snapresult(
         val format: String,
         val base64: String,
         val width: Int,
         val height: Int,
     )
 
-    data class ClipResult(
+    data class Clipresult(
         val format: String,
         val base64: String,
         val durationMs: Long,
@@ -95,7 +95,7 @@ class CameraCaptureManager(private val context: Context) {
     }
 
     /**
-     * 列出可用摄像头
+     * ListAvailable camera
      */
     suspend fun listDevices(): List<CameraDeviceInfo> =
         withContext(Dispatchers.Main) {
@@ -107,17 +107,17 @@ class CameraCaptureManager(private val context: Context) {
 
     /**
      * 拍照
-     * @param facing "front" 或 "back"，默认 "back"
-     * @param quality JPEG 质量 0.0-1.0，默认 0.95
-     * @param maxWidth 最大宽度，默认 1600
-     * @param deviceId 指定摄像头 ID（可选）
+     * @param facing "front" 或 "back", Default "back"
+     * @param quality JPEG 质量 0.0-1.0, Default 0.95
+     * @param maxWidth MaxBreadth, Default 1600
+     * @param deviceId 指定摄Like头 ID(Optional)
      */
     suspend fun snap(
         facing: String = "back",
         quality: Double = 0.95,
         maxWidth: Int = 1600,
         deviceId: String? = null,
-    ): SnapResult = withContext(Dispatchers.Main) {
+    ): Snapresult = withContext(Dispatchers.Main) {
         ensureCameraPermission()
         val owner = lifecycleOwner
             ?: throw IllegalStateException("UNAVAILABLE: camera not ready, no LifecycleOwner attached")
@@ -167,7 +167,7 @@ class CameraCaptureManager(private val context: Context) {
                 },
             )
             val base64 = Base64.encodeToString(result.bytes, Base64.NO_WRAP)
-            SnapResult(
+            Snapresult(
                 format = "jpg",
                 base64 = base64,
                 width = result.width,
@@ -180,11 +180,11 @@ class CameraCaptureManager(private val context: Context) {
     }
 
     /**
-     * 录像
-     * @param facing "front" 或 "back"，默认 "back"
-     * @param durationMs 录制时长（毫秒），默认 3000，最大 60000
-     * @param includeAudio 是否录制音频，默认 true
-     * @param deviceId 指定摄像头 ID（可选）
+     * 录Like
+     * @param facing "front" 或 "back", Default "back"
+     * @param durationMs 录制时长(毫秒), Default 3000, Max 60000
+     * @param includeAudio YesNo录制音频, Default true
+     * @param deviceId 指定摄Like头 ID(Optional)
      */
     @SuppressLint("MissingPermission")
     suspend fun clip(
@@ -192,7 +192,7 @@ class CameraCaptureManager(private val context: Context) {
         durationMs: Int = 3000,
         includeAudio: Boolean = true,
         deviceId: String? = null,
-    ): ClipResult = withContext(Dispatchers.Main) {
+    ): Clipresult = withContext(Dispatchers.Main) {
         ensureCameraPermission()
         if (includeAudio) ensureMicPermission()
         val owner = lifecycleOwner
@@ -210,7 +210,7 @@ class CameraCaptureManager(private val context: Context) {
         val videoCapture = VideoCapture.withOutput(recorder)
         val selector = resolveCameraSelector(provider, facing, deviceId)
 
-        // CameraX 需要 Preview use case 才能产生帧
+        // CameraX Need Preview use case 才能产生帧
         val preview = Preview.Builder().build()
         val surfaceTexture = SurfaceTexture(0)
         surfaceTexture.setDefaultBufferSize(640, 480)
@@ -225,7 +225,7 @@ class CameraCaptureManager(private val context: Context) {
         provider.unbindAll()
         provider.bindToLifecycle(owner, selector, preview, videoCapture)
 
-        // 等相机初始化
+        // 等相机Initialize
         delay(1_500)
 
         val file = File.createTempFile("claw-clip-", ".mp4", context.cacheDir)
@@ -234,7 +234,7 @@ class CameraCaptureManager(private val context: Context) {
         val finalized = CompletableDeferred<VideoRecordEvent.Finalize>()
         val recording: Recording = videoCapture.output
             .prepareRecording(context, outputOptions)
-            .apply { if (includeAudio) withAudioEnabled() }
+            .apply { if (includeAudio) withAudioEnableddd() }
             .start(context.mainExecutor()) { event ->
                 if (event is VideoRecordEvent.Finalize) {
                     finalized.complete(event)
@@ -279,7 +279,7 @@ class CameraCaptureManager(private val context: Context) {
         provider.unbindAll()
 
         val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
-        ClipResult(
+        Clipresult(
             format = "mp4",
             base64 = base64,
             durationMs = clampedDuration.toLong(),
@@ -369,7 +369,7 @@ class CameraCaptureManager(private val context: Context) {
     private fun Context.mainExecutor(): Executor = ContextCompat.getMainExecutor(this)
 }
 
-/** 挂起获取 CameraProvider */
+/** 挂起Get CameraProvider */
 private suspend fun Context.cameraProvider(): ProcessCameraProvider =
     suspendCancellableCoroutine { cont ->
         val future = ProcessCameraProvider.getInstance(this)
@@ -385,7 +385,7 @@ private suspend fun Context.cameraProvider(): ProcessCameraProvider =
         )
     }
 
-/** 拍照并获取 JPEG bytes + EXIF orientation */
+/** 拍照并Get JPEG bytes + EXIF orientation */
 private suspend fun ImageCapture.takeJpegWithExif(executor: Executor): Pair<ByteArray, Int> =
     suspendCancellableCoroutine { cont ->
         val file = File.createTempFile("claw-snap-", ".jpg")
@@ -399,7 +399,7 @@ private suspend fun ImageCapture.takeJpegWithExif(executor: Executor): Pair<Byte
                     cont.resumeWithException(exception)
                 }
 
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                override fun onImageSaved(outputFileresults: ImageCapture.OutputFileresults) {
                     try {
                         val exif = ExifInterface(file.absolutePath)
                         val orientation = exif.getAttributeInt(

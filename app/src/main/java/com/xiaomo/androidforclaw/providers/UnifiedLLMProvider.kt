@@ -72,7 +72,7 @@ class UnifiedLLMProvider(private val context: Context) {
         .build()
 
     /**
-     * 转换旧的 ToolDefinition 到新格式
+     * ConvertOld的 ToolDefinition 到New格式
      */
     private fun convertToolDefinition(old: ToolDefinition): NewToolDefinition {
         return NewToolDefinition(
@@ -102,14 +102,14 @@ class UnifiedLLMProvider(private val context: Context) {
     }
 
     /**
-     * 带工具调用的聊天
+     * 带工具call的Chat
      *
      * @param messages Message list
      * @param tools Tool definition list (old format)
      * @param modelRef Model reference, format: provider/model-id or just model-id
      * @param temperature Temperature parameter
      * @param maxTokens Maximum generated tokens
-     * @param reasoningEnabled Whether to enable reasoning mode
+     * @param reasoningEnableddd Whether to enable reasoning mode
      */
     suspend fun chatWithTools(
         messages: List<Message>,
@@ -117,7 +117,7 @@ class UnifiedLLMProvider(private val context: Context) {
         modelRef: String? = null,
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
-        reasoningEnabled: Boolean = false,
+        reasoningEnableddd: Boolean = false,
         maxRetries: Int = 3
     ): LLMResponse = withContext(Dispatchers.IO) {
         // Convert tool definitions to new format
@@ -128,14 +128,14 @@ class UnifiedLLMProvider(private val context: Context) {
 
         // Use model fallback chain (OpenClaw model-fallback.ts)
         val config = configLoader.loadOpenClawConfig()
-        val fallbackResult = ModelFallback.runWithModelFallback(
+        val fallbackresult = ModelFallback.runWithModelFallback(
             config = config,
             configLoader = configLoader,
             provider = primaryProvider,
             model = primaryModel,
             run = { provider, model ->
                 performRequestForModel(
-                    messages, newTools, provider, model, temperature, maxTokens, reasoningEnabled, maxRetries
+                    messages, newTools, provider, model, temperature, maxTokens, reasoningEnableddd, maxRetries
                 )
             },
             onError = { provider, model, error, attempt, total ->
@@ -143,12 +143,12 @@ class UnifiedLLMProvider(private val context: Context) {
             }
         )
 
-        return@withContext fallbackResult.result
+        return@withContext fallbackresult.result
     }
 
     /**
-     * 流式聊天 — 返回 Flow<StreamChunk>，实时 emit SSE 增量
-     * 对齐 OpenClaw streamSimple / pi-embedded-subscribe.handlers.messages.ts
+     * 流式Chat — Return Flow<StreamChunk>, 实时 emit SSE 增量
+     * Aligned with OpenClaw streamSimple / pi-embedded-subscribe.handlers.messages.ts
      */
     fun chatWithToolsStreaming(
         messages: List<Message>,
@@ -156,7 +156,7 @@ class UnifiedLLMProvider(private val context: Context) {
         modelRef: String? = null,
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
-        reasoningEnabled: Boolean = false,
+        reasoningEnableddd: Boolean = false,
         maxRetries: Int = 3
     ): Flow<StreamChunk> = flow {
         val newTools = tools?.map { convertToolDefinition(it) }
@@ -187,7 +187,7 @@ class UnifiedLLMProvider(private val context: Context) {
                     Log.d(TAG, "⚠️ API $api does not support streaming, falling back to batch")
                     val batchResponse = performRequestForModel(
                         messages, newTools, candidate.provider, candidate.model,
-                        temperature, maxTokens, reasoningEnabled, maxRetries
+                        temperature, maxTokens, reasoningEnableddd, maxRetries
                     )
                     batchResponse.thinkingContent?.let { emit(StreamChunk(type = ChunkType.THINKING_DELTA, text = it)) }
                     batchResponse.content?.let { emit(StreamChunk(type = ChunkType.TEXT_DELTA, text = it)) }
@@ -210,7 +210,7 @@ class UnifiedLLMProvider(private val context: Context) {
                                     provider = activeProvider, model = model,
                                     messages = messages, tools = newTools,
                                     temperature = temperature, maxTokens = maxTokens,
-                                    reasoningEnabled = reasoningEnabled, stream = true
+                                    reasoningEnableddd = reasoningEnableddd, stream = true
                                 )
                                 val headers = ApiAdapter.buildHeaders(activeProvider, model)
                                 val apiUrl = buildApiUrl(activeProvider, model)
@@ -222,7 +222,7 @@ class UnifiedLLMProvider(private val context: Context) {
                                 val msgCount = messages.size
                                 val sysLen = messages.firstOrNull { it.role == "system" }?.content?.length ?: 0
                                 val toolCount = newTools?.size ?: 0
-                                Log.d(TAG, "🔍 LLM Request: model=${model.id}, provider=${candidate.provider}, reasoning=$reasoningEnabled, messages=$msgCount, tools=$toolCount, systemPrompt=$sysLen chars")
+                                Log.d(TAG, "🔍 LLM Request: model=${model.id}, provider=${candidate.provider}, reasoning=$reasoningEnableddd, messages=$msgCount, tools=$toolCount, systemPrompt=$sysLen chars")
                                 Log.d(TAG, "🔍 API URL: $apiUrl")
 
                                 val request = Request.Builder()
@@ -340,13 +340,13 @@ class UnifiedLLMProvider(private val context: Context) {
         modelId: String,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean,
+        reasoningEnableddd: Boolean,
         maxRetries: Int
     ): LLMResponse {
         var lastException: Exception? = null
         for (attempt in 1..maxRetries) {
             try {
-                return performRequest(messages, tools, providerName, modelId, temperature, maxTokens, reasoningEnabled)
+                return performRequest(messages, tools, providerName, modelId, temperature, maxTokens, reasoningEnableddd)
             } catch (e: LLMException) {
                 lastException = e
                 if (!isRetryable(e) || attempt == maxRetries) throw e
@@ -361,7 +361,7 @@ class UnifiedLLMProvider(private val context: Context) {
     }
 
     /**
-     * 执行实际的 LLM 请求
+     * 执Row实际的 LLM Request
      */
     private suspend fun performRequest(
         messages: List<Message>,
@@ -370,7 +370,7 @@ class UnifiedLLMProvider(private val context: Context) {
         modelId: String,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean
+        reasoningEnableddd: Boolean
     ): LLMResponse {
         try {
             // Resolve model aliases (OpenClaw model-selection.ts)
@@ -402,7 +402,7 @@ class UnifiedLLMProvider(private val context: Context) {
             Log.d(TAG, "  API: ${model.api ?: provider.api}")
             Log.d(TAG, "  Messages: ${messages.size}")
             Log.d(TAG, "  Tools: ${tools?.size ?: 0}")
-            Log.d(TAG, "  Reasoning: $reasoningEnabled")
+            Log.d(TAG, "  Reasoning: $reasoningEnableddd")
 
             // API key rotation (OpenClaw api-key-rotation.ts)
             // Split comma-separated keys and try each on rate limit
@@ -413,11 +413,11 @@ class UnifiedLLMProvider(private val context: Context) {
                     apiKeys = apiKeys,
                     provider = providerName,
                     execute = { apiKey ->
-                        executeHttpRequest(provider.copy(apiKey = apiKey), model, messages, tools, temperature, maxTokens, reasoningEnabled)
+                        executeHttpRequest(provider.copy(apiKey = apiKey), model, messages, tools, temperature, maxTokens, reasoningEnableddd)
                     }
                 )
             } else {
-                executeHttpRequest(provider, model, messages, tools, temperature, maxTokens, reasoningEnabled)
+                executeHttpRequest(provider, model, messages, tools, temperature, maxTokens, reasoningEnableddd)
             }
 
             Log.d(TAG, "✅ LLM Response received (${responseBody.length} bytes)")
@@ -467,7 +467,7 @@ class UnifiedLLMProvider(private val context: Context) {
         tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean
+        reasoningEnableddd: Boolean
     ): String {
         val requestBody = ApiAdapter.buildRequestBody(
             provider = provider,
@@ -476,7 +476,7 @@ class UnifiedLLMProvider(private val context: Context) {
             tools = tools,
             temperature = temperature,
             maxTokens = maxTokens,
-            reasoningEnabled = reasoningEnabled
+            reasoningEnableddd = reasoningEnableddd
         )
 
         val headers = ApiAdapter.buildHeaders(provider, model)
@@ -548,7 +548,7 @@ class UnifiedLLMProvider(private val context: Context) {
     }
 
     /**
-     * 判断错误是否可重试
+     * CheckErrorYesNo可Retry
      */
     private fun isRetryable(exception: LLMException): Boolean {
         val message = exception.message?.lowercase() ?: ""
@@ -572,7 +572,7 @@ class UnifiedLLMProvider(private val context: Context) {
     }
 
     /**
-     * 简单聊天（无工具）
+     * SimpleChat(None工具)
      */
     suspend fun simpleChat(
         userMessage: String,
@@ -595,14 +595,14 @@ class UnifiedLLMProvider(private val context: Context) {
             modelRef = modelRef,
             temperature = temperature,
             maxTokens = maxTokens,
-            reasoningEnabled = false
+            reasoningEnableddd = false
         )
 
         return response.content ?: throw LLMException("No content in response")
     }
 
     /**
-     * 解析模型引用
+     * Parse模型引用
      * Format: "provider/model-id" or "model-id"
      *
      * @return Pair(providerName, modelId)
@@ -610,7 +610,7 @@ class UnifiedLLMProvider(private val context: Context) {
     private fun parseModelRef(modelRef: String?): Pair<String, String> {
         // If not specified, use default model
         if (modelRef == null) {
-            val config = configLoader.loadOpenClawConfigFresh() // 强制从磁盘读取，避免缓存导致换模型不生效
+            val config = configLoader.loadOpenClawConfigFresh() // 强制从DiskRead, 避免Cache导致换模型不生效
             val defaultModel = config.resolveDefaultModel()
             // If the default model's provider exists, use it
             val parsed = tryParseModelRef(defaultModel)
@@ -622,11 +622,11 @@ class UnifiedLLMProvider(private val context: Context) {
             if (firstEntry != null) {
                 val firstModel = firstEntry.value.models.firstOrNull()
                 if (firstModel != null) {
-                    Log.w(TAG, "⚠️ 默认模型 '$defaultModel' 的 provider 不存在，fallback 到 '${firstEntry.key}/${firstModel.id}'")
+                    Log.w(TAG, "⚠️ Default模型 '$defaultModel' 的 provider 不Exists, fallback 到 '${firstEntry.key}/${firstModel.id}'")
                     return Pair(firstEntry.key, firstModel.id)
                 }
             }
-            throw IllegalArgumentException("没有可用的模型配置，请先配置模型")
+            throw IllegalArgumentException("NoneAvailable的模型Config, 请先Config模型")
         }
 
         return tryParseModelRef(modelRef)
@@ -634,7 +634,7 @@ class UnifiedLLMProvider(private val context: Context) {
     }
 
     /**
-     * 尝试解析模型引用，找不到时返回 null 而不是抛异常
+     * TryParse模型引用, Return when not found null 而不Yes抛Exception
      */
     private fun tryParseModelRef(modelRef: String): Pair<String, String>? {
         // Step 1: Try to find complete modelRef as model ID
@@ -661,7 +661,7 @@ class UnifiedLLMProvider(private val context: Context) {
     }
 
     /**
-     * 构建 API URL
+     * Build API URL
      */
     private fun buildApiUrl(provider: ProviderConfig, model: ModelDefinition): String {
         val baseUrl = provider.baseUrl.trimEnd('/')
@@ -701,7 +701,7 @@ class UnifiedLLMProvider(private val context: Context) {
 }
 
 /**
- * LLM 响应
+ * LLM Response
  */
 data class LLMResponse(
     val content: String?,
@@ -721,7 +721,7 @@ data class LLMToolCall(
 )
 
 /**
- * LLM Token 使用统计
+ * LLM Token usecount
  */
 data class LLMUsage(
     val promptTokens: Int,
