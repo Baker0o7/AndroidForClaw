@@ -1,22 +1,22 @@
 package com.xiaomo.androidforclaw.agent.tools
 
 /**
- * android API skill — 暴露 android 系统 API 给 agent
+ * Android API skill — exposes Android system APIs to the agent
  *
- * 让 agent through API 直接Action系统Feature, 而notYes靠 UI Auto化硬刚. 
- * Aligned with OpenClaw  tool schema: 单one工具 + action ParametersRoute. 
+ * Allows agent to directly control system features via API instead of relying on UI automation.
+ * Aligned with OpenClaw tool schema: single tool + action parameters.
  *
- * SupportAction: 
- * - 闹钟/定hour器: set_alarm, set_timer
- * - 剪贴板: get_clipboard, set_clipboard
- * - 电池/Storage: get_battery, get_storage
- * - 手电筒: flashlight
- * - 音量: get_volume, set_volume
- * - highlight度: set_brightness
+ * Supported Actions:
+ * - Alarm/Timer: set_alarm, set_timer
+ * - Clipboard: get_clipboard, set_clipboard
+ * - Battery/Storage: get_battery, get_storage
+ * - Flashlight: flashlight
+ * - Volume: get_volume, set_volume
+ * - Brightness: set_brightness
  * - Start App/Activity: start_app, start_activity
- * - 发Broadcast: send_broadcast
- * - ScreenTimeout: set_screen_timeout
- * - Settings页跳转: open_settings
+ * - Send Broadcast: send_broadcast
+ * - Screen Timeout: set_screen_timeout
+ * - Settings Page Navigation: open_settings
  */
 
 
@@ -89,19 +89,19 @@ Supported Actions:
                                 "open_settings"
                             )
                         ),
-                        "hour" to Propertyschema(type = "number", description = "smallhour (0-23) for set_alarm"),
-                        "minute" to Propertyschema(type = "number", description = "minute钟 (0-59) for set_alarm"),
-                        "seconds" to Propertyschema(type = "number", description = "seconds数 for set_timer / set_screen_timeout"),
-                        "message" to Propertyschema(type = "string", description = "闹钟/定hour器tag"),
-                        "text" to Propertyschema(type = "string", description = "剪贴板Text for set_clipboard"),
-                        "on" to Propertyschema(type = "boolean", description = "开关 for flashlight"),
-                        "stream" to Propertyschema(type = "string", description = "音量Type: music/call/ring/notification/alarm/system", enum = listOf("music", "call", "ring", "notification", "alarm", "system")),
-                        "level" to Propertyschema(type = "number", description = "音量level别 for set_volume (0-100) orhighlight度level别 for set_brightness (0-255)"),
-                        "auto" to Propertyschema(type = "boolean", description = "highlight度Auto调节 for set_brightness"),
-                        "package" to Propertyschema(type = "string", description = "Package name for start_app / start_activity / send_broadcast"),
-                        "action" to Propertyschema(type = "string", description = "Intent action for start_activity / send_broadcast"),
-                        "data" to Propertyschema(type = "string", description = "Intent data URI for start_activity"),
-                        "page" to Propertyschema(type = "string", description = "Settings页面: wifi/bluetooth/battery/display/sound/storage/app/all", enum = listOf("wifi", "bluetooth", "battery", "display", "sound", "storage", "app", "all"))
+                        "hour" to PropertySchema(type = "number", description = "Hour (0-23) for set_alarm"),
+                        "minute" to PropertySchema(type = "number", description = "Minute (0-59) for set_alarm"),
+                        "seconds" to PropertySchema(type = "number", description = "Seconds for set_timer / set_screen_timeout"),
+                        "message" to PropertySchema(type = "string", description = "Alarm/Timer label"),
+                        "text" to PropertySchema(type = "string", description = "Clipboard text for set_clipboard"),
+                        "on" to PropertySchema(type = "boolean", description = "On/Off for flashlight"),
+                        "stream" to PropertySchema(type = "string", description = "Volume type: music/call/ring/notification/alarm/system", enum = listOf("music", "call", "ring", "notification", "alarm", "system")),
+                        "level" to PropertySchema(type = "number", description = "Volume level for set_volume (0-100) or brightness level for set_brightness (0-255)"),
+                        "auto" to PropertySchema(type = "boolean", description = "Auto brightness for set_brightness"),
+                        "package" to PropertySchema(type = "string", description = "Package name for start_app / start_activity / send_broadcast"),
+                        "action" to PropertySchema(type = "string", description = "Intent action for start_activity / send_broadcast"),
+                        "data" to PropertySchema(type = "string", description = "Intent data URI for start_activity"),
+                        "page" to PropertySchema(type = "string", description = "Settings page: wifi/bluetooth/battery/display/sound/storage/app/all", enum = listOf("wifi", "bluetooth", "battery", "display", "sound", "storage", "app", "all"))
                     ),
                     required = listOf("action")
                 )

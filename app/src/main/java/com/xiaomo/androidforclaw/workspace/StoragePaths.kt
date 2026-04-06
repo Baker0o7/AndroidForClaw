@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (android-only — correct齐 ~/.openclaw/ Path结构)
+ * - No OpenClaw counterpart (Android-only — aligns with ~/.openclaw/ path structure)
  */
 package com.xiaomo.androidforclaw.workspace
 
@@ -23,18 +23,18 @@ object StoragePaths {
     val extensions: File get() = File(root, "extensions")
     val canvas: File get() = File(root, "canvas")
     val agents: File get() = File(root, "agents")
-    val configbackups: File get() = File(root, "config-backups")
+    val configBackups: File get() = File(root, "config-backups")
 
-    // config files
-    val openclawconfig: File get() = File(root, "openclaw.json")
+    // Config files
+    val openclawConfig: File get() = File(root, "openclaw.json")
 
     // Workspace sub-directories
-    val workspaceskills: File get() = File(workspace, "skills")
+    val workspaceSkills: File get() = File(workspace, "skills")
     val workspaceLogs: File get() = File(workspace, "logs")
     val workspaceScreenshots: File get() = File(workspace, "screenshots")
     val workspaceMemory: File get() = File(workspace, "memory")
 
-    // session storage
+    // Session storage
     val sessions: File get() = File(agents, "main/sessions")
 
     // Cron
