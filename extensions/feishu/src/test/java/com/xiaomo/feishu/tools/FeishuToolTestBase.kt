@@ -14,8 +14,8 @@ import org.junit.After
 import org.junit.Before
 
 /**
- * Feishu tool unitTest基Class
- * 提供 MockK client + Default config + JSON 辅助Method
+ * Feishu tool unit test base class
+ * Provides MockK client + Default config + JSON helper methods
  */
 open class FeishuToolTestBase {
 
@@ -35,7 +35,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * CreateDefaultAllEnabled的 FeishuConfig
+     * Create default FeishuConfig with all tools enabled
      */
     protected fun createDefaultConfig(
         enableDocTools: Boolean = true,
@@ -72,7 +72,7 @@ open class FeishuToolTestBase {
     // ─── Mock helpers ───────────────────────────────────────────
 
     /**
-     * Mock client.get() 对指定 path Front缀ReturnSuccess JsonObject
+     * Mock client.get() to return success JsonObject for given path prefix
      */
     protected fun mockGet(pathPrefix: String, data: JsonObject) {
         coEvery { client.get(match { it.startsWith(pathPrefix) }, any()) } returns
@@ -80,14 +80,14 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.get() 对指定 path Front缀ReturnSuccess (None headers Parameter version)
+     * Mock client.get() to return success (no headers parameter version)
      */
     protected fun mockGetExact(path: String, data: JsonObject) {
         coEvery { client.get(path, any()) } returns result.success(wrapData(data))
     }
 
     /**
-     * Mock client.post() 对指定 path Front缀ReturnSuccess
+     * Mock client.post() to return success for given path prefix
      */
     protected fun mockPost(pathPrefix: String, data: JsonObject) {
         coEvery { client.post(match { it.startsWith(pathPrefix) }, any(), any()) } returns
@@ -95,7 +95,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.put() ReturnSuccess
+     * Mock client.put() to return success
      */
     protected fun mockPut(pathPrefix: String, data: JsonObject) {
         coEvery { client.put(match { it.startsWith(pathPrefix) }, any()) } returns
@@ -103,7 +103,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.patch() ReturnSuccess
+     * Mock client.patch() to return success
      */
     protected fun mockPatch(pathPrefix: String, data: JsonObject) {
         coEvery { client.patch(match { it.startsWith(pathPrefix) }, any()) } returns
@@ -111,7 +111,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.delete() ReturnSuccess
+     * Mock client.delete() to return success
      */
     protected fun mockDelete(pathPrefix: String, data: JsonObject = JsonObject()) {
         coEvery { client.delete(match { it.startsWith(pathPrefix) }) } returns
@@ -119,7 +119,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.get() 对指定 path Front缀ReturnFailed
+     * Mock client.get() to return failure for given path prefix
      */
     protected fun mockGetError(pathPrefix: String, msg: String = "API error") {
         coEvery { client.get(match { it.startsWith(pathPrefix) }, any()) } returns
@@ -127,7 +127,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.post() 对指定 path Front缀ReturnFailed
+     * Mock client.post() to return failure for given path prefix
      */
     protected fun mockPostError(pathPrefix: String, msg: String = "API error") {
         coEvery { client.post(match { it.startsWith(pathPrefix) }, any(), any()) } returns
@@ -135,7 +135,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.patch() ReturnFailed
+     * Mock client.patch() to return failure
      */
     protected fun mockPatchError(pathPrefix: String, msg: String = "API error") {
         coEvery { client.patch(match { it.startsWith(pathPrefix) }, any()) } returns
@@ -143,7 +143,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.delete() ReturnFailed
+     * Mock client.delete() to return failure
      */
     protected fun mockDeleteError(pathPrefix: String, msg: String = "API error") {
         coEvery { client.delete(match { it.startsWith(pathPrefix) }) } returns
@@ -151,7 +151,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Mock client.downloadRaw() ReturnSuccess
+     * Mock client.downloadRaw() to return success
      */
     protected fun mockDownloadRaw(pathPrefix: String, bytes: ByteArray = ByteArray(10)) {
         coEvery { client.downloadRaw(match { it.startsWith(pathPrefix) }) } returns
@@ -173,7 +173,7 @@ open class FeishuToolTestBase {
     // ─── JSON helpers ───────────────────────────────────────────
 
     /**
-     * 将 data Package装为飞书 API 标准Response结构 {"code":0,"data":{...}}
+     * Wrap data as Feishu API standard response structure {"code":0,"data":{...}}
      */
     protected fun wrapData(data: JsonObject): JsonObject {
         return JsonObject().apply {
@@ -184,7 +184,7 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Fast构造 JsonObject
+     * Fast construct JsonObject
      */
     protected fun jsonObj(vararg pairs: Pair<String, Any?>): JsonObject {
         return JsonObject().apply {
@@ -202,14 +202,14 @@ open class FeishuToolTestBase {
     }
 
     /**
-     * Fast构造 JsonArray
+     * Fast construct JsonArray
      */
     protected fun jsonArr(vararg items: JsonObject): JsonArray {
         return JsonArray().apply { items.forEach { add(it) } }
     }
 
     /**
-     * 从 JSON StringParse
+     * Parse from JSON String
      */
     protected fun parseJson(json: String): JsonObject {
         return JsonParser.parseString(json).asJsonObject

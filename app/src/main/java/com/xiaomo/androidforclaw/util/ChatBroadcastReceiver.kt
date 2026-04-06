@@ -12,22 +12,22 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.core.MyApplication
 
 /**
- * Chat Broadcast Receiver - ADB TestInterface
+ * Chat Broadcast Receiver - ADB Test Interface
  *
- * 用途: 方便通过 ADB 直接sendMessage到Chat界面IntoRowTest
+ * Purpose: Convenient for sending messages directly to Chat interface via ADB for testing
  *
- * useMethod:
- * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "YourMessageInside容"
+ * Usage:
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "YourMessageContent"
  *
- * 示例:
- * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "usebrowserSearchopenclaw"
+ * Example:
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "use browser Search openclaw"
  */
 class ChatBroadcastReceiver() : BroadcastReceiver() {
 
-    // Optional的Callback,用于DynamicRegister时
+    // Optional callback, used for dynamic registration
     private var onMessageReceived: ((String) -> Unit)? = null
 
-    // 提供带Callback的构造Function用于DynamicRegister
+    // Constructor with callback for dynamic registration
     constructor(onMessageReceived: (String) -> Unit) : this() {
         this.onMessageReceived = onMessageReceived
     }
@@ -46,26 +46,26 @@ class ChatBroadcastReceiver() : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(TAG, "📨 onReceive 被call - action: ${intent?.action}")
+        Log.d(TAG, "onReceive called - action: ${intent?.action}")
         if (intent?.action == ACTION_SEND_MESSAGE) {
             val message = intent.getStringExtra(EXTRA_MESSAGE)
-            Log.d(TAG, "📨 MessageInside容: $message")
+            Log.d(TAG, "Message content: $message")
             if (message != null && message.isNotBlank()) {
-                Log.d(TAG, "✅ 收到 ADB Message: $message")
+                Log.d(TAG, "Received ADB message: $message")
 
-                // 优先useCallback
+                // Priority: use callback
                 if (onMessageReceived != null) {
                     onMessageReceived?.invoke(message)
                 } else {
-                    // 通过Global方式sendMessage
-                    Log.d(TAG, "⚙️ 通过 MyApplication sendMessage")
+                    // Use global method to send message
+                    Log.d(TAG, "Send via MyApplication")
                     MyApplication.handleChatBroadcast(message)
                 }
             } else {
-                Log.w(TAG, "⚠️ 收到NullMessage")
+                Log.w(TAG, "Received null message")
             }
         } else {
-            Log.w(TAG, "⚠️ Unknown action: ${intent?.action}")
+            Log.w(TAG, "Unknown action: ${intent?.action}")
         }
     }
 }

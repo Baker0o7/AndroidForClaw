@@ -8,15 +8,15 @@ import com.xiaomo.androidforclaw.logging.Log
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
- * Local布局ExceptionRecord器
- * 用于在各Module的 catch 中Record布局相关Exception, 方便Fast定位FailedModule
+ * Local layout exception recorder
+ * Used to record layout-related exceptions in module catch blocks, for fast locating of failed modules
  */
 object LayoutExceptionLogger {
 
     private const val TAG = "LayoutExceptionLogger"
 
     /**
-     * ExceptionInfoDataClass
+     * Exception info data class
      */
     data class ExceptionInfo(
         val moduleName: String,
@@ -25,34 +25,34 @@ object LayoutExceptionLogger {
         val timestamp: Long = System.currentTimeMillis()
     )
 
-    // ThreadSafe的ExceptionQueue
+    // Thread-safe exception queue
     private val exceptionQueue = ConcurrentLinkedQueue<ExceptionInfo>()
 
-    // PreventRecursecall的标志位(use ThreadLocal EnsureThreadSafe)
+    // Prevent recursive call flag (use ThreadLocal to ensure thread safety)
     private val isLogging = ThreadLocal<Boolean>().apply { set(false) }
 
     /**
-     * RecordExceptionInfo(仅本地Log)
+     * Record exception info (local log only)
      */
     fun log(moduleName: String, throwable: Throwable) {
-        // PreventRecursecall: if当FrontThread正在RecordException, 则Skip
+        // Prevent recursive call: if current thread is recording exception, skip
         if (isLogging.get() == true) {
-            Log.w(TAG, "DetectedRecursecall, SkipExceptionRecord以避免None限Loop. Module: $moduleName")
+            Log.w(TAG, "Detected recursive call, skip exception recording to avoid infinite loop. Module: $moduleName")
             return
         }
 
-        // Settings标志位
+        // Set flag
         isLogging.set(true)
 
         try {
-            // Record到Log
+            // Record to log
             Log.e(
                 TAG,
-                "Module[$moduleName]执RowFailed, ExceptionInfo: ${throwable.message}",
+                "Module[$moduleName] execution failed, Exception info: ${throwable.message}",
                 throwable
             )
 
-            // StorageExceptionInfo
+            // Store exception info
             val stackTrace = throwable.stackTraceToString()
             val exceptionInfo = ExceptionInfo(
                 moduleName = moduleName,
@@ -62,20 +62,20 @@ object LayoutExceptionLogger {
             )
             exceptionQueue.offer(exceptionInfo)
         } finally {
-            // clear标志位
+            // Clear flag
             isLogging.set(false)
         }
     }
 
     /**
-     * GetException数量
+     * Get exception count
      */
     fun getExceptionCount(): Int {
         return exceptionQueue.size
     }
 
     /**
-     * 清NullExceptionQueue
+     * Clear exception queue
      */
     fun clear() {
         exceptionQueue.clear()

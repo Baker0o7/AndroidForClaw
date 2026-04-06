@@ -10,7 +10,7 @@ import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 
 object BuildTree {
     /**
-     * 多叉TreeNode定义
+     * Multi-way tree node definition
      */
     private data class TreeNode(
         val viewNode: ViewNode,
@@ -18,7 +18,7 @@ object BuildTree {
     )
 
     /**
-     * GetNode的相关Property: 坐标, Class名, Resourceid, Text, Inside容Description
+     * Get node properties: coordinates, class name, resource id, text, content description
      */
     private fun getNodeKey(nodeInfo: AccessibilityNodeInfo?): String? {
         if (nodeInfo == null) return null
@@ -36,14 +36,14 @@ object BuildTree {
     }
 
     /**
-     * NodeType提取(such asbutton, textView)
+     * Extract node type (such as button, textView)
      */
     private fun getTreeDisplayType(viewNode: ViewNode): String {
         return viewNode.className?.substringAfterLast('.') ?: "View"
     }
 
     /**
-     *  追加Node的StatusInfo: checked、selected、progress
+     * Append node state info: checked, selected, progress
      */
     private fun appendStateInfo(builder: StringBuilder, node: ViewNode, nodeTypeLabel: String) {
         val accessibilityNode = node.node ?: return
@@ -65,12 +65,12 @@ object BuildTree {
                 }
             }
         } catch (_: Exception) {
-            // IgnoreException, 不影响主流程
+            // Ignore exception, don't affect main flow
         }
     }
 
     /**
-     * NodeFormatted output: 缩Into、Type、Text、Description、坐标、可clickStatus、StatusInfo
+     * Node formatted output: indentation, type, text, description, coordinates, clickable status, state info
      */
     private fun formatTreeNodeLine(node: ViewNode, depth: Int): String {
         val builder = StringBuilder()
@@ -78,7 +78,7 @@ object BuildTree {
         val nodeType = getTreeDisplayType(node)
         builder.append(indent).append("- [").append(nodeType).append("] ")
         
-        // if text 和 contentDesc Inside容相同, 只Output contentDesc
+        // If text and contentDesc are the same, only output contentDesc
         val text = node.text?.trim()
         val contentDesc = node.contentDesc?.trim()
         val isSame = !text.isNullOrEmpty() && !contentDesc.isNullOrEmpty() && text == contentDesc
@@ -97,7 +97,7 @@ object BuildTree {
         return builder.toString()
     }
     /**
-     * Filter系统Status栏的None效Info
+     * Filter system status bar invalid info
      */
     private fun isSystemStatusBar(node: ViewNode): Boolean {
         if (node.top >= 100) return false
@@ -111,39 +111,39 @@ object BuildTree {
     }
 
     private val SYSTEM_STATUS_KEYWORDS = listOf(
-        "android 系统Notification",
-        "系统Notification",
-        "Notification",
+        "android system notification",
+        "system notification",
+        "notification",
         "wlan",
-        "信号",
-        "充电",
-        "sim 卡",
-        "振铃器",
-        "振动",
+        "signal",
+        "charging",
+        "sim card",
+        "ringer",
+        "vibrate",
         "nfc"
     )
 
     /**
-     * BuildTree的主流程, 核心主Function
+     * BuildTree main flow, core main function
      */
     fun buildComponentTreeDescription(nodes: List<ViewNode>): String {
-        //Filter掉系统Status栏
+        // Filter out system status bar
         val filteredNodes = nodes.filter { !isSystemStatusBar(it) }
         if (filteredNodes.isEmpty()) {
-            return "(NoneAvailableData)\n"
+            return "(No available data)\n"
         }
         /**
-         * nodeOrder: RecordNode在原List中的SequentialIndex
-         * treeNodeMap: RecordViewNode到TreeNode的Map关系
-         * nodeKeyMap: StorageNodeUnique标识到 ViewNode 的Map
+         * nodeOrder: Record node's sequential index in original list
+         * treeNodeMap: Record ViewNode to TreeNode mapping
+         * nodeKeyMap: Store node unique identifier to ViewNode mapping
          */
         val nodeOrder = filteredNodes.withIndex().associate { it.value to it.index }
         val treeNodeMap = mutableMapOf<ViewNode, TreeNode>()
         val nodeKeyMap = mutableMapOf<String, ViewNode>()
 
         /**
-         * 为EachFilterBack的NodeCreate对应的 TreeNode Object
-         * 通过 getNodeKey 生成NodeUnique标识并建立Map
+         * Create TreeNode object for each filtered node
+         * Generate node unique identifier via getNodeKey and establish mapping
          */
         filteredNodes.forEach { viewNode ->
             treeNodeMap[viewNode] = TreeNode(viewNode)
@@ -152,7 +152,7 @@ object BuildTree {
             }
         }
         /**
-         * TraverseAllTreeNode建立父子关系, None父Node的Node作为根Node
+         * Traverse all tree nodes to establish parent-child relationship, nodes without parent become root nodes
          */
         val rootNodes = mutableListOf<TreeNode>()
         treeNodeMap.values.forEach { treeNode ->
@@ -165,34 +165,34 @@ object BuildTree {
             }
         }
         /**
-         * NodeSortRule: 原始SequentialIndex -》垂直位置 -》水平位置
+         * Node sort rule: original sequential index -> vertical position -> horizontal position
          */
         val comparator = compareBy<TreeNode> { nodeOrder[it.viewNode] ?: Int.MAX_VALUE }
             .thenBy { it.viewNode.top }
             .thenBy { it.viewNode.left }
 
         /**
-         * TreeTraverseOutput
+         * Tree traverse output
          */
         val rootsToProcess = if (rootNodes.isNotEmpty()) rootNodes.distinct() else treeNodeMap.values.distinct()
         val builder = StringBuilder()
         rootsToProcess.sortedWith(comparator).forEach { appendTreeNode(builder, it, comparator) }
         /**
-         * resultReturn
+         * Result return
          */
         if (builder.isEmpty()) {
-            builder.append("(NoneAvailableData)\n")
+            builder.append("(No available data)\n")
         }
         return builder.toString()
     }
 
     /**
-     * 用于RecurseOutputTree结构
-     * 步骤1: 折叠冗余链
-     * 步骤2: SkipNull叶子Container
-     * 步骤3: Format当FrontNode
-     * 步骤4: Filter按钮Duplicate子Node
-     * 步骤5: RecurseProcess子Node(depth + 1)
+     * Recursive output tree structure
+     * Step 1: Fold redundant chains
+     * Step 2: Skip null leaf containers
+     * Step 3: Format current node
+     * Step 4: Filter button duplicate child nodes
+     * Step 5: Recursive process child nodes (depth + 1)
      */
     private fun appendTreeNode(builder: StringBuilder, treeNode: TreeNode, comparator: Comparator<TreeNode>, depth: Int = 0) {
         val effectiveNode = collapseRedundantChain(treeNode)
@@ -209,7 +209,7 @@ object BuildTree {
     }
 
     /**
-     * 冗余链折叠: 当父Node只Has一个子Node, 且二者等价或父Node为NullNode时, 则Skip中间层只ShowHas意义Node
+     * Redundant chain folding: When parent node only has one child node, and they are equivalent or parent is a null node, skip middle layer and show only meaningful node
      */
     private fun collapseRedundantChain(node: TreeNode): TreeNode {
         var current = node
@@ -231,7 +231,7 @@ object BuildTree {
     }
 
     /**
-     * Check两NodeYesNo等价, 用于折叠链去重
+     * Check if two nodes are equivalent, used for chain folding deduplication
      */
     private fun areNodesEquivalent(first: ViewNode, second: ViewNode): Boolean {
         return first.className == second.className &&
@@ -245,7 +245,7 @@ object BuildTree {
     }
 
     /**
-     * SkipNull的ContainerClass(Null的layout, ViewGroup等)
+     * Skip null container class (null layout, ViewGroup, etc.)
      */
     private fun shouldBypassContainer(container: ViewNode, child: ViewNode): Boolean {
         val isStructural = isStructuralClass(container.className)
@@ -257,7 +257,7 @@ object BuildTree {
     }
 
     /**
-     * CheckYesNo为结构Class
+     * Check if it's a structural class
      */
     private fun isStructuralClass(className: String?): Boolean {
         val lower = className?.lowercase() ?: return false
@@ -267,7 +267,7 @@ object BuildTree {
     }
 
     /**
-     * 去除buttonDown的textView(Table达含义相同), 简化prompt
+     * Remove textView under button (expressing same meaning), simplify prompt
      */
     private fun shouldBypassButtonChild(parent: ViewNode, child: ViewNode): Boolean {
         val parentClass = parent.className?.lowercase() ?: return false
@@ -283,7 +283,7 @@ object BuildTree {
     }
 
     /**
-     * CheckYesNoSkip为Null的叶子Node
+     * Check if should skip null leaf node
      */
     private fun shouldSkipLeafContainer(node: ViewNode, children: List<TreeNode>): Boolean {
         if (children.isNotEmpty()) return false
@@ -293,7 +293,7 @@ object BuildTree {
     }
 
     /**
-     * FilterGet到的ScreenOutsideNode, 仅保留ScreenInside的Node
+     * Filter nodes outside screen, only keep nodes inside screen
      */
     fun isNodeWithinScreen(
         node: ViewNode,
@@ -307,7 +307,7 @@ object BuildTree {
         return true
     }
 
-    // buildTreeFromImageDetail() 已Delete
-    // ImageDetail YesOld架构的Class(已Delete), No longer used
-    // New架构直接use buildComponentTreeDescription(nodes: List<ViewNode>)
+    // buildTreeFromImageDetail() has been deleted
+    // ImageDetail is old architecture class (deleted), no longer used
+    // New architecture directly uses buildComponentTreeDescription(nodes: List<ViewNode>)
 }

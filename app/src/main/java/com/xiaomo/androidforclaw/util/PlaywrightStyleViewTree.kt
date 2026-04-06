@@ -1,14 +1,14 @@
 /**
  * Playwright-style View Tree — Convert Android Accessibility ViewNode to Playwright-like
- * Playwright snapshot role-based ref Tree format, For MCP External Agent use. 
+ * Playwright snapshot role-based ref Tree format, For MCP External Agent use.
  *
- * Output example: 
+ * Output example:
  * - button "Login" [ref=e1] center=(540,1200) bounds=[360,1160,720,1240]
  *   - text "Login" [ref=e2]
- * - textbox "User名" [ref=e3] center=(540,800) bounds=[100,760,980,840]
+ * - textbox "Username" [ref=e3] center=(540,800) bounds=[100,760,980,840]
  * - link "forgetPassword" [ref=e4] center=(540,1300) bounds=[400,1280,680,1320]
  *
- * Agent uses ref=eN with tap/long_press actions. 
+ * Agent uses ref=eN with tap/long_press actions.
  */
 package com.xiaomo.androidforclaw.util
 
@@ -31,7 +31,7 @@ object PlaywrightStyleViewTree {
     data class Snapshotresult(
         /** Playwright-style text tree */
         val snapshot: String,
-        /** ref → NodeMap */
+        /** ref -> Node Map */
         val refs: Map<String, RefEntry>,
         /** Statistics info */
         val stats: Stats
@@ -43,7 +43,7 @@ object PlaywrightStyleViewTree {
         val refCount: Int
     )
 
-    // ── Android className → Playwright role Map ──────────────
+    // ── Android className -> Playwright role Map ──────────────
 
     private val CLASS_TO_ROLE = mapOf(
         "button" to "button",
@@ -115,7 +115,7 @@ object PlaywrightStyleViewTree {
     )
 
     /**
-     * Convert ViewNode List to Playwright-style snapshot. 
+     * Convert ViewNode List to Playwright-style snapshot.
      */
     fun buildSnapshot(nodes: List<ViewNode>): Snapshotresult {
         val filtered = nodes.filter { !isSystemStatusBar(it) }
@@ -123,10 +123,10 @@ object PlaywrightStyleViewTree {
             return Snapshotresult("(empty)", emptyMap(), Stats(0, 0, 0))
         }
 
-        // BuildTree结构
+        // Build tree structure
         val treeNodes = buildTree(filtered)
 
-        // 分配 ref 并Format
+        // Assign refs and format
         var refCounter = 0
         val refs = mutableMapOf<String, RefEntry>()
         val sb = StringBuilder()
@@ -142,7 +142,7 @@ object PlaywrightStyleViewTree {
             val name = resolveName(node)
             val indent = "  ".repeat(depth)
 
-            // 分配 ref: 交互Element和HasName的Inside容Element
+            // Assign ref: interactive elements and named content elements
             val isInteractive = INTERACTIVE_ROLES.contains(role)
             val isNamedContent = CONTENT_ROLES.contains(role) && !name.isNullOrEmpty()
             val shouldHaveRef = isInteractive || isNamedContent || node.clickable
@@ -152,7 +152,7 @@ object PlaywrightStyleViewTree {
                 refs[ref] = RefEntry(ref, role, name, node)
             }
 
-            // FormatRow
+            // Format row
             sb.append(indent).append("- ").append(role)
             if (!name.isNullOrEmpty()) {
                 sb.append(" \"").append(name.replace("\"", "\\\"")).append("\"")
@@ -160,18 +160,18 @@ object PlaywrightStyleViewTree {
             if (ref != null) {
                 sb.append(" [ref=").append(ref).append("]")
             }
-            // 坐标Info(Android 特Has, 方便 tap Action)
+            // Coordinate info (Android specific, convenient for tap action)
             sb.append(" center=(${node.point.x},${node.point.y})")
             sb.append(" bounds=[${node.left},${node.top},${node.right},${node.bottom}]")
 
-            // StatusInfo
+            // State info
             if (node.clickable && !isInteractive) sb.append(" [clickable]")
             if (node.scrollable) sb.append(" [scrollable]")
             appendExtraState(sb, node, role)
 
             sb.appendLine()
 
-            // Recurse子Node
+            // Recurse child nodes
             val childrenToShow = treeNode.children.filterNot { shouldBypassChild(node, it.viewNode) }
             childrenToShow.forEach { appendNode(it, depth + 1) }
         }
@@ -190,21 +190,21 @@ object PlaywrightStyleViewTree {
         )
     }
 
-    // ── RoleParse ──────────────────────────────────────────────
+    // ── Role parsing ──────────────────────────────────────────────
 
     private fun resolveRole(node: ViewNode): String {
         val simpleClass = node.className?.substringAfterLast('.')?.lowercase() ?: "group"
 
-        // 优先查MapTable
+        // Priority: lookup table first
         CLASS_TO_ROLE[simpleClass]?.let { return it }
 
-        // 启发式Rule
+        // Heuristic rules
         if (node.clickable) {
             val text = node.text ?: node.contentDesc
             if (!text.isNullOrEmpty()) return "button"
         }
 
-        // Contains关Key词的Class名
+        // Class names containing keywords
         return when {
             simpleClass.contains("button") -> "button"
             simpleClass.contains("edit") || simpleClass.contains("input") -> "textbox"
@@ -225,12 +225,12 @@ object PlaywrightStyleViewTree {
     }
 
     private fun resolveName(node: ViewNode): String? {
-        // 优先 contentDescription(AccessibilityName), Its次 text
+        // Priority: contentDescription (AccessibilityName), then text
         return node.contentDesc?.takeIf { it.isNotBlank() }
             ?: node.text?.takeIf { it.isNotBlank() }
     }
 
-    // ── Status附加 ──────────────────────────────────────────────
+    // ── State appending ──────────────────────────────────────────────
 
     private fun appendExtraState(sb: StringBuilder, node: ViewNode, role: String) {
         val axNode = node.node ?: return
@@ -251,7 +251,7 @@ object PlaywrightStyleViewTree {
         } catch (_: Exception) { }
     }
 
-    // ── Tree construction辅助 ────────────────────────────────────────────
+    // ── Tree construction helpers ────────────────────────────────────────────
 
     private fun buildTree(nodes: List<ViewNode>): List<TreeNode> {
         val nodeOrder = nodes.withIndex().associate { it.value to it.index }
@@ -292,15 +292,15 @@ object PlaywrightStyleViewTree {
     }
 
     private fun collapseAndSort(node: TreeNode, comparator: Comparator<TreeNode>) {
-        // 折叠冗余链
+        // Fold redundant chains
         var current = node
         while (current.children.size == 1) {
             val child = current.children[0]
             if (isRedundantWrapper(current.viewNode, child.viewNode)) {
-                // 用子Node替代(但保留子Node的 children)
+                // Replace with child node (but keep child's children)
                 current.children.clear()
                 current.children.addAll(child.children)
-                // 不改 current 的 viewNode, Continue折叠
+                // Don't change current's viewNode, continue folding
             } else {
                 break
             }
@@ -344,8 +344,8 @@ object PlaywrightStyleViewTree {
     }
 
     private val SYSTEM_STATUS_KEYWORDS = listOf(
-        "android 系统Notification", "系统Notification", "Notification", "wlan", "信号",
-        "充电", "sim 卡", "振铃器", "振动", "nfc"
+        "android system notification", "system notification", "notification", "wlan", "signal",
+        "charging", "sim card", "ringer", "vibrate", "nfc"
     )
 
     private fun isSystemStatusBar(node: ViewNode): Boolean {

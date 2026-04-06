@@ -4,8 +4,8 @@ import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * FeishuContentParser 单元Test
- * Validate各MessageTypeParse、富Text转 Markdown、媒体 key 提取
+ * FeishuContentParser unit test
+ * Validate message type parsing, rich text to Markdown conversion, media key extraction
  */
 class FeishuContentParserTest {
 
@@ -35,7 +35,7 @@ class FeishuContentParserTest {
     @Test
     fun `image message extracts image_key`() {
         val result = FeishuContentParser.parseMessageContent("image", """{"image_key":"img_v2_abc123"}""")
-        assertEquals("[Graph片]", result.text)
+        assertEquals("[Image]", result.text)
         assertNotNull(result.mediaKeys)
         assertEquals("img_v2_abc123", result.mediaKeys!!.imageKey)
         assertEquals("image", result.mediaKeys!!.mediaType)
@@ -46,7 +46,7 @@ class FeishuContentParserTest {
     @Test
     fun `file message extracts file_key and name`() {
         val result = FeishuContentParser.parseMessageContent("file", """{"file_key":"file_abc","file_name":"report.pdf"}""")
-        assertEquals("[文件: report.pdf]", result.text)
+        assertEquals("[File: report.pdf]", result.text)
         assertNotNull(result.mediaKeys)
         assertEquals("file_abc", result.mediaKeys!!.fileKey)
         assertEquals("report.pdf", result.mediaKeys!!.fileName)
@@ -58,7 +58,7 @@ class FeishuContentParserTest {
     @Test
     fun `audio message extracts file_key`() {
         val result = FeishuContentParser.parseMessageContent("audio", """{"file_key":"audio_abc"}""")
-        assertEquals("[语音]", result.text)
+        assertEquals("[Audio]", result.text)
         assertEquals("audio_abc", result.mediaKeys!!.fileKey)
         assertEquals("audio", result.mediaKeys!!.mediaType)
     }
@@ -68,7 +68,7 @@ class FeishuContentParserTest {
     @Test
     fun `video message extracts file_key and image_key`() {
         val result = FeishuContentParser.parseMessageContent("video", """{"file_key":"video_abc","image_key":"thumb_abc"}""")
-        assertEquals("[视频]", result.text)
+        assertEquals("[Video]", result.text)
         assertEquals("video_abc", result.mediaKeys!!.fileKey)
         assertEquals("thumb_abc", result.mediaKeys!!.imageKey)
     }
@@ -78,7 +78,7 @@ class FeishuContentParserTest {
     @Test
     fun `sticker message extracts file_key`() {
         val result = FeishuContentParser.parseMessageContent("sticker", """{"file_key":"sticker_abc"}""")
-        assertEquals("[Table情]", result.text)
+        assertEquals("[Sticker]", result.text)
         assertEquals("sticker_abc", result.mediaKeys!!.fileKey)
     }
 
@@ -87,13 +87,13 @@ class FeishuContentParserTest {
     @Test
     fun `share_chat message extracts name`() {
         val result = FeishuContentParser.parseMessageContent("share_chat", """{"chat_name":"工程群","share_chat_id":"oc_123"}""")
-        assertEquals("[分享群: 工程群]", result.text)
+        assertEquals("[Shared Chat: 工程群]", result.text)
     }
 
     @Test
     fun `share_chat without name falls back to id`() {
         val result = FeishuContentParser.parseMessageContent("share_chat", """{"share_chat_id":"oc_123"}""")
-        assertEquals("[分享群: oc_123]", result.text)
+        assertEquals("[Shared Chat: oc_123]", result.text)
     }
 
     // ===== Post (Rich Text) =====
@@ -180,10 +180,10 @@ class FeishuContentParserTest {
             {"msg_type":"file","body":{"content":"{}"}}
         ]"""
         val result = FeishuContentParser.parseMergeForwardContent(content)
-        assertTrue(result.contains("[Merge转发Message]"))
+        assertTrue(result.contains("[Merge Forward Message]"))
         assertTrue(result.contains("hello"))
-        assertTrue(result.contains("[Graph片]"))
-        assertTrue(result.contains("[文件]"))
+        assertTrue(result.contains("[Image]"))
+        assertTrue(result.contains("[File]"))
     }
 
     @Test

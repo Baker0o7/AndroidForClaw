@@ -1,23 +1,23 @@
 package com.xiaomo.feishu.tools.doc
 
 /**
- * E2E Test: 飞书DocumentCreate(Title + Inside容)
+ * E2E Test: Feishu Document Create (Title + Content)
  *
- * Test目标: Validate "Create个Document 随便写点Inside容" 能at the same timeWriteTitle和Inside容. 
+ * Test Goal: Validate "Create a Document with some Content" can write both Title and Content simultaneously.
  *
- * Test步骤: 
- * 1. CreateDocument(带Title)
- * 2. WriteInside容(通过 DocUpdateHelper)
+ * Test Steps:
+ * 1. CreateDocument (with Title)
+ * 2. WriteContent (via DocUpdateHelper)
  * 3. ReadDocument raw_content
- * 4. 断言: Title不为Null AND Inside容不为Null
+ * 4. Assert: Title is not Null AND Content is not Null
  *
- * Run方式(通过 ADB): 
+ * Run method (via ADB):
  * ```
  * adb shell am instrument -w -e class com.xiaomo.feishu.tools.doc.DocCreateE2ETest \
  *   com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
  * ```
  *
- * 或通过 GatewayServer HTTP Interface触发(Need在 app 中Register). 
+ * Or via GatewayServer HTTP Interface (Need to Register in app).
  */
 
 import android.util.Log
@@ -35,15 +35,15 @@ class DocCreateE2ETest {
     companion object {
         private const val TAG = "DocCreateE2ETest"
         private const val TEST_TITLE = "E2ETestDocument_${System.currentTimeMillis()}"
-        private const val TEST_CONTENT = "这Yes一段TestInside容, 用于ValidateDocumentCreateBackInside容能正确Write. "
+        private const val TEST_CONTENT = "This is a test content, used to validate that Document Create can write Content correctly. "
     }
 
     /**
-     * 从DeviceUp的 openclaw.json Read飞书Config
+     * Load Feishu Config from device's openclaw.json
      */
     private fun loadFeishuConfig(): FeishuConfig? {
         return try {
-            // Attempt从DeviceUp的Config文件Read
+            // Attempt to read Config from device
             val configFile = File("/data/data/com.xiaomo.androidforclaw/files/openclaw/openclaw.json")
             if (!configFile.exists()) {
                 Log.e(TAG, "Config file not found: ${configFile.absolutePath}")
@@ -64,7 +64,7 @@ class DocCreateE2ETest {
     }
 
     /**
-     * 从 assets 或 filesDir LoadConfig(备用方案)
+     * Load Config from assets or filesDir (fallback)
      */
     private fun loadFeishuConfigFromFilesDir(filesDir: File): FeishuConfig? {
         return try {
@@ -88,18 +88,18 @@ class DocCreateE2ETest {
     }
 
     /**
-     * 核心Test: CreateDocument → WriteInside容 → Read → Validate
+     * Core Test: CreateDocument -> WriteContent -> Read -> Validate
      */
     @Test
     fun testDocCreateWithTitleAndContent() = runBlocking {
         val config = loadFeishuConfig()
             ?: run {
-                Log.w(TAG, "⚠️ CannotLoad飞书Config, Skip E2E Test")
+                Log.w(TAG, "⚠️ Cannot load Feishu Config, Skip E2E Test")
                 return@runBlocking
             }
 
         if (!config.enabled) {
-            Log.w(TAG, "⚠️ 飞书未Enabled, Skip E2E Test")
+            Log.w(TAG, "⚠️ Feishu not enabled, Skip E2E Test")
             return@runBlocking
         }
 
@@ -110,7 +110,7 @@ class DocCreateE2ETest {
         assertTrue("Get tenant_access_token Failed: ${tokenresult.exceptionOrNull()?.message}",
             tokenresult.isSuccess)
         val token = tokenresult.getOrNull()!!
-        Log.i(TAG, "✅ tenant_access_token GetSuccess")
+        Log.i(TAG, "✅ tenant_access_token get success")
 
         // ===== Step 2: CreateDocument =====
         val createBody = mapOf(
@@ -127,15 +127,15 @@ class DocCreateE2ETest {
             ?.getAsJsonObject("document")
             ?.get("document_id")
             ?.asString
-        assertNotNull("缺少 document_id", docId)
-        Log.i(TAG, "✅ DocumentCreateSuccess: docId=$docId, title=$TEST_TITLE")
+        assertNotNull("Missing document_id", docId)
+        Log.i(TAG, "✅ Document created successfully: docId=$docId, title=$TEST_TITLE")
 
-        // ===== Step 3: WriteInside容(use DocUpdateHelper, 对齐FixBack的逻辑)=====
+        // ===== Step 3: WriteContent (use DocUpdateHelper, align with FixBack logic)=====
         val updateHelper = DocUpdateHelper(client)
         val writeresult = updateHelper.updateDocContent(docId!!, TEST_CONTENT)
-        assertTrue("Inside容WriteFailed: ${writeresult.exceptionOrNull()?.message}",
+        assertTrue("Content write failed: ${writeresult.exceptionOrNull()?.message}",
             writeresult.isSuccess)
-        Log.i(TAG, "✅ Inside容WriteSuccess")
+        Log.i(TAG, "✅ Content write success")
 
         // ===== Step 4: ReadDocument raw_content =====
         val readresult = client.get("/open-apis/docx/v1/documents/$docId/raw_content")
@@ -148,38 +148,38 @@ class DocCreateE2ETest {
             ?.get("content")
             ?.asString ?: ""
 
-        Log.i(TAG, "📄 DocumentInside容: \"$content\"")
+        Log.i(TAG, "📄 Document content: \"$content\"")
 
         // ===== Step 5: Validate =====
-        // 5a: Title不为Null(通过Create API 已Confirm)
-        assertTrue("❌ Title为Null", TEST_TITLE.isNotBlank())
-        Log.i(TAG, "✅ TitleValidate通过: $TEST_TITLE")
+        // 5a: Title not Null (confirmed via Create API)
+        assertTrue("❌ Title is Null", TEST_TITLE.isNotBlank())
+        Log.i(TAG, "✅ Title validation passed: $TEST_TITLE")
 
-        // 5b: Inside容不为Null
-        assertTrue("❌ Inside容为Null!这illustrateWrite逻辑Has bug", content.isNotBlank())
-        assertEquals("❌ Inside容不match", TEST_CONTENT, content.trim())
-        Log.i(TAG, "✅ Inside容Validate通过: $content")
+        // 5b: Content not Null
+        assertTrue("❌ Content is Null! This shows write logic has bug", content.isNotBlank())
+        assertEquals("❌ Content does not match", TEST_CONTENT, content.trim())
+        Log.i(TAG, "✅ Content validation passed: $content")
 
-        // ===== Step 6: 清理 =====
+        // ===== Step 6: Cleanup =====
         try {
             client.delete("/open-apis/docx/v1/documents/$docId")
-            Log.i(TAG, "🗑️ TestDocument已Delete: $docId")
+            Log.i(TAG, "🗑️ Test document deleted: $docId")
         } catch (e: Exception) {
-            Log.w(TAG, "⚠️ DeleteTestDocumentFailed: ${e.message}")
+            Log.w(TAG, "⚠️ Delete test document failed: ${e.message}")
         }
 
-        Log.i(TAG, "🎉 E2E TestAll通过!Title和Inside容均正常Write. ")
+        Log.i(TAG, "🎉 E2E Test all passed! Title and Content both write correctly.")
     }
 
     /**
-     * most小Test: 只测Inside容Writepartially(False设已HasDocument)
-     * 可通过 ADB 传入 docId ParametersRun
+     * Minimal Test: Only test Content write (assume Document already exists)
+     * Can run via ADB with docId parameter
      */
     @Test
     fun testContentWriteOnly() = runBlocking {
         val config = loadFeishuConfig()
             ?: run {
-                Log.w(TAG, "⚠️ CannotLoad飞书Config, SkipTest")
+                Log.w(TAG, "⚠️ Cannot load Feishu Config, Skip test")
                 return@runBlocking
             }
 
@@ -187,8 +187,8 @@ class DocCreateE2ETest {
         val tokenresult = client.getTenantAccessToken()
         assertTrue("Get token Failed", tokenresult.isSuccess)
 
-        // CreateTestDocument
-        val createBody = mapOf("title" to "E2EInside容WriteTest", "type" to "doc")
+        // Create test document
+        val createBody = mapOf("title" to "E2EContentWriteTest", "type" to "doc")
         val createresult = client.post("/open-apis/docx/v1/documents", createBody)
         assertTrue("CreateDocumentFailed", createresult.isSuccess)
 
@@ -203,13 +203,13 @@ class DocCreateE2ETest {
         val writeresult = helper.updateDocContent(docId, testContent)
 
         if (writeresult.isFailure) {
-            Log.e(TAG, "❌ Inside容WriteFailed: ${writeresult.exceptionOrNull()?.message}")
-            // 清理
+            Log.e(TAG, "❌ Content write failed: ${writeresult.exceptionOrNull()?.message}")
+            // Cleanup
             client.delete("/open-apis/docx/v1/documents/$docId")
-            fail("Inside容WriteFailed: ${writeresult.exceptionOrNull()?.message}")
+            fail("Content write failed: ${writeresult.exceptionOrNull()?.message}")
         }
 
-        // ReadValidate
+        // Read and validate
         val readresult = client.get("/open-apis/docx/v1/documents/$docId/raw_content")
         assertTrue("ReadFailed", readresult.isSuccess)
 
@@ -217,14 +217,14 @@ class DocCreateE2ETest {
             .getAsJsonObject("data")
             ?.get("content")?.asString ?: ""
 
-        Log.i(TAG, "WriteInside容: $testContent")
-        Log.i(TAG, "ReadInside容: $content")
+        Log.i(TAG, "Write content: $testContent")
+        Log.i(TAG, "Read content: $content")
 
-        assertTrue("❌ Read到的Inside容为Null", content.isNotBlank())
-        assertTrue("❌ Inside容不ContainsTestText", content.contains(testContent))
+        assertTrue("❌ Read content is Null", content.isNotBlank())
+        assertTrue("❌ Content does not contain test text", content.contains(testContent))
 
-        // 清理
+        // Cleanup
         client.delete("/open-apis/docx/v1/documents/$docId")
-        Log.i(TAG, "🎉 Inside容WriteTest通过!")
+        Log.i(TAG, "🎉 Content write test passed!")
     }
 }

@@ -79,7 +79,7 @@ fun extractBody(msg: WeixinMessage): String {
                 }
             }
             return if (parts.isNotEmpty()) {
-                "[引用: ${parts.joinToString(" | ")}]\n$text"
+                "[Quote: ${parts.joinToString(" | ")}]\n$text"
             } else {
                 text
             }
@@ -131,7 +131,7 @@ fun parseInbound(msg: WeixinMessage, accountId: String): WeixinInboundMessage {
                                 }
                             }
                             if (parts.isNotEmpty()) {
-                                body = "[引用: ${parts.joinToString(" | ")}]\n$body"
+                                body = "[Quote: ${parts.joinToString(" | ")}]\n$body"
                             }
                         }
                     }

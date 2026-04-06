@@ -8,7 +8,7 @@ open class NodeApp : Application() {
 
   @Volatile private var runtimeInstance: NodeRuntime? = null
 
-  /** 子Class可Override, 提供本地ProcessInside channel(绕过 WebSocket).  */
+  /** Subclasses can override to provide local process channel (bypass WebSocket). */
   open fun provideLocalChatChannel(): com.xiaomo.base.IGatewayChannel? = null
 
   fun ensureRuntime(): NodeRuntime {

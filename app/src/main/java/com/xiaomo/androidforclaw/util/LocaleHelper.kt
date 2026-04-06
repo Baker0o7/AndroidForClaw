@@ -11,19 +11,19 @@ import android.os.LocaleList
 import java.util.Locale
 
 /**
- * 语言Manage工具Class
+ * Language management utility class
  *
- * SupportDynamicswitchapply语言(中文/英文)
+ * Supports dynamic language switching (Chinese/English)
  *
- * use示例: 
+ * Usage example:
  * ```kotlin
- * // switch到中文
+ * // Switch to Chinese
  * LocaleHelper.setLocale(context, LocaleHelper.LANGUAGE_CHINESE)
- *
- * // switch到英文
+
+ * // Switch to English
  * LocaleHelper.setLocale(context, LocaleHelper.LANGUAGE_ENGLISH)
- *
- * // Get当Front语言
+
+ * // Get current language
  * val currentLang = LocaleHelper.getLanguage(context)
  * ```
  */
@@ -36,10 +36,10 @@ object LocaleHelper {
     const val LANGUAGE_SYSTEM = "system"
 
     /**
-     * Settingsapply语言
+     * Set application language
      * @param context Context
-     * @param language 语言代码(zh/en/system)
-     * @return UpdateBack的 Context
+     * @param language Language code (zh/en/system)
+     * @return Updated Context
      */
     fun setLocale(context: Context, language: String): Context {
         saveLanguage(context, language)
@@ -47,7 +47,7 @@ object LocaleHelper {
     }
 
     /**
-     * GetSave的语言Settings
+     * Get saved language settings
      */
     fun getLanguage(context: Context): String {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -55,7 +55,7 @@ object LocaleHelper {
     }
 
     /**
-     * Save语言Settings
+     * Save language settings
      */
     private fun saveLanguage(context: Context, language: String) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -63,7 +63,7 @@ object LocaleHelper {
     }
 
     /**
-     * UpdateResourceConfig
+     * Update resource configuration
      */
     private fun updateResources(context: Context, language: String): Context {
         val locale = when (language) {
@@ -97,7 +97,7 @@ object LocaleHelper {
     }
 
     /**
-     * apply已Save的语言Settings
+     * Apply saved language settings
      */
     fun applyLanguage(context: Context): Context {
         val language = getLanguage(context)
@@ -105,25 +105,25 @@ object LocaleHelper {
     }
 
     /**
-     * Get当Front语言的ShowName
+     * Get current language display name
      */
     fun getLanguageDisplayName(context: Context): String {
         return when (getLanguage(context)) {
-            LANGUAGE_CHINESE -> "中文"
+            LANGUAGE_CHINESE -> "Chinese"
             LANGUAGE_ENGLISH -> "English"
-            LANGUAGE_SYSTEM -> "System / 系统"
-            else -> "System / 系统"
+            LANGUAGE_SYSTEM -> "System"
+            else -> "System"
         }
     }
 
     /**
-     * GetAllAvailable语言
+     * Get all available languages
      */
     fun getAvailableLanguages(): List<LanguageOption> {
         return listOf(
-            LanguageOption(LANGUAGE_SYSTEM, "System / 系统"),
+            LanguageOption(LANGUAGE_SYSTEM, "System"),
             LanguageOption(LANGUAGE_ENGLISH, "English"),
-            LanguageOption(LANGUAGE_CHINESE, "中文")
+            LanguageOption(LANGUAGE_CHINESE, "Chinese")
         )
     }
 

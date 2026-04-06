@@ -19,47 +19,47 @@ class GlobalExceptionHandler : UncaughtExceptionHandler {
     }
 
     override fun uncaughtException(t: Thread, e: Throwable) {
-        // OOM 特殊Process: 不做任何Up报, 立刻崩溃, 避免二次分配导致雪Up加霜
+        // OOM special handling: don't report anything, crash immediately, avoid secondary allocation making it worse
         if (e is OutOfMemoryError) {
             try {
-                Log.e(TAG, "========== OOM 触发, 直接崩溃 ==========")
+                Log.e(TAG, "========== OOM triggered, crash immediately ==========")
                 Log.e(TAG, "Thread: ${t.name}")
             } catch (_: Throwable) {
-                // 尽量避免再分配
+                // Try to avoid reallocation
             }
             defaultHandler?.uncaughtException(t, e)
             return
         }
 
-        // 非 OOM: RecordLog
-        Log.e(TAG, "========== GlobalException捕获 ==========")
-        Log.e(TAG, "未捕获的Exception: ${e.message}", e)
+        // Non-OOM: Record log
+        Log.e(TAG, "========== Global Exception caught ==========")
+        Log.e(TAG, "Uncaught exception: ${e.message}", e)
         Log.e(TAG, "Thread: ${t.name}")
 
-        // 生成Errorsummarize
+        // Generate error summary
         val errorSummary = generateErrorSummary(e)
-        Log.e(TAG, "Errorsummarize:\n$errorSummary")
+        Log.e(TAG, "Error summary:\n$errorSummary")
 
-        // callDefaultProcess器(会导致apply崩溃)
+        // Call default handler (will crash app)
         e.printStackTrace()
         defaultHandler?.uncaughtException(t, e)
     }
 
     /**
-     * 生成Errorsummarize(提取关KeyInfo)
+     * Generate error summary (extract key info)
      */
     private fun generateErrorSummary(e: Throwable): String {
         val summary = StringBuilder()
 
-        // ExceptionType
+        // Exception type
         val exceptionType = e.javaClass.simpleName
-        summary.append("ExceptionType: $exceptionType")
+        summary.append("Exception type: $exceptionType")
 
-        // ExceptionMessage
+        // Exception message
         val message = e.message?.takeIf { it.isNotBlank() } ?: "No exception message"
-        summary.append("\nExceptionMessage: $message")
+        summary.append("\nException message: $message")
 
-        // 关KeyHeapStackInfo(取Front3Row, Filter掉系统Class)
+        // Key heap stack info (take first 3 rows, filter out system classes)
         val stackTrace = e.stackTrace
         val keyStackLines = stackTrace
             .filter {
@@ -73,16 +73,15 @@ class GlobalExceptionHandler : UncaughtExceptionHandler {
             }
 
         if (keyStackLines.isNotEmpty()) {
-            summary.append("\n关KeyHeapStack:\n$keyStackLines")
+            summary.append("\nKey heap stack:\n$keyStackLines")
         } else {
-            // ifNone找到关KeyHeapStack, useFront3Row
+            // If no key heap stack found, use first 3 rows
             val fallbackStack = stackTrace.take(3).joinToString("\n") {
                 "  at ${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber})"
             }
-            summary.append("\nHeapStackInfo:\n$fallbackStack")
+            summary.append("\nHeap stack info:\n$fallbackStack")
         }
 
         return summary.toString()
     }
 }
-

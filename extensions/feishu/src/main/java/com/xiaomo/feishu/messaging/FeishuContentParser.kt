@@ -15,7 +15,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 
 /**
- * Parseresult
+ * Parse result
  */
 data class Parseresult(
     val text: String,
@@ -23,7 +23,7 @@ data class Parseresult(
 )
 
 /**
- * 媒体 key Info
+ * Media key info
  */
 data class MediaKeys(
     val imageKey: String? = null,
@@ -33,7 +33,7 @@ data class MediaKeys(
 )
 
 /**
- * 飞书MessageInside容Parse器
+ * Feishu message content parser
  * Aligned with OpenClaw bot-content.ts + post.ts
  */
 object FeishuContentParser {
@@ -42,7 +42,7 @@ object FeishuContentParser {
     private val gson = Gson()
 
     /**
-     * ParseMessageInside容(顶层Route)
+     * Parse message content (top-level route)
      * Aligned with OpenClaw parseMessageContent()
      */
     fun parseMessageContent(msgType: String, content: String): Parseresult {
@@ -84,14 +84,14 @@ object FeishuContentParser {
     // ===== Post (Rich Text) =====
 
     /**
-     * 将飞书富Text (post) Convert为 Markdown
+     * Convert Feishu rich text (post) to Markdown
      * Aligned with OpenClaw parsePostContent() + post.ts
      */
     fun parsePostContent(content: String): String {
         return try {
             val json = gson.fromJson(content, JsonObject::class.java)
 
-            // Find payload: 直接 {title, content} 或 post.zh_cn/en_us Down
+            // Find payload: direct {title, content} or post.zh_cn/en_us down
             val payload = resolvePostPayload(json) ?: return content
 
             val title = payload.get("title")?.asString
@@ -99,13 +99,13 @@ object FeishuContentParser {
 
             val sb = StringBuilder()
 
-            // Title → Markdown heading
+            // Title -> Markdown heading
             if (!title.isNullOrBlank()) {
                 sb.appendLine("## $title")
                 sb.appendLine()
             }
 
-            // Each paragraph Yes一个 element Array
+            // Each paragraph is an element array
             for (i in 0 until paragraphs.size()) {
                 val paragraph = paragraphs[i]
                 if (paragraph is JsonArray) {
@@ -122,24 +122,24 @@ object FeishuContentParser {
     }
 
     /**
-     * 定位 post payload(Support多种 JSON 结构)
+     * Locate post payload (supports multiple JSON structures)
      */
     private fun resolvePostPayload(json: JsonObject): JsonObject? {
-        // 直接 {title, content} 结构
+        // Direct {title, content} structure
         if (json.has("content") && json.get("content") is JsonArray) {
             return json
         }
 
-        // 嵌套 post.zh_cn / post.en_us 结构
+        // Nested post.zh_cn / post.en_us structure
         val post = json.getAsJsonObject("post") ?: json
 
-        // Attempt多种 locale
+        // Try multiple locales
         for (locale in listOf("zh_cn", "en_us", "ja_jp")) {
             val localePayload = post.getAsJsonObject(locale)
             if (localePayload != null) return localePayload
         }
 
-        // 取FirstAvailable的 locale
+        // Take first available locale
         for (key in post.keySet()) {
             val child = post.get(key)
             if (child is JsonObject && child.has("content")) {
@@ -151,7 +151,7 @@ object FeishuContentParser {
     }
 
     /**
-     * 渲染段落InsideAllElement为 Markdown
+     * Render paragraph elements to Markdown
      */
     private fun renderParagraph(elements: JsonArray): String {
         val sb = StringBuilder()
@@ -164,7 +164,7 @@ object FeishuContentParser {
     }
 
     /**
-     * 渲染Single富TextElement
+     * Render single rich text element
      * Aligned with OpenClaw post.ts element rendering
      */
     private fun renderElement(element: JsonObject): String {
@@ -210,7 +210,7 @@ object FeishuContentParser {
     }
 
     /**
-     * 渲染 text Element(Support样式)
+     * Render text element (supports styles)
      */
     private fun renderTextElement(element: JsonObject): String {
         val text = element.get("text")?.asString ?: return ""
@@ -233,11 +233,11 @@ object FeishuContentParser {
             val json = gson.fromJson(content, JsonObject::class.java)
             val imageKey = json.get("image_key")?.asString
             Parseresult(
-                text = "[Graph片]",
+                text = "[Image]",
                 mediaKeys = imageKey?.let { MediaKeys(imageKey = it, mediaType = "image") }
             )
         } catch (e: Exception) {
-            Parseresult(text = "[Graph片]")
+            Parseresult(text = "[Image]")
         }
     }
 
@@ -245,13 +245,13 @@ object FeishuContentParser {
         return try {
             val json = gson.fromJson(content, JsonObject::class.java)
             val fileKey = json.get("file_key")?.asString
-            val fileName = json.get("file_name")?.asString ?: "Unknown文件"
+            val fileName = json.get("file_name")?.asString ?: "Unknown file"
             Parseresult(
-                text = "[文件: $fileName]",
+                text = "[File: $fileName]",
                 mediaKeys = fileKey?.let { MediaKeys(fileKey = it, fileName = fileName, mediaType = "file") }
             )
         } catch (e: Exception) {
-            Parseresult(text = "[文件]")
+            Parseresult(text = "[File]")
         }
     }
 
@@ -260,11 +260,11 @@ object FeishuContentParser {
             val json = gson.fromJson(content, JsonObject::class.java)
             val fileKey = json.get("file_key")?.asString
             Parseresult(
-                text = "[语音]",
+                text = "[Audio]",
                 mediaKeys = fileKey?.let { MediaKeys(fileKey = it, mediaType = "audio") }
             )
         } catch (e: Exception) {
-            Parseresult(text = "[语音]")
+            Parseresult(text = "[Audio]")
         }
     }
 
@@ -274,13 +274,13 @@ object FeishuContentParser {
             val fileKey = json.get("file_key")?.asString
             val imageKey = json.get("image_key")?.asString
             Parseresult(
-                text = "[视频]",
+                text = "[Video]",
                 mediaKeys = fileKey?.let {
                     MediaKeys(fileKey = it, imageKey = imageKey, mediaType = "video")
                 }
             )
         } catch (e: Exception) {
-            Parseresult(text = "[视频]")
+            Parseresult(text = "[Video]")
         }
     }
 
@@ -289,11 +289,11 @@ object FeishuContentParser {
             val json = gson.fromJson(content, JsonObject::class.java)
             val fileKey = json.get("file_key")?.asString
             Parseresult(
-                text = "[Table情]",
+                text = "[Sticker]",
                 mediaKeys = fileKey?.let { MediaKeys(fileKey = it, mediaType = "sticker") }
             )
         } catch (e: Exception) {
-            Parseresult(text = "[Table情]")
+            Parseresult(text = "[Sticker]")
         }
     }
 
@@ -305,10 +305,10 @@ object FeishuContentParser {
             val name = json.get("chat_name")?.asString
                 ?: json.get("name")?.asString
             val chatId = json.get("share_chat_id")?.asString ?: ""
-            val display = if (!name.isNullOrBlank()) "[分享群: $name]" else "[分享群: $chatId]"
+            val display = if (!name.isNullOrBlank()) "[Shared Chat: $name]" else "[Shared Chat: $chatId]"
             Parseresult(text = display)
         } catch (e: Exception) {
-            Parseresult(text = "[分享群]")
+            Parseresult(text = "[Shared Chat]")
         }
     }
 
@@ -316,16 +316,16 @@ object FeishuContentParser {
         return try {
             val json = gson.fromJson(content, JsonObject::class.java)
             val userId = json.get("user_id")?.asString ?: ""
-            Parseresult(text = "[分享User: $userId]")
+            Parseresult(text = "[Shared User: $userId]")
         } catch (e: Exception) {
-            Parseresult(text = "[分享User]")
+            Parseresult(text = "[Shared User]")
         }
     }
 
     // ===== Merge Forward =====
 
     /**
-     * ParseMerge转发Message
+     * Parse merge forwarded message
      * Aligned with OpenClaw parseMergeForwardContent()
      */
     fun parseMergeForwardContent(content: String): String {
@@ -336,12 +336,12 @@ object FeishuContentParser {
                 json is JsonArray -> json
                 json is JsonObject && json.has("messages") -> json.getAsJsonArray("messages")
                 json is JsonObject && json.has("combine") -> json.getAsJsonArray("combine")
-                else -> return "[Merge转发Message]"
+                else -> return "[Merge Forward Message]"
             }
 
-            if (messages.size() == 0) return "[Merge转发Message(Null)]"
+            if (messages.size() == 0) return "[Merge Forward Message (Empty)]"
 
-            val sb = StringBuilder("[Merge转发Message]\n")
+            val sb = StringBuilder("[Merge Forward Message]\n")
             val limit = minOf(messages.size(), 50)
 
             for (i in 0 until limit) {
@@ -356,18 +356,18 @@ object FeishuContentParser {
             }
 
             if (messages.size() > 50) {
-                sb.appendLine("... (共 ${messages.size()} 条)")
+                sb.appendLine("... (total ${messages.size()} messages)")
             }
 
             sb.toString().trimEnd()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to parse merge forward", e)
-            "[Merge转发Message]"
+            "[Merge Forward Message]"
         }
     }
 
     /**
-     * Format子Message摘要
+     * Format sub-message summary
      */
     private fun formatSubMessage(msgType: String, content: String): String {
         return when (msgType) {
@@ -380,14 +380,14 @@ object FeishuContentParser {
                     if (content.length > 100) content.take(100) + "..." else content
                 }
             }
-            "image" -> "[Graph片]"
-            "file" -> "[文件]"
-            "audio" -> "[语音]"
-            "video" -> "[视频]"
-            "sticker" -> "[Table情]"
-            "post" -> "[富Text]"
-            "share_chat" -> "[分享群]"
-            "share_user" -> "[分享User]"
+            "image" -> "[Image]"
+            "file" -> "[File]"
+            "audio" -> "[Audio]"
+            "video" -> "[Video]"
+            "sticker" -> "[Sticker]"
+            "post" -> "[Rich Text]"
+            "share_chat" -> "[Shared Chat]"
+            "share_user" -> "[Shared User]"
             else -> "[$msgType]"
         }
     }

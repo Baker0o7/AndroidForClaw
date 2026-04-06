@@ -7,17 +7,17 @@ package com.xiaomo.androidforclaw.util
 /**
  * Reasoning tag filter - Aligned with OpenClaw
  *
- * Remove internal reasoning tags from AI response, such as <think>, <thinking>, <final> 等
+ * Remove internal reasoning tags from AI response, such as <think>, <thinking>, <final>, etc.
  *
- * 参考: OpenClaw src/shared/text/reasoning-tags.ts
+ * Reference: OpenClaw src/shared/text/reasoning-tags.ts
  */
 object ReasoningTagFilter {
 
     /**
-     * 从Text中移除推理标签
+     * Remove reasoning tags from text
      *
-     * - 移除 <final></final> 标签但保留Inside容
-     * - 移除 <think>, <thinking>, <thought> 标签及ItsInside容
+     * - Remove <final></final> tags but keep content
+     * - Remove <think>, <thinking>, <thought> tags and their content
      * - Protect code blocks from tag removal
      *
      * @param text Original text
@@ -83,12 +83,12 @@ object ReasoningTagFilter {
     }
 
     /**
-     * Find code regions(fenced code blocks 和 inline code)
+     * Find code regions (fenced code blocks and inline code)
      */
     private fun findCodeRegions(text: String): List<IntRange> {
         val regions = mutableListOf<IntRange>()
 
-        // Fenced code blocks (``` 或 ~~~)
+        // Fenced code blocks (``` or ~~~)
         val fencedPattern = """(```|~~~)[^\n]*\n[\s\S]*?\1""".toRegex()
         fencedPattern.findAll(text).forEach {
             regions.add(it.range)
