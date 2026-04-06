@@ -111,7 +111,7 @@ fun forClawSettingsTab() {
             .paing(horizontal = 18.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        // ── Status总览 ──────────────────────────────────────────
+        // ── Status Overview ──────────────────────────────────────────
         val notconfigured = stringResource(R.string.connect_api_not_configured)
         val configured = stringResource(R.string.connect_api_configured)
 
@@ -324,7 +324,7 @@ fun forClawSettingsTab() {
             )
         }
 
-        // ── 界面 ─────────────────────────────────────────────────
+        // ── UI ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_ui)) {
             AvatarToggleItem()
             RiveAvatarToggleItem()
@@ -337,7 +337,7 @@ fun forClawSettingsTab() {
             RestartAppItem()
         }
 
-        // ── 法律 ─────────────────────────────────────────────────
+        // ── Legal ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_legal)) {
             SettingsNavItem(
                 icon = Icons.Default.Policy,

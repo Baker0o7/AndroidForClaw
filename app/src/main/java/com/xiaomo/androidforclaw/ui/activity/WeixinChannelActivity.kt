@@ -70,7 +70,7 @@ fun WeixinchannelScreen(onback: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("微信 (Weixin)") },
+                title = { Text("WeChat") },
                 navigationIcon = {
                     Iconbutton(onClick = onback) {
                         Icon(Icons.Filled.Arrowback, "Return")
@@ -93,7 +93,7 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            // Enable开关
+            // Enable switch
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
@@ -173,23 +173,7 @@ fun WeixinchannelScreen(onback: () -> Unit) {
                 }
                 }
 
-                // Logout button
-                Outlinedbutton(
-                    onClick = {
-                        // Stop微信Message监听
-                        com.xiaomo.androidforclaw.core.MyApplication.getWeixinchannel()?.stop()
-                        WeixinAccountStore.clearAccount()
-                        isLoggedIn = false
-                        accountInfo = ""
-                        statusText = "alreadyexitLogin"
-                        qrBitmap = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("exitLogin")
-                }
-            } else {
-                // QR code display
+                // Login button
                 qrBitmap?.let { bmp ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(
