@@ -21,10 +21,10 @@ import info.plateaukao.einkbro.R
 import info.plateaukao.einkbro.browser.control.server.SimpleBrowserHttpServer
 
 /**
- * BrowserForClaw HTTP API Front台Service
+ * BrowserForClaw HTTP API Foreground Service
  *
- * Ensure HTTP Server (端口 58765) 持续Run在Back台
- * even ifapply在Back台或被系统Recycle,API 仍可Response
+ * Ensure HTTP Server (port 58765) continuously runs in background
+ * even if app is in background or recycled by system, API can still respond
  */
 class BrowserApiService : Service() {
 
@@ -57,10 +57,10 @@ class BrowserApiService : Service() {
         super.onCreate()
         Log.d(TAG, "onCreate")
 
-        // CreateNotification渠道
+        // Create notification channel
         createNotificationChannel()
 
-        // StartFront台ServiceNotification
+        // Start foreground service notification
         startForeground(NOTIFICATION_ID, createNotification())
 
         // Start HTTP Server
@@ -69,7 +69,7 @@ class BrowserApiService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
-        return START_STICKY // Service被杀BackAutoRestart
+        return START_STICKY // Service auto-restart when killed in background
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -99,7 +99,7 @@ class BrowserApiService : Service() {
     }
 
     private fun createNotification(): Notification {
-        // clickNotificationOpenMain Activity
+        // Click notification to open main activity
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -111,8 +111,8 @@ class BrowserApiService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("BrowserForClaw API")
             .setContentText("HTTP API running on port $PORT")
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // use系统Icon
-            .setOngoing(true) // 不可swipeDelete
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Use system icon
+            .setOngoing(true) // Cannot be swiped
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

@@ -12,36 +12,36 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 浏览器GetInside容工具
+ * Browser Get Content Tool
  *
- * Get当Front页面的TextInside容
+ * Get current page text content
  *
  * Parameters:
- * - format: String (Optional) - Inside容格式: "text" (纯Text) 或 "html", Default "text"
- * - waitForContent: Boolean (Optional) - YesNoWaitInside容Load complete, Default true
- * - timeout: Int (Optional) - WaitTimeoutTime(毫秒), Default 5000
+ * - format: String (Optional) - Content format: "text" (plain text) or "html", default "text"
+ * - waitForContent: Boolean (Optional) - Whether to wait for content to load completely, default true
+ * - timeout: Int (Optional) - Wait timeout in milliseconds, default 5000
  *
  * Return:
- * - content: String - 页面Inside容
- * - length: Int - Inside容长度
- * - url: String - 当Front页面 URL
- * - title: String - 当Front页面Title
+ * - content: String - Page content
+ * - length: Int - Content length
+ * - url: String - Current page URL
+ * - title: String - Current page title
  */
 class BrowserGetContentTool : BrowserTool {
     override val name = "browser_get_content"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. GetParameters
+        // 1. Get Parameters
         val format = (args["format"] as? String)?.lowercase() ?: "text"
         val waitForContent = (args["waitForContent"] as? Boolean) ?: true
         val timeout = (args["timeout"] as? Number)?.toLong() ?: 5000L
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. ifNeedWaitInside容, 先Check页面YesNoLoad complete
+        // 3. If need wait content, first check if page loaded completely
         if (waitForContent) {
             val loadCheckScript = """
                 (function() {
@@ -50,29 +50,29 @@ class BrowserGetContentTool : BrowserTool {
                 })()
             """.trimIndent()
 
-            // WaitInside容Load, most多Wait timeout 毫秒
+            // Wait for content to load, at most wait timeout milliseconds
             val startTime = System.currentTimeMillis()
             var contentReady = false
 
             while (!contentReady && (System.currentTimeMillis() - startTime) < timeout) {
                 try {
-                    // Must在主Thread执Row evaluateJavascript
+                    // Must run evaluateJavascript on main thread
                     val result = withContext(Dispatchers.Main) {
                         BrowserManager.evaluateJavascript(loadCheckScript)
                     }
                     contentReady = result?.trim() == "true"
 
                     if (!contentReady) {
-                        kotlinx.coroutines.delay(200) // 每 200ms Check一次
+                        kotlinx.coroutines.delay(200) // Check every 200ms
                     }
                 } catch (e: Exception) {
-                    // ContinueWait
+                    // Continue waiting
                     kotlinx.coroutines.delay(200)
                 }
             }
         }
 
-        // 4. 构造 JavaScript 代码
+        // 4. Build JavaScript code
         val script = when (format) {
             "text" -> {
                 """
@@ -99,14 +99,14 @@ class BrowserGetContentTool : BrowserTool {
             else -> return Toolresult.error("Invalid format: $format (must be 'text' or 'html')")
         }.trimIndent()
 
-        // 5. 执Row JavaScript (Must在主Thread)
+        // 5. Execute JavaScript (must on main thread)
         try {
             val rawresult = withContext(Dispatchers.Main) {
                 BrowserManager.evaluateJavascript(script)
             }
-            // evaluateJavascript Return的StringYes JSON Encode的, Need去掉首尾引号
+            // evaluateJavascript returns JSON encoded string, need to remove surrounding quotes
             val content = rawresult?.trim()?.removeSurrounding("\"")?.let {
-                // Decode JSON 转义
+                // Decode JSON escaping
                 it.replace("\\n", "\n")
                     .replace("\\r", "\r")
                     .replace("\\t", "\t")
@@ -114,8 +114,8 @@ class BrowserGetContentTool : BrowserTool {
                     .replace("\\\\", "\\")
             } ?: ""
 
-            // 6. LimitInside容长度, 避免 HTTP Response过大
-            val maxLength = 10000 // Max 10000 字符
+            // 6. Limit content length to avoid HTTP response too large
+            val maxLength = 10000 // Max 10000 characters
             val truncated = content.length > maxLength
             val finalContent = if (truncated) {
                 content.substring(0, maxLength) + "\n...(truncated)"
@@ -123,7 +123,7 @@ class BrowserGetContentTool : BrowserTool {
                 content
             }
 
-            // 7. Returnresult
+            // 7. Return result
             return Toolresult.success(
                 "content" to finalContent,
                 "length" to content.length,

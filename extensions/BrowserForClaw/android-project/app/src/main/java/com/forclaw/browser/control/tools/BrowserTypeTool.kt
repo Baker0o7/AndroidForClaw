@@ -10,25 +10,25 @@ import com.forclaw.browser.control.manager.BrowserManager
 import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器Input工具
+ * Browser Input Tool
  *
- * 在Input field中InputText
+ * Input text into input field
  *
  * Parameters:
- * - selector: String (Required) - CSS choose器
- * - text: String (Required) - 要Input的Text
- * - submit: Boolean (Optional) - YesNoCommitTable单, Default false
+ * - selector: String (Required) - CSS selector
+ * - text: String (Required) - Text to input
+ * - submit: Boolean (Optional) - Whether to commit form, default false
  *
  * Return:
- * - selector: String - use的choose器
- * - text: String - Input的Text
- * - submitted: Boolean - YesNoCommit了Table单
+ * - selector: String - Used selector
+ * - text: String - Input text
+ * - submitted: Boolean - Whether form was submitted
  */
 class BrowserTypeTool : BrowserTool {
     override val name = "browser_type"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. ValidateParameters
+        // 1. Validate Parameters
         val selector = args["selector"] as? String
             ?: return Toolresult.error("Missing required parameter: selector")
         val text = args["text"] as? String
@@ -39,12 +39,12 @@ class BrowserTypeTool : BrowserTool {
             return Toolresult.error("Parameter 'selector' cannot be empty")
         }
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. 构造 JavaScript 代码
+        // 3. Build JavaScript code
         val escapedSelector = selector.replace("'", "\\'")
         val escapedText = text.replace("'", "\\'")
             .replace("\\", "\\\\")
@@ -60,18 +60,18 @@ class BrowserTypeTool : BrowserTool {
                     // Settings value
                     el.value = '$escapedText';
 
-                    // 触发 input Event (MockUserInput)
+                    // Trigger input event (mock user input)
                     el.dispatchEvent(new Event('input', { bubbles: true }));
                     el.dispatchEvent(new Event('change', { bubbles: true }));
 
                     ${if (submit) {
                         """
-                        // CommitTable单
+                        // Commit form
                         const form = el.closest('form');
                         if (form) {
                             form.submit();
                         } else {
-                            // ifNoneTable单, Mock Enter Key
+                            // if no form, mock Enter key
                             const event = new KeyboardEvent('keypress', {
                                 key: 'Enter',
                                 keyCode: 13,
@@ -91,12 +91,12 @@ class BrowserTypeTool : BrowserTool {
             })()
         """.trimIndent()
 
-        // 4. 执Row JavaScript
+        // 4. Execute JavaScript
         try {
             val result = BrowserManager.evaluateJavascript(script)
             val typed = result?.trim() == "true"
 
-            // 5. Returnresult
+            // 5. Return result
             return if (typed) {
                 Toolresult.success(
                     "selector" to selector,

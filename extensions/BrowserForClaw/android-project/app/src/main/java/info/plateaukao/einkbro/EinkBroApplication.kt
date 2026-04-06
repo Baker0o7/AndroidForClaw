@@ -88,8 +88,8 @@ class EinkBroApplication : Application() {
 
     private fun startBrowserHttpServer() {
         try {
-            // useFront台ServiceRun HTTP Server,Ensure continuous operation
-            // 端口 8766 避免与 AndroidForClaw Gateway (8765) 冲突
+            // use foreground service to run HTTP server, ensure continuous operation
+            // port 8766 to avoid conflict with AndroidForClaw Gateway (8765)
             info.plateaukao.einkbro.service.BrowserApiService.start(this)
             android.util.Log.i("BrowserHttpServer", "✅ Starting BrowserApiService (foreground service)")
         } catch (e: Exception) {

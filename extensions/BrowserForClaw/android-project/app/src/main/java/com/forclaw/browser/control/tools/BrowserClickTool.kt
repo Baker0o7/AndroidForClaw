@@ -10,22 +10,22 @@ import com.forclaw.browser.control.manager.BrowserManager
 import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器click工具
+ * Browser Click Tool
  *
- * click页面Up的Element
+ * Click element on page
  *
  * Parameters:
- * - selector: String (Required) - CSS choose器
+ * - selector: String (Required) - CSS selector
  *
  * Return:
- * - selector: String - use的choose器
- * - clicked: Boolean - YesNoSuccessclick
+ * - selector: String - Used selector
+ * - clicked: Boolean - Success or not
  */
 class BrowserClickTool : BrowserTool {
     override val name = "browser_click"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. ValidateParameters
+        // 1. Validate Parameters
         val selector = args["selector"] as? String
             ?: return Toolresult.error("Missing required parameter: selector")
 
@@ -33,12 +33,12 @@ class BrowserClickTool : BrowserTool {
             return Toolresult.error("Parameter 'selector' cannot be empty")
         }
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. 构造 JavaScript 代码
+        // 3. Build JavaScript code
         val escapedSelector = selector.replace("'", "\\'")
         val script = """
             (function() {
@@ -55,15 +55,15 @@ class BrowserClickTool : BrowserTool {
             })()
         """.trimIndent()
 
-        // 4. 执Row JavaScript
+        // 4. Execute JavaScript
         try {
             val result = BrowserManager.evaluateJavascript(script)
             val clicked = result?.trim()?.let {
-                // evaluateJavascript Return的YesString "true" 或 "false"
+                // evaluateJavascript returns "true" or "false"
                 it == "true"
             } ?: false
 
-            // 5. Returnresult
+            // 5. Return result
             return if (clicked) {
                 Toolresult.success(
                     "selector" to selector,

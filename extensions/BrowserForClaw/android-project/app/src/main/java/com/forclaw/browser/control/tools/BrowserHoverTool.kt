@@ -10,22 +10,22 @@ import com.forclaw.browser.control.manager.BrowserManager
 import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器悬停工具
+ * Browser Hover Tool
  *
- * 触发鼠标悬停Event
+ * Trigger mouse hover event
  *
  * Parameters:
- * - selector: String (Required) - CSS choose器
+ * - selector: String (Required) - CSS selector
  *
  * Return:
- * - selector: String - use的choose器
- * - hovered: Boolean - YesNoSuccess悬停
+ * - selector: String - Used selector
+ * - hovered: Boolean - Success or not
  */
 class BrowserHoverTool : BrowserTool {
     override val name = "browser_hover"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. ValidateParameters
+        // 1. Validate Parameters
         val selector = args["selector"] as? String
             ?: return Toolresult.error("Missing required parameter: selector")
 
@@ -33,12 +33,12 @@ class BrowserHoverTool : BrowserTool {
             return Toolresult.error("Parameter 'selector' cannot be empty")
         }
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. 构造 JavaScript 代码
+        // 3. Build JavaScript code
         val escapedSelector = selector.replace("'", "\\'")
         val script = """
             (function() {
@@ -46,10 +46,10 @@ class BrowserHoverTool : BrowserTool {
                     const el = document.querySelector('$escapedSelector');
                     if (!el) return false;
 
-                    // 滚动到Element可见
+                    // Scroll to element visible
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                    // 触发 mouseenter Event
+                    // Trigger mouseenter event
                     const mouseenterEvent = new MouseEvent('mouseenter', {
                         bubbles: true,
                         cancelable: true,
@@ -57,7 +57,7 @@ class BrowserHoverTool : BrowserTool {
                     });
                     el.dispatchEvent(mouseenterEvent);
 
-                    // 触发 mouseover Event
+                    // Trigger mouseover event
                     const mouseoverEvent = new MouseEvent('mouseover', {
                         bubbles: true,
                         cancelable: true,
@@ -65,7 +65,7 @@ class BrowserHoverTool : BrowserTool {
                     });
                     el.dispatchEvent(mouseoverEvent);
 
-                    // 触发 mousemove Event
+                    // Trigger mousemove event
                     const mousemoveEvent = new MouseEvent('mousemove', {
                         bubbles: true,
                         cancelable: true,
@@ -80,12 +80,12 @@ class BrowserHoverTool : BrowserTool {
             })()
         """.trimIndent()
 
-        // 4. 执Row JavaScript
+        // 4. Execute JavaScript
         try {
             val result = BrowserManager.evaluateJavascript(script)
             val hovered = result?.trim() == "true"
 
-            // 5. Returnresult
+            // 5. Return result
             return if (hovered) {
                 Toolresult.success(
                     "selector" to selector,

@@ -12,23 +12,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 浏览器执Row JavaScript 工具
+ * Browser Execute JavaScript Tool
  *
- * 执RowCustom JavaScript 代码
+ * Execute custom JavaScript code
  *
  * Parameters:
- * - script: String (Required) - JavaScript 代码
- * - selector: String (Optional) - 在特定ElementUp执Row
+ * - script: String (Required) - JavaScript code
+ * - selector: String (Optional) - Execute on specific element
  *
  * Return:
- * - result: String - 执Rowresult
- * - script: String - 执Row的脚本
+ * - result: String - Execution result
+ * - script: String - Executed script
  */
 class BrowserExecuteTool : BrowserTool {
     override val name = "browser_execute"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. ValidateParameters
+        // 1. Validate Parameters
         val script = args["script"] as? String
             ?: return Toolresult.error("Missing required parameter: script")
 
@@ -38,14 +38,14 @@ class BrowserExecuteTool : BrowserTool {
 
         val selector = args["selector"] as? String
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. 构造 JavaScript 代码
+        // 3. Build JavaScript code
         val fullScript = if (selector != null) {
-            // 在特定ElementUp执Row
+            // Execute on specific element
             val escapedSelector = selector.replace("'", "\\'")
             """
                 (function() {
@@ -57,7 +57,7 @@ class BrowserExecuteTool : BrowserTool {
                 })()
             """.trimIndent()
         } else {
-            // 在页面UpDown文执Row
+            // Execute in page context
             """
                 (function() {
                     $script
@@ -65,24 +65,24 @@ class BrowserExecuteTool : BrowserTool {
             """.trimIndent()
         }
 
-        // 4. 执Row JavaScript (Must在主Thread)
+        // 4. Execute JavaScript (must on main thread)
         try {
             val rawresult = withContext(Dispatchers.Main) {
                 BrowserManager.evaluateJavascript(fullScript)
             }
 
-            // Parseresult
+            // Parse result
             val result = rawresult?.let {
-                // evaluateJavascript Return JSON Encoded string
+                // evaluateJavascript returns JSON encoded string
                 if (it == "null" || it == "undefined") {
                     null
                 } else {
-                    // Attempt去掉 JSON String的引号
+                    // Try to remove quotes from JSON string
                     it.trim().removeSurrounding("\"")
                 }
             }
 
-            // 5. Returnresult
+            // 5. Return result
             return Toolresult.success(
                 "result" to result,
                 "script" to script,

@@ -9,21 +9,21 @@ package com.forclaw.browser.control.tools
 import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器工具Interface
+ * Browser Tool Interface
  *
- * All浏览器工具MustImplementation此Interface
+ * All browser tools must implement this interface
  */
 interface BrowserTool {
     /**
-     * 工具Name (such as "browser_navigate")
+     * Tool name (such as "browser_navigate")
      */
     val name: String
 
     /**
-     * 执Row工具
+     * Execute the tool
      *
-     * @param args Parameters Map
-     * @return 执Rowresult
+     * @param args Parameters map
+     * @return Execution result
      */
     suspend fun execute(args: Map<String, Any?>): Toolresult
 }

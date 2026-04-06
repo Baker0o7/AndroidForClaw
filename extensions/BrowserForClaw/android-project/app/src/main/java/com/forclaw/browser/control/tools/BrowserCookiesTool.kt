@@ -11,35 +11,35 @@ import com.forclaw.browser.control.manager.BrowserManager
 import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器 Cookie Get工具
+ * Browser Cookie Get Tool
  *
- * Get当Front页面的 Cookies
+ * Get current page cookies
  *
  * Parameters: None
  *
  * Return:
- * - cookies: String - Cookie String
- * - url: String - 当Front URL
+ * - cookies: String - Cookie string
+ * - url: String - Current URL
  */
 class BrowserGetCookiesTool : BrowserTool {
     override val name = "browser_get_cookies"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. Check浏览器Instance
+        // 1. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 2. Get当Front URL (通过 JavaScript 避免ThreadIssue)
+        // 2. Get current URL (via JavaScript to avoid thread issues)
         val url = BrowserManager.evaluateJavascript("window.location.href")
             ?.trim('"') ?: return Toolresult.error("No active page")
 
-        // 3. Get Cookies
+        // 3. Get cookies
         try {
             val cookieManager = CookieManager.getInstance()
             val cookies = cookieManager.getCookie(url) ?: ""
 
-            // 4. Returnresult
+            // 4. Return result
             return Toolresult.success(
                 "cookies" to cookies
             )
@@ -50,23 +50,23 @@ class BrowserGetCookiesTool : BrowserTool {
 }
 
 /**
- * 浏览器 Cookie Settings工具
+ * Browser Cookie Settings Tool
  *
- * Settings Cookies
+ * Set cookies
  *
  * Parameters:
- * - url: String (Optional) - 目标 URL, Defaultuse当Front URL
- * - cookies: List<String> (Required) - Cookie List, 格式: "name=value; path=/; domain=.example.com"
+ * - url: String (Optional) - Target URL, default use current URL
+ * - cookies: List<String> (Required) - Cookie list, format: "name=value; path=/; domain=.example.com"
  *
  * Return:
- * - url: String - Settings的 URL
- * - count: Int - Settings的 Cookie 数量
+ * - url: String - Set URL
+ * - count: Int - Number of cookies set
  */
 class BrowserSetCookiesTool : BrowserTool {
     override val name = "browser_set_cookies"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. ValidateParameters
+        // 1. Validate Parameters
         @Suppress("UNCHECKED_CAST")
         val cookieList = (args["cookies"] as? List<*>)?.mapNotNull { it as? String }
             ?: return Toolresult.error("Missing required parameter: cookies")
@@ -80,7 +80,7 @@ class BrowserSetCookiesTool : BrowserTool {
             ?: BrowserManager.evaluateJavascript("window.location.href")?.trim('"')
             ?: return Toolresult.error("No URL specified and no active page")
 
-        // 3. Settings Cookies
+        // 3. Set cookies
         try {
             val cookieManager = CookieManager.getInstance()
             cookieManager.setAcceptCookie(true)
@@ -89,10 +89,10 @@ class BrowserSetCookiesTool : BrowserTool {
                 cookieManager.setCookie(url, cookie)
             }
 
-            // EnsurePersistent化
+            // Ensure persistence
             cookieManager.flush()
 
-            // 4. Returnresult
+            // 4. Return result
             return Toolresult.success(
                 "url" to url,
                 "count" to cookieList.size

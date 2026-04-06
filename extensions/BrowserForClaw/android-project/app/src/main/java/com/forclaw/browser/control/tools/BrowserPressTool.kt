@@ -11,23 +11,23 @@ import com.forclaw.browser.control.model.Toolresult
 import kotlinx.coroutines.delay
 
 /**
- * 浏览器按Key工具
+ * Browser Keyboard Press Tool
  *
- * MockKey盘按Key
+ * Mock keyboard key press
  *
  * Parameters:
- * - key: String (Required) - 按KeyName (such as "Enter", "Tab", "Escape", "ArrowDown")
- * - delayMs: Int (Optional) - 按KeyBackDelay毫秒数, Default 100ms
+ * - key: String (Required) - Key name (such as "Enter", "Tab", "Escape", "ArrowDown")
+ * - delayMs: Int (Optional) - Press back delay in milliseconds, default 100ms
  *
  * Return:
- * - key: String - 按Down的Key
- * - pressed: Boolean - YesNoSuccess
+ * - key: String - Pressed key
+ * - pressed: Boolean - Success or not
  */
 class BrowserPressTool : BrowserTool {
     override val name = "browser_press"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. ValidateParameters
+        // 1. Validate Parameters
         val key = args["key"] as? String
             ?: return Toolresult.error("Missing required parameter: key")
 
@@ -37,20 +37,20 @@ class BrowserPressTool : BrowserTool {
 
         val delayMs = (args["delayMs"] as? Number)?.toLong() ?: 100L
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. 构造 JavaScript 代码
+        // 3. Build JavaScript code
         val escapedKey = key.replace("'", "\\'")
         val script = """
             (function() {
                 try {
-                    // Get当FrontFocusElement, ifNone则use body
+                    // Get currently focused element, if none then use body
                     const target = document.activeElement || document.body;
 
-                    // 触发 keydown Event
+                    // Trigger keydown event
                     const keydownEvent = new KeyboardEvent('keydown', {
                         key: '$escapedKey',
                         bubbles: true,
@@ -58,7 +58,7 @@ class BrowserPressTool : BrowserTool {
                     });
                     target.dispatchEvent(keydownEvent);
 
-                    // 触发 keypress Event (某些场景Need)
+                    // Trigger keypress event (needed in some scenarios)
                     const keypressEvent = new KeyboardEvent('keypress', {
                         key: '$escapedKey',
                         bubbles: true,
@@ -66,7 +66,7 @@ class BrowserPressTool : BrowserTool {
                     });
                     target.dispatchEvent(keypressEvent);
 
-                    // 触发 keyup Event
+                    // Trigger keyup event
                     const keyupEvent = new KeyboardEvent('keyup', {
                         key: '$escapedKey',
                         bubbles: true,
@@ -81,17 +81,17 @@ class BrowserPressTool : BrowserTool {
             })()
         """.trimIndent()
 
-        // 4. 执Row JavaScript
+        // 4. Execute JavaScript
         try {
             val result = BrowserManager.evaluateJavascript(script)
             val pressed = result?.trim() == "true"
 
-            // 5. WaitDelay
+            // 5. Wait delay
             if (pressed && delayMs > 0) {
                 delay(delayMs)
             }
 
-            // 6. Returnresult
+            // 6. Return result
             return if (pressed) {
                 Toolresult.success(
                     "key" to key,

@@ -12,28 +12,28 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 
 /**
- * 浏览器Wait工具
+ * Browser Wait Tool
  *
- * Wait页面satisfy特定Condition
+ * Wait for page to satisfy specific condition
  *
  * Parameters:
- * - timeMs: Int (Optional) - SimpleWait指定毫秒数
- * - selector: String (Optional) - WaitElement出现
- * - text: String (Optional) - WaitText出现
- * - textGone: String (Optional) - WaitText消失
- * - url: String (Optional) - Wait URL 变化
- * - jsCondition: String (Optional) - Custom JavaScript Condition
- * - timeout: Int (Optional) - TimeoutTime(毫秒), Default 30000ms
+ * - timeMs: Int (Optional) - Simple wait specified milliseconds
+ * - selector: String (Optional) - Wait for element to appear
+ * - text: String (Optional) - Wait for text to appear
+ * - textGone: String (Optional) - Wait for text to disappear
+ * - url: String (Optional) - Wait for URL change
+ * - jsCondition: String (Optional) - Custom JavaScript condition
+ * - timeout: Int (Optional) - Timeout time in milliseconds, default 30000ms
  *
  * Return:
- * - waitType: String - WaitType
- * - success: Boolean - YesNoSuccess
+ * - waitType: String - Wait type
+ * - success: Boolean - Yes/No success
  */
 class BrowserWaitTool : BrowserTool {
     override val name = "browser_wait"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. GetParameters
+        // 1. Get Parameters
         val timeMs = (args["timeMs"] as? Number)?.toLong()
         val selector = args["selector"] as? String
         val text = args["text"] as? String
@@ -42,16 +42,16 @@ class BrowserWaitTool : BrowserTool {
         val jsCondition = args["jsCondition"] as? String
         val timeout = (args["timeout"] as? Number)?.toLong() ?: 30000L
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. according toParametersType执Row不同的Wait
+        // 3. Execute different wait based on parameter type
         try {
             return withTimeout(timeout) {
                 when {
-                    // SimpleWait
+                    // Simple wait
                     timeMs != null -> {
                         delay(timeMs)
                         Toolresult.success(
@@ -60,7 +60,7 @@ class BrowserWaitTool : BrowserTool {
                         )
                     }
 
-                    // WaitElement出现
+                    // Wait for element to appear
                     selector != null -> {
                         waitForSelector(selector)
                         Toolresult.success(
@@ -69,7 +69,7 @@ class BrowserWaitTool : BrowserTool {
                         )
                     }
 
-                    // WaitText出现
+                    // Wait for text to appear
                     text != null -> {
                         waitForText(text)
                         Toolresult.success(
@@ -78,7 +78,7 @@ class BrowserWaitTool : BrowserTool {
                         )
                     }
 
-                    // WaitText消失
+                    // Wait for text to disappear
                     textGone != null -> {
                         waitForTextGone(textGone)
                         Toolresult.success(
@@ -87,7 +87,7 @@ class BrowserWaitTool : BrowserTool {
                         )
                     }
 
-                    // Wait URL 变化
+                    // Wait for URL change
                     url != null -> {
                         waitForUrl(url)
                         Toolresult.success(
@@ -117,8 +117,8 @@ class BrowserWaitTool : BrowserTool {
         }
     }
 
-    /**
-     * WaitElement出现
+/**
+     * Wait for element to appear
      */
     private suspend fun waitForSelector(selector: String) {
         val escapedSelector = selector.replace("'", "\\'")
@@ -132,8 +132,8 @@ class BrowserWaitTool : BrowserTool {
         waitUntilTrue(script, checkInterval = 200L)
     }
 
-    /**
-     * WaitText出现
+/**
+     * Wait for text to disappear
      */
     private suspend fun waitForText(text: String) {
         val escapedText = text.replace("'", "\\'")
@@ -148,7 +148,7 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * WaitText消失
+     * Wait for text to disappear
      */
     private suspend fun waitForTextGone(text: String) {
         val escapedText = text.replace("'", "\\'")
@@ -162,12 +162,12 @@ class BrowserWaitTool : BrowserTool {
         waitUntilTrue(script, checkInterval = 200L)
     }
 
-    /**
-     * Wait URL 变化
+/**
+     * Wait for URL change
      */
     private suspend fun waitForUrl(targetUrl: String) {
         while (true) {
-            // use JavaScript Get URL, 避免跨ThreadIssue
+            // Use JavaScript to get URL, avoid cross-thread issue
             val currentUrl = BrowserManager.evaluateJavascript("window.location.href")
                 ?.trim('"') ?: ""
             if (currentUrl.contains(targetUrl)) {
@@ -178,7 +178,7 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * WaitCustom JavaScript Condition
+     * Wait for custom JavaScript condition
      */
     private suspend fun waitForJsCondition(jsCondition: String) {
         val script = """
@@ -191,7 +191,7 @@ class BrowserWaitTool : BrowserTool {
     }
 
     /**
-     * Wait JavaScript Table达式Return true
+     * Wait until JavaScript expression returns true
      */
     private suspend fun waitUntilTrue(script: String, checkInterval: Long) {
         while (true) {

@@ -10,24 +10,24 @@ import com.forclaw.browser.control.manager.BrowserManager
 import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器choose工具
+ * Browser Select Tool
  *
- * chooseDown拉框Options
+ * Select dropdown options
  *
  * Parameters:
- * - selector: String (Required) - CSS choose器 (指向 <select> Element)
- * - values: List<String> (Required) - 要choose的ValueList
+ * - selector: String (Required) - CSS selector (points to <select> element)
+ * - values: List<String> (Required) - List of values to select
  *
  * Return:
- * - selector: String - use的choose器
- * - values: List<String> - choose的Value
- * - selected: Boolean - YesNoSuccesschoose
+ * - selector: String - Used selector
+ * - values: List<String> - Selected values
+ * - selected: Boolean - Whether selection succeeded
  */
 class BrowserSelectTool : BrowserTool {
     override val name = "browser_select"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. ValidateParameters
+        // 1. Validate Parameters
         val selector = args["selector"] as? String
             ?: return Toolresult.error("Missing required parameter: selector")
 
@@ -43,12 +43,12 @@ class BrowserSelectTool : BrowserTool {
             return Toolresult.error("Parameter 'values' cannot be empty")
         }
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. 构造 JavaScript 代码
+        // 3. Build JavaScript code
         val escapedSelector = selector.replace("'", "\\'")
         val valuesJson = values.joinToString(",") { "'${it.replace("'", "\\'")}'" }
 
@@ -65,7 +65,7 @@ class BrowserSelectTool : BrowserTool {
                         option.selected = false;
                     });
 
-                    // choose指定的Value
+                    // Select specified value
                     let selectedCount = 0;
                     valuesToSelect.forEach(value => {
                         Array.from(select.options).forEach(option => {
@@ -76,7 +76,7 @@ class BrowserSelectTool : BrowserTool {
                         });
                     });
 
-                    // 触发 change Event
+                    // Trigger change event
                     if (selectedCount > 0) {
                         select.dispatchEvent(new Event('change', { bubbles: true }));
                         select.dispatchEvent(new Event('input', { bubbles: true }));
@@ -90,7 +90,7 @@ class BrowserSelectTool : BrowserTool {
             })()
         """.trimIndent()
 
-        // 4. 执Row JavaScript
+        // 4. Execute JavaScript
         try {
             val result = BrowserManager.evaluateJavascript(script)
             val selected = result?.trim() == "true"

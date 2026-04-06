@@ -10,32 +10,32 @@ import com.forclaw.browser.control.manager.BrowserManager
 import com.forclaw.browser.control.model.Toolresult
 
 /**
- * 浏览器滚动工具
+ * Browser Scroll Tool
  *
- * 滚动页面
+ * Scroll the page
  *
  * Parameters:
- * - direction: String (Optional) - 滚动方向: "down", "up", "top", "bottom", Default "down"
- * - amount: Int (Optional) - 滚动Like素数 (仅对 "down" 和 "up" Valid)
+ * - direction: String (Optional) - Scroll direction: "down", "up", "top", "bottom", default "down"
+ * - amount: Int (Optional) - Scroll amount in pixels (only valid for "down" and "up")
  *
  * Return:
- * - direction: String - 滚动方向
- * - scrolled: Boolean - YesNoSuccess滚动
+ * - direction: String - Scroll direction
+ * - scrolled: Boolean - Whether scroll succeeded
  */
 class BrowserScrollTool : BrowserTool {
     override val name = "browser_scroll"
 
     override suspend fun execute(args: Map<String, Any?>): Toolresult {
-        // 1. GetParameters
+        // 1. Get Parameters
         val direction = (args["direction"] as? String)?.lowercase() ?: "down"
         val amount = (args["amount"] as? Number)?.toInt()
 
-        // 2. Check浏览器Instance
+        // 2. Check browser instance
         if (!BrowserManager.isActive()) {
             return Toolresult.error("Browser is not active")
         }
 
-        // 3. 构造 JavaScript 代码
+        // 3. Build JavaScript code
         val script = when (direction) {
             "down" -> {
                 val scrollAmount = amount ?: "window.innerHeight"
@@ -90,12 +90,12 @@ class BrowserScrollTool : BrowserTool {
             else -> return Toolresult.error("Invalid direction: $direction (must be 'down', 'up', 'top', or 'bottom')")
         }.trimIndent()
 
-        // 4. 执Row JavaScript
+        // 4. Execute JavaScript
         try {
             val result = BrowserManager.evaluateJavascript(script)
             val scrolled = result?.trim() == "true"
 
-            // 5. Returnresult
+            // 5. Return result
             return if (scrolled) {
                 Toolresult.success(
                     "direction" to direction,

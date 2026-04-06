@@ -22,7 +22,7 @@ import kotlin.concurrent.thread
 /**
  * Simple HTTP Server for Browser Control
  *
- * 监听端口 58765, Process浏览器控制Request
+ * Listen on port 58765, process browser control requests
  */
 class SimpleBrowserHttpServer(private val port: Int = 58765) {
 

@@ -7,11 +7,11 @@
 package com.forclaw.browser.control.model
 
 /**
- * 工具执Rowresult
+ * Tool execution result
  *
- * @property success YesNoSuccess
- * @property data ReturnData
- * @property error ErrorInfo (仅当 success = false)
+ * @property success Success or not
+ * @property data Return data
+ * @property error Error info (only when success = false)
  */
 data class Toolresult(
     val success: Boolean,
@@ -20,21 +20,21 @@ data class Toolresult(
 ) {
     companion object {
         /**
-         * CreateSuccessresult
+         * Create success result
          */
         fun success(data: Map<String, Any?> = emptyMap()): Toolresult {
             return Toolresult(success = true, data = data, error = null)
         }
 
         /**
-         * CreateSuccessresult (便捷Method)
+         * Create success result (convenience method)
          */
         fun success(vararg pairs: Pair<String, Any?>): Toolresult {
             return success(mapOf(*pairs))
         }
 
         /**
-         * CreateErrorresult
+         * Create error result
          */
         fun error(message: String): Toolresult {
             return Toolresult(success = false, data = emptyMap(), error = message)
@@ -42,7 +42,7 @@ data class Toolresult(
     }
 
     /**
-     * Convert为 JSON String (用于 Broadcast 传输)
+     * Convert to JSON String (for Broadcast transmission)
      */
     fun toJson(): String {
         val dataJson = data.entries.joinToString(",") { (key, value) ->

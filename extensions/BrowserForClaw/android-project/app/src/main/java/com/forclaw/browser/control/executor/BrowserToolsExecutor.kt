@@ -10,31 +10,31 @@ import com.forclaw.browser.control.model.Toolresult
 import com.forclaw.browser.control.tools.*
 
 /**
- * 浏览器工具执Row器
+ * Browser Tool Executor
  *
- * 职责:
- * - RegisterAllAvailable的浏览器工具
- * - according to工具NameRoute到Concrete工具
- * - 统一ProcessException
+ * Responsibilities:
+ * - Register all available browser tools
+ * - Route to concrete tool according to tool name
+ * - Uniform exception handling
  */
 object BrowserToolsExecutor {
 
     private val tools = mutableMapOf<String, BrowserTool>()
 
     /**
-     * Initialize执Row器, RegisterAll工具
+     * Initialize executor, register all tools
      *
-     * Should在 Application.onCreate() 中call
+     * Should be called in Application.onCreate()
      */
     fun init() {
-        // 核心 5 个工具 (v0.3.0)
+        // Core 5 tools (v0.3.0)
         register(BrowserNavigateTool())
         register(BrowserClickTool())
         register(BrowserTypeTool())
         register(BrowserScrollTool())
         register(BrowserGetContentTool())
 
-        // New增 7 个工具 (v0.4.0)
+        // Added 7 tools (v0.4.0)
         register(BrowserWaitTool())
         register(BrowserExecuteTool())
         register(BrowserPressTool())
@@ -46,27 +46,27 @@ object BrowserToolsExecutor {
     }
 
     /**
-     * Register工具
+     * Register tool
      *
-     * @param tool 要Register的工具Instance
+     * @param tool Tool instance to register
      */
     private fun register(tool: BrowserTool) {
         tools[tool.name] = tool
     }
 
     /**
-     * 执Row工具
+     * Execute tool
      *
-     * @param toolName 工具Name
-     * @param args Parameters Map
-     * @return 执Rowresult
+     * @param toolName Tool name
+     * @param args Parameters map
+     * @return Execution result
      */
     suspend fun execute(toolName: String, args: Map<String, Any?>): Toolresult {
-        // 1. Find工具
+        // 1. Find tool
         val tool = tools[toolName]
             ?: return Toolresult.error("Unknown tool: $toolName")
 
-        // 2. 执Row工具
+        // 2. Execute tool
         return try {
             tool.execute(args)
         } catch (e: Exception) {
@@ -75,9 +75,9 @@ object BrowserToolsExecutor {
     }
 
     /**
-     * GetAllAvailable工具的Name
+     * Get all available tool names
      *
-     * @return 工具NameList
+     * @return Tool name list
      */
     fun getAvailableTools(): List<String> {
         return tools.keys.toList()
@@ -86,8 +86,8 @@ object BrowserToolsExecutor {
     /**
      * Check if tool exists
      *
-     * @param toolName 工具Name
-     * @return true if工具Exists
+     * @param toolName Tool name
+     * @return true if tool exists
      */
     fun hasT(toolName: String): Boolean {
         return tools.containsKey(toolName)

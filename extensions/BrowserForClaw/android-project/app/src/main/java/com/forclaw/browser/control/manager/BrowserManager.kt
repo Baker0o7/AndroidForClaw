@@ -13,43 +13,43 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * 浏览器Manage器
+ * Browser Manager
  *
- * 职责:
- * - Manage BrowserActivity Instance
- * - 提供 JavaScript 执RowInterface
- * - 提供导航控制Interface
- * - Ensure UI ThreadSecure
+ * Responsibilities:
+ * - Manage BrowserActivity instance
+ * - Provide JavaScript execution interface
+ * - Provide navigation control interface
+ * - Ensure UI thread safety
  */
 object BrowserManager {
 
     private var browserActivity: BrowserActivity? = null
 
     /**
-     * Settings当Front BrowserActivity Instance
+     * Set current BrowserActivity instance
      *
-     * Should在 BrowserActivity.onCreate() 中call
+     * Should be called in BrowserActivity.onCreate()
      */
     fun setBrowserActivity(activity: BrowserActivity?) {
         browserActivity = activity
     }
 
     /**
-     * Get当Front BrowserActivity Instance
+     * Get current BrowserActivity instance
      */
     fun getBrowserActivity(): BrowserActivity? = browserActivity
 
     /**
-     * Get当Front活动的 WebView
+     * Get current active WebView
      */
     private fun getCurrentWebView(): EBWebView? {
         return browserActivity?.getCurrentAlbumController() as? EBWebView
     }
 
     /**
-     * 在 UI Thread执RowAction
+     * Run action on UI thread
      *
-     * @param action 要执Row的Action
+     * @param action Action to execute
      */
     private fun runOnUiThread(action: (BrowserActivity) -> Unit) {
         val activity = browserActivity ?: return
@@ -59,10 +59,10 @@ object BrowserManager {
     }
 
     /**
-     * 执Row JavaScript 代码
+     * Execute JavaScript code
      *
-     * @param script JavaScript 代码
-     * @return 执Rowresult (JSON String), ifFailedReturn null
+     * @param script JavaScript code
+     * @return Execution result (JSON String), return null if failed
      */
     suspend fun evaluateJavascript(script: String): String? {
         return suspendCoroutine { continuation ->
@@ -81,9 +81,9 @@ object BrowserManager {
     }
 
     /**
-     * 导航到指定 URL
+     * Navigate to specified URL
      *
-     * @param url 目标 URL
+     * @param url Target URL
      */
     fun navigate(url: String) {
         runOnUiThread { _ ->
@@ -93,27 +93,27 @@ object BrowserManager {
     }
 
     /**
-     * Get当Front页面 URL
+     * Get current page URL
      *
-     * @return 当Front URL, ifNone活动页面Return null
+     * @return Current URL, return null if no active page
      */
     fun getCurrentUrl(): String? {
         return browserActivity?.getCurrentAlbumController()?.albumUrl
     }
 
     /**
-     * Get当Front页面Title
+     * Get current page title
      *
-     * @return 当FrontTitle, ifNone活动页面Return null
+     * @return Current title, return null if no active page
      */
     fun getCurrentTitle(): String? {
         return browserActivity?.getCurrentAlbumController()?.albumTitle
     }
 
     /**
-     * CheckYesNoHas活动的浏览器Instance
+     * Check if there is an active browser instance
      *
-     * @return true ifHas活动Instance
+     * @return true if has active instance
      */
     fun isActive(): Boolean {
         return browserActivity != null && getCurrentWebView() != null
