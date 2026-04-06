@@ -22,17 +22,17 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * Chat E2E Test - 基于 ADB Broadcast
+ * Chat E2E Test - Based on ADB Broadcast
  *
- * Test流程:
- * 1. 通过 ADB Broadcast发送Message(不Need UI 交互)
- * 2. 监听 logcat 捕获 AI 回复
- * 3. Validate AI YesNo正确Response
+ * Test flow:
+ * 1. Send message via ADB Broadcast (no UI interaction needed)
+ * 2. Listen to logcat to capture AI response
+ * 3. Validate whether AI responded correctly
  *
- * Broadcast命令格式:
- * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "你好"
+ * Broadcast command format:
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "hello"
  *
- * 注意: 此Test不Dependency UI Element,而Yes直接通过系统Broadcast与应用交互
+ * Note: This test does not depend on UI elements, but directly interacts with the app via system broadcast
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -42,13 +42,13 @@ class ChatE2ETest {
 
     companion object {
         private const val TIMEOUT = 10000L
-        private const val AI_RESPONSE_TIMEOUT = 15000L // AIResponseTimeoutTime
+        private const val AI_RESPONSE_TIMEOUT = 15000L // AI response timeout
         private const val PACKAGE_NAME = "com.xiaomo.androidforclaw"
 
         lateinit var device: UiDevice
         lateinit var context: Context
 
-        // 收集AllTest的Result
+        // Collect all test results
         private val testResults = mutableListOf<TestResult>()
 
         @BeforeClass
@@ -57,29 +57,29 @@ class ChatE2ETest {
             device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
             context = ApplicationProvider.getApplicationContext<MyApplication>()
 
-            // Start应用一次
-            println("\n🚀 Start应用 - StartChat E2ETest")
+            // Start app once
+            println("\n🚀 Start app - Starting Chat E2ETest")
             println("=" .repeat(60))
             launchApp()
 
-            // Wait应用完全Load并渲染Compose UI
-            println("⏳ Wait应用Load...")
+            // Wait for app to fully load and render Compose UI
+            println("⏳ Waiting for app to load...")
             Thread.sleep(3000) // ComposeNeed更长Time渲染
 
-            // Check应用YesNo在Front台
-            println("📱 Check应用Status...")
+            // Check if app is in foreground
+            println("📱 Checking app status...")
             var retries = 0
             while (retries < 5) {
                 val currentPkg = device.currentPackageName
-                println("  Attempt ${retries + 1}/5: 当FrontPackage name=$currentPkg")
+                println("  Attempt ${retries + 1}/5: Current foreground package name=$currentPkg")
 
                 if (currentPkg == PACKAGE_NAME) {
-                    println("  ✅ 应用在Front台")
-                    // 额OutsideWaitCompose渲染
+                    println("  ✅ App is in foreground")
+                    // Extra wait for Compose rendering
                     Thread.sleep(2000)
                     break
                 } else {
-                    println("  ⚠️ 应用不在Front台,重NewStart...")
+                    println("  ⚠️ App not in foreground, restarting...")
                     launchApp()
                     Thread.sleep(2000)
                 }
@@ -87,67 +87,67 @@ class ChatE2ETest {
                 retries++
             }
 
-            // 最终Check
+            // Final check
             val finalPkg = device.currentPackageName
             if (finalPkg != PACKAGE_NAME) {
-                println("  ❌ Warning: 应用未能保持在Front台,当FrontPackage name=$finalPkg")
+                println("  ❌ Warning: App failed to stay in foreground, current foreground package name=$finalPkg")
             }
 
-            // 点击"Conversation"tab(底部导航First,坐标约[185, 2342])
-            println("📱 切换到Conversationtab...")
+            // Click "Conversation" tab (first in bottom navigation, coordinates ~[185, 2342])
+            println("📱 Switching to Conversation tab...")
             try {
-                // Attempt通过textFind
+                // Try to find by text
                 val chatTab = device.findObject(By.text("Conversation"))
                 if (chatTab != null) {
                     chatTab.click()
-                    println("  ✅ 通过text点击Conversationtab")
+                    println("  ✅ Clicked Conversation tab by text")
                 } else {
-                    // 通过坐标点击(根据UI dump确定的位置)
+                    // Click by coordinates (position determined from UI dump)
                     device.click(185, 2342)
-                    println("  ✅ 通过坐标点击Conversationtab")
+                    println("  ✅ Clicked Conversation tab by coordinates")
                 }
                 device.waitForIdle()
-                Thread.sleep(2000) // Waittab切换动画和Inside容Load
+                Thread.sleep(2000) // Wait for tab switch animation and content load
             } catch (e: Exception) {
-                println("  ⚠️ 切换tabException: ${e.message}")
+                println("  ⚠️ Tab switch exception: ${e.message}")
             }
 
-            println("✅ 应用已Start,准备Test Chat Feature")
+            println("✅ App started, ready to test Chat Feature")
         }
 
         @JvmStatic
         private fun dumpCurrentScreen() {
-            println("\n📱 当FrontScreenUIInfo:")
+            println("\n📱 Current Screen UI Info:")
             println("-".repeat(60))
 
-            // Get当FrontPackage name
+            // Get current package name
             val currentPackage = device.currentPackageName
-            println("📦 当FrontPackage name: $currentPackage")
+            println("📦 Current package name: $currentPackage")
 
-            // GetAll可见的TextView
+            // Get all visible TextViews
             val textViews = device.findObjects(By.clazz("android.widget.TextView"))
-            println("📝 找到${textViews.size}个TextView:")
+            println("📝 Found ${textViews.size} TextViews:")
             textViews.take(10).forEachIndexed { index, tv ->
                 println("  [$index] text='${tv.text}', bounds=${tv.visibleBounds}")
             }
 
-            // GetAllEditText
+            // Get all EditTexts
             val editTexts = device.findObjects(By.clazz("android.widget.EditText"))
-            println("✏️ 找到${editTexts.size}个EditText:")
+            println("✏️ Found ${editTexts.size} EditTexts:")
             editTexts.forEachIndexed { index, et ->
-                println("  [$index] pkg=${et.applicationPackage}, enabled=${et.isEnabledd}, text='${et.text}', bounds=${et.visibleBounds}")
+                println("  [$index] pkg=${et.applicationPackage}, enabled=${et.isEnabled}, text='${et.text}', bounds=${et.visibleBounds}")
             }
 
-            // GetAllButton
+            // Get all Buttons
             val buttons = device.findObjects(By.clazz("android.widget.Button"))
-            println("🔘 找到${buttons.size}个Button:")
+            println("🔘 Found ${buttons.size} Buttons:")
             buttons.take(5).forEachIndexed { index, btn ->
                 println("  [$index] text='${btn.text}', bounds=${btn.visibleBounds}")
             }
 
-            // GetAllImageButton
+            // Get all ImageButtons
             val imageButtons = device.findObjects(By.clazz("android.widget.ImageButton"))
-            println("🖼️ 找到${imageButtons.size}个ImageButton:")
+            println("🖼️ Found ${imageButtons.size} ImageButtons:")
             imageButtons.take(5).forEachIndexed { index, ib ->
                 println("  [$index] desc='${ib.contentDescription}', bounds=${ib.visibleBounds}")
             }
@@ -157,7 +157,7 @@ class ChatE2ETest {
 
         @JvmStatic
         private fun launchApp() {
-            // Start MainActivityCompose (ContainsChat页面)
+            // Start MainActivityCompose (contains chat page)
             val intent = Intent(Intent.ACTION_MAIN).apply {
                 setClassName(PACKAGE_NAME, "com.xiaomo.androidforclaw.ui.activity.MainActivityCompose")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -175,38 +175,38 @@ class ChatE2ETest {
         @JvmStatic
         fun printTestSummary() {
             println("\n" + "=".repeat(70))
-            println("📊 TestResult汇总")
+            println("📊 Test Results Summary")
             println("=".repeat(70))
             println()
 
             testResults.forEachIndexed { index, result ->
                 println("${index + 1}. ${result.testName}")
                 println("   Input: ${result.userInput}")
-                println("   回复: ${result.aiResponse.take(60)}${if (result.aiResponse.length > 60) "..." else ""}")
-                println("   Status: ${if (result.passed) "✅ 通过" else "❌ Failed"}")
+                println("   Response: ${result.aiResponse.take(60)}${if (result.aiResponse.length > 60) "..." else ""}")
+                println("   Status: ${if (result.passed) "✅ Passed" else "❌ Failed"}")
                 println()
             }
 
             val passedCount = testResults.count { it.passed }
             val totalCount = testResults.size
             if (totalCount > 0) {
-                println("总计: $passedCount/$totalCount 通过 (${passedCount * 100 / totalCount}%)")
+                println("Total: $passedCount/$totalCount passed (${passedCount * 100 / totalCount}%)")
             } else {
-                println("总计: 0个TestResult被Record")
+                println("Total: 0 test results recorded")
             }
             println("=".repeat(70))
         }
     }
 
     /**
-     * Test1: Simple问候 - "你好"
-     * ValidateAI能正常回复问候
+     * Test 1: Simple greeting - "hello"
+     * Validate AI can respond to greeting normally
      */
     @Test
     fun test01_simpleGreeting() {
-        // 注意: adb shell input text 不Support中文,Must use英文
+        // Note: adb shell input text does not support Chinese, must use English
         val userInput = "hello"
-        val expectedKeywords = listOf("hi", "hello", "Hey", "greet")
+        val expectedKeywords = listOf("hi", "hello", "hey", "greet")
 
         testChatInteraction(
             testName = "Simple Greeting",
@@ -224,13 +224,13 @@ class ChatE2ETest {
     }
 
     /**
-     * Test2: ScreenshotRequest - "给我Screenshot看看"
-     * ValidateAI能理解Screenshot指令并执Rowscreenshot skill
+     * Test 2: Screenshot request - "take a screenshot"
+     * Validate AI can understand screenshot command and execute screenshot skill
      */
     @Test
     fun test02_screenshotRequest() {
-        val userInput = "给我Screenshot看看"
-        val expectedKeywords = listOf("Screenshot", "screenshot", "已Save", "Complete")
+        val userInput = "take a screenshot"
+        val expectedKeywords = listOf("screenshot", "saved", "complete", "done")
 
         testChatInteraction(
             testName = "ScreenshotRequest",
@@ -238,7 +238,7 @@ class ChatE2ETest {
             expectedKeywords = expectedKeywords,
             verifyFunc = { response ->
                 assertTrue(
-                    "AIShould提到Screenshot相关Inside容",
+                    "AI should mention screenshot related content",
                     expectedKeywords.any { keyword ->
                         response.contains(keyword, ignoreCase = true)
                     }
@@ -248,13 +248,13 @@ class ChatE2ETest {
     }
 
     /**
-     * Test3: WaitRequest - "Wait3秒"
-     * ValidateAI能理解Wait指令并执Rowwait skill
+     * Test 3: Wait request - "wait 3 seconds"
+     * Validate AI can understand wait command and execute wait skill
      */
     @Test
     fun test03_waitRequest() {
-        val userInput = "Wait3秒"
-        val expectedKeywords = listOf("Wait", "wait", "Complete", "好的")
+        val userInput = "wait 3 seconds"
+        val expectedKeywords = listOf("wait", "done", "complete", "ok")
 
         testChatInteraction(
             testName = "WaitRequest",
@@ -286,7 +286,7 @@ class ChatE2ETest {
             expectedKeywords = expectedKeywords,
             verifyFunc = { response ->
                 assertTrue(
-                    "AIShouldConfirm导航Action",
+                    "AI should confirm wait",
                     expectedKeywords.any { keyword ->
                         response.contains(keyword, ignoreCase = true)
                     }
@@ -294,28 +294,28 @@ class ChatE2ETest {
             }
         )
 
-        // Return主ScreenBack,Need重NewOpen应用ContinueTest
+        // After returning to home screen, need to reopen app to continue test
         Thread.sleep(2000)
         launchApp()
         Thread.sleep(2000)
     }
 
     /**
-     * Test5: 发送Notification - "发送一个Notification"
-     * ValidateAI能理解Notification指令并执Rownotification skill
+     * Test 5: Send notification - "send a notification"
+     * Validate AI can understand notification command and execute notification skill
      */
     @Test
     fun test05_sendNotification() {
-        val userInput = "发送一个Notification,TitleYes'Test',Inside容Yes'这YesTestNotification'"
-        val expectedKeywords = listOf("Notification", "notification", "发送", "Complete")
+        val userInput = "send a notification with title 'Test' and content 'This is a test notification'"
+        val expectedKeywords = listOf("notification", "sent", "complete", "done")
 
         testChatInteraction(
-            testName = "发送Notification",
+            testName = "Send notification",
             userInput = userInput,
             expectedKeywords = expectedKeywords,
             verifyFunc = { response ->
                 assertTrue(
-                    "AIShouldConfirmNotification发送",
+                    "AI should confirm notification sent",
                     expectedKeywords.any { keyword ->
                         response.contains(keyword, ignoreCase = true)
                     }
@@ -325,21 +325,21 @@ class ChatE2ETest {
     }
 
     /**
-     * Test6: RecordLog - "Record一条Log"
-     * ValidateAI能理解Log指令并执Rowlog skill
+     * Test 6: Record log - "record a log"
+     * Validate AI can understand log command and execute log skill
      */
     @Test
     fun test06_logMessage() {
-        val userInput = "Record一条Log:TestMessage"
-        val expectedKeywords = listOf("Log", "log", "Record", "Complete")
+        val userInput = "record a log: test message"
+        val expectedKeywords = listOf("log", "recorded", "complete", "done")
 
         testChatInteraction(
-            testName = "RecordLog",
+            testName = "Record log",
             userInput = userInput,
             expectedKeywords = expectedKeywords,
             verifyFunc = { response ->
                 assertTrue(
-                    "AIShouldConfirmLogRecord",
+                    "AI should confirm log recorded",
                     expectedKeywords.any { keyword ->
                         response.contains(keyword, ignoreCase = true)
                     }
@@ -349,23 +349,23 @@ class ChatE2ETest {
     }
 
     /**
-     * Test7: ComplexTask - "先Screenshot,然BackWait2秒,再Record一条Log"
-     * ValidateAI能理解并执Row多步骤Task
+     * Test 7: Complex task - "take screenshot, then wait 2 seconds, then log a message"
+     * Validate AI can understand and execute multi-step task
      */
     @Test
     fun test07_multiStepTask() {
-        val userInput = "先Screenshot,然BackWait2秒,再Record一条Log说'TaskComplete'"
-        val expectedKeywords = listOf("Screenshot", "Wait", "Log", "Complete")
+        val userInput = "take screenshot, then wait 2 seconds, then log message 'task complete'"
+        val expectedKeywords = listOf("screenshot", "wait", "log", "complete", "done")
 
         testChatInteraction(
-            testName = "Complex多步骤Task",
+            testName = "Complex multi-step task",
             userInput = userInput,
             expectedKeywords = expectedKeywords,
-            waitTime = 20000L, // 多步骤TaskNeed更长Time
+            waitTime = 20000L, // Multi-step task needs longer time
             verifyFunc = { response ->
-                // 至少Should提到Its中一个步骤
+                // Should mention at least one of the steps
                 assertTrue(
-                    "AIShouldConfirm执Row了多步骤Task",
+                    "AI should confirm executing multi-step task",
                     expectedKeywords.any { keyword ->
                         response.contains(keyword, ignoreCase = true)
                     }
@@ -375,25 +375,25 @@ class ChatE2ETest {
     }
 
     /**
-     * Test8: 询问Capability - "你能做什么"
-     * ValidateAI能介绍自己的Capability
+     * Test 8: Query capabilities - "what can you do"
+     * Validate AI can introduce its capabilities
      */
     @Test
     fun test08_queryCapabilities() {
-        val userInput = "你能做什么"
-        val expectedKeywords = listOf("Screenshot", "点击", "滑动", "Input", "导航", "Capability", "skill")
+        val userInput = "what can you do"
+        val expectedKeywords = listOf("screenshot", "click", "swipe", "input", "navigation", "capability", "skill")
 
         testChatInteraction(
-            testName = "询问Capability",
+            testName = "Query capabilities",
             userInput = userInput,
             expectedKeywords = expectedKeywords,
             verifyFunc = { response ->
-                // Should至少提到2种Capability
+                // Should mention at least 2 capabilities
                 val mentionedCount = expectedKeywords.count { keyword ->
                     response.contains(keyword, ignoreCase = true)
                 }
                 assertTrue(
-                    "AIShould介绍至少2种Capability,实际提到$mentionedCount 种",
+                    "AI should introduce at least 2 capabilities, actually mentioned $mentionedCount types",
                     mentionedCount >= 2
                 )
             }
@@ -401,22 +401,22 @@ class ChatE2ETest {
     }
 
     /**
-     * Test9: Screen观察 - "See what is on screen"
-     * ValidateAI能Screenshot并DescriptionScreenInside容
+     * Test 9: Screen observation - "see what is on screen"
+     * Validate AI can take screenshot and describe screen content
      */
     @Test
     fun test09_screenObservation() {
-        val userInput = "See what is on screen"
-        val expectedKeywords = listOf("Screen", "看到", "Show", "Screenshot", "界面")
+        val userInput = "see what is on screen"
+        val expectedKeywords = listOf("screen", "see", "show", "screenshot", "interface")
 
         testChatInteraction(
-            testName = "Screen观察",
+            testName = "Screen observation",
             userInput = userInput,
             expectedKeywords = expectedKeywords,
-            waitTime = 15000L, // NeedTimeScreenshot和分析
+            waitTime = 15000L, // Need time for screenshot and analysis
             verifyFunc = { response ->
                 assertTrue(
-                    "AIShouldDescriptionScreenInside容",
+                    "AI should describe screen content",
                     expectedKeywords.any { keyword ->
                         response.contains(keyword, ignoreCase = true)
                     }
@@ -426,26 +426,26 @@ class ChatE2ETest {
     }
 
     /**
-     * Test10: ErrorProcess - None意义Input
-     * ValidateAI能Process不明确的指令
+     * Test 10: Error handling - meaningless input
+     * Validate AI can process unclear instructions
      */
     @Test
     fun test10_errorHandling() {
         val userInput = "asdfghjkl"
-        val expectedKeywords = listOf("不明白", "理解", "抱歉", "重New", "Help")
+        val expectedKeywords = listOf("understand", "sorry", "try again", "help")
 
         testChatInteraction(
-            testName = "ErrorProcess",
+            testName = "Error handling",
             userInput = userInput,
             expectedKeywords = expectedKeywords,
             verifyFunc = { response ->
-                // AIShouldTable示Cannot理解或Request澄清
+                // AI should show that it cannot understand or ask for clarification
                 val understood = expectedKeywords.any { keyword ->
                     response.contains(keyword, ignoreCase = true)
                 }
-                // 如果None明确Table示不理解,至少ShouldHas回复
+                // If no clear indication of not understanding, should at least have a response
                 assertTrue(
-                    "AIShouldProcessNone效Input(回复不为Null或Table示不理解)",
+                    "AI should process invalid input (response is not empty or indicates not understanding)",
                     response.isNotEmpty() || understood
                 )
             }
@@ -453,37 +453,37 @@ class ChatE2ETest {
     }
 
     /**
-     * Test11: 打印Test汇总
-     * 注意: 这个MustYes最Back一个Test(test11确保在test01-10之Back执Row)
+     * Test 11: Print test summary
+     * Note: This must be the last test (test11 ensures it runs after test01-10)
      */
     @Test
     fun test11_printSummary() {
-        println("\n⏳ Wait2秒,确保Front面的Test都Complete...")
+        println("\n⏳ Waiting 2 seconds, ensuring all previous tests are complete...")
         Thread.sleep(2000)
 
         println("\n" + "=".repeat(70))
-        println("📊 AllTestComplete - 打印汇总报告")
+        println("📊 All Tests Complete - Printing Summary Report")
         println("=".repeat(70))
 
         printTestSummary()
 
-        // Validate至少HasSomeTest被Record
+        // Validate at least some tests were recorded
         assertTrue(
-            "Should至少Has5个TestResult被Record,实际: ${testResults.size}",
+            "Should have at least 5 test results recorded, actual: ${testResults.size}",
             testResults.size >= 5
         )
     }
 
-    // ========== 核心Test逻辑 ==========
+    // ========== Core Test Logic ==========
 
     /**
-     * Chat交互Test核心Method
+     * Core method for chat interaction test
      *
-     * @param testName TestName
-     * @param userInput UserInput的Inside容
-     * @param expectedKeywords 期望AI回复中Contains的关Key词
-     * @param waitTime AIResponseWaitTime(毫秒)
-     * @param verifyFunc CustomValidateFunction
+     * @param testName Test name
+     * @param userInput User input content
+     * @param expectedKeywords Expected keywords in AI response
+     * @param waitTime AI response wait time (milliseconds)
+     * @param verifyFunc Custom verification function
      */
     private fun testChatInteraction(
         testName: String,
@@ -495,75 +495,75 @@ class ChatE2ETest {
         println("\n" + "=".repeat(70))
         println("🧪 Test: $testName")
         println("=".repeat(70))
-        println("📝 UserInput: \"$userInput\"")
+        println("📝 User Input: \"$userInput\"")
         println()
 
-        // 步骤1: 收集发送Front的ScreenInfo
-        println("📸 步骤1: 收集发送Front的ScreenInfo")
+        // Step 1: Capture screen info before sending
+        println("📸 Step 1: Capture screen info before sending")
         val beforeScreenInfo = captureScreenInfo()
-        println("  ✓ 发送FrontStatus: ${beforeScreenInfo.summary()}")
+        println("  ✓ Before sending status: ${beforeScreenInfo.summary()}")
         println()
 
-        // 步骤2: InputConcurrency送Message
-        println("📤 步骤2: InputConcurrency送Message")
+        // Step 2: Input and send message
+        println("📤 Step 2: Input and send message")
         val sendSuccess = inputAndSend(userInput)
-        assertTrue("Should能InputConcurrency送Message", sendSuccess)
-        println("  ✓ Message已发送")
+        assertTrue("Should be able to send message", sendSuccess)
+        println("  ✓ Message sent")
         println()
 
-        // 步骤4: WaitAIProcess
-        println("⏳ 步骤4: WaitAIResponse (${waitTime / 1000}秒)")
+        // Step 4: Wait for AI to process
+        println("⏳ Step 4: Wait for AI response (${waitTime / 1000} seconds)")
         Thread.sleep(waitTime)
-        println("  ✓ WaitComplete")
+        println("  ✓ Wait complete")
         println()
 
-        // 步骤5: 收集AIAfter reply的ScreenInfo
-        println("📸 步骤5: 收集AIAfter reply的ScreenInfo")
+        // Step 5: Capture screen info after AI reply
+        println("📸 Step 5: Capture screen info after AI reply")
         val afterScreenInfo = captureScreenInfo()
-        println("  ✓ After replyStatus: ${afterScreenInfo.summary()}")
+        println("  ✓ After reply status: ${afterScreenInfo.summary()}")
         println()
 
-        // 步骤6: 提取AI回复
-        println("🔍 步骤6: 提取AI回复")
+        // Step 6: Extract AI response
+        println("🔍 Step 6: Extract AI response")
         val aiResponse = extractAIResponse(beforeScreenInfo, afterScreenInfo)
-        println("  💬 AI回复: ${aiResponse.take(100)}${if (aiResponse.length > 100) "..." else ""}")
+        println("  💬 AI response: ${aiResponse.take(100)}${if (aiResponse.length > 100) "..." else ""}")
         println()
 
-        // 步骤7: ValidateAI回复
-        println("✅ 步骤7: ValidateAI回复")
+        // Step 7: Verify AI response
+        println("✅ Step 7: Verify AI response")
         var testPassed = false
         var errorMessage = ""
 
         try {
             if (verifyFunc != null) {
-                // 使用CustomValidateFunction
+                // Use custom verification function
                 verifyFunc(aiResponse)
-                println("  ✓ CustomValidate通过")
+                println("  ✓ Custom verification passed")
                 testPassed = true
             } else {
-                // DefaultValidate:Check关Key词
+                // Default verification: check keywords
                 val foundKeywords = expectedKeywords.filter { keyword ->
                     aiResponse.contains(keyword, ignoreCase = true)
                 }
-                println("  📋 期望关Key词: $expectedKeywords")
-                println("  ✓ 找到关Key词: $foundKeywords")
+                println("  📋 Expected keywords: $expectedKeywords")
+                println("  ✓ Found keywords: $foundKeywords")
 
                 if (foundKeywords.isNotEmpty()) {
                     testPassed = true
                 } else {
                     // Soft assert: LLM responses are non-deterministic, don't fail the test
-                    println("  ⚠️ AI回复未Contains期望关Key词(LLM 非确定性, 标记 warning)")
-                    println("  ⚠️ 实际回复: $aiResponse")
+                    println("  ⚠️ AI response does not contain expected keywords (LLM is non-deterministic, marking as warning)")
+                    println("  ⚠️ Actual response: $aiResponse")
                     testPassed = true  // Pass with warning
                 }
             }
         } catch (e: AssertionError) {
             // Soft assert for LLM-dependent tests
-            println("  ⚠️ Validate未通过(LLM 非确定性): ${e.message}")
+            println("  ⚠️ Verification failed (LLM is non-deterministic): ${e.message}")
             testPassed = true  // Pass with warning
         }
 
-        // 步骤8: RecordTestResult
+        // Step 8: Record test result
         val testResult = TestResult(
             testName = testName,
             userInput = userInput,
@@ -574,69 +574,69 @@ class ChatE2ETest {
 
         println()
         if (testPassed) {
-            println("✅ Test通过: $testName")
+            println("✅ Test passed: $testName")
         } else {
-            println("❌ TestFailed: $testName")
+            println("❌ Test failed: $testName")
             println("   Reason: $errorMessage")
         }
         println("=".repeat(70))
         println()
 
-        // 如果ValidateFailed,抛出Exception让JUnitRecord
+        // If verification failed, throw exception for JUnit to record
         if (!testPassed) {
             fail(errorMessage)
         }
     }
 
     /**
-     * InputTextConcurrency送 - 使用ADB broadcast直接发送Message
+     * Input and send - use ADB broadcast to directly send message
      *
-     * Policy: UiAutomator点击Cannot触发Compose的onClickCallback
-     *      只能通过Broadcast直接发送Message
+     * Note: UiAutomator click cannot trigger Compose's onClick callback
+     *      Can only send message directly via broadcast
      */
     private fun inputAndSend(text: String): Boolean {
         return try {
-            println("  📡 通过Broadcast发送Message: $text")
+            println("  📡 Sending message via broadcast: $text")
 
-            // 使用ADBBroadcast发送Message - 注意Parameters名Yesmessage不Yestext
+            // Use ADB broadcast to send message - note parameter name is message not text
             device.executeShellCommand("am broadcast -a CLAW_SEND_MESSAGE --es message \"$text\"")
             Thread.sleep(1000)
 
-            println("  ✅ Broadcast发送Complete")
+            println("  ✅ Broadcast sent complete")
             true
         } catch (e: Exception) {
-            println("  ❌ Broadcast发送Failed: ${e.message}")
+            println("  ❌ Broadcast send failed: ${e.message}")
             e.printStackTrace()
             false
         }
     }
 
     /**
-     * FindInput field
+     * Find input field
      *
-     * 注意: ChatScreen使用Compose的BasicTextField,不会生成Android View层级!
-     * UiAutomatorCannot找到它,Must use坐标点击 + shell input fallback
+     * Note: ChatScreen uses Compose's BasicTextField, does not generate Android View hierarchy!
+     * UiAutomator cannot find it, must use coordinate click + shell input fallback
      *
-     * @return 总YesReturnnull,因为Compose的BasicTextField不可见
+     * @return Always return null, because Compose's BasicTextField is not visible
      */
     private fun findInputBox(): androidx.test.uiautomator.UiObject2? {
-        // Compose的BasicTextField不会被UiAutomatorIndex
-        // 直接Returnnull,让inputText使用fallback机制
-        println("  ℹ️ Compose的BasicTextField不可见,将使用fallbackInput")
+        // Compose's BasicTextField is not indexed by UiAutomator
+        // Return null directly, let inputText use fallback mechanism
+        println("  ℹ️ Compose's BasicTextField is not visible, will use fallback input")
         return null
     }
 
 
     /**
-     * 捕获ScreenInfo
-     * OptimizePolicy: 优先从ChatList(RecyclerView/ListView)中提Cancel息
+     * Capture screen info
+     * Optimization: Prioritize extracting info from ChatList (RecyclerView/ListView)
      */
     private fun captureScreenInfo(): ScreenInfo {
         val allTexts = mutableListOf<String>()
         val chatMessages = mutableListOf<String>()
 
         try {
-            // Policy1: Attempt从RecyclerView中提Cancel息(ChatList)
+            // Policy1: Try to extract info from RecyclerView (ChatList)
             val recyclerViews = device.findObjects(By.clazz("androidx.recyclerview.widget.RecyclerView"))
             recyclerViews.forEach { recyclerView ->
                 val itemTexts = recyclerView.findObjects(By.clazz("android.widget.TextView"))
@@ -648,7 +648,7 @@ class ChatE2ETest {
                 }
             }
 
-            // Policy2: Attempt从ListView中提Cancel息
+            // Policy2: Try to extract info from ListView
             if (chatMessages.isEmpty()) {
                 val listViews = device.findObjects(By.clazz("android.widget.ListView"))
                 listViews.forEach { listView ->
@@ -662,7 +662,7 @@ class ChatE2ETest {
                 }
             }
 
-            // Policy3: 如果None找到List,GetAllTextView的Text
+            // Policy3: If no List found, get all TextView text
             if (chatMessages.isEmpty()) {
                 val textViews = device.findObjects(By.clazz("android.widget.TextView"))
                 textViews.forEach { view ->
@@ -675,7 +675,7 @@ class ChatE2ETest {
                 allTexts.addAll(chatMessages)
             }
 
-            // GetAllEditText的Text(作为补充)
+            // Get all EditText text (as supplement)
             val editTexts = device.findObjects(By.clazz("android.widget.EditText"))
             editTexts.forEach { view ->
                 val text = view.text
@@ -684,13 +684,13 @@ class ChatE2ETest {
                 }
             }
         } catch (e: Exception) {
-            println("  ⚠️ 捕获ScreenInfo时出错: ${e.message}")
+            println("  ⚠️ Error capturing screen info: ${e.message}")
         }
 
-        // 打印DebugInfo
-        println("  📋 捕获到${allTexts.size}条Text")
+        // Print debug info
+        println("  📋 Captured ${allTexts.size} texts")
         if (allTexts.isNotEmpty()) {
-            println("  📝 最Back一条: ${allTexts.last().take(50)}${if (allTexts.last().length > 50) "..." else ""}")
+            println("  📝 Last one: ${allTexts.last().take(50)}${if (allTexts.last().length > 50) "..." else ""}")
         }
 
         return ScreenInfo(
@@ -702,66 +702,66 @@ class ChatE2ETest {
     }
 
     /**
-     * 提取AI回复
-     * OptimizePolicy: 从List中找最Back一条Message
+     * Extract AI response
+     * Optimization: Find last message from List
      */
     private fun extractAIResponse(before: ScreenInfo, after: ScreenInfo): String {
-        println("  🔍 分析回复...")
-        println("     发送Front: ${before.textCount}条Text")
-        println("     After reply: ${after.textCount}条Text")
+        println("  🔍 Analyzing response...")
+        println("     Before sending: ${before.textCount} texts")
+        println("     After reply: ${after.textCount} texts")
 
-        // Policy1: 如果afterHaschatMessages,取最Back一条
+        // Policy1: If after has chatMessages, take last one
         if (after.chatMessages.isNotEmpty()) {
             val lastMessage = after.chatMessages.last()
-            println("     Policy1: 从ChatList取最Back一条")
+            println("     Policy1: Taking last from ChatList")
             return lastMessage
         }
 
-        // Policy2: 找出New增的Text(在after中Has但在before中None)
+        // Policy2: Find new texts (in after but not in before)
         val newTexts = after.texts.filterNot { text ->
             before.texts.contains(text)
         }
 
         if (newTexts.isNotEmpty()) {
-            // Return最长的NewText(通常YesAI回复)
+            // Return longest newText (usually AI response)
             val longestNew = newTexts.maxByOrNull { it.length } ?: newTexts.first()
-            println("     Policy2: 找到${newTexts.size}条NewText,取最长的")
+            println("     Policy2: Found ${newTexts.size} new texts, taking longest")
             return longestNew
         }
 
-        // Policy3: 如果NoneNewText,从after中取最Back一条(可能AI还没回复,或者回复太快了)
+        // Policy3: If no newText, take last from after (AI may not have replied yet, or reply was too fast)
         if (after.texts.isNotEmpty()) {
             val lastText = after.texts.last()
-            println("     Policy3: NoneNewText,取最Back一条")
+            println("     Policy3: No new text, taking last one")
             return lastText
         }
 
-        println("     ⚠️ 未检测到任何回复")
-        return "(未检测到回复)"
+        println("     ⚠️ No response detected")
+        return "(No response detected)"
     }
 
     // ========== DataClass ==========
 
     /**
-     * ScreenInfo快照
+     * ScreenInfo snapshot
      */
     data class ScreenInfo(
         val timestamp: Long,
         val texts: List<String>,
-        val chatMessages: List<String> = emptyList(), // 从ChatList提取的Message
+        val chatMessages: List<String> = emptyList(), // Messages extracted from ChatList
         val textCount: Int
     ) {
         fun summary(): String {
             return if (chatMessages.isNotEmpty()) {
-                "${textCount}个TextElement (${chatMessages.size}条ChatMessage)"
+                "${textCount} text elements (${chatMessages.size} chat messages)"
             } else {
-                "${textCount}个TextElement"
+                "${textCount} text elements"
             }
         }
     }
 
     /**
-     * TestResultRecord
+     * TestResult record
      */
     data class TestResult(
         val testName: String,

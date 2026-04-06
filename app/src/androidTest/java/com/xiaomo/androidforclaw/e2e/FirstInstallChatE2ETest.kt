@@ -21,13 +21,13 @@ import org.junit.runner.RunWith
 import java.io.File
 
 /**
- * 首次InstallBack的Chat E2E Test
+ * First Install Chat E2E Test
  *
- * Success标准: 
- * 1. 走完首装引导
- * 2. Into入Chat页
- * 3. 发送固定TestMessage
- * 4. 以ChatReturnInside容正确作为最终SuccessDetermine
+ * Success criteria: 
+ * 1. Complete first install wizard
+ * 2. Enter chat page
+ * 3. Send fixed test message
+ * 4. Return correct chat content as final success determination
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -44,8 +44,8 @@ class FirstInstallChatE2ETest {
             "LLM request failed",
             "timed out",
             "API request failed",
-            "执Row出错",
-            "ErrorType"
+            "Execution error",
+            "Error"
         )
     }
 
@@ -117,7 +117,7 @@ class FirstInstallChatE2ETest {
     private fun completeFirstInstallIfShown(useSkip: Boolean) {
         val welcome = device.wait(Until.findObject(By.text("欢迎使用 AndroidForClaw")), 5000)
         if (welcome != null) {
-            val buttonText = if (useSkip) "Skip" else "Start使用"
+            val buttonText = if (useSkip) "Skip" else "Start"
             val button = device.wait(Until.findObject(By.text(buttonText)), 5000)
             assertNotNull("First-install $buttonText button should exist", button)
             button!!.click()

@@ -16,8 +16,8 @@ import org.junit.runner.RunWith
 import org.junit.Assert.*
 
 /**
- * Agent 集成Test
- * 在Real Android Environment中Test Agent Feature
+ * Agent Integration Test
+ * Test Agent Features in Real Android Environment
  *
  * Run:
  * ./gradlew connectedDebugAndroidTest --tests "AgentIntegrationTest"
@@ -41,7 +41,7 @@ class AgentIntegrationTest {
 
         context = ApplicationProvider.getApplicationContext<MyApplication>()
 
-        // CreateTestConfig文件
+        // Create test config file
         setupTestConfig()
 
         configLoader = ConfigLoader(context)
@@ -55,7 +55,7 @@ class AgentIntegrationTest {
             configDir.mkdirs()
         }
 
-        // CreateTest用的openclaw.json - Containsproviders (models.json已废弃)
+        // Create test openclaw.json - Contains providers (models.json is deprecated)
         val openClawFile = java.io.File(configDir, "openclaw.json")
         if (!openClawFile.exists()) {
             openClawFile.writeText("""
@@ -104,7 +104,7 @@ class AgentIntegrationTest {
         }
     }
 
-    // ========== Config系统集成Test ==========
+    // ========== Config System Integration Test ==========
 
     @Test
     fun testConfigLoader_loadsSuccessfully() {
@@ -117,15 +117,15 @@ class AgentIntegrationTest {
 
     @Test
     fun testConfigLoader_findsProviders() {
-        // Getprovider
+        // Get provider
         val provider = configLoader.getProviderConfig("anthropic")
 
-        // 如果TestEnvironmentHasConfiganthropic,ValidateItsValid性
+        // If test environment has config for anthropic, validate it's valid
         if (provider != null) {
-            assertNotNull("BaseUrl 不应为Null", provider.baseUrl)
+            assertNotNull("BaseUrl should not be null", provider.baseUrl)
             assertTrue("ShouldHasmodels", provider.models.isNotEmpty())
         }
-        // 如果NoneConfig,Test至少不崩溃即可
+        // If no config, test should at least not crash
     }
 
     @Test
@@ -137,13 +137,13 @@ class AgentIntegrationTest {
         assertNotNull("skills ConfigShouldExists", config.skills)
     }
 
-    // ========== Tool Registry 集成Test ==========
+    // ========== Tool Registry Integration Test ==========
 
     @Test
     fun testToolRegistry_hasTools() {
         val toolCount = toolRegistry.getToolCount()
 
-        assertTrue("ShouldHas工具Register", toolCount > 0)
+        assertTrue("Should have tool registered", toolCount > 0)
     }
 
     @Test
@@ -173,72 +173,72 @@ class AgentIntegrationTest {
 
         assertTrue("ShouldHasTool definition", definitions.isNotEmpty())
 
-        // ValidateEach定义的结构
+        // Validate each definition structure
         definitions.forEach { def ->
-            assertEquals("Type ShouldYes function", "function", def.type)
-            assertNotNull("Function 不应为Null", def.function)
-            assertTrue("Name Should非Null", def.function.name.isNotBlank())
-            assertTrue("Description Should非Null", def.function.description.isNotBlank())
+            assertEquals("Type should be function", "function", def.type)
+            assertNotNull("Function should not be null", def.function)
+            assertTrue("Name should not be null", def.function.name.isNotBlank())
+            assertTrue("Description should not be null", def.function.description.isNotBlank())
         }
     }
 
-    // ========== Skill 执Row集成Test ==========
+    // ========== Skill Execution Integration Test ==========
 
     @Test
     fun testWaitSkill_executesInAndroid() = runBlocking {
         val startTime = System.currentTimeMillis()
 
-        // WaitSkill使用secondsParameters
+        // Wait skill uses seconds parameters
         val result = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "wait", "timeMs" to 100))
 
         val elapsed = System.currentTimeMillis() - startTime
 
-        assertTrue("Wait ShouldSuccess", result.success)
-        assertTrue("ShouldWait至少 100ms", elapsed >= 95)
-        assertTrue("Should在 200ms InsideComplete", elapsed < 200)
+        assertTrue("Wait should succeed", result.success)
+        assertTrue("Should wait at least 100ms", elapsed >= 95)
+        assertTrue("Should complete within 200ms", elapsed < 200)
     }
 
     @Test
     fun testLogSkill_executesInAndroid() = runBlocking {
         val result = toolRegistry.execute("log", mapOf(
-            "message" to "集成TestLog",
+            "message" to "Integration test log",
             "level" to "INFO"
         ))
 
-        assertTrue("Log ShouldSuccess", result.success)
+        assertTrue("Log should succeed", result.success)
     }
 
     @Test
     fun testStopSkill_executesInAndroid() = runBlocking {
         val result = toolRegistry.execute("stop", mapOf(
-            "reason" to "集成TestStop"
+            "reason" to "Integration test stop"
         ))
 
-        assertTrue("Stop ShouldSuccess", result.success)
-        assertTrue("ShouldHas stopped 元Data", result.metadata.containsKey("stopped"))
-        assertEquals("stopped Should为 true", true, result.metadata["stopped"])
+        assertTrue("Stop should succeed", result.success)
+        assertTrue("Should have stopped metadata", result.metadata.containsKey("stopped"))
+        assertEquals("stopped should be true", true, result.metadata["stopped"])
     }
 
     @Test
     fun testMultipleSkills_executeSequentially() = runBlocking {
-        // 执RowMultiple技能
+        // Execute multiple skills
         val result1 = toolRegistry.execute("log", mapOf("message" to "First"))
         val result2 = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "wait", "timeMs" to 50))
-        val result3 = toolRegistry.execute("log", mapOf("message" to "第二个"))
+        val result3 = toolRegistry.execute("log", mapOf("message" to "Second"))
 
-        assertTrue("All技能ShouldSuccess", result1.success && result2.success && result3.success)
+        assertTrue("All skills should succeed", result1.success && result2.success && result3.success)
     }
 
     @Test
     fun testSkill_withInvalidArguments() = runBlocking {
-        // Test缺少RequiredParameters
+        // Test missing required parameters
         val result = toolRegistry.execute("device", mapOf("action" to "invalid_action"))
 
-        assertFalse("None效ActionShouldFailed", result.success)
-        assertTrue("ShouldContainsErrorInfo", result.content.isNotEmpty())
+        assertFalse("Invalid action should fail", result.success)
+        assertTrue("Should contain error info", result.content.isNotEmpty())
     }
 
-    // ========== 工作Space集成Test ==========
+    // ========== Workspace Integration Test ==========
 
     @Test
     fun testWorkspace_directoryExists() {
@@ -248,9 +248,9 @@ class AgentIntegrationTest {
             workspaceDir.mkdirs()
         }
 
-        assertTrue("工作SpaceShouldExists", workspaceDir.exists())
-        assertTrue("Should可读", workspaceDir.canRead())
-        assertTrue("Should可写", workspaceDir.canWrite())
+        assertTrue("Workspace should exist", workspaceDir.exists())
+        assertTrue("Should be readable", workspaceDir.canRead())
+        assertTrue("Should be writable", workspaceDir.canWrite())
     }
 
     @Test
@@ -261,7 +261,7 @@ class AgentIntegrationTest {
             skillsDir.mkdirs()
         }
 
-        assertTrue("Skills 目录ShouldExists", skillsDir.exists())
+        assertTrue("Skills directory should exist", skillsDir.exists())
     }
 
     @Test
@@ -271,37 +271,37 @@ class AgentIntegrationTest {
         try {
             testFile.writeText("Integration test content")
 
-            assertTrue("文件ShouldCreateSuccess", testFile.exists())
-            assertEquals("Inside容Should匹配", "Integration test content", testFile.readText())
+            assertTrue("File should be created successfully", testFile.exists())
+            assertEquals("Content should match", "Integration test content", testFile.readText())
 
         } finally {
             testFile.delete()
         }
     }
 
-    // ========== Assets Resource集成Test ==========
+    // ========== Assets Resource Integration Test ==========
 
     @Test
     fun testAssets_skillsDirectoryExists() {
         try {
             val skillsList = context.assets.list("skills")
 
-            assertNotNull("Skills 目录ShouldExists", skillsList)
-            // 可能为Null, 取决于YesNoHasInside置 skills
+            assertNotNull("Skills directory should exist", skillsList)
+            // May be null depending on whether skills are configured
 
         } catch (e: Exception) {
-            fail("访问 assets skills Failed: ${e.message}")
+            fail("Accessing assets skills failed: ${e.message}")
         }
     }
 
-    // ========== TaskDataManager 集成Test ==========
+    // ========== TaskDataManager Integration Test ==========
 
     @Test
     fun testTaskDataManager_initialization() {
-        assertNotNull("TaskDataManager ShouldInitialize", taskDataManager)
+        assertNotNull("TaskDataManager should initialize", taskDataManager)
     }
 
-    // ========== Performance集成Test ==========
+    // ========== Performance Integration Test ==========
 
     @Test
     fun testPerformance_multipleToolCalls() = runBlocking {
@@ -314,9 +314,9 @@ class AgentIntegrationTest {
 
         val elapsed = System.currentTimeMillis() - startTime
 
-        // 平均每次调用Should在合理TimeInside(< 100ms/次)
+        // Average execution time should be reasonable (< 100ms per call)
         val avgTime = elapsed / iterations
-        assertTrue("平均执RowTimeShould合理 (< 100ms)", avgTime < 100)
+        assertTrue("Average execution time should be reasonable (< 100ms)", avgTime < 100)
     }
 
     @Test
@@ -330,8 +330,8 @@ class AgentIntegrationTest {
 
         val elapsed = System.currentTimeMillis() - startTime
 
-        // ConfigOverloadShouldFast(< 500ms/次)
+        // Config reload should be fast (< 500ms per reload)
         val avgTime = elapsed / iterations
-        assertTrue("ConfigOverloadShouldFast (< 500ms)", avgTime < 500)
+        assertTrue("Config reload should be fast (< 500ms)", avgTime < 500)
     }
 }
