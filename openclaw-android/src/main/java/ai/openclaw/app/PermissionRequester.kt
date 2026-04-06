@@ -166,7 +166,7 @@ class PermissionRequester(private val activity: ComponentActivity) {
               )
             activity.startActivity(intent)
           }
-          .setNegativeButton("取消", null)
+          .setNegativeButton("Cancel", null)
           .setOnDismissListener { removeObserver() }
           .show()
     }

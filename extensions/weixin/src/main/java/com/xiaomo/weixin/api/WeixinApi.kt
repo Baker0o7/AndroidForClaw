@@ -37,7 +37,7 @@ class WeixinApi(
         private const val DEFAULT_API_TIMEOUT_MS = 15_000L
         private const val SENT_CLIENT_IDS_MAX_SIZE = 200
 
-        /** 追踪 bot 发出的 clientId，用于过滤服务端 echo 回来的消息 */
+        /** Track clientIds sent by bot, to filter out server echo messages */
         private val sentClientIds = java.util.Collections.newSetFromMap(
             java.util.LinkedHashMap<String, Boolean>()
         )
@@ -61,7 +61,7 @@ class WeixinApi(
             }
         }
 
-        /** 创建独立 Dispatcher，避免 shutdown 影响全局共享 executor */
+        /** Create isolated Dispatcher to avoid shutdown affecting global shared executor */
         private fun newIsolatedDispatcher(name: String): Dispatcher {
             val counter = AtomicInteger(0)
             val executor = ThreadPoolExecutor(
@@ -79,7 +79,7 @@ class WeixinApi(
 
     private val gson = Gson()
 
-    // 每个 client 使用独立的 Dispatcher，shutdown 时不会影响全局 OkHttp
+    // Each client uses isolated Dispatcher, shutdown won't affect global OkHttp
     private val longPollDispatcher = newIsolatedDispatcher("longpoll")
     private val apiDispatcher = newIsolatedDispatcher("api")
 
@@ -123,7 +123,7 @@ class WeixinApi(
         return builder.build()
     }
 
-    /** 高频轮询接口，不打 request/response 日志以减少 logcat 噪音 */
+    /** High-frequency polling endpoint, skip request/response logs to reduce logcat noise */
     private val QUIET_LABELS = setOf("getUpdates")
 
     private suspend fun post(
@@ -342,13 +342,13 @@ class WeixinApi(
     }
 
     fun shutdown() {
-        // 取消所有排队和进行中的请求
+        // Cancel all queued and in-flight requests
         longPollClient.dispatcher.cancelAll()
         apiClient.dispatcher.cancelAll()
-        // 关闭独立的 executor（不会影响全局 OkHttp）
+        // Shutdown isolated executor (won't affect global OkHttp)
         longPollClient.dispatcher.executorService.shutdown()
         apiClient.dispatcher.executorService.shutdown()
-        // 关闭连接池
+        // Close connection pools
         longPollClient.connectionPool.evictAll()
         apiClient.connectionPool.evictAll()
     }

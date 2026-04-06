@@ -47,8 +47,9 @@ class NodeRuntime(
   context: Context,
   val prefs: SecurePrefs = SecurePrefs(context.applicationContext),
   /**
-   * 本地进程内 channel（可选）。提供时 ChatController 直接使用，绕过 WebSocket。
-   * 不影响 nodeSession（设备命令仍可通过远程 gateway 调用）。
+   * Local in-process channel (optional). When provided, ChatController uses it directly,
+   * bypassing WebSocket. Does not affect nodeSession (device commands can still be invoked
+   * via remote gateway).
    */
   private val localChatChannel: com.xiaomo.base.IGatewayChannel? = null,
 ) {
@@ -330,8 +331,8 @@ class NodeRuntime(
       },
     )
 
-  // micCapture 必须在 init 块之前声明，否则 init 中的 scope.launch 可能
-  // 在 lazy 委托字段初始化之前就访问它，导致 NPE。
+  // micCapture must be declared before the init block, otherwise scope.launch in init
+  // might access it before the lazy delegate field is initialized, causing NPE.
   private val micCapture: MicCaptureManager by lazy {
     MicCaptureManager(
       context = appContext,
@@ -369,11 +370,11 @@ class NodeRuntime(
         nodeSession.sendNodeEvent(event = event, payloadJson = payloadJson)
       }
     }
-    // 本地 channel：注册事件监听器，绕过 WebSocket 直接接收 agent 事件
+    // Local channel: register event listener, bypass WebSocket to receive agent events directly
     localChatChannel?.setEventListener { event, payloadJson ->
       handleGatewayEvent(event, payloadJson)
     }
-    // 本地 channel 始终视为已连接，否则 MicCaptureManager 的消息队列永远不会发送
+    // Local channel is always considered connected, otherwise MicCaptureManager's message queue will never send
     if (localChatChannel != null) {
       scope.launch { micCapture.onGatewayConnectionChanged(true) }
     }
@@ -671,7 +672,7 @@ class NodeRuntime(
   }
 
   private fun autoConnectIfNeeded() {
-    // 本地模式：跳过 WebSocket 自动连接
+    // Local mode: skip WebSocket auto-connect
     if (localChatChannel != null) return
     if (didAutoConnect) return
     if (_isConnected.value) return
@@ -681,7 +682,7 @@ class NodeRuntime(
   }
 
   private fun reconnectPreferredGatewayOnForeground() {
-    // 本地模式：跳过 WebSocket 重连
+    // Local mode: skip WebSocket reconnect
     if (localChatChannel != null) return
     if (_isConnected.value) return
     if (_pendingGatewayTrust.value != null) return
@@ -887,12 +888,12 @@ class NodeRuntime(
   }
 
   /**
-   * 本地进程内直连模式：直接标记已连接，不走 WebSocket。
-   * 只在 localChatChannel 已注入时有效。
+   * Local in-process direct connection mode: directly mark as connected, bypassing WebSocket.
+   * Only effective when localChatChannel is injected.
    */
   fun connectLocal() {
     if (localChatChannel == null) {
-      // 回退到 WebSocket 连接
+      // Fallback to WebSocket connection
       connectManual()
       return
     }
@@ -1146,7 +1147,7 @@ class NodeRuntime(
         HomeCanvasPayload(
           gatewayState = "connected",
           eyebrow = "Connected to $gatewayLabel",
-          title = "你的 Agent 已就绪",
+          title = "Your Agent is ready",
           subtitle =
             "This phone stays dormant until the gateway needs it, then wakes, syncs, and goes back to sleep.",
           gatewayLabel = gatewayLabel,
@@ -1161,7 +1162,7 @@ class NodeRuntime(
         HomeCanvasPayload(
           gatewayState = "connecting",
           eyebrow = "Reconnecting",
-          title = "OpenClaw 正在同步",
+          title = "OpenClaw is syncing",
           subtitle =
             "The gateway session is coming back online. Agent shortcuts should settle automatically in a moment.",
           gatewayLabel = gatewayLabel,
@@ -1176,7 +1177,7 @@ class NodeRuntime(
         HomeCanvasPayload(
           gatewayState = if (state == HomeCanvasGatewayState.Error) "error" else "offline",
           eyebrow = "Welcome to OpenClaw",
-          title = "你的手机在需要之前保持安静",
+          title = "Your phone stays quiet until needed",
           subtitle =
             "Pair this device to your gateway to wake it only for real work, keep a live agent overview handy, and avoid battery-draining background loops.",
           gatewayLabel = gatewayLabel,

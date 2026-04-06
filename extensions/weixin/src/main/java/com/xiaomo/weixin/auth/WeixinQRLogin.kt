@@ -101,7 +101,7 @@ class WeixinQRLogin(
                             Log.w(TAG, "QR expired $MAX_QR_REFRESH times, giving up")
                             return QRLoginResult(
                                 connected = false,
-                                message = "二维码多次过期，请重新开始登录。"
+                                message = "QR code expired multiple times, please restart login."
                             )
                         }
 
@@ -112,7 +112,7 @@ class WeixinQRLogin(
                         if (newQR == null) {
                             return QRLoginResult(
                                 connected = false,
-                                message = "刷新二维码失败。"
+                                message = "Failed to refresh QR code."
                             )
                         }
                         currentQrcode = newQR.second
@@ -125,7 +125,7 @@ class WeixinQRLogin(
                             Log.e(TAG, "Confirmed but no ilink_bot_id")
                             return QRLoginResult(
                                 connected = false,
-                                message = "登录失败：服务器未返回 Bot ID。"
+                                message = "Login failed: server did not return Bot ID."
                             )
                         }
 
@@ -153,7 +153,7 @@ class WeixinQRLogin(
                             accountId = accountId,
                             baseUrl = status.baseurl,
                             userId = status.ilinkUserId,
-                            message = "✅ 与微信连接成功！"
+                            message = "✅ Successfully connected to WeChat!"
                         )
                     }
                     else -> {
@@ -164,14 +164,14 @@ class WeixinQRLogin(
                 Log.e(TAG, "Error polling QR status", e)
                 return QRLoginResult(
                     connected = false,
-                    message = "登录失败: ${e.message}"
+                    message = "Login failed: ${e.message}"
                 )
             }
 
             delay(1000)
         }
 
-        return QRLoginResult(connected = false, message = "登录超时，请重试。")
+        return QRLoginResult(connected = false, message = "Login timeout, please retry.")
     }
 
     /**

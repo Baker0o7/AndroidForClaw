@@ -53,13 +53,13 @@ class FloatingAvatarService : Service() {
     private fun startForegroundNotification() {
         val channelId = "floating_avatar"
         val channel = NotificationChannel(
-            channelId, "化身", NotificationManager.IMPORTANCE_LOW,
+            channelId, "Avatar", NotificationManager.IMPORTANCE_LOW,
         ).apply { setShowBadge(false) }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.ic_menu_slideshow)
-            .setContentTitle("化身")
+            .setContentTitle("Avatar")
             .setOngoing(true)
             .setSilent(true)
             .build()
