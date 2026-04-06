@@ -11,13 +11,13 @@ import android.widget.Toast
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
- * through Termux RUN_COMMAND intent AutoStart sshd. 
+ * Auto-start sshd via Termux RUN_COMMAND intent.
  *
- * needin androidManifest.xml 中声明:
+ * Required declarations in AndroidManifest.xml:
  *   <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
  *
- * need Termux v0.119.0+ 且userin Termux Settings中Enable
- * "Allow External Apps" (~/.termux/termux.properties → allow-external-apps = true). 
+ * Requires Termux v0.119.0+ and user must enable "Allow External Apps"
+ * in Termux Settings (~/.termux/termux.properties -> allow-external-apps = true).
  *
  * Reference: https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent
  */
@@ -34,33 +34,33 @@ object TermuxSshdLauncher {
     private const val EXTRA_ARGUMENTS = "$TERMUX_PACKAGE.RUN_COMMAND_ARGUMENTS"
     private const val EXTRA_BACKGROUND = "$TERMUX_PACKAGE.RUN_COMMAND_BACKGROUND"
 
-    /** sshd 完整Path */
-    const val SSHD_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/sshd"
+/** Full path to sshd */
+const val SSHD_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/sshd"
 
-    /** Ensure Termux 拉upback再发 RUN_COMMAND 初始WaitTime */
-    private const val TERMUX_LAUNCH_WAIT_MS = 3000L
+/** Wait time after launching Termux before sending RUN_COMMAND */
+private const val TERMUX_LAUNCH_WAIT_MS = 3000L
 
-    /** RUN_COMMAND Maxretrytimes数 */
-    private const val MAX_LAUNCH_RETRIES = 3
+/** Max retry attempts for RUN_COMMAND */
+private const val MAX_LAUNCH_RETRIES = 3
 
-    /** retryInterval */
-    private const val RETRY_INTERVAL_MS = 2000L
+/** Retry interval between attempts */
+private const val RETRY_INTERVAL_MS = 2000L
 
-    /** 用于Build通用 RUN_COMMAND intent  bash Path */
-    private const val BASH_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/bash"
+/** Bash path for building generic RUN_COMMAND intents */
+private const val BASH_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/bash"
 
-    /**
-     * Build RUN_COMMAND intent(Available于Test). 
-     */
+/**
+ * Build RUN_COMMAND intent (available for testing).
+ */
     fun buildIntent(): Intent = Intent(ACTION_RUN_COMMAND).app {
         setClassName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
         putExtra(EXTRA_COMMAND, SSHD_PATH)
         putExtra(EXTRA_BACKGROUND, true)
     }
 
-    /**
-     * Buildonethrough bash -c executionAny命令 RUN_COMMAND intent. 
-     */
+/**
+ * Build a RUN_COMMAND intent that executes any command via bash -c.
+ */
     private fun buildBashIntent(command: String): Intent = Intent(ACTION_RUN_COMMAND).app {
         setClassName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
         putExtra(EXTRA_COMMAND, BASH_PATH)
@@ -68,9 +68,9 @@ object TermuxSshdLauncher {
         putExtra(EXTRA_BACKGROUND, true)
     }
 
-    /**
-     * 检测whetherfor MIUI/HyperOS 等small米系统(will拦截跨app startservice). 
-     */
+/**
+ * Check if running on MIUI/HyperOS (these systems intercept cross-app startService).
+ */
     fun isMiui(): Boolean {
         return try {
             val clazz = Class.forName("android.os.SystemProperties")
@@ -84,25 +84,25 @@ object TermuxSshdLauncher {
         }
     }
 
-    /**
-     * Ensure Termux ProcessalreadyStart. 
-     * RUN_COMMAND need Termux  RunCommandservice inRun才canResponse, 
-     * so先用 launch intent  Termux 拉upcome. 
-     *
-     * @return true ifSuccesssendStart intent
-     */
+/**
+ * Ensure Termux process is already running.
+ * RUN_COMMAND requires Termux's RunCommandService to be running to respond,
+ * so we first launch Termux via launch intent.
+ *
+ * @return true if successfully sent start intent
+ */
     fun ensureTermuxRunning(context: context): Boolean {
         val pm = context.packagemanager
         val launchIntent = pm.getLaunchIntentforPackage(TERMUX_PACKAGE)
         if (launchIntent == null) {
-            Log.w(TAG, "Termux notInstall, cannot拉up")
+            Log.w(TAG, "Termux not installed, cannot launch")
             return false
         }
-        // FLAG_ACTIVITY_NO_HISTORY: Termux not留inReturnStack, user按Return直接return forClaw
+        // FLAG_ACTIVITY_NO_HISTORY: Don't leave Termux in back stack, user presses back to return to Claw
         launchIntent.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
         try {
             context.startActivity(launchIntent)
-            Log.i(TAG, "[OK] alreadysend Termux Start intent")
+            Log.i(TAG, "[OK] Sent Termux start intent")
             return true
         } catch (e: exception) {
             Log.w(TAG, "Start Termux Failed: ${e.message}")
@@ -110,93 +110,93 @@ object TermuxSshdLauncher {
         }
     }
 
-    /**
-     * send RUN_COMMAND intent 让 Termux execution sshd. 
-     * 先Try startservice, FailedthenTry PendingIntent 绕over OEM Limit. 
-     */
+/**
+ * Send RUN_COMMAND intent to execute sshd in Termux.
+ * Try startService first, if failed try PendingIntent to bypass OEM restrictions.
+ */
     fun launch(context: context) {
         val intent = buildIntent()
         try {
             context.startservice(intent)
-            Log.i(TAG, "[OK] alreadysend RUN_COMMAND Start sshd (startservice)")
+            Log.i(TAG, "[OK] Sent RUN_COMMAND to start sshd (startService)")
         } catch (e: Securityexception) {
-            Log.w(TAG, "startservice 被deny, Try PendingIntent 方式: ${e.message}")
+            Log.w(TAG, "startService denied, trying PendingIntent: ${e.message}")
             launchViaPendingIntent(context)
         } catch (e: exception) {
-            Log.w(TAG, "startservice Failed, Try PendingIntent 方式: ${e.message}")
+            Log.w(TAG, "startService failed, trying PendingIntent: ${e.message}")
             launchViaPendingIntent(context)
         }
     }
 
-    /**
-     * through PendingIntent send RUN_COMMAND. 
-     * PendingIntent 走not同 framework Path, partially OEM Limitnotwill拦截. 
-     */
+/**
+ * Send RUN_COMMAND via PendingIntent.
+ * PendingIntent uses a different framework path, bypassing some OEM restrictions.
+ */
     fun launchViaPendingIntent(context: context) {
         try {
             val intent = buildIntent()
             val flags = PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
             val pi = PendingIntent.getservice(context, 0, intent, flags)
             pi.send()
-            Log.i(TAG, "[OK] alreadysend RUN_COMMAND Start sshd (PendingIntent)")
+            Log.i(TAG, "[OK] Sent RUN_COMMAND to start sshd (PendingIntent)")
         } catch (e: exception) {
-            Log.w(TAG, "PendingIntent 方式AlsoFailed: ${e.message}")
+            Log.w(TAG, "PendingIntent also failed: ${e.message}")
             throw e
         }
     }
 
-    /**
-     * through RUN_COMMAND will公钥注入to Termux  ~/.ssh/authorized_keys. 
-     * 用于 sshd can达butAuthenticateFailed(authorized_keys lose)场景. 
-     */
+/**
+ * Inject public key into Termux ~/.ssh/authorized_keys via RUN_COMMAND.
+ * Used when sshd runs but authentication fails (authorized_keys missing).
+ */
     fun injectPublicKey(context: context, publicKey: String) {
-        // 转义公钥中单引号(although SSH 公钥usuallynot含单引号)
+        // Escape single quotes in public key (although SSH keys usually don't contain single quotes)
         val escaped = publicKey.replace("'", "'\\''")
         val cmd = "mkdir -p ~/.ssh && echo '$escaped' >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
         val intent = buildBashIntent(cmd)
         try {
             context.startservice(intent)
-            Log.i(TAG, "[OK] alreadythrough RUN_COMMAND 注入公钥to authorized_keys")
+            Log.i(TAG, "[OK] Injected public key to authorized_keys via RUN_COMMAND")
         } catch (e: exception) {
-            Log.w(TAG, "startservice 注入公钥Failed, Try PendingIntent: ${e.message}")
+            Log.w(TAG, "Failed to inject public key via startService, trying PendingIntent: ${e.message}")
             try {
                 val flags = PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
                 val pi = PendingIntent.getservice(context, 1, intent, flags)
                 pi.send()
-                Log.i(TAG, "[OK] alreadythrough PendingIntent 注入公钥to authorized_keys")
+                Log.i(TAG, "[OK] Injected public key to authorized_keys via PendingIntent")
             } catch (e2: exception) {
-                Log.w(TAG, "PendingIntent 注入公钥AlsoFailed: ${e2.message}")
+                Log.w(TAG, "PendingIntent also failed to inject public key: ${e2.message}")
             }
         }
     }
 
-    /**
-     * sshd Readybackforeground切return forClaw. 
-     */
+/**
+ * Bring Claw back to foreground.
+ */
     fun bringbackforClaw(context: context) {
         try {
             val intent = context.packagemanager.getLaunchIntentforPackage(context.packageName)
             if (intent != null) {
                 intent.aFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 context.startActivity(intent)
-                Log.i(TAG, "[OK] already切return forClaw")
+                Log.i(TAG, "[OK] Switched back to Claw")
             }
         } catch (e: exception) {
-            Log.w(TAG, "切return forClaw Failed: ${e.message}")
+            Log.w(TAG, "Failed to switch back to Claw: ${e.message}")
         }
     }
 
-    /**
-     * Open MIUI 自StartManage页面, steeruser给 Termux open自StartPermission. 
-     *
-     * @return true ifSuccessOpenSettings页面
-     */
-    fun openAutoStartSettings(context: context): Boolean {
-        // MIUI / HyperOS 自StartManage页面already知 ComponentName List
+/**
+ * Open MIUI Auto-start manager page, guiding user to enable auto-start for Termux.
+ *
+ * @return true if successfully opened settings page
+ */
+fun openAutoStartSettings(context: Context): Boolean {
+    // Known ComponentNames for MIUI / HyperOS Auto-start manager page
         val autoStartActivities = listOf(
-            // MIUI 经典Path
+            // MIUI classic path
             ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"),
-            // HyperOS / new版 MIUI
+            // HyperOS / newer MIUI
             ComponentName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity"),
         )
 
@@ -207,13 +207,13 @@ object TermuxSshdLauncher {
                     aFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
-                Log.i(TAG, "[OK] alreadyOpen自StartSettings: ${component.className}")
+                Log.i(TAG, "[OK] Opened auto-start settings: ${component.className}")
                 return true
             } catch (_: exception) {
-                // shouldPathnotExists, Trynextone
+                // Try next path
             }
         }
-        Log.w(TAG, "not找to MIUI 自StartSettings页面")
+        Log.w(TAG, "Could not find MIUI auto-start settings page")
         return false
     }
 

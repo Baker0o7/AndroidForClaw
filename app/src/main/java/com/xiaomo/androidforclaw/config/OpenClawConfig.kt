@@ -12,8 +12,8 @@ import com.xiaomo.androidforclaw.workspace.StoragePaths
 /**
  * OpenClaw config — Aligned with OpenClaw types.openclaw.d.ts
  *
- * user只写thinkoverrideField, Its余all用DefaultValue. 
- * Parseby configLoader  JSONObject Process. 
+ * User only writes to override field, the rest all use default values.
+ * Parsed by configLoader JSONObject process.
  */
 
 data class OpenClawconfig(
@@ -43,13 +43,13 @@ data class OpenClawconfig(
     // ======= Legacy =======
     val providers: Map<String, providerconfig> = emptyMap()
 ) {
-    /** Parse providers: 优先 models.providers；若forNullthen fallback to顶layer providers */
+    /** Parse providers: prefer models.providers; fall back to top-level providers if null */
     fun resolveproviders(): Map<String, providerconfig> {
         val modelproviders = models?.providers
         return if (!modelproviders.isNullorEmpty()) modelproviders else providers
     }
 
-    /** ParseDefault模型 */
+    /** Parse default model */
     fun resolveDefaultmodel(): String {
         // 1. Explicit primary model
         agents?.defaults?.model?.primary?.let { return it }
@@ -64,7 +64,7 @@ data class OpenClawconfig(
         return agent.defaultmodel
     }
 
-    /** 兼容oldcode: gateway.feishu → channels.feishu */
+    /** Legacy compatibility: gateway.feishu → channels.feishu */
     val feishuconfig: Feishuchannelconfig get() = channels.feishu
 }
 
@@ -451,7 +451,7 @@ data class Loggingconfig(
 
 data class UIconfig(
     val theme: String = "auto",
-    val language: String = "zh"
+    val language: String = "en"
 )
 
 // ============ thinking ============

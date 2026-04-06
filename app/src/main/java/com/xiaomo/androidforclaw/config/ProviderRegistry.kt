@@ -10,22 +10,22 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * OpenClaw provider Registry
+ * OpenClaw Provider Registry
  *
- * from assets/providers.json Load provider 定义. 
- * providers.json by scripts/sync-providers.py from OpenClaw 源码生成. 
- * 保持and OpenClaw one致只needreRun脚本并Replace JSON. 
+ * Loads provider definitions from assets/providers.json.
+ * providers.json is generated from OpenClaw source by scripts/sync-providers.py.
+ * To stay in sync with OpenClaw, just re-run the script and replace the JSON.
  *
- * at the same time保留硬Encode fallback, in JSON LoadFailedhouruse. 
+ * Also keeps hardcoded fallback for when JSON fails to load.
  */
 object providerRegistry {
 
     @Volatile
     private var _providers: List<providerDefinition>? = null
 
-    /**
-     * from assets/providers.json Initialize(shouldin Application.onCreate 中call)
-     */
+/**
+ * Initialize from assets/providers.json (should be called in Application.onCreate)
+ */
     fun init(context: context) {
         if (_providers != null) return
         try {
@@ -37,36 +37,36 @@ object providerRegistry {
         }
     }
 
-    /**
-     * from JSON StringInitialize(用于单元Test, Noneneed android context)
-     */
+/**
+ * Initialize from JSON string (for unit testing, no Android context needed)
+ */
     @JvmStatic
     fun initfromJson(json: String) {
         _providers = parseproviders(json)
     }
 
-    /**
-     * ResetfornotInitializeStatus(Test用)
-     */
+/**
+ * Reset to uninitialized state (for testing)
+ */
     @JvmStatic
     fun reset() {
         _providers = null
     }
 
-    /** Allregistered provider, 按 order Sort */
-    val ALL: List<providerDefinition>
+/** All registered providers, sorted by order */
+val ALL: List<providerDefinition>
         get() = _providers ?: FALLBACK_PROVIDERS
 
-    /** 按 group minuteGroup */
-    val PRIMARY_PROVIDERS: List<providerDefinition>
+/** Filter by group */
+val PRIMARY_PROVIDERS: List<providerDefinition>
         get() = ALL.filter { it.group == providerGroup.PRIMARY }
     val MORE_PROVIDERS: List<providerDefinition>
         get() = ALL.filter { it.group == providerGroup.MORE }
     val CUSTOM_PROVIDERS: List<providerDefinition>
         get() = ALL.filter { it.group == providerGroup.CUSTOM }
 
-    /** 按 ID Find provider */
-    fun findById(id: String): providerDefinition? {
+/** Find provider by ID */
+fun findById(id: String): providerDefinition? {
         val normalized = normalizeproviderId(id)
         return ALL.firstorNull { it.id == normalized }
     }
@@ -89,9 +89,9 @@ object providerRegistry {
         }
     }
 
-    /**
-     * according to providerDefinition 生成 providerconfig(用于Write openclaw.json)
-     */
+/**
+ * Generate provider config from provider definition (for writing openclaw.json)
+ */
     fun buildproviderconfig(
         definition: providerDefinition,
         apiKey: String?,
@@ -123,10 +123,10 @@ object providerRegistry {
         )
     }
 
-    /** 生成 provider/modelId format引用 */
-    fun buildmodelRef(providerId: String, modelId: String): String = "$providerId/$modelId"
+/** Generate provider/modelId format reference */
+fun buildmodelRef(providerId: String, modelId: String): String = "$providerId/$modelId"
 
-    /** Custom API TypeList(Spinner 用) */
+/** Custom API Types list (for Spinner) */
     val CUSTOM_API_TYPES = listOf(
         modelApi.OPENAI_COMPLETIONS to "OpenAI Compatible",
         modelApi.ANTHROPIC_MESSAGES to "Anthropic Compatible",
@@ -211,53 +211,53 @@ object providerRegistry {
         )
     }
 
-    // ========== Fallback(JSON LoadFailedhouruse) ==========
+    // ========== Fallback (used when JSON fails to load) ==========
 
     private val FALLBACK_PROVIDERS = listOf(
-        providerDefinition(
-            id = "openrouter", name = "OpenRouter", description = "Aggregateplatform",
-            baseUrl = "https://openrouter.ai/api/v1", api = modelApi.OPENAI_COMPLETIONS,
-            keyRequired = false, keyHint = "OpenRouter API Key", envVarName = "OPENROUTER_API_KEY",
-            group = providerGroup.PRIMARY, order = 10, supportsDiscovery = true
-        ),
-        providerDefinition(
-            id = "anthropic", name = "Anthropic", description = "Claude 系Column",
-            baseUrl = "https://api.anthropic.com", api = modelApi.ANTHROPIC_MESSAGES,
-            keyRequired = true, keyHint = "Anthropic API Key", envVarName = "ANTHROPIC_API_KEY",
-            authHeader = false, group = providerGroup.PRIMARY, order = 20
-        ),
-        providerDefinition(
-            id = "openai", name = "OpenAI", description = "GPT 系Column",
-            baseUrl = "https://api.openai.com/v1", api = modelApi.OPENAI_COMPLETIONS,
-            keyRequired = true, keyHint = "OpenAI API Key", envVarName = "OPENAI_API_KEY",
-            group = providerGroup.PRIMARY, order = 30, supportsDiscovery = true
-        ),
-        providerDefinition(
-            id = "google", name = "Google (Gemini)", description = "Gemini 系Column",
-            baseUrl = "https://generativelanguage.googleapis.com/v1beta",
-            api = modelApi.GOOGLE_GENERATIVE_AI,
-            keyRequired = true, keyHint = "Gemini API Key", envVarName = "GEMINI_API_KEY",
-            group = providerGroup.PRIMARY, order = 40
-        ),
-        providerDefinition(
-            id = "ollama", name = "Ollama (本地)", description = "本地模型",
-            baseUrl = "http://127.0.0.1:11434", api = modelApi.OLLAMA,
-            keyRequired = false, keyHint = "Optional", envVarName = "OLLAMA_API_KEY",
-            group = providerGroup.PRIMARY, order = 70, supportsDiscovery = true,
-            discoveryEndpoint = "/api/tags"
-        ),
-        providerDefinition(
-            id = "nvidia", name = "NVIDIA NIM", description = "NVIDIA 托管模型",
-            baseUrl = "https://integrate.api.nvidia.com/v1", api = modelApi.OPENAI_COMPLETIONS,
-            keyRequired = true, keyHint = "NVIDIA API Key", envVarName = "NVIDIA_API_KEY",
-            group = providerGroup.PRIMARY, order = 60
-        ),
-        providerDefinition(
-            id = "minimax", name = "MiniMax", description = "MiniMax M2.7 系Column",
-            baseUrl = "https://api.minimax.io/anthropic", api = modelApi.ANTHROPIC_MESSAGES,
-            keyRequired = true, keyHint = "MiniMax API Key", envVarName = "MINIMAX_API_KEY",
-            group = providerGroup.PRIMARY, order = 55
-        ),
+providerDefinition(
+    id = "openrouter", name = "OpenRouter", description = "Aggregator platform",
+    baseUrl = "https://openrouter.ai/api/v1", api = modelApi.OPENAI_COMPLETIONS,
+    keyRequired = false, keyHint = "OpenRouter API Key", envVarName = "OPENROUTER_API_KEY",
+    group = providerGroup.PRIMARY, order = 10, supportsDiscovery = true
+),
+providerDefinition(
+    id = "anthropic", name = "Anthropic", description = "Claude family",
+    baseUrl = "https://api.anthropic.com", api = modelApi.ANTHROPIC_MESSAGES,
+    keyRequired = true, keyHint = "Anthropic API Key", envVarName = "ANTHROPIC_API_KEY",
+    authHeader = false, group = providerGroup.PRIMARY, order = 20
+),
+providerDefinition(
+    id = "openai", name = "OpenAI", description = "GPT family",
+    baseUrl = "https://api.openai.com/v1", api = modelApi.OPENAI_COMPLETIONS,
+    keyRequired = true, keyHint = "OpenAI API Key", envVarName = "OPENAI_API_KEY",
+    group = providerGroup.PRIMARY, order = 30, supportsDiscovery = true
+),
+providerDefinition(
+    id = "google", name = "Google (Gemini)", description = "Gemini family",
+    baseUrl = "https://generativelanguage.googleapis.com/v1beta",
+    api = modelApi.GOOGLE_GENERATIVE_AI,
+    keyRequired = true, keyHint = "Gemini API Key", envVarName = "GEMINI_API_KEY",
+    group = providerGroup.PRIMARY, order = 40
+),
+providerDefinition(
+    id = "ollama", name = "Ollama (Local)", description = "Local models",
+    baseUrl = "http://127.0.0.1:11434", api = modelApi.OLLAMA,
+    keyRequired = false, keyHint = "Optional", envVarName = "OLLAMA_API_KEY",
+    group = providerGroup.PRIMARY, order = 70, supportsDiscovery = true,
+    discoveryEndpoint = "/api/tags"
+),
+providerDefinition(
+    id = "nvidia", name = "NVIDIA NIM", description = "NVIDIA hosted models",
+    baseUrl = "https://integrate.api.nvidia.com/v1", api = modelApi.OPENAI_COMPLETIONS,
+    keyRequired = true, keyHint = "NVIDIA API Key", envVarName = "NVIDIA_API_KEY",
+    group = providerGroup.PRIMARY, order = 60
+),
+providerDefinition(
+    id = "minimax", name = "MiniMax", description = "MiniMax M2.7 family",
+    baseUrl = "https://api.minimax.io/anthropic", api = modelApi.ANTHROPIC_MESSAGES,
+    keyRequired = true, keyHint = "MiniMax API Key", envVarName = "MINIMAX_API_KEY",
+    group = providerGroup.PRIMARY, order = 55
+),
         providerDefinition(
             id = "custom", name = "Custom (OpenAI 兼容)", description = "Custom API",
             baseUrl = "", api = modelApi.OPENAI_COMPLETIONS,

@@ -221,7 +221,7 @@ class GatewayServer(
     private fun serveClipboardPage(): Response {
         val html = """
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -261,20 +261,20 @@ h2 { font-size: 14px; color: #888; margin-bottom: 12px; font-weight: 500; }
 <body>
 <div class="container">
 <h1>[CLIP] Web Clipboard</h1>
-<p class="subtitle">in电脑UpInput, 手机UpAutoCopyto clipboard</p>
+<p class="subtitle">Input on PC, auto-copy to phone clipboard</p>
 
 <div class="input-area">
-<textarea id="text" placeholder="paste API Key、configcontentorAnyText..." autofocus></textarea>
+<textarea id="text" placeholder="Paste API Key, config content or any text..." autofocus></textarea>
 </div>
 <div class="actions">
-<button class="btn-send" id="sendBtn" onclick="send()">sendto手机</button>
-<button class="btn-clear" onclick="clearInput()">清Null</button>
+<button class="btn-send" id="sendBtn" onclick="send()">Send to Phone</button>
+<button class="btn-clear" onclick="clearInput()">Clear</button>
 </div>
 <div class="status" id="status"></div>
 
-<h2>历史Record(clickCopy)</h2>
+<h2>History (click to copy)</h2>
 <ul class="history" id="history"></ul>
-<div class="empty" id="empty">暂NoneRecord</div>
+<div class="empty" id="empty">No records yet</div>
 </div>
 
 <script>
@@ -289,7 +289,7 @@ async function send() {
   if (!text) return;
   sendBtn.disabled = true;
   statusEl.className = 'status';
-  statusEl.textContent = 'send中...';
+  statusEl.textContent = 'Sending...';
   try {
     const res = await fetch('/api/clipboard/send', {
       method: 'POST',
@@ -299,7 +299,7 @@ async function send() {
     const data = await res.json();
     if (data.ok) {
       statusEl.className = 'status ok';
-      statusEl.textContent = '[OK] alreadysendto手机cut板 (' + data.length + ' characters)';
+      statusEl.textContent = '[OK] Sent to phone clipboard (' + data.length + ' characters)';
       textarea.value = '';
       loadHistory();
     } else {
@@ -307,7 +307,7 @@ async function send() {
     }
   } catch (e) {
     statusEl.className = 'status error';
-    statusEl.textContent = '[ERROR] sendFailed: ' + e.message;
+    statusEl.textContent = '[ERROR] Send failed: ' + e.message;
   }
   sendBtn.disabled = false;
   setTimeout(() => { statusEl.textContent = ''; }, 3000);
@@ -330,12 +330,12 @@ async function loadHistory() {
     }
     emptyEl.style.display = 'none';
     historyEl.innerHTML = items.map((item, i) => {
-      const t = new Date(item.timestamp).toLocaleString('zh-CN');
+      const t = new Date(item.timestamp).toLocaleString();
       const preview = item.text.length > 200 ? item.text.substring(0, 200) + '...' : item.text;
       return '<li class="history-item" onclick="copyItem(this, ' + i + ')" data-text="' + escapeAttr(item.text) + '">'
         + '<div class="history-text">' + escapeHtml(preview) + '</div>'
         + '<div class="history-time">' + t + '</div>'
-        + '<div class="history-copied">alreadyCopy</div></li>';
+        + '<div class="history-copied">Copied</div></li>';
     }).join('');
   } catch (e) {}
 }
