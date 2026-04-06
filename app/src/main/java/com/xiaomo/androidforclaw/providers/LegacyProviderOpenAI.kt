@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withcontext
 
 /**
- * Legacy LLM API provider - OpenAI 兼容format
+ * Legacy LLM API provider - OpenAI compatible format
  * uses /v1/chat/completions endpoint
  * Supports standard OpenAI function calling format
  */
@@ -42,12 +42,12 @@ class LegacyproviderOpenAI(
         .build()
 
     private val gson: Gson = GsonBuilder()
-        .disableHtmlEscaping()  // 避免转义 HTML characters
-        .serializeNulls()        // Serialize null Value
+        .disableHtmlEscaping()  // Avoid HTML character escaping
+        .serializeNulls()        // Serialize null values
         .create()
 
     /**
-     * sendChatRequest (OpenAI Chat Completions API format)
+     * Send chat request (OpenAI Chat Completions API format)
      */
     suspend fun chat(
         messages: List<LegacyMessage>,
@@ -144,7 +144,7 @@ class LegacyproviderOpenAI(
     }
 
     /**
-     * ConvertMessageto OpenAI format
+     * Convert message to OpenAI format
      */
     private fun convertToOpenAIMessage(msg: LegacyMessage): OpenAIMessage {
         return when (msg.role) {
@@ -156,7 +156,7 @@ class LegacyproviderOpenAI(
             }
             "assistant" -> {
                 if (msg.toolCalls != null) {
-                    // Assistant MessageContains工具call
+                    // Assistant message contains tool calls
                     OpenAIMessage(
                         role = "assistant",
                         content = msg.content?.toString(),
@@ -179,7 +179,7 @@ class LegacyproviderOpenAI(
                 }
             }
             "tool" -> {
-                // tool result message
+                // Tool result message
                 OpenAIMessage(
                     role = "tool",
                     content = msg.content?.toString(),
@@ -196,7 +196,7 @@ class LegacyproviderOpenAI(
     }
 
     /**
-     * Converttool definitionto OpenAI format
+     * Convert tool definition to OpenAI format
      */
     private fun converttoolToOpenAIformat(tool: toolDefinition): OpenAItool {
         return OpenAItool(
@@ -210,7 +210,7 @@ class LegacyproviderOpenAI(
     }
 
     /**
-     * Convert OpenAI Responseto LegacyResponse format
+     * Convert OpenAI response to LegacyResponse format
      */
     private fun convertfromOpenAIResponse(response: OpenAIChatResponse): LegacyResponse {
         val choices = response.choices.map { choice ->
@@ -253,7 +253,7 @@ class LegacyproviderOpenAI(
     }
 
     /**
-     * 简化ChatMethod
+     * Simplified chat method
      */
     suspend fun simpleChat(
         userMessage: String,

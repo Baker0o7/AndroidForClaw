@@ -41,12 +41,12 @@ class LegacyproviderAnthropic(
         .build()
 
     private val gson: Gson = GsonBuilder()
-        .disableHtmlEscaping()  // 避免转义 HTML characters
-        .serializeNulls()        // Serialize null Value
+        .disableHtmlEscaping()  // Avoid HTML character escaping
+        .serializeNulls()        // Serialize null values
         .create()
 
     /**
-     * sendChatRequest (Anthropic Messages API format)
+     * Send chat request (Anthropic Messages API format)
      */
     suspend fun chat(
         messages: List<LegacyMessage>,
@@ -123,7 +123,7 @@ class LegacyproviderAnthropic(
     }
 
     /**
-     * ConvertMessageto Anthropic format
+     * Convert message to Anthropic format
      */
     private fun convertToAnthropicMessage(msg: LegacyMessage): AnthropicMessage {
         return when (msg.role) {
@@ -196,7 +196,7 @@ class LegacyproviderAnthropic(
     }
 
     /**
-     * Parse工具Parameters JSON Stringfor Map
+     * Parse tool parameters JSON string to Map
      */
     private fun parsetoolArguments(jsonStr: String): Map<String, Any?> {
         return try {
@@ -209,7 +209,7 @@ class LegacyproviderAnthropic(
     }
 
     /**
-     * Converttool definitionto Anthropic format
+     * Convert tool definition to Anthropic format
      */
     private fun converttoolToAnthropicformat(tool: toolDefinition): Anthropictool {
         // Convert Parametersschema to Inputschema
@@ -234,7 +234,7 @@ class LegacyproviderAnthropic(
     }
 
     /**
-     * Convert Anthropic Responseto LegacyResponse format
+     * Convert Anthropic response to LegacyResponse format
      */
     private fun convertfromAnthropicResponse(response: AnthropicResponse): LegacyResponse {
         // Extract text content and tool calls
@@ -289,7 +289,7 @@ class LegacyproviderAnthropic(
     }
 
     /**
-     * 简化ChatMethod
+     * Simplified chat method
      */
     suspend fun simpleChat(
         userMessage: String,

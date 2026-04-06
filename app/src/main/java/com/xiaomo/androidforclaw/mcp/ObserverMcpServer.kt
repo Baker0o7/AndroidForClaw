@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - No OpenClaw counterpart (android-only — MCP Server 供External agent call)
+ * - No OpenClaw counterpart (android-only — MCP Server for External agent call)
  */
 package com.xiaomo.androidforclaw.mcp
 
@@ -13,28 +13,28 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * MCP Server — will手机Accessibility操控and截屏Capabilitythrough MCP Protocol暴露给External agent. 
+ * MCP Server — exposes mobile Accessibility control and screenshot capability through MCP Protocol to External agents. 
  *
  * ┌──────────────────────────────────────────────────────────────┐
- * │  [WARN]  thisClassYes给【External agent】use(Claude Desktop、Cursor 等)│
- * │     and androidforClaw 自身FeatureNone关.                           │
- * │     androidforClaw through Devicetool → AccessibilityProxy      │
- * │     直接call, not走 MCP.                                       │
+ * │  [WARN]  this class is for 【External agents】 use (Claude Desktop, Cursor, etc.)│
+ * │     and androidforClaw's own features are NOT related.              │
+ * │     androidforClaw uses Devicetool → AccessibilityProxy          │
+ * │     directly, not via MCP.                                       │
  * └──────────────────────────────────────────────────────────────┘
  *
  * Transport: Streamable HTTP (POST /mcp)
  * Protocol: JSON-RPC 2.0 (MCP spec)
  *
- * 暴露 tools:
+ * Exposed tools:
  *   get_view_tree  — Get UI Tree
- *   screenshot     — 截屏 (base64)
- *   tap            — click坐标
- *   long_press     — long press坐标
- *   swipe          — swipe手势
- *   input_text     — Input文字
- *   press_home     — 按 Home Key
- *   press_back     — 按ReturnKey
- *   get_current_app— GetwhenFrontforegroundappPackage name
+ *   screenshot     — Take screenshot (base64)
+ *   tap            — Tap at coordinates
+ *   long_press     — Long press at coordinates
+ *   swipe          — Swipe gesture
+ *   input_text     — Input text
+ *   press_home     — Press Home Key
+ *   press_back     — Press Back Key
+ *   get_current_app— Get foreground app package name
  */
 class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
 
@@ -85,7 +85,7 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         ),
         Mcptool(
             name = "screenshot",
-            description = "截取whenFrontScreen, Return base64 Encode PNG image",
+            description = "Capture current screen, return base64 encoded PNG image",
             inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
         Mcptool(
@@ -114,43 +114,43 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         ),
         Mcptool(
             name = "swipe",
-            description = "inScreenUpexecutionswipe手势",
+            description = "Execute swipe gesture on screen",
             inputschema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "start_x" to mapOf("type" to "integer", "description" to "up始 X"),
-                    "start_y" to mapOf("type" to "integer", "description" to "up始 Y"),
+                    "start_x" to mapOf("type" to "integer", "description" to "Start X"),
+                    "start_y" to mapOf("type" to "integer", "description" to "Start Y"),
                     "end_x" to mapOf("type" to "integer", "description" to "End X"),
                     "end_y" to mapOf("type" to "integer", "description" to "End Y"),
-                    "duration_ms" to mapOf("type" to "integer", "description" to "swipeduration(ms), Default 300")
+                    "duration_ms" to mapOf("type" to "integer", "description" to "Swipe duration (ms), default 300")
                 ),
                 "required" to listOf("start_x", "start_y", "end_x", "end_y")
             )
         ),
         Mcptool(
             name = "input_text",
-            description = "向whenFrontFocusInput fieldInput文字",
+            description = "Input text into the focused input field",
             inputschema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "text" to mapOf("type" to "string", "description" to "needInput文字")
+                    "text" to mapOf("type" to "string", "description" to "Text to input")
                 ),
                 "required" to listOf("text")
             )
         ),
         Mcptool(
             name = "press_home",
-            description = "按 Home Key, ReturnmainScreen",
+            description = "Press Home Key, return to main screen",
             inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
         Mcptool(
             name = "press_back",
-            description = "按ReturnKey",
+            description = "Press Back Key",
             inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
         Mcptool(
             name = "get_current_app",
-            description = "GetwhenFrontforegroundappPackage name",
+            description = "Get foreground app package name",
             inputschema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
         ),
     )

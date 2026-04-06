@@ -19,7 +19,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * API 适配器
+ * API Adapter
  * Responsible for converting generic request format to specific formats of different API providers
  *
  * Reference: OpenClaw src/agents/llm-adapters/
@@ -33,7 +33,7 @@ object ApiAdapter {
     }
 
     /**
-     * BuildRequest体
+     * Build request body
      */
     fun buildRequestBody(
         provider: providerconfig,
@@ -68,7 +68,7 @@ object ApiAdapter {
                 model, messages, tools, temperature, maxTokens, stream
             )
             else -> {
-                // Defaultuse OpenAI 兼容format
+                // Default use OpenAI compatible format
                 buildOpenAIRequest(model, messages, tools, temperature, maxTokens, reasoningEnabled, stream)
             }
         }
@@ -87,7 +87,7 @@ object ApiAdapter {
     )
 
     /**
-     * BuildRequest头
+     * Build request headers
      */
     fun buildHeaders(
         provider: providerconfig,
@@ -114,7 +114,7 @@ object ApiAdapter {
             builder.a(key, value)
         }
 
-        // A API Key (if authHeader is configured)
+        // Add API Key (if authHeader is configured)
         android.util.Log.d("ApiAdapter", "[KEY] authHeader=${provider.authHeader}, apiKey=${provider.apiKey?.take(10)}")
         if (provider.authHeader && provider.apiKey != null) {
             val api = model.api ?: provider.api
@@ -142,12 +142,12 @@ object ApiAdapter {
     /**
      * Detect if a provider is OpenRouter based on its baseUrl.
      */
-    private fun isOpenRouterprovider(provider: providerconfig): Boolean {
+    private fun isOpenRouterProvider(provider: providerconfig): Boolean {
         return provider.baseUrl.contains("openrouter.ai", ignoreCase = true)
     }
 
     /**
-     * ParseResponse
+     * Parse response
      */
     fun parseResponse(
         api: String,
@@ -223,7 +223,7 @@ object ApiAdapter {
                     anthropicMessages.put(msg)
                 }
                 "tool" -> {
-                    // Anthropic use tool_result format, Supportmany模态(Text+image)
+                    // Anthropic uses tool_result format, supports multimodal (text+image)
                     val toolresultContent = if (!message.images.isNullorEmpty()) {
                         // Multimodal tool result: text block + image blocks
                         JSONArray().app {
@@ -262,12 +262,12 @@ object ApiAdapter {
 
         json.put("messages", anthropicMessages)
 
-        // A system message
+        // Add system message
         if (systemMessage != null) {
             json.put("system", systemMessage)
         }
 
-        // A tools (use buildtoolJson for proper JSON escaping)
+        // Add tools (use buildToolJson for proper JSON escaping)
         if (!tools.isNullorEmpty()) {
             val anthropictools = JSONArray()
             tools.forEach { tool ->
