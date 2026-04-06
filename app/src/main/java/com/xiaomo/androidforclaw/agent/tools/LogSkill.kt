@@ -34,7 +34,7 @@ class Logskill : skill {
                     type = "object",
                     properties = mapOf(
                         "message" to Propertyschema("string", "LogMessage"),
-                        "level" to Propertyschema("string", "Loglevel别: debug, info, warn, error, Default info")
+                        "level" to Propertyschema("string", "Log level: debug, info, warn, error, default info")
                     ),
                     required = listOf("message")
                 )

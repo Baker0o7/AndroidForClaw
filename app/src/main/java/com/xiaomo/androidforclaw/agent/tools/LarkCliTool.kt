@@ -14,7 +14,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * LarkCli tool — Execute lark-cli (飞书官方 CLI) commands.
+ * LarkCli tool — Execute Lark (飞书/Feishu) official CLI commands.
  *
  * The binary is bundled as liblark-cli.so in jniLibs and extracted to nativeLibraryDir
  * at install time. Authentication is auto-configured from openclaw.json's

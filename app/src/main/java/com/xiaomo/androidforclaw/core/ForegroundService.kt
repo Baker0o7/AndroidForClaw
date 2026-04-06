@@ -34,7 +34,7 @@ class foregroundservice : service() {
         private const val TAG = "foregroundservice"
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "androidforclaw_service"
-        private const val CHANNEL_NAME = "androidforClaw backgroundservice"
+        private const val CHANNEL_NAME = "androidforClaw Background Service"
         const val ACTION_START_ACTIVITY = "START_ACTIVITY"
         const val EXTRA_PACKAGE_NAME = "package_name"
         const val EXTRA_ACTIVITY_NAME = "activity_name"
@@ -111,7 +111,7 @@ class foregroundservice : service() {
             } else {
                 applicationcontext.startservice(restartIntent)
             }
-            Log.i(TAG, "already触发serviceRestart")
+            Log.i(TAG, "Triggered service restart")
         } catch (e: exception) {
             Log.e(TAG, "serviceRestartFailed", e)
         }
@@ -127,7 +127,7 @@ class foregroundservice : service() {
                 CHANNEL_NAME,
                 notificationmanager.IMPORTANCE_LOW
             ).app {
-                description = "保持 androidforClaw backgroundRun"
+                description = "Keep androidforClaw running in background"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
@@ -135,7 +135,7 @@ class foregroundservice : service() {
 
             val notificationmanager = getSystemservice(notificationmanager::class.java)
             notificationmanager.createnotificationchannel(channel)
-            Log.d(TAG, "notification渠道alreadyCreate")
+            Log.d(TAG, "Notification channel already created")
         }
     }
 
@@ -162,8 +162,8 @@ class foregroundservice : service() {
         )
 
         return notificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("androidforClaw currentlyRun")
-            .setContentText("clickOpenapp")
+            .setContentTitle("androidforClaw Running")
+            .setContentText("Click to open app")
             .setSmallIcon(R.drawable.ic_baseline_adb_24)
             .setPriority(notificationCompat.PRIORITY_LOW)
             .setShowwhen(true)
