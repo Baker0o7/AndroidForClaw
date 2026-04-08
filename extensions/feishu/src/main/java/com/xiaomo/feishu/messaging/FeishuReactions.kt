@@ -25,7 +25,7 @@ class FeishuReactions(private val client: FeishuClient) {
 /**
  * Add reaction
  */
-    suspend fun addReaction(messageId: String, emoji: FeishuEmoji): result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun addReaction(messageId: String, emoji: FeishuEmoji): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val body = mapOf(
                 "reaction_type" to mapOf(
@@ -36,51 +36,51 @@ class FeishuReactions(private val client: FeishuClient) {
             val result = client.post("/open-apis/im/v1/messages/$messageId/reactions", body)
 
             if (result.isFailure) {
-                return@withContext result.failure(result.exceptionOrNull()!!)
+                return@withContext result
             }
 
             Log.d(TAG, "Reaction added: $messageId - ${emoji.code}")
-            result.success(Unit)
+            Result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to add reaction", e)
-            result.failure(e)
+            Result.failure(e)
         }
     }
 
 /**
  * Remove reaction
  */
-    suspend fun removeReaction(messageId: String, reactionId: String): result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun removeReaction(messageId: String, reactionId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val result = client.delete("/open-apis/im/v1/messages/$messageId/reactions/$reactionId")
 
             if (result.isFailure) {
-                return@withContext result.failure(result.exceptionOrNull()!!)
+                return@withContext result
             }
 
             Log.d(TAG, "Reaction removed: $messageId - $reactionId")
-            result.success(Unit)
+            Result.success(Unit)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to remove reaction", e)
-            result.failure(e)
+            Result.failure(e)
         }
     }
 
 /**
  * List all reactions on a message
  */
-    suspend fun listReactions(messageId: String): result<List<ReactionInfo>> = withContext(Dispatchers.IO) {
+    suspend fun listReactions(messageId: String): Result<List<ReactionInfo>> = withContext(Dispatchers.IO) {
         try {
             val result = client.get("/open-apis/im/v1/messages/$messageId/reactions")
 
             if (result.isFailure) {
-                return@withContext result.failure(result.exceptionOrNull()!!)
+                return@withContext result
             }
 
             val data = result.getOrNull()?.getAsJsonObject("data")
-            val items = data?.getAsJsonArray("items") ?: return@withContext result.success(emptyList())
+            val items = data?.getAsJsonArray("items") ?: return@withContext Result.success(emptyList())
 
             val reactions = items.map { item ->
                 val obj = item.asJsonObject
@@ -95,11 +95,11 @@ class FeishuReactions(private val client: FeishuClient) {
                 )
             }
 
-            result.success(reactions)
+            Result.success(reactions)
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to list reactions", e)
-            result.failure(e)
+            Result.failure(e)
         }
     }
 }
