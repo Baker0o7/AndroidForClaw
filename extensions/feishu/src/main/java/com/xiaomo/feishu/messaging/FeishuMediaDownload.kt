@@ -42,23 +42,23 @@ class FeishuMediaDownload(
      *
      * API: GET /open-apis/im/v1/images/{image_key}
      */
-    suspend fun downloadImage(imageKey: String): result<Downloadresult> {
+    suspend fun downloadImage(imageKey: String): Result<Downloadresult> {
         // Check cache
-        val cached = File(mediaCacheDir, "img_$imageKey")
+        val cached = File(mediaCacheDir, "img_"+imageKey)
         if (cached.exists() && cached.length() > 0) {
             Log.d(TAG, "Image cache hit: $imageKey")
-            return result.success(Downloadresult(cached))
+            return Result.success(Downloadresult(cached))
         }
 
         val result = client.downloadRaw("/open-apis/im/v1/images/$imageKey")
         if (result.isFailure) {
-            return result.failure(result.exceptionOrNull()!!)
+            return Result.failure(result.exceptionOrNull()!!)
         }
 
         val bytes = result.getOrNull()!!
         cached.writeBytes(bytes)
-        Log.d(TAG, "Downloaded image: $imageKey (${bytes.size} bytes)")
-        return result.success(Downloadresult(cached))
+        Log.d(TAG, "Downloaded image: $imageKey ([39m${bytes.size} bytes)")
+        return Result.success(Downloadresult(cached))
     }
 
     /**
@@ -71,24 +71,24 @@ class FeishuMediaDownload(
         messageId: String,
         fileKey: String,
         type: String = "file"
-    ): result<Downloadresult> {
+    ): Result<Downloadresult> {
         // Check cache
         val cached = File(mediaCacheDir, "res_${fileKey}")
         if (cached.exists() && cached.length() > 0) {
             Log.d(TAG, "Resource cache hit: $fileKey")
-            return result.success(Downloadresult(cached))
+            return Result.success(Downloadresult(cached))
         }
 
         val path = "/open-apis/im/v1/messages/$messageId/resources/$fileKey?type=$type"
         val result = client.downloadRaw(path)
         if (result.isFailure) {
-            return result.failure(result.exceptionOrNull()!!)
+            return Result.failure(result.exceptionOrNull()!!)
         }
 
         val bytes = result.getOrNull()!!
         cached.writeBytes(bytes)
-        Log.d(TAG, "Downloaded resource: $fileKey (${bytes.size} bytes)")
-        return result.success(Downloadresult(cached))
+        Log.d(TAG, "Downloaded resource: $fileKey ([39m${bytes.size} bytes)")
+        return Result.success(Downloadresult(cached))
     }
 
     /**
@@ -98,19 +98,19 @@ class FeishuMediaDownload(
     suspend fun downloadMedia(
         messageId: String,
         mediaKeys: MediaKeys
-    ): result<Downloadresult> {
+    ): Result<Downloadresult> {
         return when (mediaKeys.mediaType) {
             "image" -> {
                 val key = mediaKeys.imageKey
-                    ?: return result.failure(Exception("Missing image_key"))
+                    ?: return Result.failure(Exception("Missing image_key"))
                 downloadImage(key)
             }
             "file", "audio", "video", "sticker" -> {
                 val key = mediaKeys.fileKey
-                    ?: return result.failure(Exception("Missing file_key"))
+                    ?: return Result.failure(Exception("Missing file_key"))
                 downloadMessageResource(messageId, key, "file")
             }
-            else -> result.failure(Exception("Unsupported media type: ${mediaKeys.mediaType}"))
+            else -> Result.failure(Exception("Unsupported media type: ${mediaKeys.mediaType}"))
         }
     }
 
